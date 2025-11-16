@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Profiles - AstroProfile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Raleway', sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #1a2332 50%, #0f1b2e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 42px;
+            color: #ffd700;
+            margin-bottom: 12px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+        }
+        
+        .actions-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1a1a1a;
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffd700;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #ffd700;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+        }
+        
+        .profiles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .profile-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-card:hover {
+            border-color: rgba(212, 175, 55, 0.6);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            transform: translateY(-3px);
+        }
+        
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .profile-name {
+            font-family: 'Cinzel', serif;
+            font-size: 20px;
+            color: #ffd700;
+            font-weight: 700;
+        }
+        
+        .profile-id {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .profile-info {
+            margin-bottom: 15px;
+        }
+        
+        .info-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .info-label {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .info-value {
+            color: white;
+            font-weight: 600;
+        }
+        
+        .profile-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .badge-chinese {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .badge-western {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .profile-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .profile-actions .btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h3 {
+            color: #ffd700;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .profiles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Manage Profiles</h1>
+            <p>View, edit, and compare your saved astrological profiles</p>
+        </div>
+        
+        <div class="actions-bar">
+            <a href="index.html" class="btn btn-primary">➕ Create New Profile</a>
+            <button class="btn btn-secondary" onclick="exportProfiles()">💾 Export All</button>
+            <button class="btn btn-secondary" onclick="importProfiles()">📥 Import</button>
+            <button class="btn btn-danger" onclick="clearAll()">🗑️ Clear All</button>
+        </div>
+        
+        <div id="profilesContainer" class="profiles-grid">
+            <!-- Profiles will be loaded here -->
+        </div>
+    </div>
+    
+    <script src="profileManager.js"></script>
+    <script>
+        function loadProfiles() {
+            const profiles = ProfileManager.getAllProfiles();
+            const container = document.getElementById('profilesContainer');
+            
+            if (profiles.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⭐</div>
+                        <h3>No Profiles Yet</h3>
+                        <p>Create your first profile to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = profiles.map(profile => `
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div>
+                            <div class="profile-name">${profile.firstName} ${profile.lastName}</div>
+                            <div class="profile-id">${profile.id}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-info">
+                        <div class="info-line">
+                            <span class="info-label">Birth Date:</span>
+                            <span class="info-value">${profile.birthDate}</span>
+                        </div>
+                        <div class="info-line">
+                            <span class="info-label">Birth Time:</span>
+                            <span class="info-value">${profile.birthTime}</span>
+                        </div>
+                        <div class="info-line">
+                            <span class="info-label">Location:</span>
+                            <span class="info-value">${profile.birthLocation}</span>
+                        </div>
+                        <div class="info-line">
+                            <span class="info-label">Age:</span>
+                            <span class="info-value">${profile.age.years} years old</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-badges">
+                        <span class="badge badge-chinese">${profile.chineseZodiac.element} ${profile.chineseZodiac.animal}</span>
+                        <span class="badge badge-western">${profile.westernZodiac.sign}</span>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn btn-primary" onclick="viewProfile('${profile.id}')">View</button>
+                        <button class="btn btn-danger" onclick="deleteProfile('${profile.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function viewProfile(profileId) {
+            ProfileManager.setCurrentProfile(profileId);
+            window.location.href = 'results.html';
+        }
+        
+        function deleteProfile(profileId) {
+            const profile = ProfileManager.getProfile(profileId);
+            if (confirm(`Are you sure you want to delete ${profile.firstName} ${profile.lastName}'s profile?`)) {
+                ProfileManager.deleteProfile(profileId);
+                loadProfiles();
+            }
+        }
+        
+        function exportProfiles() {
+            const data = ProfileManager.exportData();
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `astro-profiles-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+        
+        function importProfiles() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    if (ProfileManager.importData(event.target.result)) {
+                        alert('Profiles imported successfully!');
+                        loadProfiles();
+                    } else {
+                        alert('Error importing profiles. Please check the file format.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+        
+        function clearAll() {
+            if (confirm('Are you sure you want to delete ALL profiles? This cannot be undone!')) {
+                if (confirm('Really delete everything? This is your last chance!')) {
+                    ProfileManager.clearAll();
+                    loadProfiles();
+                }
+            }
+        }
+        
+        // Load profiles on page load
+        loadProfiles();
+    </script>
+</body>
+</html>
