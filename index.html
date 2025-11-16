@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroProfile - Your Cosmic Blueprint</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .cosmic-header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease-in;
+        }
+
+        .cosmic-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .star {
+            font-size: 2rem;
+            animation: twinkle 2s infinite;
+        }
+
+        .cosmic-header p {
+            font-size: 1.1rem;
+            color: #a0b4c0;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.8s ease-out;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2),
+                        inset 0 0 15px rgba(255, 215, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .time-input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .time-input-group label {
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            color: #a0b4c0;
+            text-transform: none;
+        }
+
+        .time-input-group input {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border: none;
+            border-radius: 12px;
+            color: #0f2027;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.2);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @media (max-width: 600px) {
+            .cosmic-header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 30px 20px;
+            }
+
+            .time-inputs {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        .nav-hint {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #a0b4c0;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="cosmic-header">
+            <h1>
+                <span class="star">✨</span>
+                Your Cosmic Blueprint
+                <span class="star">✨</span>
+            </h1>
+            <p>Discover your unique astrological profile</p>
+        </div>
+
+        <div class="card">
+            <form id="birthForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input 
+                        type="text" 
+                        id="fullName" 
+                        placeholder="Enter your full name"
+                        required
+                        tabindex="1"
+                    />
+                    <div class="error-message" id="nameError">Please enter your name</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="birthDate">Birth Date</label>
+                    <input 
+                        type="date" 
+                        id="birthDate" 
+                        required
+                        tabindex="2"
+                    />
+                    <div class="error-message" id="dateError">Please enter your birth date</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Birth Time</label>
+                    <div class="time-inputs">
+                        <div class="time-input-group">
+                            <label>Hour (0-23)</label>
+                            <input 
+                                type="number" 
+                                id="birthHour" 
+                                min="0" 
+                                max="23" 
+                                placeholder="09"
+                                required
+                                tabindex="3"
+                            />
+                        </div>
+                        <div class="time-input-group">
+                            <label>Minute (0-59)</label>
+                            <input 
+                                type="number" 
+                                id="birthMinute" 
+                                min="0" 
+                                max="59" 
+                                placeholder="25"
+                                required
+                                tabindex="4"
+                            />
+                        </div>
+                        <div class="time-input-group">
+                            <label>Second (0-59)</label>
+                            <input 
+                                type="number" 
+                                id="birthSecond" 
+                                min="0" 
+                                max="59" 
+                                placeholder="00"
+                                value="0"
+                                tabindex="5"
+                            />
+                        </div>
+                    </div>
+                    <div class="error-message" id="timeError">Please enter valid time</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="birthCity">Birth City</label>
+                    <input 
+                        type="text" 
+                        id="birthCity" 
+                        placeholder="City, Country (e.g., Rawalpindi, Pakistan)"
+                        required
+                        tabindex="6"
+                    />
+                    <div class="error-message" id="cityError">Please enter your birth city</div>
+                </div>
+
+                <button type="submit" class="analyze-btn" tabindex="7">
+                    Reveal My Cosmic Blueprint
+                </button>
+            </form>
+
+            <div class="nav-hint">
+                Press TAB to move between fields • Press ENTER to advance
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

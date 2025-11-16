@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cosmic Blueprint - Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .header-card h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .greeting {
+            font-size: 1.3rem;
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .birth-info {
+            color: #a0b4c0;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .highlight {
+            color: #FFD700;
+            font-weight: 600;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
+                        inset 0 0 25px rgba(255, 255, 255, 0.08);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .info-row {
+            margin-bottom: 12px;
+            color: #d0dae0;
+        }
+
+        .info-row strong {
+            color: #FFD700;
+        }
+
+        .zodiac-name {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 15px 0;
+            color: #fff;
+        }
+
+        .zodiac-subtitle {
+            color: #a0b4c0;
+            margin-bottom: 15px;
+        }
+
+        .element-tag {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 20px;
+            color: #FFD700;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .trait-text {
+            color: #d0dae0;
+            line-height: 1.8;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4fc3f7 0%, #81d4fa 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            transition: width 1.5s ease-out;
+        }
+
+        .yang-indicator {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #ff9800 0%, #ffa726 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            transition: width 1.5s ease-out;
+        }
+
+        .energy-description {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .energy-description h4 {
+            color: #FFD700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .numerology-number {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 20px auto;
+            box-shadow: 0 5px 20px rgba(155, 89, 182, 0.4);
+        }
+
+        .numerology-description {
+            text-align: center;
+            color: #d0dae0;
+            line-height: 1.8;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #FFD700;
+            transform: translateY(-2px);
+        }
+
+        .next-section {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .next-section h2 {
+            color: #FFD700;
+            margin-bottom: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+
+            .header-card h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-card">
+            <h1>
+                <span>✨</span>
+                Your Cosmic Blueprint
+                <span>✨</span>
+            </h1>
+            <div class="greeting" id="greeting"></div>
+            <div class="birth-info" id="birthInfo"></div>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📅</span>
+                    <h3 class="card-title">Your Birth Information</h3>
+                </div>
+                <div id="birthDetails"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🐰</span>
+                    <h3 class="card-title">Chinese Zodiac</h3>
+                </div>
+                <div id="chineseZodiacContent"></div>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">⭐</span>
+                    <h3 class="card-title">Born On</h3>
+                </div>
+                <div id="dayContent"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">♉</span>
+                    <h3 class="card-title">Western Zodiac</h3>
+                </div>
+                <div id="westernZodiacContent"></div>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🔢</span>
+                    <h3 class="card-title">Numerology Profile</h3>
+                </div>
+                <p style="color: #a0b4c0; margin-bottom: 15px;">The mathematical blueprint of your life path and purpose</p>
+                <div id="numerologyContent"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">☯️</span>
+                    <h3 class="card-title">Yin/Yang Energy Balance</h3>
+                </div>
+                <p style="color: #a0b4c0; margin-bottom: 15px;">Your energetic signature based on Chinese Animal, Element, and Western Zodiac</p>
+                <div id="yinYangContent"></div>
+            </div>
+        </div>
+
+        <div class="next-section">
+            <h2>🔮 AI Personality Analysis Coming Next...</h2>
+            <p style="color: #a0b4c0; margin: 15px 0;">
+                9-panel dashboard • Deep Dive features • Soulmate matching • And more!
+            </p>
+            <a href="index.html" class="back-btn">← Edit Birth Information</a>
+        </div>
+    </div>
+
+    <script src="results.js"></script>
+</body>
+</html>
