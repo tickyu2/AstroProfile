@@ -16,7 +16,7 @@
             background: linear-gradient(135deg, #1a2a4e 0%, #2d4a7c 50%, #3d5a8c 100%);
             min-height: 100vh;
             color: white;
-            padding: 20px;
+            padding: 30px 20px;
         }
 
         .container {
@@ -25,23 +25,14 @@
         }
 
         .header-card {
-            background: rgba(30, 50, 90, 0.6);
+            background: rgba(20, 40, 80, 0.5);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
+            border-radius: 15px;
             padding: 25px 30px;
             text-align: center;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-                        0 0 0 1px rgba(255, 215, 0, 0.3),
-                        inset 0 0 30px rgba(255, 215, 0, 0.1);
-            border: 2px solid rgba(255, 215, 0, 0.4);
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        .header-card:hover {
-            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.3),
-                        0 0 0 2px rgba(255, 215, 0, 0.5),
-                        inset 0 0 40px rgba(255, 215, 0, 0.15);
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.2);
         }
 
         .header-card h1 {
@@ -60,13 +51,13 @@
         .greeting {
             font-size: 1.1rem;
             color: #FFD700;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
 
         .birth-info {
             color: #d0e0f0;
-            font-size: 0.95rem;
-            line-height: 1.5;
+            font-size: 1rem;
+            line-height: 1.6;
         }
 
         .highlight {
@@ -77,38 +68,33 @@
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
         .card {
-            background: rgba(30, 50, 90, 0.6);
+            background: rgba(20, 40, 80, 0.5);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-                        0 0 0 1px rgba(255, 215, 0, 0.3),
-                        inset 0 0 30px rgba(255, 215, 0, 0.08);
-            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.2);
             transition: all 0.3s ease;
-            animation: slideUp 0.6s ease-out;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 45px rgba(255, 215, 0, 0.3),
-                        0 0 0 2px rgba(255, 215, 0, 0.5),
-                        inset 0 0 40px rgba(255, 215, 0, 0.15);
-            border-color: rgba(255, 215, 0, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 30px rgba(255, 215, 0, 0.2);
+            border-color: rgba(255, 215, 0, 0.4);
         }
 
         .card-header {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
         }
 
         .card-icon {
@@ -124,7 +110,7 @@
         }
 
         .info-row {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: #d0e0f0;
             font-size: 0.9rem;
         }
@@ -134,52 +120,99 @@
         }
 
         .zodiac-name {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 700;
-            margin: 10px 0;
+            margin: 12px 0;
             color: #fff;
         }
 
         .zodiac-subtitle {
             color: #b0c8e0;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-size: 0.9rem;
         }
 
         .element-tag {
             display: inline-block;
-            padding: 6px 12px;
-            background: rgba(255, 215, 0, 0.2);
-            border: 2px solid rgba(255, 215, 0, 0.5);
-            border-radius: 20px;
+            padding: 6px 14px;
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 15px;
             color: #FFD700;
             font-size: 0.8rem;
             font-weight: 600;
-            margin-bottom: 10px;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            margin-bottom: 12px;
         }
 
         .trait-text {
             color: #d0e0f0;
-            line-height: 1.5;
-            margin-top: 10px;
+            line-height: 1.6;
+            margin-top: 12px;
             background: rgba(0, 0, 0, 0.2);
             padding: 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+        }
+
+        .numerology-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
             border-radius: 10px;
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            font-size: 0.9rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .numerology-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .num-9 { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+        .num-8 { background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%); }
+        .num-5 { background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%); }
+        .num-year { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
+
+        .numerology-content {
+            flex: 1;
+        }
+
+        .numerology-label {
+            font-size: 0.75rem;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+
+        .numerology-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .numerology-description {
+            font-size: 0.85rem;
+            color: #b0c8e0;
+            line-height: 1.4;
         }
 
         .progress-bar {
             width: 100%;
-            height: 35px;
-            background: rgba(0, 0, 0, 0.4);
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 20px;
             overflow: hidden;
             position: relative;
-            margin: 10px 0;
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+            margin: 15px 0;
         }
 
         .progress-fill {
@@ -189,9 +222,8 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             transition: width 1.5s ease-out;
-            box-shadow: 0 0 20px rgba(79, 195, 247, 0.6);
         }
 
         .yang-indicator {
@@ -204,22 +236,20 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             transition: width 1.5s ease-out;
-            box-shadow: 0 0 20px rgba(255, 152, 0, 0.6);
         }
 
         .energy-description {
             background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 10px;
-            border: 1px solid rgba(255, 215, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
         }
 
         .energy-description h4 {
             color: #FFD700;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -228,95 +258,58 @@
 
         .energy-description p {
             font-size: 0.85rem;
-            line-height: 1.4;
-        }
-
-        .numerology-number {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin: 15px auto;
-            box-shadow: 0 5px 25px rgba(155, 89, 182, 0.6),
-                        0 0 0 3px rgba(155, 89, 182, 0.3);
-            border: 3px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .numerology-description {
-            text-align: center;
-            color: #d0e0f0;
             line-height: 1.5;
-            font-size: 0.9rem;
+            color: #d0e0f0;
         }
 
         .back-btn {
             display: inline-block;
-            padding: 15px 30px;
-            background: rgba(255, 215, 0, 0.15);
-            border: 2px solid rgba(255, 215, 0, 0.4);
-            border-radius: 12px;
+            padding: 12px 25px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
             color: #FFD700;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s ease;
             cursor: pointer;
+            font-size: 0.9rem;
         }
 
         .back-btn:hover {
-            background: rgba(255, 215, 0, 0.25);
+            background: rgba(255, 215, 0, 0.2);
             border-color: #FFD700;
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
         }
 
         .next-section {
             text-align: center;
-            padding: 25px;
-            background: rgba(30, 50, 90, 0.6);
+            padding: 30px;
+            background: rgba(20, 40, 80, 0.5);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 2px solid rgba(255, 215, 0, 0.4);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-                        0 0 0 1px rgba(255, 215, 0, 0.3),
-                        inset 0 0 30px rgba(255, 215, 0, 0.08);
-            margin-top: 15px;
-        }
-
-        .next-section:hover {
-            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.3),
-                        0 0 0 2px rgba(255, 215, 0, 0.5),
-                        inset 0 0 40px rgba(255, 215, 0, 0.12);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
         }
 
         .next-section h2 {
             color: #FFD700;
-            margin-bottom: 10px;
-            font-size: 1.3rem;
+            margin-bottom: 12px;
+            font-size: 1.4rem;
         }
 
         .next-section p {
             font-size: 0.9rem;
+            color: #b0c8e0;
+            margin-bottom: 15px;
         }
 
         .card > p {
             font-size: 0.85rem;
-            margin-bottom: 10px;
-            line-height: 1.4;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            margin-bottom: 12px;
+            line-height: 1.5;
+            color: #b0c8e0;
         }
 
         @media (max-width: 768px) {
@@ -325,7 +318,7 @@
             }
 
             .header-card h1 {
-                font-size: 2rem;
+                font-size: 1.6rem;
             }
         }
     </style>
@@ -384,7 +377,7 @@
                     <span class="card-icon">🔢</span>
                     <h3 class="card-title">Numerology Profile</h3>
                 </div>
-                <p style="color: #b0c8e0; margin-bottom: 15px;">The mathematical blueprint of your life path and purpose</p>
+                <p>The mathematical blueprint of your life path and purpose</p>
                 <div id="numerologyContent"></div>
             </div>
 
@@ -393,16 +386,14 @@
                     <span class="card-icon">☯️</span>
                     <h3 class="card-title">Yin/Yang Energy Balance</h3>
                 </div>
-                <p style="color: #b0c8e0; margin-bottom: 15px;">Your energetic signature based on Chinese Animal, Element, and Western Zodiac</p>
+                <p>Your energetic signature based on Chinese Animal, Element, and Western Zodiac</p>
                 <div id="yinYangContent"></div>
             </div>
         </div>
 
         <div class="next-section">
             <h2>🔮 AI Personality Analysis Coming Next...</h2>
-            <p style="color: #b0c8e0; margin: 15px 0;">
-                9-panel dashboard • Deep Dive features • Soulmate matching • And more!
-            </p>
+            <p>9-panel dashboard • Deep Dive features • Soulmate matching • And more!</p>
             <a href="index.html" class="back-btn">← Edit Birth Information</a>
         </div>
     </div>

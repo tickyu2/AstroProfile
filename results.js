@@ -1,11 +1,9 @@
-// Results Page Logic - Loads data from localStorage
-// No configuration needed - localStorage works automatically
+// Results Page Logic - Original Version with Complete Numerology
 
 window.addEventListener('DOMContentLoaded', () => {
     const results = JSON.parse(localStorage.getItem('astroResults'));
     
     if (!results) {
-        // If no results found, redirect to input page
         window.location.href = 'index.html';
         return;
     }
@@ -41,7 +39,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dayContent').innerHTML = `
         <div class="zodiac-name">${results.dayOfWeek}</div>
         <p class="zodiac-subtitle">Ruled by ${dayRuler}</p>
-        <p style="color: #a0b4c0; font-style: italic; margin-top: 10px;">${dayTraits}</p>
+        <p style="color: #a0b4c0; font-style: italic; margin-top: 10px; font-size: 0.9rem;">${dayTraits}</p>
         <div class="trait-text">${dayInfluence}</div>
     `;
     
@@ -55,14 +53,47 @@ window.addEventListener('DOMContentLoaded', () => {
         <div class="trait-text">${westernTraits}</div>
     `;
     
-    // Numerology Card
-    const numerologyTraits = getNumerologyTraits(results.lifePathNumber);
+    // Numerology Card with ALL 4 numbers
+    const expressionNumber = calculateExpression(results.fullName);
+    const soulUrgeNumber = calculateSoulUrge(results.fullName);
+    const personalYear = calculatePersonalYear(results.birthDateFormatted);
+    
     document.getElementById('numerologyContent').innerHTML = `
-        <div class="numerology-number">${results.lifePathNumber}</div>
-        <p style="text-align: center; font-size: 1.1rem; font-weight: 600; margin-bottom: 10px;">
-            Life Path: Your Life Purpose
-        </p>
-        <div class="numerology-description">${numerologyTraits}</div>
+        <div class="numerology-item">
+            <div class="numerology-number num-9">${results.lifePathNumber}</div>
+            <div class="numerology-content">
+                <div class="numerology-label">Life Path</div>
+                <div class="numerology-title">Your Life Purpose</div>
+                <div class="numerology-description">${getLifePathDescription(results.lifePathNumber)}</div>
+            </div>
+        </div>
+        
+        <div class="numerology-item">
+            <div class="numerology-number num-8">${expressionNumber}</div>
+            <div class="numerology-content">
+                <div class="numerology-label">Expression</div>
+                <div class="numerology-title">Your Natural Talents</div>
+                <div class="numerology-description">${getExpressionDescription(expressionNumber)}</div>
+            </div>
+        </div>
+        
+        <div class="numerology-item">
+            <div class="numerology-number num-5">${soulUrgeNumber}</div>
+            <div class="numerology-content">
+                <div class="numerology-label">Soul Urge</div>
+                <div class="numerology-title">Your Inner Desires</div>
+                <div class="numerology-description">${getSoulUrgeDescription(soulUrgeNumber)}</div>
+            </div>
+        </div>
+        
+        <div class="numerology-item">
+            <div class="numerology-number num-year">${personalYear}</div>
+            <div class="numerology-content">
+                <div class="numerology-label">Personal Year 2025</div>
+                <div class="numerology-title">Your Current Cycle</div>
+                <div class="numerology-description">${getPersonalYearDescription(personalYear)}</div>
+            </div>
+        </div>
     `;
     
     // Yin/Yang Card
@@ -78,17 +109,13 @@ window.addEventListener('DOMContentLoaded', () => {
         
         <div class="energy-description">
             <h4>🌙 YIN ENERGY (${results.yinYangBalance.yin}%)</h4>
-            <p style="color: #d0dae0; font-size: 0.95rem;">
-                Receptive, introspective, intuitive. Yin is the quiet strength of water—flowing, adapting, nurturing the inner world, emotional depth, and the wisdom of listening.
-            </p>
+            <p>Receptive, introspective, intuitive. Yin is the quiet strength of water—flowing, adapting, nurturing the inner world, emotional depth, and the wisdom of listening.</p>
         </div>
 
         ${results.yinYangBalance.yang > 0 ? `
         <div class="energy-description">
             <h4>☀️ YANG ENERGY (${results.yinYangBalance.yang}%)</h4>
-            <p style="color: #d0dae0; font-size: 0.95rem;">
-                Active, expressive, dynamic. Yang is the bright power of fire—initiating, leading, creating the outer world, action-taking, and the courage to assert yourself.
-            </p>
+            <p>Active, expressive, dynamic. Yang is the bright power of fire—initiating, leading, creating the outer world, action-taking, and the courage to assert yourself.</p>
         </div>
         ` : ''}
     `;
@@ -103,33 +130,172 @@ window.addEventListener('DOMContentLoaded', () => {
                 bar.style.width = width;
             }, 100);
         });
-    }, 500);
+    }, 300);
 });
 
-// Trait Database Functions
+// Numerology Calculation Functions
+
+function calculateExpression(fullName) {
+    const letterValues = {
+        'a': 1, 'j': 1, 's': 1,
+        'b': 2, 'k': 2, 't': 2,
+        'c': 3, 'l': 3, 'u': 3,
+        'd': 4, 'm': 4, 'v': 4,
+        'e': 5, 'n': 5, 'w': 5,
+        'f': 6, 'o': 6, 'x': 6,
+        'g': 7, 'p': 7, 'y': 7,
+        'h': 8, 'q': 8, 'z': 8,
+        'i': 9, 'r': 9
+    };
+    
+    let sum = 0;
+    const cleanName = fullName.toLowerCase().replace(/[^a-z]/g, '');
+    
+    for (let char of cleanName) {
+        sum += letterValues[char] || 0;
+    }
+    
+    while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) {
+        sum = sum.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+    }
+    
+    return sum;
+}
+
+function calculateSoulUrge(fullName) {
+    const vowels = 'aeiouAEIOU';
+    const letterValues = {
+        'a': 1, 'e': 5, 'i': 9, 'o': 6, 'u': 3,
+        'A': 1, 'E': 5, 'I': 9, 'O': 6, 'U': 3
+    };
+    
+    let sum = 0;
+    for (let char of fullName) {
+        if (vowels.includes(char)) {
+            sum += letterValues[char] || 0;
+        }
+    }
+    
+    while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) {
+        sum = sum.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+    }
+    
+    return sum;
+}
+
+function calculatePersonalYear(birthDateFormatted) {
+    const currentYear = new Date().getFullYear();
+    const birthMatch = birthDateFormatted.match(/(\w+)\s+(\d+)/);
+    const month = new Date(Date.parse(birthMatch[1] + " 1, 2000")).getMonth() + 1;
+    const day = parseInt(birthMatch[2]);
+    
+    let sum = currentYear + month + day;
+    
+    while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) {
+        sum = sum.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+    }
+    
+    return sum;
+}
+
+// Numerology Description Functions
+
+function getLifePathDescription(number) {
+    const descriptions = {
+        1: 'The Pioneer - Independent, innovative, and ambitious.',
+        2: 'The Diplomat - Cooperative, sensitive, and peace-loving.',
+        3: 'The Creative - Expressive, optimistic, and imaginative.',
+        4: 'The Builder - Practical, organized, and reliable.',
+        5: 'The Freedom Seeker - Adventurous, versatile, and progressive.',
+        6: 'The Nurturer - Responsible, caring, and harmonious.',
+        7: 'The Seeker - Analytical, spiritual, and introspective.',
+        8: 'The Powerhouse - Ambitious, authoritative, and material-focused.',
+        9: 'The Humanitarian - Compassionate, generous, idealistic.',
+        11: 'The Illuminator - Intuitive, inspired, and visionary.',
+        22: 'The Master Builder - Visionary, practical, and transformative.',
+        33: 'The Master Teacher - Nurturing, selfless, and healing.'
+    };
+    return descriptions[number] || descriptions[9];
+}
+
+function getExpressionDescription(number) {
+    const descriptions = {
+        1: 'Natural leader with innovative vision.',
+        2: 'Diplomatic mediator, excellent team player.',
+        3: 'Creative communicator, artistic expression.',
+        4: 'Practical organizer, solid foundation builder.',
+        5: 'Dynamic adventurer, embraces change.',
+        6: 'Nurturing caretaker, creates harmony.',
+        7: 'Analytical thinker, spiritual seeker.',
+        8: 'Powerful achiever, business-minded.',
+        9: 'Humanitarian visionary, serves others.',
+        11: 'Intuitive messenger, inspires others.',
+        22: 'Master builder, creates lasting legacy.',
+        33: 'Master healer, uplifts humanity.'
+    };
+    return descriptions[number] || descriptions[8];
+}
+
+function getSoulUrgeDescription(number) {
+    const descriptions = {
+        1: 'Desires independence and leadership.',
+        2: 'Longs for partnership and harmony.',
+        3: 'Craves creative self-expression.',
+        4: 'Seeks stability and order.',
+        5: 'Longs for freedom and adventure.',
+        6: 'Desires to nurture and serve.',
+        7: 'Seeks knowledge and understanding.',
+        8: 'Craves success and recognition.',
+        9: 'Desires to help humanity.',
+        11: 'Longs to inspire and enlighten.',
+        22: 'Seeks to build something meaningful.',
+        33: 'Desires to heal and teach.'
+    };
+    return descriptions[number] || descriptions[5];
+}
+
+function getPersonalYearDescription(number) {
+    const descriptions = {
+        1: 'New beginnings - Fresh starts, new opportunities.',
+        2: 'Partnerships - Cooperation, relationships develop.',
+        3: 'Creativity - Self-expression, social expansion.',
+        4: 'Hard work - Building foundations, stability.',
+        5: 'Change - Freedom, adventure, transformation.',
+        6: 'Responsibility - Family, service, nurturing.',
+        7: 'Introspection - Spiritual growth, inner work.',
+        8: 'Achievement - Business success, financial gains, recognition.',
+        9: 'Completion - Endings, humanitarian service.',
+        11: 'Illumination - Spiritual awakening, inspiration.',
+        22: 'Master building - Large-scale achievements.',
+        33: 'Master healing - Service, compassion.'
+    };
+    return descriptions[number] || descriptions[8];
+}
+
+// Trait Database Functions (same as before)
 
 function getChineseZodiacTraits(animal, element) {
     const animalTraits = {
         'Rabbit': 'Gentle, compassionate, and diplomatic. Rabbits are artistic souls who value peace and harmony. They avoid conflict and seek comfortable, stable environments.',
-        'Tiger': 'Brave, confident, and competitive. Tigers are natural leaders with magnetic personalities who embrace challenges fearlessly.',
-        'Dragon': 'Ambitious, enthusiastic, and charismatic. Dragons are destined for greatness with their powerful presence and innovative spirit.',
-        'Snake': 'Wise, intuitive, and mysterious. Snakes are deep thinkers with strong instincts and sophisticated charm.',
-        'Horse': 'Energetic, independent, and free-spirited. Horses love adventure and movement, embracing life with passion.',
-        'Goat': 'Creative, gentle, and empathetic. Goats are artistic with refined tastes and compassionate hearts.',
-        'Monkey': 'Clever, playful, and curious. Monkeys are quick-witted problem solvers who thrive on mental challenges.',
-        'Rooster': 'Observant, hardworking, and confident. Roosters are perfectionists who take pride in their work and appearance.',
-        'Dog': 'Loyal, honest, and protective. Dogs are faithful friends with strong moral compass and unwavering devotion.',
-        'Pig': 'Generous, optimistic, and sincere. Pigs enjoy life\'s pleasures and value relationships above material wealth.',
-        'Rat': 'Intelligent, adaptable, and resourceful. Rats are quick-thinking opportunists with excellent survival instincts.',
-        'Ox': 'Reliable, patient, and determined. Oxen are steady workers who value tradition and methodical progress.'
+        'Tiger': 'Brave, confident, and competitive. Tigers are natural leaders.',
+        'Dragon': 'Ambitious, enthusiastic, and charismatic.',
+        'Snake': 'Wise, intuitive, and mysterious.',
+        'Horse': 'Energetic, independent, and free-spirited.',
+        'Goat': 'Creative, gentle, and empathetic.',
+        'Monkey': 'Clever, playful, and curious.',
+        'Rooster': 'Observant, hardworking, and confident.',
+        'Dog': 'Loyal, honest, and protective.',
+        'Pig': 'Generous, optimistic, and sincere.',
+        'Rat': 'Intelligent, adaptable, and resourceful.',
+        'Ox': 'Reliable, patient, and determined.'
     };
     
     const elementTraits = {
         'Water': 'Water adds emotional depth, intuition, and adaptability. It brings wisdom, flexibility, and the ability to flow with life changes. This creates a more sensitive and empathetic nature.',
-        'Wood': 'Wood brings growth, creativity, and compassion. It adds flexibility, the drive to expand, and a collaborative spirit.',
-        'Fire': 'Fire adds passion, energy, and leadership. It brings enthusiasm, dynamic expression, and transformative power.',
-        'Earth': 'Earth brings stability, reliability, and practicality. It adds grounding, nurturing qualities, and patience.',
-        'Metal': 'Metal adds determination, structure, and precision. It brings clarity, strong principles, and refined strength.'
+        'Wood': 'Wood brings growth, creativity, and compassion.',
+        'Fire': 'Fire adds passion, energy, and leadership.',
+        'Earth': 'Earth brings stability, reliability, and practicality.',
+        'Metal': 'Metal adds determination, structure, and precision.'
     };
     
     return animalTraits[animal] + ' ' + elementTraits[element];
@@ -145,7 +311,7 @@ function getDayRuler(day) {
         'Saturday': 'Saturn',
         'Sunday': 'Sun'
     };
-    return rulers[day] || 'Unknown';
+    return rulers[day];
 }
 
 function getDayTraits(day) {
@@ -158,20 +324,20 @@ function getDayTraits(day) {
         'Saturday': 'Discipline, responsibility, structure',
         'Sunday': 'Vitality, confidence, leadership'
     };
-    return traits[day] || '';
+    return traits[day];
 }
 
 function getDayInfluence(day) {
     const influences = {
         'Monday': 'The Moon brings sensitivity, intuition, and nurturing energy. Those born on Monday are deeply empathetic and emotionally intelligent.',
         'Tuesday': 'Mars brings energy, courage, and determination. Tuesday-born individuals are natural warriors and pioneers.',
-        'Wednesday': 'Mercury brings communication, intellect, and adaptability. Wednesday-born are quick thinkers and excellent communicators.',
-        'Thursday': 'Jupiter brings expansion, wisdom, and generosity. Thursday-born have philosophical minds and optimistic spirits.',
-        'Friday': 'Venus brings love, beauty, and harmony. Friday-born appreciate aesthetics and value relationships.',
-        'Saturday': 'Saturn brings discipline, responsibility, and structure. Saturday-born are patient builders with lasting achievements.',
-        'Sunday': 'The Sun brings vitality, confidence, and leadership. Sunday-born radiate warmth and natural authority.'
+        'Wednesday': 'Mercury brings communication, intellect, and adaptability.',
+        'Thursday': 'Jupiter brings expansion, wisdom, and generosity.',
+        'Friday': 'Venus brings love, beauty, and harmony.',
+        'Saturday': 'Saturn brings discipline, responsibility, and structure.',
+        'Sunday': 'The Sun brings vitality, confidence, and leadership.'
     };
-    return influences[day] || '';
+    return influences[day];
 }
 
 function getZodiacElement(sign) {
@@ -181,41 +347,23 @@ function getZodiacElement(sign) {
         'Gemini': 'Air', 'Libra': 'Air', 'Aquarius': 'Air',
         'Cancer': 'Water', 'Scorpio': 'Water', 'Pisces': 'Water'
     };
-    return elements[sign] || 'Unknown';
+    return elements[sign];
 }
 
 function getWesternZodiacTraits(sign) {
     const traits = {
         'Taurus': 'Reliable builders who value stability, beauty, and sensory pleasures. Taurus individuals are patient, practical, and appreciate life\'s finer things. The Earth element grounds this sign in reality, enhancing practicality, reliability, and material focus. Earth signs build tangible results, value security, and work steadily toward their goals. They are sensual, patient, and excel at manifesting their visions into physical form.',
-        'Aries': 'Bold initiators with pioneering spirit. Aries are confident leaders who embrace challenges with courage and enthusiasm.',
-        'Gemini': 'Curious communicators who thrive on mental stimulation. Geminis are adaptable, social, and intellectually versatile.',
-        'Cancer': 'Nurturing protectors with deep emotional intelligence. Cancers create safe havens and value family connections.',
-        'Leo': 'Confident performers who radiate warmth. Leos are generous leaders with creative flair and magnetic presence.',
-        'Virgo': 'Analytical perfectionists who serve through improvement. Virgos are detail-oriented healers with practical wisdom.',
-        'Libra': 'Diplomatic peacemakers who seek balance. Libras are charming, relationship-oriented, and aesthetically refined.',
-        'Scorpio': 'Intense transformers with penetrating insight. Scorpios are powerful, magnetic, and deeply passionate.',
-        'Sagittarius': 'Adventurous philosophers who seek truth. Sagittarians are optimistic explorers with boundless enthusiasm.',
-        'Capricorn': 'Ambitious achievers who build lasting legacies. Capricorns are disciplined, responsible, and patient.',
-        'Aquarius': 'Innovative humanitarians who champion progress. Aquarians are independent visionaries with unconventional minds.',
-        'Pisces': 'Compassionate dreamers with artistic souls. Pisces are intuitive, empathetic, and spiritually connected.'
+        'Aries': 'Bold initiators with pioneering spirit.',
+        'Gemini': 'Curious communicators who thrive on mental stimulation.',
+        'Cancer': 'Nurturing protectors with deep emotional intelligence.',
+        'Leo': 'Confident performers who radiate warmth.',
+        'Virgo': 'Analytical perfectionists who serve through improvement.',
+        'Libra': 'Diplomatic peacemakers who seek balance.',
+        'Scorpio': 'Intense transformers with penetrating insight.',
+        'Sagittarius': 'Adventurous philosophers who seek truth.',
+        'Capricorn': 'Ambitious achievers who build lasting legacies.',
+        'Aquarius': 'Innovative humanitarians who champion progress.',
+        'Pisces': 'Compassionate dreamers with artistic souls.'
     };
-    return traits[sign] || 'A unique cosmic signature.';
-}
-
-function getNumerologyTraits(number) {
-    const traits = {
-        1: 'The Pioneer - Independent, innovative, and ambitious. You are a natural leader with the courage to forge new paths.',
-        2: 'The Diplomat - Cooperative, sensitive, and peace-loving. You excel at partnerships and harmonizing relationships.',
-        3: 'The Creative - Expressive, optimistic, and imaginative. You inspire through communication and artistic vision.',
-        4: 'The Builder - Practical, organized, and reliable. You create lasting foundations with methodical dedication.',
-        5: 'The Freedom Seeker - Adventurous, versatile, and progressive. You embrace change and thrive on variety.',
-        6: 'The Nurturer - Responsible, caring, and harmonious. You serve through love and create beauty in the world.',
-        7: 'The Seeker - Analytical, spiritual, and introspective. You search for truth with philosophical depth.',
-        8: 'The Powerhouse - Ambitious, authoritative, and material-focused. You manifest abundance through determination.',
-        9: 'The Humanitarian - Compassionate, generous, and idealistic. You serve humanity with selfless dedication.',
-        11: 'The Illuminator - Intuitive, inspired, and visionary. You are a spiritual messenger bringing light to others.',
-        22: 'The Master Builder - Visionary, practical, and transformative. You build empires for the greater good.',
-        33: 'The Master Teacher - Nurturing, selfless, and healing. You uplift humanity through unconditional love.'
-    };
-    return traits[number] || 'The Humanitarian - Compassionate, generous, and idealistic.';
+    return traits[sign];
 }
