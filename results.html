@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Cosmic Blueprint - Results</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,8 +13,8 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #1a2332 50%, #0f1b2e 100%);
             padding: 15px;
             min-height: 100vh;
             color: white;
@@ -31,10 +32,46 @@
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
             border: 1px solid rgba(212, 175, 55, 0.3);
+            position: relative;
+        }
+        
+        .nav-buttons {
+            position: absolute;
+            top: 20px;
+            width: calc(100% - 40px);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .nav-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            border-radius: 25px;
+            color: #ffd700;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .nav-button:hover {
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .nav-button .arrow {
+            font-size: 18px;
         }
         
         .header h1 {
-            font-size: 32px;
+            font-family: 'Cinzel', serif;
+            font-size: 36px;
             color: #ffd700;
             margin-bottom: 8px;
             text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
@@ -58,6 +95,14 @@
             border: 1px solid rgba(212, 175, 55, 0.3);
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .card:hover {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            border-color: rgba(212, 175, 55, 0.6);
+            transform: translateY(-3px);
         }
         
         .card-header {
@@ -74,11 +119,11 @@
         }
         
         .card-title {
-            font-size: 14px;
-            font-weight: 700;
+            font-family: 'Cinzel', serif;
+            font-size: 16px;
+            font-weight: 600;
             color: #ffd700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
         
         .info-row {
@@ -116,6 +161,7 @@
         }
         
         .zodiac-name {
+            font-family: 'Cinzel', serif;
             font-size: 22px;
             font-weight: 700;
             color: #ffd700;
@@ -146,11 +192,44 @@
             white-space: nowrap;
         }
         
+        .description-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .description-box:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(212, 175, 55, 0.4);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+        
         .description {
             color: rgba(255, 255, 255, 0.85);
             font-size: 14px;
             line-height: 1.6;
-            margin-top: 10px;
+        }
+        
+        .learn-more-btn {
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .learn-more-btn:hover {
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+            transform: scale(1.05);
         }
         
         /* Numerology specific styles */
@@ -169,13 +248,13 @@
         }
         
         .circle {
-            width: 60px;
-            height: 60px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 30px;
             font-weight: 700;
             color: white;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
@@ -205,56 +284,76 @@
         }
         
         /* Yin/Yang specific styles */
-        .energy-display {
+        .energy-split-pill {
+            display: flex;
+            height: 45px;
+            border-radius: 25px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .energy-half {
+            flex: 1;
             display: flex;
             align-items: center;
-            gap: 15px;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            position: relative;
+        }
+        
+        .energy-half.yin {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+        }
+        
+        .energy-half.yang {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+        }
+        
+        .energy-label-top {
+            position: absolute;
+            top: 4px;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+        
+        .energy-percentage {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .energy-section {
             margin-bottom: 15px;
         }
         
-        .yin-yang-symbol {
-            font-size: 80px;
-            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
-        }
-        
-        .energy-info {
-            flex: 1;
-        }
-        
-        .energy-pill {
-            display: inline-block;
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #1a1a1a;
-            padding: 8px 16px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-        
-        .energy-bar-container {
-            margin-bottom: 12px;
-        }
-        
-        .energy-bar-labels {
+        .energy-header {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 12px;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
         }
         
-        .energy-bar {
-            height: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
+        .energy-icon {
+            font-size: 24px;
         }
         
-        .energy-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ffd700 0%, #ffed4e 100%);
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        .energy-title {
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffd700;
+        }
+        
+        .energy-subtitle {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-left: 32px;
+            margin-bottom: 8px;
         }
         
         @media (max-width: 1200px) {
@@ -267,12 +366,28 @@
             .dashboard {
                 grid-template-columns: 1fr;
             }
+            .nav-buttons {
+                position: relative;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <div class="nav-buttons">
+                <a href="index.html" class="nav-button">
+                    <span class="arrow">←</span>
+                    <span>Back to Data Input</span>
+                </a>
+                <a href="analysis.html" class="nav-button">
+                    <span>View Analysis</span>
+                    <span class="arrow">→</span>
+                </a>
+            </div>
             <h1>✨ Your Cosmic Blueprint ✨</h1>
             <p>The mathematical blueprint of your life path and purpose</p>
         </div>
@@ -286,23 +401,26 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">Birth Date:</span>
-                    <span class="info-value">1983-07-07</span>
+                    <span class="info-value">1983-07-06</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Birth Time:</span>
-                    <span class="info-value">14:30</span>
+                    <span class="info-value">08:30</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Birth Place:</span>
-                    <span class="info-value">New York, NY</span>
+                    <span class="info-value">Mianzhu, China</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Age:</span>
-                    <span class="info-value" id="age">42 years, 4 months, 8 days</span>
+                    <span class="info-value" id="age">42 years, 4 months, 9 days</span>
                 </div>
-                <p class="description">
-                    As of today (2025-11-15), your unique cosmic blueprint has been shaped by the precise celestial alignments at your moment of birth.
-                </p>
+                <div class="description-box">
+                    <p class="description">
+                        As of today (2025-11-15), your unique cosmic blueprint has been shaped by the precise celestial alignments at your moment of birth.
+                    </p>
+                    <button class="learn-more-btn" onclick="showCalculations('birth')">Learn More</button>
+                </div>
             </div>
             
             <!-- Chinese Zodiac Card -->
@@ -317,11 +435,14 @@
                         <span class="zodiac-icon">💧</span>
                     </div>
                     <span class="zodiac-name">Water Pig</span>
-                    <span class="element-badge">WATER ELEMENT</span>
+                    <span class="element-badge">Water Element</span>
                 </div>
-                <p class="description">
-                    The Water Pig embodies profound compassion and remarkable social intelligence. Those born under this sign possess exceptional diplomatic abilities and demonstrate unwavering loyalty. The Water element amplifies natural empathy, creating individuals who intuitively sense others' needs.
-                </p>
+                <div class="description-box">
+                    <p class="description">
+                        The Water Pig embodies profound compassion and remarkable social intelligence. Those born under this sign possess exceptional diplomatic abilities and demonstrate unwavering loyalty. The Water element amplifies natural empathy, creating individuals who intuitively sense others' needs.
+                    </p>
+                    <button class="learn-more-btn" onclick="showCalculations('chinese')">Learn More</button>
+                </div>
             </div>
             
             <!-- Western Zodiac Card -->
@@ -336,11 +457,14 @@
                         <span class="zodiac-icon">💧</span>
                     </div>
                     <span class="zodiac-name">Cancer</span>
-                    <span class="element-badge">WATER ELEMENT</span>
+                    <span class="element-badge">Water Element</span>
                 </div>
-                <p class="description">
-                    Cancer represents the archetypal nurturer, governed by the Moon's intuitive wisdom and emotional depth. This cardinal water sign demonstrates exceptional emotional intelligence and profound protective instincts. Cancers possess remarkable tenacity beneath their gentle exterior.
-                </p>
+                <div class="description-box">
+                    <p class="description">
+                        Cancer represents the archetypal nurturer, governed by the Moon's intuitive wisdom and emotional depth. This cardinal water sign demonstrates exceptional emotional intelligence and profound protective instincts. Cancers possess remarkable tenacity beneath their gentle exterior.
+                    </p>
+                    <button class="learn-more-btn" onclick="showCalculations('western')">Learn More</button>
+                </div>
             </div>
             
             <!-- Born On Card -->
@@ -351,11 +475,14 @@
                 </div>
                 <div class="zodiac-display">
                     <span class="zodiac-name">Wednesday</span>
-                    <span class="planet-badge">RULED BY MERCURY</span>
+                    <span class="planet-badge">Ruled by Mercury</span>
                 </div>
-                <p class="description">
-                    Wednesday births fall under Mercury's dominion, bestowing exceptional communicative prowess and intellectual agility. Those born on this day naturally excel in analytical thinking and verbal expression. Mercury's influence manifests as curiosity-driven intelligence and quick-witted responses.
-                </p>
+                <div class="description-box">
+                    <p class="description">
+                        Wednesday births fall under Mercury's dominion, bestowing exceptional communicative prowess and intellectual agility. Those born on this day naturally excel in analytical thinking and verbal expression. Mercury's influence manifests as curiosity-driven intelligence and quick-witted responses.
+                    </p>
+                    <button class="learn-more-btn" onclick="showCalculations('bornon')">Learn More</button>
+                </div>
             </div>
             
             <!-- Numerology Profile Card -->
@@ -382,9 +509,12 @@
                         <div class="number-label">Personality</div>
                     </div>
                 </div>
-                <p class="description">
-                    Life Path 7 reveals a profound spiritual seeker pursuing deep truth and wisdom. Expression 5 indicates natural adaptability, while Soul Urge 3 expresses creative communication needs. Personality 2 projects diplomatic harmony and cooperative presence.
-                </p>
+                <div class="description-box">
+                    <p class="description">
+                        Life Path 7 reveals a profound spiritual seeker pursuing deep truth and wisdom. Expression 5 indicates natural adaptability, while Soul Urge 3 expresses creative communication needs. Personality 2 projects diplomatic harmony and cooperative presence.
+                    </p>
+                    <button class="learn-more-btn" onclick="showCalculations('numerology')">Learn More</button>
+                </div>
             </div>
             
             <!-- Yin/Yang Energy Card -->
@@ -393,24 +523,43 @@
                     <span class="icon">☯️</span>
                     <span class="card-title">Yin/Yang Energy Balance</span>
                 </div>
-                <div class="energy-display">
-                    <div class="yin-yang-symbol">☯️</div>
-                    <div class="energy-info">
-                        <div class="energy-pill">YIN (FEMININE)</div>
-                        <div class="energy-bar-container">
-                            <div class="energy-bar-labels">
-                                <span>Yin 65%</span>
-                                <span>Yang 35%</span>
-                            </div>
-                            <div class="energy-bar">
-                                <div class="energy-bar-fill" style="width: 65%"></div>
-                            </div>
-                        </div>
+                
+                <div class="energy-split-pill">
+                    <div class="energy-half yin" style="flex: 0.35;">
+                        <div class="energy-label-top">FEMININE ENERGY</div>
+                        <div class="energy-percentage">35%</div>
+                    </div>
+                    <div class="energy-half yang" style="flex: 0.65;">
+                        <div class="energy-label-top">MASCULINE ENERGY</div>
+                        <div class="energy-percentage">65%</div>
                     </div>
                 </div>
-                <p class="description">
-                    Your energy profile demonstrates pronounced Yin characteristics, indicating receptive wisdom and intuitive insight. This manifests as natural empathy and preference for inner reflection. The Yin dominance creates gentle strength and emotional intelligence.
-                </p>
+                
+                <div class="description-box">
+                    <div class="energy-section">
+                        <div class="energy-header">
+                            <span class="energy-icon">🌙</span>
+                            <span class="energy-title">Yin Energy (35%)</span>
+                        </div>
+                        <p class="energy-subtitle">Feminine Energy: Receptive, Intuitive, Nurturing</p>
+                        <p class="description">
+                            Your 35% Yin energy represents your receptive, introspective nature. This is the quiet strength of water—flowing, adapting, and nurturing the inner world. It's about emotional depth, intuition, and the wisdom of listening.
+                        </p>
+                    </div>
+                    
+                    <div class="energy-section">
+                        <div class="energy-header">
+                            <span class="energy-icon">☀️</span>
+                            <span class="energy-title">Yang Energy (65%)</span>
+                        </div>
+                        <p class="energy-subtitle">Masculine Energy: Active, Expressive, Assertive</p>
+                        <p class="description">
+                            Your 65% Yang energy reveals your active, expressive nature. This is the bright power of fire—initiating, leading, and creating in the outer world. It's about taking action, asserting yourself, and the courage to move forward boldly.
+                        </p>
+                    </div>
+                    
+                    <button class="learn-more-btn" onclick="showCalculations('yinyang')">Learn More</button>
+                </div>
             </div>
         </div>
     </div>
@@ -418,7 +567,7 @@
     <script>
         // Calculate precise age
         function calculateAge() {
-            const birthDate = new Date('1983-07-07T14:30:00');
+            const birthDate = new Date('1983-07-06T08:30:00');
             const today = new Date('2025-11-15');
             
             let years = today.getFullYear() - birthDate.getFullYear();
@@ -441,6 +590,11 @@
         }
         
         calculateAge();
+        
+        // Placeholder for Learn More functionality
+        function showCalculations(section) {
+            alert(`Calculations for ${section} will be shown here.\n\nThis will open a detailed explanation of how these values were calculated based on your birth date, time, and location.`);
+        }
     </script>
 </body>
 </html>
