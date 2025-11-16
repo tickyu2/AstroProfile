@@ -66,10 +66,29 @@
                         inset 0 0 20px rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             animation: slideUp 0.8s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.2),
+                        inset 0 0 30px rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
         }
 
         .form-group {
             margin-bottom: 30px;
+        }
+
+        .name-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .location-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
         }
 
         .form-group label {
@@ -80,10 +99,6 @@
             color: #FFD700;
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-
-        .input-wrapper {
-            position: relative;
         }
 
         input {
@@ -98,11 +113,17 @@
             outline: none;
         }
 
+        input:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
+        }
+
         input:focus {
             background: rgba(255, 255, 255, 0.12);
             border-color: #FFD700;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2),
-                        inset 0 0 15px rgba(255, 215, 0, 0.1);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3),
+                        inset 0 0 20px rgba(255, 215, 0, 0.15);
             transform: translateY(-2px);
         }
 
@@ -117,7 +138,7 @@
 
         .time-inputs {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
 
@@ -224,9 +245,10 @@
                 padding: 30px 20px;
             }
 
+            .name-row,
+            .location-row,
             .time-inputs {
                 grid-template-columns: 1fr;
-                gap: 15px;
             }
         }
 
@@ -253,14 +275,27 @@
         <div class="card">
             <form id="birthForm">
                 <div class="form-group">
-                    <label for="fullName">Full Name</label>
-                    <input 
-                        type="text" 
-                        id="fullName" 
-                        placeholder="Enter your full name"
-                        required
-                        tabindex="1"
-                    />
+                    <label>Your Name</label>
+                    <div class="name-row">
+                        <div>
+                            <input 
+                                type="text" 
+                                id="firstName" 
+                                placeholder="First Name (名)"
+                                required
+                                tabindex="1"
+                            />
+                        </div>
+                        <div>
+                            <input 
+                                type="text" 
+                                id="lastName" 
+                                placeholder="Last Name (姓)"
+                                required
+                                tabindex="2"
+                            />
+                        </div>
+                    </div>
                     <div class="error-message" id="nameError">Please enter your name</div>
                 </div>
 
@@ -270,7 +305,7 @@
                         type="date" 
                         id="birthDate" 
                         required
-                        tabindex="2"
+                        tabindex="3"
                     />
                     <div class="error-message" id="dateError">Please enter your birth date</div>
                 </div>
@@ -287,7 +322,7 @@
                                 max="23" 
                                 placeholder="09"
                                 required
-                                tabindex="3"
+                                tabindex="4"
                             />
                         </div>
                         <div class="time-input-group">
@@ -299,18 +334,6 @@
                                 max="59" 
                                 placeholder="25"
                                 required
-                                tabindex="4"
-                            />
-                        </div>
-                        <div class="time-input-group">
-                            <label>Second (0-59)</label>
-                            <input 
-                                type="number" 
-                                id="birthSecond" 
-                                min="0" 
-                                max="59" 
-                                placeholder="00"
-                                value="0"
                                 tabindex="5"
                             />
                         </div>
@@ -319,18 +342,31 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="birthCity">Birth City</label>
-                    <input 
-                        type="text" 
-                        id="birthCity" 
-                        placeholder="City, Country (e.g., Rawalpindi, Pakistan)"
-                        required
-                        tabindex="6"
-                    />
-                    <div class="error-message" id="cityError">Please enter your birth city</div>
+                    <label>Birth Location</label>
+                    <div class="location-row">
+                        <div>
+                            <input 
+                                type="text" 
+                                id="birthCity" 
+                                placeholder="City (e.g., Rawalpindi)"
+                                required
+                                tabindex="6"
+                            />
+                        </div>
+                        <div>
+                            <input 
+                                type="text" 
+                                id="birthCountry" 
+                                placeholder="Country"
+                                required
+                                tabindex="7"
+                            />
+                        </div>
+                    </div>
+                    <div class="error-message" id="locationError">Please enter your birth location</div>
                 </div>
 
-                <button type="submit" class="analyze-btn" tabindex="7">
+                <button type="submit" class="analyze-btn" tabindex="8">
                     Reveal My Cosmic Blueprint
                 </button>
             </form>

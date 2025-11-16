@@ -13,28 +13,35 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            background: linear-gradient(135deg, #1a2a4e 0%, #2d4a7c 50%, #3d5a8c 100%);
             min-height: 100vh;
             color: white;
             padding: 40px 20px;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
         }
 
         .header-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(30, 50, 90, 0.6);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 40px;
             text-align: center;
             margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                        inset 0 0 20px rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(255, 215, 0, 0.3),
+                        inset 0 0 30px rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.4);
             animation: fadeIn 0.8s ease-out;
+        }
+
+        .header-card:hover {
+            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.3),
+                        0 0 0 2px rgba(255, 215, 0, 0.5),
+                        inset 0 0 40px rgba(255, 215, 0, 0.15);
         }
 
         .header-card h1 {
@@ -57,7 +64,7 @@
         }
 
         .birth-info {
-            color: #a0b4c0;
+            color: #d0e0f0;
             font-size: 1.1rem;
             line-height: 1.8;
         }
@@ -69,27 +76,30 @@
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
             margin-bottom: 30px;
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(30, 50, 90, 0.6);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                        inset 0 0 20px rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(255, 215, 0, 0.3),
+                        inset 0 0 30px rgba(255, 215, 0, 0.08);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            transition: all 0.3s ease;
             animation: slideUp 0.6s ease-out;
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
-                        inset 0 0 25px rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 45px rgba(255, 215, 0, 0.3),
+                        0 0 0 2px rgba(255, 215, 0, 0.5),
+                        inset 0 0 40px rgba(255, 215, 0, 0.15);
+            border-color: rgba(255, 215, 0, 0.6);
         }
 
         .card-header {
@@ -98,7 +108,7 @@
             gap: 10px;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
         }
 
         .card-icon {
@@ -115,7 +125,7 @@
 
         .info-row {
             margin-bottom: 12px;
-            color: #d0dae0;
+            color: #d0e0f0;
         }
 
         .info-row strong {
@@ -130,7 +140,7 @@
         }
 
         .zodiac-subtitle {
-            color: #a0b4c0;
+            color: #b0c8e0;
             margin-bottom: 15px;
         }
 
@@ -138,28 +148,35 @@
             display: inline-block;
             padding: 8px 16px;
             background: rgba(255, 215, 0, 0.2);
-            border: 1px solid rgba(255, 215, 0, 0.4);
+            border: 2px solid rgba(255, 215, 0, 0.5);
             border-radius: 20px;
             color: #FFD700;
             font-size: 0.9rem;
             font-weight: 600;
             margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
         }
 
         .trait-text {
-            color: #d0dae0;
+            color: #d0e0f0;
             line-height: 1.8;
             margin-top: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
         }
 
         .progress-bar {
             width: 100%;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
+            height: 45px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 25px;
             overflow: hidden;
             position: relative;
             margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .progress-fill {
@@ -169,7 +186,9 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
+            font-size: 1rem;
             transition: width 1.5s ease-out;
+            box-shadow: 0 0 20px rgba(79, 195, 247, 0.6);
         }
 
         .yang-indicator {
@@ -182,14 +201,17 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
+            font-size: 1rem;
             transition: width 1.5s ease-out;
+            box-shadow: 0 0 20px rgba(255, 152, 0, 0.6);
         }
 
         .energy-description {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
             padding: 15px;
             border-radius: 10px;
             margin-top: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
         }
 
         .energy-description h4 {
@@ -201,32 +223,34 @@
         }
 
         .numerology-number {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 700;
             margin: 20px auto;
-            box-shadow: 0 5px 20px rgba(155, 89, 182, 0.4);
+            box-shadow: 0 5px 25px rgba(155, 89, 182, 0.6),
+                        0 0 0 3px rgba(155, 89, 182, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.3);
         }
 
         .numerology-description {
             text-align: center;
-            color: #d0dae0;
+            color: #d0e0f0;
             line-height: 1.8;
         }
 
         .back-btn {
             display: inline-block;
             padding: 15px 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 215, 0, 0.15);
+            border: 2px solid rgba(255, 215, 0, 0.4);
             border-radius: 12px;
-            color: white;
+            color: #FFD700;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s ease;
@@ -234,18 +258,28 @@
         }
 
         .back-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 215, 0, 0.25);
             border-color: #FFD700;
             transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
         }
 
         .next-section {
             text-align: center;
             padding: 40px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(30, 50, 90, 0.6);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(255, 215, 0, 0.3),
+                        inset 0 0 30px rgba(255, 215, 0, 0.08);
+        }
+
+        .next-section:hover {
+            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.3),
+                        0 0 0 2px rgba(255, 215, 0, 0.5),
+                        inset 0 0 40px rgba(255, 215, 0, 0.12);
         }
 
         .next-section h2 {
@@ -328,7 +362,7 @@
                     <span class="card-icon">🔢</span>
                     <h3 class="card-title">Numerology Profile</h3>
                 </div>
-                <p style="color: #a0b4c0; margin-bottom: 15px;">The mathematical blueprint of your life path and purpose</p>
+                <p style="color: #b0c8e0; margin-bottom: 15px;">The mathematical blueprint of your life path and purpose</p>
                 <div id="numerologyContent"></div>
             </div>
 
@@ -337,14 +371,14 @@
                     <span class="card-icon">☯️</span>
                     <h3 class="card-title">Yin/Yang Energy Balance</h3>
                 </div>
-                <p style="color: #a0b4c0; margin-bottom: 15px;">Your energetic signature based on Chinese Animal, Element, and Western Zodiac</p>
+                <p style="color: #b0c8e0; margin-bottom: 15px;">Your energetic signature based on Chinese Animal, Element, and Western Zodiac</p>
                 <div id="yinYangContent"></div>
             </div>
         </div>
 
         <div class="next-section">
             <h2>🔮 AI Personality Analysis Coming Next...</h2>
-            <p style="color: #a0b4c0; margin: 15px 0;">
+            <p style="color: #b0c8e0; margin: 15px 0;">
                 9-panel dashboard • Deep Dive features • Soulmate matching • And more!
             </p>
             <a href="index.html" class="back-btn">← Edit Birth Information</a>

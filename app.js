@@ -1,4 +1,4 @@
-// AstroProfile Application Logic
+// AstroProfile Application Logic - Updated for separate name and location fields
 // No localStorage configuration needed - works automatically in all modern browsers
 
 // Load saved data on page load
@@ -6,23 +6,25 @@ window.addEventListener('DOMContentLoaded', () => {
     const savedData = localStorage.getItem('astroFormData');
     if (savedData) {
         const formData = JSON.parse(savedData);
-        document.getElementById('fullName').value = formData.fullName || '';
+        document.getElementById('firstName').value = formData.firstName || '';
+        document.getElementById('lastName').value = formData.lastName || '';
         document.getElementById('birthDate').value = formData.birthDate || '';
         document.getElementById('birthHour').value = formData.birthHour || '';
         document.getElementById('birthMinute').value = formData.birthMinute || '';
-        document.getElementById('birthSecond').value = formData.birthSecond || '0';
         document.getElementById('birthCity').value = formData.birthCity || '';
+        document.getElementById('birthCountry').value = formData.birthCountry || '';
     }
 });
 
 // Enhanced single-TAB navigation
 const inputs = [
-    document.getElementById('fullName'),
+    document.getElementById('firstName'),
+    document.getElementById('lastName'),
     document.getElementById('birthDate'),
     document.getElementById('birthHour'),
     document.getElementById('birthMinute'),
-    document.getElementById('birthSecond'),
-    document.getElementById('birthCity')
+    document.getElementById('birthCity'),
+    document.getElementById('birthCountry')
 ];
 
 inputs.forEach((input, index) => {
@@ -62,12 +64,6 @@ document.getElementById('birthHour').addEventListener('input', (e) => {
 
 document.getElementById('birthMinute').addEventListener('input', (e) => {
     if (e.target.value.length === 2 && parseInt(e.target.value) <= 59) {
-        document.getElementById('birthSecond').focus();
-    }
-});
-
-document.getElementById('birthSecond').addEventListener('input', (e) => {
-    if (e.target.value.length === 2 && parseInt(e.target.value) <= 59) {
         document.getElementById('birthCity').focus();
     }
 });
@@ -83,9 +79,10 @@ document.getElementById('birthForm').addEventListener('submit', (e) => {
         err.classList.remove('show');
     });
 
-    // Validate name
-    const name = document.getElementById('fullName').value.trim();
-    if (!name) {
+    // Validate names
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    if (!firstName || !lastName) {
         document.getElementById('nameError').classList.add('show');
         isValid = false;
     }
@@ -105,22 +102,24 @@ document.getElementById('birthForm').addEventListener('submit', (e) => {
         isValid = false;
     }
 
-    // Validate city
+    // Validate location
     const city = document.getElementById('birthCity').value.trim();
-    if (!city) {
-        document.getElementById('cityError').classList.add('show');
+    const country = document.getElementById('birthCountry').value.trim();
+    if (!city || !country) {
+        document.getElementById('locationError').classList.add('show');
         isValid = false;
     }
 
     if (isValid) {
         // Save form data to localStorage
         const formData = {
-            fullName: name,
+            firstName: firstName,
+            lastName: lastName,
             birthDate: date,
             birthHour: hour,
             birthMinute: minute,
-            birthSecond: document.getElementById('birthSecond').value || '0',
-            birthCity: city
+            birthCity: city,
+            birthCountry: country
         };
         
         localStorage.setItem('astroFormData', JSON.stringify(formData));
@@ -171,9 +170,14 @@ function generateResults(data) {
     // Calculate Numerology
     const lifePathNumber = calculateLifePath(birthDate);
     
+    // Combine first and last name for display
+    const fullName = `${data.firstName} ${data.lastName}`;
+    
     // Store results and navigate
     const results = {
-        name: data.fullName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        fullName: fullName,
         birthDateFormatted: birthDate.toLocaleDateString('en-US', { 
             weekday: 'long',
             year: 'numeric', 
@@ -186,6 +190,8 @@ function generateResults(data) {
         ageDays: ageDays,
         birthTime: `${data.birthHour.padStart(2, '0')}:${data.birthMinute.padStart(2, '0')}`,
         birthCity: data.birthCity,
+        birthCountry: data.birthCountry,
+        birthLocation: `${data.birthCity}, ${data.birthCountry}`,
         chineseZodiac: chineseZodiac,
         element: element,
         westernZodiac: westernZodiac,

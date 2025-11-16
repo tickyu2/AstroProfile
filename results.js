@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     // Populate header
-    document.getElementById('greeting').textContent = `Wow, ${results.name}. Nice meeting you!`;
+    document.getElementById('greeting').textContent = `Wow, ${results.fullName}. Nice meeting you!`;
     document.getElementById('birthInfo').innerHTML = `
         I see that you were born on <span class="highlight">${results.birthDateFormatted}</span>, 
         that amazing day was a <span class="highlight">${results.dayOfWeek}</span>.<br>
@@ -20,9 +20,9 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Birth Information Card
     document.getElementById('birthDetails').innerHTML = `
-        <div class="info-row"><strong>Full Name:</strong> ${results.name}</div>
+        <div class="info-row"><strong>Full Name:</strong> ${results.fullName}</div>
         <div class="info-row"><strong>Birth Date and Time:</strong> ${results.birthDateFormatted} at ${results.birthTime}</div>
-        <div class="info-row"><strong>Birth Place:</strong> ${results.birthCity}</div>
+        <div class="info-row"><strong>Birth Place:</strong> ${results.birthLocation}</div>
     `;
     
     // Chinese Zodiac Card
