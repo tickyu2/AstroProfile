@@ -54,7 +54,7 @@
         .card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
-            padding: 18px;
+            padding: 20px;
             border: 1px solid rgba(212, 175, 55, 0.3);
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -64,17 +64,17 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
             border-bottom: 2px solid rgba(212, 175, 55, 0.4);
         }
         
         .icon {
-            font-size: 24px;
+            font-size: 26px;
         }
         
         .card-title {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 700;
             color: #ffd700;
             text-transform: uppercase;
@@ -84,8 +84,8 @@
         .info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 13px;
+            margin-bottom: 10px;
+            font-size: 14px;
         }
         
         .info-label {
@@ -103,7 +103,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
         
         .zodiac-icons {
@@ -112,11 +112,11 @@
         }
         
         .zodiac-icon {
-            font-size: 28px;
+            font-size: 32px;
         }
         
         .zodiac-name {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             color: #ffd700;
             flex: 1;
@@ -125,9 +125,9 @@
         .element-badge {
             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
             color: #1a1a1a;
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -137,9 +137,9 @@
         .planet-badge {
             background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
             color: white;
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -148,89 +148,123 @@
         
         .description {
             color: rgba(255, 255, 255, 0.85);
-            font-size: 13px;
+            font-size: 14px;
             line-height: 1.6;
-            margin-top: 8px;
+            margin-top: 10px;
         }
         
-        .full-width {
-            grid-column: span 3;
-        }
-        
-        .personality-grid {
+        /* Numerology specific styles */
+        .numbers-display {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .number-circle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .circle.life-path {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .circle.expression {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .circle.soul-urge {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .circle.personality {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .number-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        /* Yin/Yang specific styles */
+        .energy-display {
+            display: flex;
+            align-items: center;
             gap: 15px;
+            margin-bottom: 15px;
         }
         
-        .trait-card {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            padding: 15px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
+        .yin-yang-symbol {
+            font-size: 80px;
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
         }
         
-        .trait-header {
+        .energy-info {
+            flex: 1;
+        }
+        
+        .energy-pill {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1a1a1a;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        
+        .energy-bar-container {
+            margin-bottom: 12px;
+        }
+        
+        .energy-bar-labels {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
+            font-size: 12px;
         }
         
-        .trait-name {
-            font-size: 13px;
-            font-weight: 700;
-            color: #ffd700;
-        }
-        
-        .trait-score {
-            font-size: 20px;
-            font-weight: 700;
-            color: #ffd700;
-        }
-        
-        .trait-bar {
-            height: 8px;
+        .energy-bar {
+            height: 10px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+            border-radius: 5px;
             overflow: hidden;
-            margin-bottom: 8px;
         }
         
-        .trait-fill {
+        .energy-bar-fill {
             height: 100%;
             background: linear-gradient(90deg, #ffd700 0%, #ffed4e 100%);
-            border-radius: 4px;
-            transition: width 1s ease-out;
+            border-radius: 5px;
             box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        }
-        
-        .trait-description {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.75);
-            line-height: 1.5;
         }
         
         @media (max-width: 1200px) {
             .dashboard {
                 grid-template-columns: repeat(2, 1fr);
             }
-            .full-width {
-                grid-column: span 2;
-            }
-            .personality-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
         }
         
         @media (max-width: 768px) {
             .dashboard {
-                grid-template-columns: 1fr;
-            }
-            .full-width {
-                grid-column: span 1;
-            }
-            .personality-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -266,7 +300,7 @@
                     <span class="info-label">Age:</span>
                     <span class="info-value" id="age">42 years, 4 months, 8 days</span>
                 </div>
-                <p class="description" style="margin-top: 10px; font-size: 12px;">
+                <p class="description">
                     As of today (2025-11-15), your unique cosmic blueprint has been shaped by the precise celestial alignments at your moment of birth.
                 </p>
             </div>
@@ -286,7 +320,7 @@
                     <span class="element-badge">WATER ELEMENT</span>
                 </div>
                 <p class="description">
-                    The Water Pig embodies profound compassion, remarkable social intelligence, and an innate understanding of emotional currents. Those born under this sign possess exceptional diplomatic abilities and demonstrate unwavering loyalty to their chosen communities. The Water element amplifies the Pig's natural empathy, creating individuals who intuitively sense others' needs while maintaining their own gentle yet determined nature. Their generosity of spirit is matched by practical wisdom and a genuine desire to create harmony in all relationships.
+                    The Water Pig embodies profound compassion and remarkable social intelligence. Those born under this sign possess exceptional diplomatic abilities and demonstrate unwavering loyalty. The Water element amplifies natural empathy, creating individuals who intuitively sense others' needs.
                 </p>
             </div>
             
@@ -305,7 +339,7 @@
                     <span class="element-badge">WATER ELEMENT</span>
                 </div>
                 <p class="description">
-                    Cancer represents the archetypal nurturer, governed by the Moon's intuitive wisdom and emotional depth. Individuals born under this cardinal water sign demonstrate exceptional capacity for emotional intelligence, profound protective instincts, and an unshakeable connection to home and family. The Water element manifests as heightened sensitivity to environmental energies and deep psychic receptivity. Cancers possess remarkable tenacity beneath their gentle exterior, combining compassionate understanding with fierce determination when protecting those they cherish.
+                    Cancer represents the archetypal nurturer, governed by the Moon's intuitive wisdom and emotional depth. This cardinal water sign demonstrates exceptional emotional intelligence and profound protective instincts. Cancers possess remarkable tenacity beneath their gentle exterior.
                 </p>
             </div>
             
@@ -320,7 +354,7 @@
                     <span class="planet-badge">RULED BY MERCURY</span>
                 </div>
                 <p class="description">
-                    Wednesday births fall under Mercury's dominion, bestowing exceptional communicative prowess and intellectual agility. Those born on this day naturally excel in analytical thinking, verbal expression, and adaptability across diverse situations. Mercury's influence manifests as curiosity-driven intelligence, quick-witted responses, and an innate ability to bridge different perspectives. These individuals demonstrate remarkable versatility in learning, teaching, and facilitating exchange of ideas. Their minds operate with characteristic speed and precision, making them natural problem-solvers and effective communicators who thrive in dynamic environments.
+                    Wednesday births fall under Mercury's dominion, bestowing exceptional communicative prowess and intellectual agility. Those born on this day naturally excel in analytical thinking and verbal expression. Mercury's influence manifests as curiosity-driven intelligence and quick-witted responses.
                 </p>
             </div>
             
@@ -330,24 +364,26 @@
                     <span class="icon">🔢</span>
                     <span class="card-title">Numerology Profile</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Life Path Number:</span>
-                    <span class="info-value">7</span>
+                <div class="numbers-display">
+                    <div class="number-circle">
+                        <div class="circle life-path">7</div>
+                        <div class="number-label">Life Path</div>
+                    </div>
+                    <div class="number-circle">
+                        <div class="circle expression">5</div>
+                        <div class="number-label">Expression</div>
+                    </div>
+                    <div class="number-circle">
+                        <div class="circle soul-urge">3</div>
+                        <div class="number-label">Soul Urge</div>
+                    </div>
+                    <div class="number-circle">
+                        <div class="circle personality">2</div>
+                        <div class="number-label">Personality</div>
+                    </div>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Expression Number:</span>
-                    <span class="info-value">5</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Soul Urge Number:</span>
-                    <span class="info-value">3</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Personality Number:</span>
-                    <span class="info-value">2</span>
-                </div>
-                <p class="description" style="margin-top: 10px;">
-                    Life Path 7 reveals a profound spiritual seeker and analytical thinker who pursues deep truth and wisdom. Expression 5 indicates natural adaptability and freedom-seeking tendencies. Soul Urge 3 expresses creative self-expression and communication needs, while Personality 2 projects diplomatic harmony and cooperative presence. This combination creates a contemplative individual who balances inner exploration with outer versatility.
+                <p class="description">
+                    Life Path 7 reveals a profound spiritual seeker pursuing deep truth and wisdom. Expression 5 indicates natural adaptability, while Soul Urge 3 expresses creative communication needs. Personality 2 projects diplomatic harmony and cooperative presence.
                 </p>
             </div>
             
@@ -357,109 +393,24 @@
                     <span class="icon">☯️</span>
                     <span class="card-title">Yin/Yang Energy Balance</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Primary Energy:</span>
-                    <span class="info-value">Yin (Feminine)</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Balance Score:</span>
-                    <span class="info-value">65% Yin / 35% Yang</span>
-                </div>
-                <div style="margin: 12px 0;">
-                    <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
-                        <div style="height: 100%; width: 65%; background: linear-gradient(90deg, #ffd700 0%, #ffed4e 100%); border-radius: 4px;"></div>
+                <div class="energy-display">
+                    <div class="yin-yang-symbol">☯️</div>
+                    <div class="energy-info">
+                        <div class="energy-pill">YIN (FEMININE)</div>
+                        <div class="energy-bar-container">
+                            <div class="energy-bar-labels">
+                                <span>Yin 65%</span>
+                                <span>Yang 35%</span>
+                            </div>
+                            <div class="energy-bar">
+                                <div class="energy-bar-fill" style="width: 65%"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <p class="description">
-                    Your energy profile demonstrates pronounced Yin characteristics, indicating receptive wisdom, intuitive insight, and contemplative depth. This manifests as natural empathy, patient observation, and preference for inner reflection over external action. The Yin dominance creates gentle strength, emotional intelligence, and capacity for deep nurturing connections. While Yang energy provides necessary drive and assertiveness, your fundamental nature gravitates toward understanding, harmony, and allowing rather than forcing outcomes. This balance supports healing, creative, and diplomatic pursuits.
+                    Your energy profile demonstrates pronounced Yin characteristics, indicating receptive wisdom and intuitive insight. This manifests as natural empathy and preference for inner reflection. The Yin dominance creates gentle strength and emotional intelligence.
                 </p>
-            </div>
-        </div>
-        
-        <!-- Big Five Personality Traits -->
-        <div class="card full-width" style="margin-top: 15px;">
-            <div class="card-header">
-                <span class="icon">🧠</span>
-                <span class="card-title">Big Five Personality Traits</span>
-            </div>
-            <div class="personality-grid">
-                <div class="trait-card">
-                    <div class="trait-header">
-                        <span class="trait-name">Openness</span>
-                        <span class="trait-score">78%</span>
-                    </div>
-                    <div class="trait-bar">
-                        <div class="trait-fill" style="width: 78%"></div>
-                    </div>
-                    <p class="trait-description">
-                        High openness indicates strong intellectual curiosity, appreciation for art and beauty, emotional depth, and willingness to try new experiences. You embrace abstract thinking and creative problem-solving.
-                    </p>
-                </div>
-                
-                <div class="trait-card">
-                    <div class="trait-header">
-                        <span class="trait-name">Conscientiousness</span>
-                        <span class="trait-score">65%</span>
-                    </div>
-                    <div class="trait-bar">
-                        <div class="trait-fill" style="width: 65%"></div>
-                    </div>
-                    <p class="trait-description">
-                        Moderate-high conscientiousness suggests good organizational skills and goal-directed behavior, while maintaining flexibility. You balance planning with spontaneity effectively.
-                    </p>
-                </div>
-                
-                <div class="trait-card">
-                    <div class="trait-header">
-                        <span class="trait-name">Extraversion</span>
-                        <span class="trait-score">52%</span>
-                    </div>
-                    <div class="trait-bar">
-                        <div class="trait-fill" style="width: 52%"></div>
-                    </div>
-                    <p class="trait-description">
-                        Balanced extraversion indicates ambiversion - comfortable in both social situations and solitary activities. You adapt your energy based on context and can recharge through various means.
-                    </p>
-                </div>
-                
-                <div class="trait-card">
-                    <div class="trait-header">
-                        <span class="trait-name">Agreeableness</span>
-                        <span class="trait-score">72%</span>
-                    </div>
-                    <div class="trait-bar">
-                        <div class="trait-fill" style="width: 72%"></div>
-                    </div>
-                    <p class="trait-description">
-                        High agreeableness reflects strong empathy, cooperative nature, and concern for social harmony. You prioritize maintaining positive relationships and demonstrate natural compassion.
-                    </p>
-                </div>
-                
-                <div class="trait-card">
-                    <div class="trait-header">
-                        <span class="trait-name">Neuroticism</span>
-                        <span class="trait-score">38%</span>
-                    </div>
-                    <div class="trait-bar">
-                        <div class="trait-fill" style="width: 38%"></div>
-                    </div>
-                    <p class="trait-description">
-                        Low neuroticism indicates emotional stability, resilience to stress, and generally positive outlook. You maintain composure under pressure and recover well from setbacks.
-                    </p>
-                </div>
-                
-                <div class="trait-card">
-                    <div class="trait-header">
-                        <span class="trait-name">Overall Score</span>
-                        <span class="trait-score">85%</span>
-                    </div>
-                    <div class="trait-bar">
-                        <div class="trait-fill" style="width: 85%"></div>
-                    </div>
-                    <p class="trait-description">
-                        Your balanced personality profile suggests strong interpersonal effectiveness. The combination of high openness and agreeableness with emotional stability creates excellent relationship potential.
-                    </p>
-                </div>
             </div>
         </div>
     </div>
@@ -490,16 +441,6 @@
         }
         
         calculateAge();
-        
-        // Animate trait bars on load
-        window.addEventListener('load', () => {
-            const fills = document.querySelectorAll('.trait-fill');
-            fills.forEach((fill, index) => {
-                setTimeout(() => {
-                    fill.style.width = fill.style.width;
-                }, index * 100);
-            });
-        });
     </script>
 </body>
 </html>
