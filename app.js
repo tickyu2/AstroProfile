@@ -37,13 +37,42 @@ class ProfileManager {
         const profiles = this.getAllProfiles();
         return profiles.find(p => p.id === profileId);
     }
+
+    // NEW: Clear all broken profiles
+    clearAllProfiles() {
+        localStorage.removeItem(this.storageKey);
+        console.log('🧹 All profiles cleared');
+    }
 }
 
 const profileManager = new ProfileManager();
 
 // Load saved profiles on page load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📱 Page loaded, checking for saved profiles...');
+    console.log('📱 Page loaded');
+    console.log('🔍 Checking localStorage...');
+    
+    // Check if there are profiles with "undefined" time
+    const profiles = profileManager.getAllProfiles();
+    const hasBrokenProfiles = profiles.some(p => 
+        p.birthHour24 === undefined || 
+        isNaN(p.birthHour24) ||
+        !p.gender
+    );
+    
+    if (hasBrokenProfiles) {
+        console.warn('⚠️ Found broken profiles with old format!');
+        console.log('🧹 Cleaning up broken profiles...');
+        
+        // Option 1: Clear all (safest)
+        if (confirm('Found profiles with old data format. Clear all profiles and start fresh?')) {
+            profileManager.clearAllProfiles();
+            alert('All profiles cleared! Please create new profiles.');
+            location.reload();
+            return;
+        }
+    }
+    
     loadSavedProfiles();
 });
 
@@ -66,6 +95,12 @@ function loadSavedProfiles() {
     profileList.innerHTML = '';
     
     profiles.forEach(profile => {
+        // Skip broken profiles
+        if (!profile.birthHour24 || isNaN(profile.birthHour24) || !profile.gender) {
+            console.warn('⚠️ Skipping broken profile:', profile);
+            return;
+        }
+        
         const profileItem = createProfileItem(profile);
         profileList.appendChild(profileItem);
     });
@@ -84,7 +119,7 @@ function createProfileItem(profile) {
     });
     
     // Convert 24-hour to 12-hour for display
-    let hour = profile.birthHour24;
+    let hour = parseInt(profile.birthHour24);
     let period = 'AM';
     
     if (hour >= 12) {
@@ -155,7 +190,7 @@ function loadProfile(profileId) {
     document.getElementById('birthDate').value = profile.birthDate;
     
     // Convert 24-hour to 12-hour for form
-    let hour = profile.birthHour24;
+    let hour = parseInt(profile.birthHour24);
     let period = 'AM';
     
     if (hour >= 12) {
@@ -200,7 +235,9 @@ function convertTo24Hour(hour12, period) {
 // Form submission handler
 document.getElementById('birthForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    console.log('📝 Form submitted');
+    console.log('========================================');
+    console.log('📝 FORM SUBMISSION STARTED');
+    console.log('========================================');
     
     // Clear previous errors
     document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
@@ -217,11 +254,12 @@ document.getElementById('birthForm').addEventListener('submit', function(e) {
     const birthState = document.getElementById('birthState').value.trim();
     const birthCountry = document.getElementById('birthCountry').value.trim();
     
-    console.log('Form values:', {
-        firstName, lastName, gender, birthDate,
-        hour12: birthHour12, minute: birthMinute, period: birthPeriod,
-        city: birthCity, state: birthState, country: birthCountry
-    });
+    console.log('📋 Form values:');
+    console.log('  Name:', firstName, lastName);
+    console.log('  Gender:', gender);
+    console.log('  Birth Date:', birthDate);
+    console.log('  Birth Time (12h):', birthHour12, ':', birthMinute, birthPeriod);
+    console.log('  Location:', birthCity, birthState, birthCountry);
     
     // Validation
     let isValid = true;
@@ -229,16 +267,19 @@ document.getElementById('birthForm').addEventListener('submit', function(e) {
     if (!firstName || !lastName) {
         document.getElementById('nameError').classList.add('show');
         isValid = false;
+        console.error('❌ Name validation failed');
     }
     
     if (!gender) {
         document.getElementById('genderError').classList.add('show');
         isValid = false;
+        console.error('❌ Gender validation failed');
     }
     
     if (!birthDate) {
         document.getElementById('dateError').classList.add('show');
         isValid = false;
+        console.error('❌ Date validation failed');
     }
     
     if (isNaN(birthHour12) || birthHour12 < 1 || birthHour12 > 12 || 
@@ -246,21 +287,25 @@ document.getElementById('birthForm').addEventListener('submit', function(e) {
         !birthPeriod) {
         document.getElementById('timeError').classList.add('show');
         isValid = false;
+        console.error('❌ Time validation failed');
     }
     
     if (!birthCity || !birthCountry) {
         document.getElementById('locationError').classList.add('show');
         isValid = false;
+        console.error('❌ Location validation failed');
     }
     
     if (!isValid) {
-        console.log('❌ Validation failed');
+        console.log('❌ VALIDATION FAILED - Stopping submission');
         return;
     }
     
+    console.log('✅ All validations passed');
+    
     // Convert to 24-hour format
     const birthHour24 = convertTo24Hour(birthHour12, birthPeriod);
-    console.log(`⏰ Time conversion: ${birthHour12}:${birthMinute} ${birthPeriod} → ${birthHour24}:${birthMinute} (24-hour)`);
+    console.log('⏰ Time conversion:', birthHour12, ':', birthMinute, birthPeriod, '→', birthHour24, ':', birthMinute, '(24-hour)');
     
     // Create profile data object
     const profileData = {
@@ -275,18 +320,31 @@ document.getElementById('birthForm').addEventListener('submit', function(e) {
         birthCountry
     };
     
-    console.log('💾 Saving profile:', profileData);
+    console.log('========================================');
+    console.log('💾 FINAL PROFILE DATA TO SAVE:');
+    console.log(JSON.stringify(profileData, null, 2));
+    console.log('========================================');
     
     // Save to localStorage
     const savedProfile = profileManager.saveProfile(profileData);
+    console.log('✅ Saved to localStorage with ID:', savedProfile.id);
     
     // Store in sessionStorage for results page
     sessionStorage.setItem('currentProfile', JSON.stringify(profileData));
-    console.log('✅ Profile saved to sessionStorage');
+    console.log('✅ Saved to sessionStorage');
+    console.log('📦 sessionStorage content:', JSON.stringify(profileData, null, 2));
     
-    // Redirect to results page
-    console.log('🔄 Redirecting to results page...');
-    window.location.href = 'results.html';
+    // Clear any old session data
+    sessionStorage.removeItem('editProfile');
+    
+    console.log('========================================');
+    console.log('🔄 REDIRECTING TO RESULTS PAGE...');
+    console.log('========================================');
+    
+    // Small delay to ensure data is saved
+    setTimeout(() => {
+        window.location.href = 'results.html';
+    }, 100);
 });
 
 // Allow Enter key to move between fields
@@ -313,3 +371,5 @@ document.querySelectorAll('input, select').forEach((input, index, inputs) => {
         }
     });
 });
+
+console.log('🚀 App.js loaded and ready!');
