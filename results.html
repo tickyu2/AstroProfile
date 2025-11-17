@@ -394,26 +394,28 @@
         
         <div class="dashboard">
             <!-- Birth Information Card -->
-            <div class="card">
+            <div class="card info-panel">
                 <div class="card-header">
                     <span class="icon">🎂</span>
                     <span class="card-title">Your Birth Information</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Birth Date:</span>
-                    <span class="info-value">1983-07-06</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Birth Time:</span>
-                    <span class="info-value">08:30</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Birth Place:</span>
-                    <span class="info-value">Mianzhu, China</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Age:</span>
-                    <span class="info-value" id="age">42 years, 4 months, 9 days</span>
+                <div class="info-content">
+                    <div class="info-row">
+                        <span class="info-label">Birth Date:</span>
+                        <span class="info-value" id="birthDateDisplay">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Birth Time:</span>
+                        <span class="info-value" id="birthTimeDisplay">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Birth Place:</span>
+                        <span class="info-value" id="birthPlaceDisplay">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Age:</span>
+                        <span class="info-value" id="ageDisplay">Calculating...</span>
+                    </div>
                 </div>
                 <div class="description-box">
                     <p class="description">
@@ -424,7 +426,7 @@
             </div>
             
             <!-- Chinese Zodiac Card -->
-            <div class="card">
+            <div class="card chinese-panel">
                 <div class="card-header">
                     <span class="icon">🏮</span>
                     <span class="card-title">Chinese Zodiac</span>
@@ -446,7 +448,7 @@
             </div>
             
             <!-- Western Zodiac Card -->
-            <div class="card">
+            <div class="card western-panel">
                 <div class="card-header">
                     <span class="icon">⭐</span>
                     <span class="card-title">Western Zodiac</span>
@@ -468,7 +470,7 @@
             </div>
             
             <!-- Born On Card -->
-            <div class="card">
+            <div class="card day-panel">
                 <div class="card-header">
                     <span class="icon">📅</span>
                     <span class="card-title">Born On</span>
@@ -486,7 +488,7 @@
             </div>
             
             <!-- Numerology Profile Card -->
-            <div class="card">
+            <div class="card numerology-panel">
                 <div class="card-header">
                     <span class="icon">🔢</span>
                     <span class="card-title">Numerology Profile</span>
@@ -518,7 +520,7 @@
             </div>
             
             <!-- Yin/Yang Energy Card -->
-            <div class="card">
+            <div class="card yinyang-panel">
                 <div class="card-header">
                     <span class="icon">☯️</span>
                     <span class="card-title">Yin/Yang Energy Balance</span>
@@ -565,36 +567,11 @@
     </div>
     
     <script>
-        // Calculate precise age
-        function calculateAge() {
-            const birthDate = new Date('1983-07-06T08:30:00');
-            const today = new Date('2025-11-15');
-            
-            let years = today.getFullYear() - birthDate.getFullYear();
-            let months = today.getMonth() - birthDate.getMonth();
-            let days = today.getDate() - birthDate.getDate();
-            
-            if (days < 0) {
-                months--;
-                const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-                days += lastMonth.getDate();
-            }
-            
-            if (months < 0) {
-                years--;
-                months += 12;
-            }
-            
-            document.getElementById('age').textContent = 
-                `${years} years, ${months} months, ${days} days`;
-        }
-        
-        calculateAge();
-        
         // Placeholder for Learn More functionality
         function showCalculations(section) {
             alert(`Calculations for ${section} will be shown here.\n\nThis will open a detailed explanation of how these values were calculated based on your birth date, time, and location.`);
         }
     </script>
+    <script src="results.js"></script>
 </body>
 </html>

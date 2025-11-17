@@ -1,27 +1,72 @@
+// DIAGNOSTIC VERSION - Shows exactly what's happening
+console.log('╔════════════════════════════════════════╗');
+console.log('║   RESULTS.JS LOADED - DIAGNOSTIC MODE ║');
+console.log('╚════════════════════════════════════════╝');
+
 // Load profile data from sessionStorage
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 Results page loaded');
+    console.log('\n📄 Results page DOMContentLoaded event fired');
+    console.log('⏰ Timestamp:', new Date().toISOString());
     
-    const profileData = sessionStorage.getItem('currentProfile');
+    // Check ALL storage
+    console.log('\n🔍 CHECKING ALL STORAGE:');
+    console.log('sessionStorage keys:', Object.keys(sessionStorage));
+    console.log('localStorage keys:', Object.keys(localStorage));
     
-    if (!profileData) {
-        console.error('❌ No profile data found in sessionStorage');
+    // Check currentProfile
+    const profileDataString = sessionStorage.getItem('currentProfile');
+    console.log('\n📦 sessionStorage.currentProfile:', profileDataString);
+    
+    if (!profileDataString) {
+        console.error('❌ NO PROFILE DATA IN SESSION STORAGE!');
+        console.log('This means app.js did not save the data properly.');
+        
+        // Check if there's anything in localStorage
+        const localProfiles = localStorage.getItem('astroProfiles');
+        if (localProfiles) {
+            console.log('📋 Found profiles in localStorage:', localProfiles);
+            const profiles = JSON.parse(localProfiles);
+            if (profiles.length > 0) {
+                console.log('Using most recent profile from localStorage as fallback');
+                const profile = profiles[0];
+                populateProfileData(profile);
+                calculateAndDisplay(profile);
+                return;
+            }
+        }
+        
         alert('No profile data found. Please enter your birth information.');
-        window.location.href = 'index.html';
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 1000);
         return;
     }
     
-    const profile = JSON.parse(profileData);
-    console.log('✅ Profile loaded:', profile);
+    const profile = JSON.parse(profileDataString);
+    console.log('\n✅ PROFILE DATA LOADED:');
+    console.log(JSON.stringify(profile, null, 2));
+    console.log('\nKey fields:');
+    console.log('  Name:', profile.firstName, profile.lastName);
+    console.log('  Gender:', profile.gender);
+    console.log('  Birth Date:', profile.birthDate);
+    console.log('  Birth Hour (24h):', profile.birthHour24);
+    console.log('  Birth Minute:', profile.birthMinute);
+    console.log('  Location:', profile.birthCity, profile.birthState, profile.birthCountry);
     
     // Populate the page with profile data
+    console.log('\n🎨 Populating page with profile data...');
     populateProfileData(profile);
     
     // Calculate and display all astrological data
+    console.log('\n🔮 Calculating astrological data...');
     calculateAndDisplay(profile);
+    
+    console.log('\n✨ ALL DONE! Page should now show correct data.');
 });
 
 function populateProfileData(profile) {
+    console.log('📝 populateProfileData() called');
+    
     const fullName = `${profile.firstName} ${profile.lastName}`;
     const birthDate = new Date(profile.birthDate);
     const formattedDate = birthDate.toLocaleDateString('en-US', { 
@@ -46,29 +91,41 @@ function populateProfileData(profile) {
     if (profile.birthState) location += `, ${profile.birthState}`;
     location += `, ${profile.birthCountry}`;
     
-    console.log('📍 Birth info:', { date: formattedDate, time: birthTime, location });
+    console.log('  Display values:');
+    console.log('    Name:', fullName);
+    console.log('    Date:', formattedDate);
+    console.log('    Time:', birthTime);
+    console.log('    Location:', location);
     
     // Update birth information panel
     const birthInfoPanel = document.querySelector('.info-panel');
     if (birthInfoPanel) {
-        birthInfoPanel.querySelector('.info-content').innerHTML = `
-            <div class="info-row">
-                <span class="info-label">Birth Date:</span>
-                <span class="info-value">${formattedDate}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Birth Time:</span>
-                <span class="info-value">${birthTime}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Birth Place:</span>
-                <span class="info-value">${location}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Age:</span>
-                <span class="info-value" id="ageDisplay">Calculating...</span>
-            </div>
-        `;
+        const infoContent = birthInfoPanel.querySelector('.info-content');
+        if (infoContent) {
+            infoContent.innerHTML = `
+                <div class="info-row">
+                    <span class="info-label">Birth Date:</span>
+                    <span class="info-value">${formattedDate}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Birth Time:</span>
+                    <span class="info-value">${birthTime}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Birth Place:</span>
+                    <span class="info-value">${location}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Age:</span>
+                    <span class="info-value" id="ageDisplay">Calculating...</span>
+                </div>
+            `;
+            console.log('✅ Birth info panel updated');
+        } else {
+            console.error('❌ .info-content not found inside .info-panel');
+        }
+    } else {
+        console.error('❌ .info-panel not found on page');
     }
     
     // Calculate and display age
@@ -97,6 +154,7 @@ function calculateAge(birthDate) {
     const ageDisplay = document.getElementById('ageDisplay');
     if (ageDisplay) {
         ageDisplay.textContent = `${years} years, ${months} months, ${days} days`;
+        console.log('✅ Age calculated:', ageDisplay.textContent);
     }
 }
 
@@ -106,7 +164,11 @@ function calculateAndDisplay(profile) {
     const month = birthDate.getMonth() + 1;
     const day = birthDate.getDate();
     
-    console.log('🔮 Calculating astrological data...');
+    console.log('🔮 Calculating with:');
+    console.log('  Year:', year);
+    console.log('  Month:', month);
+    console.log('  Day:', day);
+    console.log('  Hour (24h):', profile.birthHour24);
     
     // Calculate Chinese Zodiac
     calculateChineseZodiac(year);
@@ -145,29 +207,34 @@ function calculateChineseZodiac(year) {
     const index = (year - 4) % 12;
     const animal = animals[index];
     
+    console.log(`  Chinese Zodiac: ${animal.name} (${animal.element})`);
+    
     const panel = document.querySelector('.chinese-panel');
     if (panel) {
-        panel.querySelector('h3').innerHTML = `🐷 ${animal.name.toUpperCase()}`;
-        panel.querySelector('.element-badge').textContent = `${animal.element.toUpperCase()} ELEMENT`;
-        panel.querySelector('.panel-description').textContent = 
-            `The ${animal.name} embodies ${animal.traits.toLowerCase()}. Those born under this sign possess exceptional ${animal.traits.split(',')[0].toLowerCase()} abilities and demonstrate ${animal.traits.split(',')[1].toLowerCase()}.`;
+        const h3 = panel.querySelector('h3');
+        const badge = panel.querySelector('.element-badge');
+        const desc = panel.querySelector('.panel-description');
+        
+        if (h3) h3.innerHTML = `🐷 ${animal.name.toUpperCase()}`;
+        if (badge) badge.textContent = `${animal.element.toUpperCase()} ELEMENT`;
+        if (desc) desc.textContent = `The ${animal.name} embodies ${animal.traits.toLowerCase()}. Those born under this sign possess exceptional ${animal.traits.split(',')[0].toLowerCase()} abilities and demonstrate ${animal.traits.split(',')[1].toLowerCase()}.`;
     }
 }
 
 function calculateWesternZodiac(month, day) {
     const signs = [
-        { name: 'Capricorn', dates: [[12, 22], [1, 19]], element: 'Earth', icon: '♑' },
-        { name: 'Aquarius', dates: [[1, 20], [2, 18]], element: 'Air', icon: '♒' },
-        { name: 'Pisces', dates: [[2, 19], [3, 20]], element: 'Water', icon: '♓' },
-        { name: 'Aries', dates: [[3, 21], [4, 19]], element: 'Fire', icon: '♈' },
-        { name: 'Taurus', dates: [[4, 20], [5, 20]], element: 'Earth', icon: '♉' },
-        { name: 'Gemini', dates: [[5, 21], [6, 20]], element: 'Air', icon: '♊' },
-        { name: 'Cancer', dates: [[6, 21], [7, 22]], element: 'Water', icon: '♋' },
-        { name: 'Leo', dates: [[7, 23], [8, 22]], element: 'Fire', icon: '♌' },
-        { name: 'Virgo', dates: [[8, 23], [9, 22]], element: 'Earth', icon: '♍' },
-        { name: 'Libra', dates: [[9, 23], [10, 22]], element: 'Air', icon: '♎' },
-        { name: 'Scorpio', dates: [[10, 23], [11, 21]], element: 'Water', icon: '♏' },
-        { name: 'Sagittarius', dates: [[11, 22], [12, 21]], element: 'Fire', icon: '♐' }
+        { name: 'Capricorn', dates: [[12, 22], [1, 19]], element: 'Earth' },
+        { name: 'Aquarius', dates: [[1, 20], [2, 18]], element: 'Air' },
+        { name: 'Pisces', dates: [[2, 19], [3, 20]], element: 'Water' },
+        { name: 'Aries', dates: [[3, 21], [4, 19]], element: 'Fire' },
+        { name: 'Taurus', dates: [[4, 20], [5, 20]], element: 'Earth' },
+        { name: 'Gemini', dates: [[5, 21], [6, 20]], element: 'Air' },
+        { name: 'Cancer', dates: [[6, 21], [7, 22]], element: 'Water' },
+        { name: 'Leo', dates: [[7, 23], [8, 22]], element: 'Fire' },
+        { name: 'Virgo', dates: [[8, 23], [9, 22]], element: 'Earth' },
+        { name: 'Libra', dates: [[9, 23], [10, 22]], element: 'Air' },
+        { name: 'Scorpio', dates: [[10, 23], [11, 21]], element: 'Water' },
+        { name: 'Sagittarius', dates: [[11, 22], [12, 21]], element: 'Fire' }
     ];
     
     let currentSign = signs[0];
@@ -178,6 +245,8 @@ function calculateWesternZodiac(month, day) {
             break;
         }
     }
+    
+    console.log(`  Western Zodiac: ${currentSign.name} (${currentSign.element})`);
     
     const descriptions = {
         'Capricorn': 'Capricorn represents the disciplined achiever, governed by Saturn\'s structural wisdom. This cardinal earth sign demonstrates exceptional ambition and organizational prowess.',
@@ -196,9 +265,13 @@ function calculateWesternZodiac(month, day) {
     
     const panel = document.querySelector('.western-panel');
     if (panel) {
-        panel.querySelector('h3').innerHTML = `⭐ ${currentSign.name.toUpperCase()}`;
-        panel.querySelector('.element-badge').textContent = `${currentSign.element.toUpperCase()} ELEMENT`;
-        panel.querySelector('.panel-description').textContent = descriptions[currentSign.name];
+        const h3 = panel.querySelector('h3');
+        const badge = panel.querySelector('.element-badge');
+        const desc = panel.querySelector('.panel-description');
+        
+        if (h3) h3.innerHTML = `⭐ ${currentSign.name.toUpperCase()}`;
+        if (badge) badge.textContent = `${currentSign.element.toUpperCase()} ELEMENT`;
+        if (desc) desc.textContent = descriptions[currentSign.name];
     }
 }
 
@@ -235,6 +308,8 @@ function calculateNumerology(firstName, lastName, birthDate) {
     }
     const personality = reduceToSingleDigit(personalitySum);
     
+    console.log(`  Numerology: Life Path=${lifePathSum}, Expression=${expressionNumber}, Soul=${soulUrge}, Personality=${personality}`);
+    
     const descriptions = {
         1: 'reveals a natural born leader with pioneering spirit',
         2: 'indicates natural diplomacy and cooperative abilities',
@@ -251,19 +326,19 @@ function calculateNumerology(firstName, lastName, birthDate) {
     if (panel) {
         const circles = panel.querySelectorAll('.number-circle');
         const labels = panel.querySelectorAll('.number-label');
+        const desc = panel.querySelector('.panel-description');
         
-        circles[0].textContent = lifePathSum;
-        circles[1].textContent = expressionNumber;
-        circles[2].textContent = soulUrge;
-        circles[3].textContent = personality;
+        if (circles[0]) circles[0].textContent = lifePathSum;
+        if (circles[1]) circles[1].textContent = expressionNumber;
+        if (circles[2]) circles[2].textContent = soulUrge;
+        if (circles[3]) circles[3].textContent = personality;
         
-        labels[0].textContent = 'Life Path';
-        labels[1].textContent = 'Expression';
-        labels[2].textContent = 'Soul Urge';
-        labels[3].textContent = 'Personality';
+        if (labels[0]) labels[0].textContent = 'Life Path';
+        if (labels[1]) labels[1].textContent = 'Expression';
+        if (labels[2]) labels[2].textContent = 'Soul Urge';
+        if (labels[3]) labels[3].textContent = 'Personality';
         
-        panel.querySelector('.panel-description').textContent = 
-            `Life Path ${lifePathSum} ${descriptions[lifePathSum]}. Expression ${expressionNumber} ${descriptions[expressionNumber]}, while Soul Urge ${soulUrge} ${descriptions[soulUrge]}.`;
+        if (desc) desc.textContent = `Life Path ${lifePathSum} ${descriptions[lifePathSum]}. Expression ${expressionNumber} ${descriptions[expressionNumber]}, while Soul Urge ${soulUrge} ${descriptions[soulUrge]}.`;
     }
 }
 
@@ -291,6 +366,8 @@ function calculateYinYang(birthDate, birthHour24) {
     const yangPercentage = Math.round((yangScore / totalPoints) * 100);
     const yinPercentage = 100 - yangPercentage;
     
+    console.log(`  Yin/Yang: ${yinPercentage}% Yin / ${yangPercentage}% Yang`);
+    
     const panel = document.querySelector('.yinyang-panel');
     if (panel) {
         const yinBar = panel.querySelector('.yin-bar');
@@ -298,11 +375,8 @@ function calculateYinYang(birthDate, birthHour24) {
         const yinText = panel.querySelector('.yin-text');
         const yangText = panel.querySelector('.yang-text');
         
-        if (yinBar && yangBar) {
-            yinBar.style.width = `${yinPercentage}%`;
-            yangBar.style.width = `${yangPercentage}%`;
-        }
-        
+        if (yinBar) yinBar.style.width = `${yinPercentage}%`;
+        if (yangBar) yangBar.style.width = `${yangPercentage}%`;
         if (yinText) yinText.textContent = `${yinPercentage}%`;
         if (yangText) yangText.textContent = `${yangPercentage}%`;
         
@@ -310,17 +384,23 @@ function calculateYinYang(birthDate, birthHour24) {
         const yangDesc = panel.querySelector('.yang-energy-desc');
         
         if (yinDesc) {
-            yinDesc.querySelector('h4').textContent = `🌙 YIN ENERGY (${yinPercentage}%)`;
-            yinDesc.querySelector('p:nth-child(2)').textContent = 'Feminine Energy: Receptive, Intuitive, Nurturing';
-            yinDesc.querySelector('p:nth-child(3)').textContent = 
-                `Your ${yinPercentage}% Yin energy represents your receptive, introspective nature. This is the quiet strength of water—flowing, adapting, and nurturing the inner world. It's about emotional depth, intuition, and the wisdom of listening.`;
+            const h4 = yinDesc.querySelector('h4');
+            const p2 = yinDesc.querySelector('p:nth-child(2)');
+            const p3 = yinDesc.querySelector('p:nth-child(3)');
+            
+            if (h4) h4.textContent = `🌙 YIN ENERGY (${yinPercentage}%)`;
+            if (p2) p2.textContent = 'Feminine Energy: Receptive, Intuitive, Nurturing';
+            if (p3) p3.textContent = `Your ${yinPercentage}% Yin energy represents your receptive, introspective nature. This is the quiet strength of water—flowing, adapting, and nurturing the inner world. It's about emotional depth, intuition, and the wisdom of listening.`;
         }
         
         if (yangDesc) {
-            yangDesc.querySelector('h4').textContent = `☀️ YANG ENERGY (${yangPercentage}%)`;
-            yangDesc.querySelector('p:nth-child(2)').textContent = 'Masculine Energy: Active, Logical, Assertive';
-            yangDesc.querySelector('p:nth-child(3)').textContent = 
-                `Your ${yangPercentage}% Yang energy fuels your active, outward-directed nature. This is the driving force of fire—initiating, creating, and shaping the external world. It's about action, logic, and the power of doing.`;
+            const h4 = yangDesc.querySelector('h4');
+            const p2 = yangDesc.querySelector('p:nth-child(2)');
+            const p3 = yangDesc.querySelector('p:nth-child(3)');
+            
+            if (h4) h4.textContent = `☀️ YANG ENERGY (${yangPercentage}%)`;
+            if (p2) p2.textContent = 'Masculine Energy: Active, Logical, Assertive';
+            if (p3) p3.textContent = `Your ${yangPercentage}% Yang energy fuels your active, outward-directed nature. This is the driving force of fire—initiating, creating, and shaping the external world. It's about action, logic, and the power of doing.`;
         }
     }
 }
@@ -332,6 +412,8 @@ function calculateDayOfWeek(birthDate) {
     const dayOfWeek = birthDate.getDay();
     const dayName = days[dayOfWeek];
     const ruler = rulers[dayOfWeek];
+    
+    console.log(`  Day of Week: ${dayName} (Ruled by ${ruler})`);
     
     const descriptions = {
         'Sunday': 'Sunday births fall under the Sun\'s dominion, bestowing exceptional communicative prowess and intellectual agility. Those born on this day naturally excel in analytical thinking and verbal expression.',
@@ -345,8 +427,14 @@ function calculateDayOfWeek(birthDate) {
     
     const panel = document.querySelector('.day-panel');
     if (panel) {
-        panel.querySelector('h3').textContent = dayName.toUpperCase();
-        panel.querySelector('.element-badge').textContent = `RULED BY ${ruler.toUpperCase()}`;
-        panel.querySelector('.panel-description').textContent = descriptions[dayName];
+        const h3 = panel.querySelector('h3');
+        const badge = panel.querySelector('.element-badge');
+        const desc = panel.querySelector('.panel-description');
+        
+        if (h3) h3.textContent = dayName.toUpperCase();
+        if (badge) badge.textContent = `RULED BY ${ruler.toUpperCase()}`;
+        if (desc) desc.textContent = descriptions[dayName];
     }
 }
+
+console.log('\n✅ All functions loaded and ready');
