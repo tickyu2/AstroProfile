@@ -96,142 +96,43 @@
             border: 1px solid rgba(255, 215, 0, 0.3);
         }
 
-        .form-group {
-            margin-bottom: 30px;
-        }
-
-        .name-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .location-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #FFD700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        input {
-            width: 100%;
-            padding: 15px 20px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: white;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        input:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 215, 0, 0.3);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
-        }
-
-        input:focus {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: #FFD700;
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3),
-                        inset 0 0 20px rgba(255, 215, 0, 0.15);
-            transform: translateY(-2px);
-        }
-
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-
-        input::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            cursor: pointer;
-        }
-
-        .time-inputs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .time-input-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .time-input-group label {
-            font-size: 0.8rem;
-            margin-bottom: 8px;
-            color: #a0b4c0;
-            text-transform: none;
-        }
-
-        .time-input-group input {
-            text-align: center;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .analyze-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-            border: none;
-            border-radius: 12px;
-            color: #0f2027;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
-        }
-
-        .analyze-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
-        }
-
-        .analyze-btn:active {
-            transform: translateY(-1px);
-        }
-
-        .error-message {
-            color: #ff6b6b;
-            font-size: 0.9rem;
-            margin-top: 8px;
-            display: none;
-        }
-
-        .error-message.show {
-            display: block;
-            animation: shake 0.5s;
-        }
-
         .saved-profiles {
             margin-bottom: 30px;
             padding: 20px;
             background: rgba(255, 215, 0, 0.05);
             border-radius: 12px;
             border: 1px solid rgba(255, 215, 0, 0.2);
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .saved-profiles h3 {
             color: #FFD700;
             font-size: 1rem;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-search {
+            margin-bottom: 15px;
+        }
+
+        .profile-search input {
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .profile-search input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
 
         .profile-list {
@@ -316,6 +217,183 @@
             padding: 20px;
         }
 
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .name-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .location-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .time-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23FFD700' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+        }
+
+        select option {
+            background: #2d4a7c;
+            color: white;
+        }
+
+        input:hover, select:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
+        }
+
+        input:focus, select:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #FFD700;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3),
+                        inset 0 0 20px rgba(255, 215, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .time-input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .time-input-group label {
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            color: #a0b4c0;
+            text-transform: none;
+        }
+
+        .time-input-group input, .time-input-group select {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .gender-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .gender-option {
+            position: relative;
+        }
+
+        .gender-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .gender-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .gender-option input[type="radio"]:checked + .gender-label {
+            background: rgba(255, 215, 0, 0.15);
+            border-color: #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .gender-label:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border: none;
+            border-radius: 12px;
+            color: #0f2027;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -366,7 +444,8 @@
 
             .name-row,
             .location-row,
-            .time-inputs {
+            .time-row,
+            .gender-options {
                 grid-template-columns: 1fr;
             }
 
@@ -409,7 +488,18 @@
         <div class="card">
             <!-- Saved Profiles Section -->
             <div id="savedProfilesSection" class="saved-profiles" style="display: none;">
-                <h3>📌 Quick Load Saved Profiles</h3>
+                <h3>
+                    <span>📌 Quick Load Saved Profiles</span>
+                    <span id="profileCount" style="font-size: 0.8rem; font-weight: normal;"></span>
+                </h3>
+                <div class="profile-search">
+                    <input 
+                        type="text" 
+                        id="profileSearchInput" 
+                        placeholder="🔍 Search profiles by name..."
+                        onkeyup="filterProfiles()"
+                    />
+                </div>
                 <div id="profileList" class="profile-list">
                     <!-- Profiles will be loaded here -->
                 </div>
@@ -442,33 +532,48 @@
                 </div>
 
                 <div class="form-group">
+                    <label>Gender</label>
+                    <div class="gender-options">
+                        <div class="gender-option">
+                            <input type="radio" id="genderMale" name="gender" value="male" required tabindex="3">
+                            <label for="genderMale" class="gender-label">♂️ Male</label>
+                        </div>
+                        <div class="gender-option">
+                            <input type="radio" id="genderFemale" name="gender" value="female" required tabindex="4">
+                            <label for="genderFemale" class="gender-label">♀️ Female</label>
+                        </div>
+                    </div>
+                    <div class="error-message" id="genderError">Please select your gender</div>
+                </div>
+
+                <div class="form-group">
                     <label for="birthDate">Birth Date</label>
                     <input 
                         type="date" 
                         id="birthDate" 
                         required
-                        tabindex="3"
+                        tabindex="5"
                     />
                     <div class="error-message" id="dateError">Please enter your birth date</div>
                 </div>
 
                 <div class="form-group">
                     <label>Birth Time</label>
-                    <div class="time-inputs">
+                    <div class="time-row">
                         <div class="time-input-group">
-                            <label>Hour (0-23)</label>
+                            <label>Hour (1-12)</label>
                             <input 
                                 type="number" 
                                 id="birthHour" 
-                                min="0" 
-                                max="23" 
+                                min="1" 
+                                max="12" 
                                 placeholder="09"
                                 required
-                                tabindex="4"
+                                tabindex="6"
                             />
                         </div>
                         <div class="time-input-group">
-                            <label>Minute (0-59)</label>
+                            <label>Minute</label>
                             <input 
                                 type="number" 
                                 id="birthMinute" 
@@ -476,8 +581,16 @@
                                 max="59" 
                                 placeholder="25"
                                 required
-                                tabindex="5"
+                                tabindex="7"
                             />
+                        </div>
+                        <div class="time-input-group">
+                            <label>AM/PM</label>
+                            <select id="birthPeriod" required tabindex="8">
+                                <option value="">--</option>
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
                         </div>
                     </div>
                     <div class="error-message" id="timeError">Please enter valid time</div>
@@ -490,9 +603,17 @@
                             <input 
                                 type="text" 
                                 id="birthCity" 
-                                placeholder="City (e.g., Rawalpindi)"
+                                placeholder="City (e.g., Los Angeles)"
                                 required
-                                tabindex="6"
+                                tabindex="9"
+                            />
+                        </div>
+                        <div>
+                            <input 
+                                type="text" 
+                                id="birthState" 
+                                placeholder="State (CA)"
+                                tabindex="10"
                             />
                         </div>
                         <div>
@@ -500,15 +621,16 @@
                                 type="text" 
                                 id="birthCountry" 
                                 placeholder="Country"
+                                value="USA"
                                 required
-                                tabindex="7"
+                                tabindex="11"
                             />
                         </div>
                     </div>
                     <div class="error-message" id="locationError">Please enter your birth location</div>
                 </div>
 
-                <button type="submit" class="analyze-btn" tabindex="8">
+                <button type="submit" class="analyze-btn" tabindex="12">
                     Reveal My Cosmic Blueprint
                 </button>
             </form>
