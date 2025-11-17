@@ -1,5 +1,5 @@
-// Profile Management System
-class ProfileManager {
+// Profile Management for Profiles Page
+class ProfileManagerPage {
     constructor() {
         this.storageKey = 'astroProfiles';
     }
@@ -25,15 +25,15 @@ class ProfileManager {
     }
 }
 
-const profileManager = new ProfileManager();
+const profileManagerPage = new ProfileManagerPage();
 
 // Load profiles on page load
 document.addEventListener('DOMContentLoaded', function() {
-    loadProfiles();
+    loadProfilesPage();
 });
 
-function loadProfiles() {
-    const profiles = profileManager.getAllProfiles();
+function loadProfilesPage() {
+    const profiles = profileManagerPage.getAllProfiles();
     const profilesList = document.getElementById('profilesList');
     const profileCount = document.getElementById('profileCount');
     const clearAllSection = document.getElementById('clearAllSection');
@@ -58,12 +58,12 @@ function loadProfiles() {
     profilesList.innerHTML = '';
     
     profiles.forEach(profile => {
-        const profileCard = createProfileCard(profile);
+        const profileCard = createProfileCardElement(profile);
         profilesList.appendChild(profileCard);
     });
 }
 
-function createProfileCard(profile) {
+function createProfileCardElement(profile) {
     const card = document.createElement('div');
     card.className = 'profile-item';
     
@@ -74,8 +74,22 @@ function createProfileCard(profile) {
         month: 'long', 
         day: 'numeric' 
     });
-    const birthTime = `${String(profile.birthHour).padStart(2, '0')}:${String(profile.birthMinute).padStart(2, '0')}`;
-    const location = `${profile.birthCity}, ${profile.birthCountry}`;
+    
+    // Convert 24-hour to 12-hour
+    let hour = profile.birthHour24;
+    let period = 'AM';
+    if (hour >= 12) {
+        period = 'PM';
+        if (hour > 12) hour -= 12;
+    }
+    if (hour === 0) hour = 12;
+    
+    const birthTime = `${String(hour).padStart(2, '0')}:${String(profile.birthMinute).padStart(2, '0')} ${period}`;
+    
+    // Build location
+    let location = profile.birthCity;
+    if (profile.birthState) location += `, ${profile.birthState}`;
+    location += `, ${profile.birthCountry}`;
     
     const savedDate = new Date(profile.savedAt);
     const savedFormatted = savedDate.toLocaleDateString('en-US', { 
@@ -86,9 +100,11 @@ function createProfileCard(profile) {
         minute: '2-digit'
     });
     
+    const genderIcon = profile.gender === 'male' ? '♂️' : '♀️';
+    
     card.innerHTML = `
         <div class="profile-header">
-            <div class="profile-name">${fullName}</div>
+            <div class="profile-name">${genderIcon} ${fullName}</div>
             <div class="profile-saved">Saved: ${savedFormatted}</div>
         </div>
         
@@ -108,13 +124,13 @@ function createProfileCard(profile) {
         </div>
         
         <div class="profile-actions">
-            <button class="btn btn-primary" onclick="viewProfile(${profile.id})">
+            <button class="btn btn-primary" onclick="viewProfileResult(${profile.id})">
                 ✨ View Cosmic Blueprint
             </button>
-            <button class="btn btn-secondary" onclick="editProfile(${profile.id})">
+            <button class="btn btn-secondary" onclick="editProfileData(${profile.id})">
                 ✏️ Edit
             </button>
-            <button class="btn btn-danger" onclick="deleteProfile(${profile.id})">
+            <button class="btn btn-danger" onclick="deleteProfileFromList(${profile.id})">
                 🗑️ Delete
             </button>
         </div>
@@ -123,8 +139,8 @@ function createProfileCard(profile) {
     return card;
 }
 
-function viewProfile(profileId) {
-    const profile = profileManager.getProfile(profileId);
+function viewProfileResult(profileId) {
+    const profile = profileManagerPage.getProfile(profileId);
     if (!profile) return;
     
     // Store in sessionStorage for results page
@@ -134,8 +150,8 @@ function viewProfile(profileId) {
     window.location.href = 'results.html';
 }
 
-function editProfile(profileId) {
-    const profile = profileManager.getProfile(profileId);
+function editProfileData(profileId) {
+    const profile = profileManagerPage.getProfile(profileId);
     if (!profile) return;
     
     // Store in sessionStorage
@@ -145,39 +161,21 @@ function editProfile(profileId) {
     window.location.href = 'index.html';
 }
 
-function deleteProfile(profileId) {
-    const profile = profileManager.getProfile(profileId);
+function deleteProfileFromList(profileId) {
+    const profile = profileManagerPage.getProfile(profileId);
     const fullName = `${profile.firstName} ${profile.lastName}`;
     
     if (confirm(`Are you sure you want to delete the profile for ${fullName}?`)) {
-        profileManager.deleteProfile(profileId);
-        loadProfiles();
+        profileManagerPage.deleteProfile(profileId);
+        loadProfilesPage();
     }
 }
 
 function clearAllProfiles() {
     if (confirm('Are you sure you want to delete ALL saved profiles? This cannot be undone.')) {
         if (confirm('Really sure? This will permanently delete all your saved profiles.')) {
-            profileManager.clearAll();
-            loadProfiles();
+            profileManagerPage.clearAll();
+            loadProfilesPage();
         }
     }
-}
-
-// Check if we're loading an edit profile
-const editProfile = sessionStorage.getItem('editProfile');
-if (editProfile && window.location.pathname.includes('index.html')) {
-    const profile = JSON.parse(editProfile);
-    
-    // Pre-fill the form
-    document.getElementById('firstName').value = profile.firstName;
-    document.getElementById('lastName').value = profile.lastName;
-    document.getElementById('birthDate').value = profile.birthDate;
-    document.getElementById('birthHour').value = profile.birthHour;
-    document.getElementById('birthMinute').value = profile.birthMinute;
-    document.getElementById('birthCity').value = profile.birthCity;
-    document.getElementById('birthCountry').value = profile.birthCountry;
-    
-    // Clear the edit session
-    sessionStorage.removeItem('editProfile');
 }

@@ -4,58 +4,54 @@ class ProfileManager {
         this.storageKey = 'astroProfiles';
     }
 
-    // Get all profiles from localStorage
     getAllProfiles() {
         const profiles = localStorage.getItem(this.storageKey);
         return profiles ? JSON.parse(profiles) : [];
     }
 
-    // Save a new profile
     saveProfile(profileData) {
         const profiles = this.getAllProfiles();
         
-        // Add timestamp and ID
         profileData.id = Date.now();
         profileData.savedAt = new Date().toISOString();
         
-        // Add to beginning of array
         profiles.unshift(profileData);
         
-        // Limit to 10 most recent profiles
         if (profiles.length > 10) {
             profiles.pop();
         }
         
         localStorage.setItem(this.storageKey, JSON.stringify(profiles));
-        console.log('Profile saved:', profileData);
+        console.log('✅ Profile saved successfully:', profileData);
         return profileData;
     }
 
-    // Delete a profile by ID
     deleteProfile(profileId) {
         let profiles = this.getAllProfiles();
         profiles = profiles.filter(p => p.id !== profileId);
         localStorage.setItem(this.storageKey, JSON.stringify(profiles));
+        console.log('🗑️ Profile deleted:', profileId);
     }
 
-    // Get a single profile by ID
     getProfile(profileId) {
         const profiles = this.getAllProfiles();
         return profiles.find(p => p.id === profileId);
     }
 }
 
-// Initialize profile manager
 const profileManager = new ProfileManager();
 
 // Load saved profiles on page load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('📱 Page loaded, checking for saved profiles...');
     loadSavedProfiles();
 });
 
 // Load and display saved profiles
 function loadSavedProfiles() {
     const profiles = profileManager.getAllProfiles();
+    console.log(`📊 Found ${profiles.length} saved profiles`);
+    
     const profileList = document.getElementById('profileList');
     const savedProfilesSection = document.getElementById('savedProfilesSection');
     const profileCount = document.getElementById('profileCount');
@@ -81,18 +77,23 @@ function createProfileItem(profile) {
     profileItem.dataset.profileName = `${profile.firstName} ${profile.lastName}`.toLowerCase();
     
     const fullName = `${profile.firstName} ${profile.lastName}`;
-    const birthDate = new Date(profile.birthDate).toLocaleDateString();
+    const birthDate = new Date(profile.birthDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
     
-    // Convert 24-hour to 12-hour format for display
-    let displayHour = profile.birthHour24;
+    // Convert 24-hour to 12-hour for display
+    let hour = profile.birthHour24;
     let period = 'AM';
-    if (displayHour >= 12) {
-        period = 'PM';
-        if (displayHour > 12) displayHour -= 12;
-    }
-    if (displayHour === 0) displayHour = 12;
     
-    const birthTime = `${String(displayHour).padStart(2, '0')}:${String(profile.birthMinute).padStart(2, '0')} ${period}`;
+    if (hour >= 12) {
+        period = 'PM';
+        if (hour > 12) hour -= 12;
+    }
+    if (hour === 0) hour = 12;
+    
+    const birthTime = `${String(hour).padStart(2, '0')}:${String(profile.birthMinute).padStart(2, '0')} ${period}`;
     
     // Build location string
     let location = profile.birthCity;
@@ -134,12 +135,17 @@ function filterProfiles() {
 // Load a profile into the form
 function loadProfile(profileId) {
     const profile = profileManager.getProfile(profileId);
-    if (!profile) return;
+    if (!profile) {
+        console.error('❌ Profile not found:', profileId);
+        return;
+    }
+    
+    console.log('📥 Loading profile:', profile);
     
     document.getElementById('firstName').value = profile.firstName;
     document.getElementById('lastName').value = profile.lastName;
     
-    // Set gender radio button
+    // Set gender
     if (profile.gender === 'male') {
         document.getElementById('genderMale').checked = true;
     } else {
@@ -149,15 +155,16 @@ function loadProfile(profileId) {
     document.getElementById('birthDate').value = profile.birthDate;
     
     // Convert 24-hour to 12-hour for form
-    let hour12 = profile.birthHour24;
+    let hour = profile.birthHour24;
     let period = 'AM';
-    if (hour12 >= 12) {
-        period = 'PM';
-        if (hour12 > 12) hour12 -= 12;
-    }
-    if (hour12 === 0) hour12 = 12;
     
-    document.getElementById('birthHour').value = hour12;
+    if (hour >= 12) {
+        period = 'PM';
+        if (hour > 12) hour -= 12;
+    }
+    if (hour === 0) hour = 12;
+    
+    document.getElementById('birthHour').value = hour;
     document.getElementById('birthMinute').value = profile.birthMinute;
     document.getElementById('birthPeriod').value = period;
     
@@ -182,9 +189,9 @@ function convertTo24Hour(hour12, period) {
     let hour24 = parseInt(hour12);
     
     if (period === 'AM') {
-        if (hour24 === 12) hour24 = 0;
+        if (hour24 === 12) hour24 = 0; // 12 AM = 00:00
     } else { // PM
-        if (hour24 !== 12) hour24 += 12;
+        if (hour24 !== 12) hour24 += 12; // 1 PM = 13:00, but 12 PM = 12:00
     }
     
     return hour24;
@@ -193,6 +200,7 @@ function convertTo24Hour(hour12, period) {
 // Form submission handler
 document.getElementById('birthForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    console.log('📝 Form submitted');
     
     // Clear previous errors
     document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
@@ -208,6 +216,12 @@ document.getElementById('birthForm').addEventListener('submit', function(e) {
     const birthCity = document.getElementById('birthCity').value.trim();
     const birthState = document.getElementById('birthState').value.trim();
     const birthCountry = document.getElementById('birthCountry').value.trim();
+    
+    console.log('Form values:', {
+        firstName, lastName, gender, birthDate,
+        hour12: birthHour12, minute: birthMinute, period: birthPeriod,
+        city: birthCity, state: birthState, country: birthCountry
+    });
     
     // Validation
     let isValid = true;
@@ -240,11 +254,13 @@ document.getElementById('birthForm').addEventListener('submit', function(e) {
     }
     
     if (!isValid) {
+        console.log('❌ Validation failed');
         return;
     }
     
-    // Convert to 24-hour format for storage
+    // Convert to 24-hour format
     const birthHour24 = convertTo24Hour(birthHour12, birthPeriod);
+    console.log(`⏰ Time conversion: ${birthHour12}:${birthMinute} ${birthPeriod} → ${birthHour24}:${birthMinute} (24-hour)`);
     
     // Create profile data object
     const profileData = {
@@ -259,16 +275,17 @@ document.getElementById('birthForm').addEventListener('submit', function(e) {
         birthCountry
     };
     
-    console.log('Submitting profile:', profileData);
+    console.log('💾 Saving profile:', profileData);
     
     // Save to localStorage
     const savedProfile = profileManager.saveProfile(profileData);
-    console.log('Profile saved with ID:', savedProfile.id);
     
     // Store in sessionStorage for results page
     sessionStorage.setItem('currentProfile', JSON.stringify(profileData));
+    console.log('✅ Profile saved to sessionStorage');
     
     // Redirect to results page
+    console.log('🔄 Redirecting to results page...');
     window.location.href = 'results.html';
 });
 

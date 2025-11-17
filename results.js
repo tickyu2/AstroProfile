@@ -1,15 +1,18 @@
 // Load profile data from sessionStorage
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 Results page loaded');
+    
     const profileData = sessionStorage.getItem('currentProfile');
     
     if (!profileData) {
-        // No profile data - redirect back to home
+        console.error('❌ No profile data found in sessionStorage');
         alert('No profile data found. Please enter your birth information.');
         window.location.href = 'index.html';
         return;
     }
     
     const profile = JSON.parse(profileData);
+    console.log('✅ Profile loaded:', profile);
     
     // Populate the page with profile data
     populateProfileData(profile);
@@ -26,8 +29,24 @@ function populateProfileData(profile) {
         month: 'long', 
         day: 'numeric' 
     });
-    const birthTime = `${String(profile.birthHour).padStart(2, '0')}:${String(profile.birthMinute).padStart(2, '0')}`;
-    const location = `${profile.birthCity}, ${profile.birthCountry}`;
+    
+    // Convert 24-hour to 12-hour for display
+    let displayHour = profile.birthHour24;
+    let period = 'AM';
+    if (displayHour >= 12) {
+        period = 'PM';
+        if (displayHour > 12) displayHour -= 12;
+    }
+    if (displayHour === 0) displayHour = 12;
+    
+    const birthTime = `${String(displayHour).padStart(2, '0')}:${String(profile.birthMinute).padStart(2, '0')} ${period}`;
+    
+    // Build location string
+    let location = profile.birthCity;
+    if (profile.birthState) location += `, ${profile.birthState}`;
+    location += `, ${profile.birthCountry}`;
+    
+    console.log('📍 Birth info:', { date: formattedDate, time: birthTime, location });
     
     // Update birth information panel
     const birthInfoPanel = document.querySelector('.info-panel');
@@ -87,6 +106,8 @@ function calculateAndDisplay(profile) {
     const month = birthDate.getMonth() + 1;
     const day = birthDate.getDate();
     
+    console.log('🔮 Calculating astrological data...');
+    
     // Calculate Chinese Zodiac
     calculateChineseZodiac(year);
     
@@ -97,10 +118,12 @@ function calculateAndDisplay(profile) {
     calculateNumerology(profile.firstName, profile.lastName, birthDate);
     
     // Calculate Yin/Yang Energy
-    calculateYinYang(birthDate, profile.birthHour);
+    calculateYinYang(birthDate, profile.birthHour24);
     
     // Calculate Day of Week
     calculateDayOfWeek(birthDate);
+    
+    console.log('✨ All calculations complete!');
 }
 
 function calculateChineseZodiac(year) {
@@ -119,8 +142,6 @@ function calculateChineseZodiac(year) {
         { name: 'Pig', element: 'Water', traits: 'Compassionate, generous, diligent' }
     ];
     
-    // Chinese New Year typically falls between Jan 21 and Feb 20
-    // Simple approximation - for accurate results, would need lunar calendar
     const index = (year - 4) % 12;
     const animal = animals[index];
     
@@ -182,14 +203,12 @@ function calculateWesternZodiac(month, day) {
 }
 
 function calculateNumerology(firstName, lastName, birthDate) {
-    // Calculate Life Path Number
     const year = birthDate.getFullYear();
     const month = birthDate.getMonth() + 1;
     const day = birthDate.getDate();
     
     const lifePathSum = reduceToSingleDigit(year + month + day);
     
-    // Calculate Expression Number (from full name)
     const fullName = (firstName + lastName).toUpperCase();
     let expressionSum = 0;
     for (let char of fullName) {
@@ -199,7 +218,6 @@ function calculateNumerology(firstName, lastName, birthDate) {
     }
     const expressionNumber = reduceToSingleDigit(expressionSum);
     
-    // Calculate Soul Urge (vowels)
     let soulUrgeSum = 0;
     const vowels = 'AEIOU';
     for (let char of fullName) {
@@ -209,7 +227,6 @@ function calculateNumerology(firstName, lastName, birthDate) {
     }
     const soulUrge = reduceToSingleDigit(soulUrgeSum);
     
-    // Calculate Personality Number (consonants)
     let personalitySum = 0;
     for (let char of fullName) {
         if (char >= 'A' && char <= 'Z' && !vowels.includes(char)) {
@@ -257,29 +274,18 @@ function reduceToSingleDigit(num) {
     return num;
 }
 
-function calculateYinYang(birthDate, birthHour) {
+function calculateYinYang(birthDate, birthHour24) {
     const year = birthDate.getFullYear();
     const month = birthDate.getMonth() + 1;
     const day = birthDate.getDate();
     
-    // Calculate Yin/Yang balance
-    // Yang: odd numbers, day time (6-18)
-    // Yin: even numbers, night time (18-6)
-    
     let yangScore = 0;
     let yinScore = 0;
     
-    // Year
     if (year % 2 === 1) yangScore++; else yinScore++;
-    
-    // Month
     if (month % 2 === 1) yangScore++; else yinScore++;
-    
-    // Day
     if (day % 2 === 1) yangScore++; else yinScore++;
-    
-    // Hour (daytime is Yang)
-    if (birthHour >= 6 && birthHour < 18) yangScore++; else yinScore++;
+    if (birthHour24 >= 6 && birthHour24 < 18) yangScore++; else yinScore++;
     
     const totalPoints = yangScore + yinScore;
     const yangPercentage = Math.round((yangScore / totalPoints) * 100);
