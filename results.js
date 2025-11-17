@@ -1,369 +1,346 @@
-// Results Page Logic - Original Version with Complete Numerology
-
-window.addEventListener('DOMContentLoaded', () => {
-    const results = JSON.parse(localStorage.getItem('astroResults'));
+// Load profile data from sessionStorage
+document.addEventListener('DOMContentLoaded', function() {
+    const profileData = sessionStorage.getItem('currentProfile');
     
-    if (!results) {
+    if (!profileData) {
+        // No profile data - redirect back to home
+        alert('No profile data found. Please enter your birth information.');
         window.location.href = 'index.html';
         return;
     }
     
-    // Populate header
-    document.getElementById('greeting').textContent = `Wow, ${results.fullName}. Nice meeting you!`;
-    document.getElementById('birthInfo').innerHTML = `
-        I see that you were born on <span class="highlight">${results.birthDateFormatted}</span>, 
-        that amazing day was a <span class="highlight">${results.dayOfWeek}</span>.<br>
-        As of today, you are <span class="highlight">${results.age} years, ${results.ageMonths} months, and ${results.ageDays} days</span> old.
-    `;
+    const profile = JSON.parse(profileData);
     
-    // Birth Information Card
-    document.getElementById('birthDetails').innerHTML = `
-        <div class="info-row"><strong>Full Name:</strong> ${results.fullName}</div>
-        <div class="info-row"><strong>Birth Date and Time:</strong> ${results.birthDateFormatted} at ${results.birthTime}</div>
-        <div class="info-row"><strong>Birth Place:</strong> ${results.birthLocation}</div>
-    `;
+    // Populate the page with profile data
+    populateProfileData(profile);
     
-    // Chinese Zodiac Card
-    const chineseTraits = getChineseZodiacTraits(results.chineseZodiac, results.element);
-    document.getElementById('chineseZodiacContent').innerHTML = `
-        <div class="zodiac-name">${results.element} ${results.chineseZodiac}</div>
-        <p class="zodiac-subtitle">Born in the year of the ${results.chineseZodiac} with ${results.element} Element</p>
-        <div class="element-tag">${results.element.toUpperCase()} ELEMENT</div>
-        <div class="trait-text">${chineseTraits}</div>
-    `;
-    
-    // Day of Week Card
-    const dayRuler = getDayRuler(results.dayOfWeek);
-    const dayTraits = getDayTraits(results.dayOfWeek);
-    const dayInfluence = getDayInfluence(results.dayOfWeek);
-    document.getElementById('dayContent').innerHTML = `
-        <div class="zodiac-name">${results.dayOfWeek}</div>
-        <p class="zodiac-subtitle">Ruled by ${dayRuler}</p>
-        <p style="color: #a0b4c0; font-style: italic; margin-top: 10px; font-size: 0.9rem;">${dayTraits}</p>
-        <div class="trait-text">${dayInfluence}</div>
-    `;
-    
-    // Western Zodiac Card
-    const zodiacElement = getZodiacElement(results.westernZodiac);
-    const westernTraits = getWesternZodiacTraits(results.westernZodiac);
-    document.getElementById('westernZodiacContent').innerHTML = `
-        <div class="zodiac-name">${results.westernZodiac}</div>
-        <p class="zodiac-subtitle">An ${zodiacElement} sign</p>
-        <div class="element-tag">${zodiacElement.toUpperCase()} ELEMENT ASPECT</div>
-        <div class="trait-text">${westernTraits}</div>
-    `;
-    
-    // Numerology Card with ALL 4 numbers
-    const expressionNumber = calculateExpression(results.fullName);
-    const soulUrgeNumber = calculateSoulUrge(results.fullName);
-    const personalYear = calculatePersonalYear(results.birthDateFormatted);
-    
-    document.getElementById('numerologyContent').innerHTML = `
-        <div class="numerology-item">
-            <div class="numerology-number num-9">${results.lifePathNumber}</div>
-            <div class="numerology-content">
-                <div class="numerology-label">Life Path</div>
-                <div class="numerology-title">Your Life Purpose</div>
-                <div class="numerology-description">${getLifePathDescription(results.lifePathNumber)}</div>
-            </div>
-        </div>
-        
-        <div class="numerology-item">
-            <div class="numerology-number num-8">${expressionNumber}</div>
-            <div class="numerology-content">
-                <div class="numerology-label">Expression</div>
-                <div class="numerology-title">Your Natural Talents</div>
-                <div class="numerology-description">${getExpressionDescription(expressionNumber)}</div>
-            </div>
-        </div>
-        
-        <div class="numerology-item">
-            <div class="numerology-number num-5">${soulUrgeNumber}</div>
-            <div class="numerology-content">
-                <div class="numerology-label">Soul Urge</div>
-                <div class="numerology-title">Your Inner Desires</div>
-                <div class="numerology-description">${getSoulUrgeDescription(soulUrgeNumber)}</div>
-            </div>
-        </div>
-        
-        <div class="numerology-item">
-            <div class="numerology-number num-year">${personalYear}</div>
-            <div class="numerology-content">
-                <div class="numerology-label">Personal Year 2025</div>
-                <div class="numerology-title">Your Current Cycle</div>
-                <div class="numerology-description">${getPersonalYearDescription(personalYear)}</div>
-            </div>
-        </div>
-    `;
-    
-    // Yin/Yang Card
-    document.getElementById('yinYangContent').innerHTML = `
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: ${results.yinYangBalance.yin}%;">
-                ${results.yinYangBalance.yin}% Yin
-            </div>
-            <div class="yang-indicator" style="width: ${results.yinYangBalance.yang}%;">
-                ${results.yinYangBalance.yang}% Yang
-            </div>
-        </div>
-        
-        <div class="energy-description">
-            <h4>🌙 YIN ENERGY (${results.yinYangBalance.yin}%)</h4>
-            <p>Receptive, introspective, intuitive. Yin is the quiet strength of water—flowing, adapting, nurturing the inner world, emotional depth, and the wisdom of listening.</p>
-        </div>
-
-        ${results.yinYangBalance.yang > 0 ? `
-        <div class="energy-description">
-            <h4>☀️ YANG ENERGY (${results.yinYangBalance.yang}%)</h4>
-            <p>Active, expressive, dynamic. Yang is the bright power of fire—initiating, leading, creating the outer world, action-taking, and the courage to assert yourself.</p>
-        </div>
-        ` : ''}
-    `;
-    
-    // Animate progress bars
-    setTimeout(() => {
-        const progressBars = document.querySelectorAll('.progress-fill, .yang-indicator');
-        progressBars.forEach(bar => {
-            const width = bar.style.width;
-            bar.style.width = '0%';
-            setTimeout(() => {
-                bar.style.width = width;
-            }, 100);
-        });
-    }, 300);
+    // Calculate and display all astrological data
+    calculateAndDisplay(profile);
 });
 
-// Numerology Calculation Functions
-
-function calculateExpression(fullName) {
-    const letterValues = {
-        'a': 1, 'j': 1, 's': 1,
-        'b': 2, 'k': 2, 't': 2,
-        'c': 3, 'l': 3, 'u': 3,
-        'd': 4, 'm': 4, 'v': 4,
-        'e': 5, 'n': 5, 'w': 5,
-        'f': 6, 'o': 6, 'x': 6,
-        'g': 7, 'p': 7, 'y': 7,
-        'h': 8, 'q': 8, 'z': 8,
-        'i': 9, 'r': 9
-    };
+function populateProfileData(profile) {
+    const fullName = `${profile.firstName} ${profile.lastName}`;
+    const birthDate = new Date(profile.birthDate);
+    const formattedDate = birthDate.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    const birthTime = `${String(profile.birthHour).padStart(2, '0')}:${String(profile.birthMinute).padStart(2, '0')}`;
+    const location = `${profile.birthCity}, ${profile.birthCountry}`;
     
-    let sum = 0;
-    const cleanName = fullName.toLowerCase().replace(/[^a-z]/g, '');
-    
-    for (let char of cleanName) {
-        sum += letterValues[char] || 0;
+    // Update birth information panel
+    const birthInfoPanel = document.querySelector('.info-panel');
+    if (birthInfoPanel) {
+        birthInfoPanel.querySelector('.info-content').innerHTML = `
+            <div class="info-row">
+                <span class="info-label">Birth Date:</span>
+                <span class="info-value">${formattedDate}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Birth Time:</span>
+                <span class="info-value">${birthTime}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Birth Place:</span>
+                <span class="info-value">${location}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Age:</span>
+                <span class="info-value" id="ageDisplay">Calculating...</span>
+            </div>
+        `;
     }
     
-    while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) {
-        sum = sum.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
-    }
-    
-    return sum;
+    // Calculate and display age
+    calculateAge(birthDate);
 }
 
-function calculateSoulUrge(fullName) {
-    const vowels = 'aeiouAEIOU';
-    const letterValues = {
-        'a': 1, 'e': 5, 'i': 9, 'o': 6, 'u': 3,
-        'A': 1, 'E': 5, 'I': 9, 'O': 6, 'U': 3
-    };
+function calculateAge(birthDate) {
+    const today = new Date();
+    const birth = new Date(birthDate);
     
-    let sum = 0;
-    for (let char of fullName) {
-        if (vowels.includes(char)) {
-            sum += letterValues[char] || 0;
+    let years = today.getFullYear() - birth.getFullYear();
+    let months = today.getMonth() - birth.getMonth();
+    let days = today.getDate() - birth.getDate();
+    
+    if (days < 0) {
+        months--;
+        const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        days += prevMonth.getDate();
+    }
+    
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+    
+    const ageDisplay = document.getElementById('ageDisplay');
+    if (ageDisplay) {
+        ageDisplay.textContent = `${years} years, ${months} months, ${days} days`;
+    }
+}
+
+function calculateAndDisplay(profile) {
+    const birthDate = new Date(profile.birthDate);
+    const year = birthDate.getFullYear();
+    const month = birthDate.getMonth() + 1;
+    const day = birthDate.getDate();
+    
+    // Calculate Chinese Zodiac
+    calculateChineseZodiac(year);
+    
+    // Calculate Western Zodiac
+    calculateWesternZodiac(month, day);
+    
+    // Calculate Numerology
+    calculateNumerology(profile.firstName, profile.lastName, birthDate);
+    
+    // Calculate Yin/Yang Energy
+    calculateYinYang(birthDate, profile.birthHour);
+    
+    // Calculate Day of Week
+    calculateDayOfWeek(birthDate);
+}
+
+function calculateChineseZodiac(year) {
+    const animals = [
+        { name: 'Rat', element: 'Water', traits: 'Quick-witted, resourceful, versatile, kind' },
+        { name: 'Ox', element: 'Earth', traits: 'Diligent, dependable, strong, determined' },
+        { name: 'Tiger', element: 'Wood', traits: 'Brave, confident, competitive, unpredictable' },
+        { name: 'Rabbit', element: 'Wood', traits: 'Quiet, elegant, kind, responsible' },
+        { name: 'Dragon', element: 'Earth', traits: 'Confident, intelligent, enthusiastic' },
+        { name: 'Snake', element: 'Fire', traits: 'Enigmatic, intelligent, wise' },
+        { name: 'Horse', element: 'Fire', traits: 'Animated, active, energetic' },
+        { name: 'Goat', element: 'Earth', traits: 'Calm, gentle, sympathetic' },
+        { name: 'Monkey', element: 'Metal', traits: 'Sharp, smart, curiosity' },
+        { name: 'Rooster', element: 'Metal', traits: 'Observant, hardworking, courageous' },
+        { name: 'Dog', element: 'Earth', traits: 'Lovely, honest, prudent' },
+        { name: 'Pig', element: 'Water', traits: 'Compassionate, generous, diligent' }
+    ];
+    
+    // Chinese New Year typically falls between Jan 21 and Feb 20
+    // Simple approximation - for accurate results, would need lunar calendar
+    const index = (year - 4) % 12;
+    const animal = animals[index];
+    
+    const panel = document.querySelector('.chinese-panel');
+    if (panel) {
+        panel.querySelector('h3').innerHTML = `🐷 ${animal.name.toUpperCase()}`;
+        panel.querySelector('.element-badge').textContent = `${animal.element.toUpperCase()} ELEMENT`;
+        panel.querySelector('.panel-description').textContent = 
+            `The ${animal.name} embodies ${animal.traits.toLowerCase()}. Those born under this sign possess exceptional ${animal.traits.split(',')[0].toLowerCase()} abilities and demonstrate ${animal.traits.split(',')[1].toLowerCase()}.`;
+    }
+}
+
+function calculateWesternZodiac(month, day) {
+    const signs = [
+        { name: 'Capricorn', dates: [[12, 22], [1, 19]], element: 'Earth', icon: '♑' },
+        { name: 'Aquarius', dates: [[1, 20], [2, 18]], element: 'Air', icon: '♒' },
+        { name: 'Pisces', dates: [[2, 19], [3, 20]], element: 'Water', icon: '♓' },
+        { name: 'Aries', dates: [[3, 21], [4, 19]], element: 'Fire', icon: '♈' },
+        { name: 'Taurus', dates: [[4, 20], [5, 20]], element: 'Earth', icon: '♉' },
+        { name: 'Gemini', dates: [[5, 21], [6, 20]], element: 'Air', icon: '♊' },
+        { name: 'Cancer', dates: [[6, 21], [7, 22]], element: 'Water', icon: '♋' },
+        { name: 'Leo', dates: [[7, 23], [8, 22]], element: 'Fire', icon: '♌' },
+        { name: 'Virgo', dates: [[8, 23], [9, 22]], element: 'Earth', icon: '♍' },
+        { name: 'Libra', dates: [[9, 23], [10, 22]], element: 'Air', icon: '♎' },
+        { name: 'Scorpio', dates: [[10, 23], [11, 21]], element: 'Water', icon: '♏' },
+        { name: 'Sagittarius', dates: [[11, 22], [12, 21]], element: 'Fire', icon: '♐' }
+    ];
+    
+    let currentSign = signs[0];
+    for (const sign of signs) {
+        const [[startMonth, startDay], [endMonth, endDay]] = sign.dates;
+        if ((month === startMonth && day >= startDay) || (month === endMonth && day <= endDay)) {
+            currentSign = sign;
+            break;
         }
     }
     
-    while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) {
-        sum = sum.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+    const descriptions = {
+        'Capricorn': 'Capricorn represents the disciplined achiever, governed by Saturn\'s structural wisdom. This cardinal earth sign demonstrates exceptional ambition and organizational prowess.',
+        'Aquarius': 'Aquarius embodies the innovative visionary, ruled by Uranus\'s revolutionary energy. This fixed air sign demonstrates exceptional intellectual independence.',
+        'Pisces': 'Pisces represents the compassionate dreamer, guided by Neptune\'s mystical currents. This mutable water sign possesses profound emotional intelligence.',
+        'Aries': 'Aries embodies the courageous pioneer, driven by Mars\'s dynamic force. This cardinal fire sign demonstrates natural leadership abilities.',
+        'Taurus': 'Taurus represents the steadfast builder, governed by Venus\'s aesthetic harmony. This fixed earth sign demonstrates exceptional determination.',
+        'Gemini': 'Gemini embodies the curious communicator, ruled by Mercury\'s mental agility. This mutable air sign possesses exceptional adaptability.',
+        'Cancer': 'Cancer represents the archetypal nurturer, governed by the Moon\'s intuitive wisdom and emotional depth. This cardinal water sign demonstrates exceptional emotional intelligence and profound protective instincts.',
+        'Leo': 'Leo embodies the charismatic leader, ruled by the Sun\'s radiant energy. This fixed fire sign demonstrates natural magnetism and creative expression.',
+        'Virgo': 'Virgo represents the meticulous perfectionist, governed by Mercury\'s analytical precision. This mutable earth sign demonstrates exceptional attention to detail.',
+        'Libra': 'Libra embodies the diplomatic harmonizer, ruled by Venus\'s aesthetic grace. This cardinal air sign demonstrates exceptional social intelligence.',
+        'Scorpio': 'Scorpio represents the intense transformer, governed by Pluto\'s regenerative power. This fixed water sign demonstrates exceptional emotional depth.',
+        'Sagittarius': 'Sagittarius embodies the adventurous philosopher, ruled by Jupiter\'s expansive vision. This mutable fire sign demonstrates exceptional optimism.'
+    };
+    
+    const panel = document.querySelector('.western-panel');
+    if (panel) {
+        panel.querySelector('h3').innerHTML = `⭐ ${currentSign.name.toUpperCase()}`;
+        panel.querySelector('.element-badge').textContent = `${currentSign.element.toUpperCase()} ELEMENT`;
+        panel.querySelector('.panel-description').textContent = descriptions[currentSign.name];
     }
-    
-    return sum;
 }
 
-function calculatePersonalYear(birthDateFormatted) {
-    const currentYear = new Date().getFullYear();
-    const birthMatch = birthDateFormatted.match(/(\w+)\s+(\d+)/);
-    const month = new Date(Date.parse(birthMatch[1] + " 1, 2000")).getMonth() + 1;
-    const day = parseInt(birthMatch[2]);
+function calculateNumerology(firstName, lastName, birthDate) {
+    // Calculate Life Path Number
+    const year = birthDate.getFullYear();
+    const month = birthDate.getMonth() + 1;
+    const day = birthDate.getDate();
     
-    let sum = currentYear + month + day;
+    const lifePathSum = reduceToSingleDigit(year + month + day);
     
-    while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) {
-        sum = sum.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+    // Calculate Expression Number (from full name)
+    const fullName = (firstName + lastName).toUpperCase();
+    let expressionSum = 0;
+    for (let char of fullName) {
+        if (char >= 'A' && char <= 'Z') {
+            expressionSum += ((char.charCodeAt(0) - 64) % 9) || 9;
+        }
     }
+    const expressionNumber = reduceToSingleDigit(expressionSum);
     
-    return sum;
-}
-
-// Numerology Description Functions
-
-function getLifePathDescription(number) {
+    // Calculate Soul Urge (vowels)
+    let soulUrgeSum = 0;
+    const vowels = 'AEIOU';
+    for (let char of fullName) {
+        if (vowels.includes(char)) {
+            soulUrgeSum += ((char.charCodeAt(0) - 64) % 9) || 9;
+        }
+    }
+    const soulUrge = reduceToSingleDigit(soulUrgeSum);
+    
+    // Calculate Personality Number (consonants)
+    let personalitySum = 0;
+    for (let char of fullName) {
+        if (char >= 'A' && char <= 'Z' && !vowels.includes(char)) {
+            personalitySum += ((char.charCodeAt(0) - 64) % 9) || 9;
+        }
+    }
+    const personality = reduceToSingleDigit(personalitySum);
+    
     const descriptions = {
-        1: 'The Pioneer - Independent, innovative, and ambitious.',
-        2: 'The Diplomat - Cooperative, sensitive, and peace-loving.',
-        3: 'The Creative - Expressive, optimistic, and imaginative.',
-        4: 'The Builder - Practical, organized, and reliable.',
-        5: 'The Freedom Seeker - Adventurous, versatile, and progressive.',
-        6: 'The Nurturer - Responsible, caring, and harmonious.',
-        7: 'The Seeker - Analytical, spiritual, and introspective.',
-        8: 'The Powerhouse - Ambitious, authoritative, and material-focused.',
-        9: 'The Humanitarian - Compassionate, generous, idealistic.',
-        11: 'The Illuminator - Intuitive, inspired, and visionary.',
-        22: 'The Master Builder - Visionary, practical, and transformative.',
-        33: 'The Master Teacher - Nurturing, selfless, and healing.'
-    };
-    return descriptions[number] || descriptions[9];
-}
-
-function getExpressionDescription(number) {
-    const descriptions = {
-        1: 'Natural leader with innovative vision.',
-        2: 'Diplomatic mediator, excellent team player.',
-        3: 'Creative communicator, artistic expression.',
-        4: 'Practical organizer, solid foundation builder.',
-        5: 'Dynamic adventurer, embraces change.',
-        6: 'Nurturing caretaker, creates harmony.',
-        7: 'Analytical thinker, spiritual seeker.',
-        8: 'Powerful achiever, business-minded.',
-        9: 'Humanitarian visionary, serves others.',
-        11: 'Intuitive messenger, inspires others.',
-        22: 'Master builder, creates lasting legacy.',
-        33: 'Master healer, uplifts humanity.'
-    };
-    return descriptions[number] || descriptions[8];
-}
-
-function getSoulUrgeDescription(number) {
-    const descriptions = {
-        1: 'Desires independence and leadership.',
-        2: 'Longs for partnership and harmony.',
-        3: 'Craves creative self-expression.',
-        4: 'Seeks stability and order.',
-        5: 'Longs for freedom and adventure.',
-        6: 'Desires to nurture and serve.',
-        7: 'Seeks knowledge and understanding.',
-        8: 'Craves success and recognition.',
-        9: 'Desires to help humanity.',
-        11: 'Longs to inspire and enlighten.',
-        22: 'Seeks to build something meaningful.',
-        33: 'Desires to heal and teach.'
-    };
-    return descriptions[number] || descriptions[5];
-}
-
-function getPersonalYearDescription(number) {
-    const descriptions = {
-        1: 'New beginnings - Fresh starts, new opportunities.',
-        2: 'Partnerships - Cooperation, relationships develop.',
-        3: 'Creativity - Self-expression, social expansion.',
-        4: 'Hard work - Building foundations, stability.',
-        5: 'Change - Freedom, adventure, transformation.',
-        6: 'Responsibility - Family, service, nurturing.',
-        7: 'Introspection - Spiritual growth, inner work.',
-        8: 'Achievement - Business success, financial gains, recognition.',
-        9: 'Completion - Endings, humanitarian service.',
-        11: 'Illumination - Spiritual awakening, inspiration.',
-        22: 'Master building - Large-scale achievements.',
-        33: 'Master healing - Service, compassion.'
-    };
-    return descriptions[number] || descriptions[8];
-}
-
-// Trait Database Functions (same as before)
-
-function getChineseZodiacTraits(animal, element) {
-    const animalTraits = {
-        'Rabbit': 'Gentle, compassionate, and diplomatic. Rabbits are artistic souls who value peace and harmony. They avoid conflict and seek comfortable, stable environments.',
-        'Tiger': 'Brave, confident, and competitive. Tigers are natural leaders.',
-        'Dragon': 'Ambitious, enthusiastic, and charismatic.',
-        'Snake': 'Wise, intuitive, and mysterious.',
-        'Horse': 'Energetic, independent, and free-spirited.',
-        'Goat': 'Creative, gentle, and empathetic.',
-        'Monkey': 'Clever, playful, and curious.',
-        'Rooster': 'Observant, hardworking, and confident.',
-        'Dog': 'Loyal, honest, and protective.',
-        'Pig': 'Generous, optimistic, and sincere.',
-        'Rat': 'Intelligent, adaptable, and resourceful.',
-        'Ox': 'Reliable, patient, and determined.'
+        1: 'reveals a natural born leader with pioneering spirit',
+        2: 'indicates natural diplomacy and cooperative abilities',
+        3: 'expresses creative communication and joyful expression',
+        4: 'demonstrates practical foundation-building abilities',
+        5: 'reveals adventurous adaptability and freedom-seeking',
+        6: 'indicates nurturing responsibility and harmony-seeking',
+        7: 'reveals a profound spiritual seeker pursuing deep truth and wisdom',
+        8: 'demonstrates material mastery and ambitious achievement',
+        9: 'expresses humanitarian compassion and universal understanding'
     };
     
-    const elementTraits = {
-        'Water': 'Water adds emotional depth, intuition, and adaptability. It brings wisdom, flexibility, and the ability to flow with life changes. This creates a more sensitive and empathetic nature.',
-        'Wood': 'Wood brings growth, creativity, and compassion.',
-        'Fire': 'Fire adds passion, energy, and leadership.',
-        'Earth': 'Earth brings stability, reliability, and practicality.',
-        'Metal': 'Metal adds determination, structure, and precision.'
+    const panel = document.querySelector('.numerology-panel');
+    if (panel) {
+        const circles = panel.querySelectorAll('.number-circle');
+        const labels = panel.querySelectorAll('.number-label');
+        
+        circles[0].textContent = lifePathSum;
+        circles[1].textContent = expressionNumber;
+        circles[2].textContent = soulUrge;
+        circles[3].textContent = personality;
+        
+        labels[0].textContent = 'Life Path';
+        labels[1].textContent = 'Expression';
+        labels[2].textContent = 'Soul Urge';
+        labels[3].textContent = 'Personality';
+        
+        panel.querySelector('.panel-description').textContent = 
+            `Life Path ${lifePathSum} ${descriptions[lifePathSum]}. Expression ${expressionNumber} ${descriptions[expressionNumber]}, while Soul Urge ${soulUrge} ${descriptions[soulUrge]}.`;
+    }
+}
+
+function reduceToSingleDigit(num) {
+    while (num > 9) {
+        num = num.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+    }
+    return num;
+}
+
+function calculateYinYang(birthDate, birthHour) {
+    const year = birthDate.getFullYear();
+    const month = birthDate.getMonth() + 1;
+    const day = birthDate.getDate();
+    
+    // Calculate Yin/Yang balance
+    // Yang: odd numbers, day time (6-18)
+    // Yin: even numbers, night time (18-6)
+    
+    let yangScore = 0;
+    let yinScore = 0;
+    
+    // Year
+    if (year % 2 === 1) yangScore++; else yinScore++;
+    
+    // Month
+    if (month % 2 === 1) yangScore++; else yinScore++;
+    
+    // Day
+    if (day % 2 === 1) yangScore++; else yinScore++;
+    
+    // Hour (daytime is Yang)
+    if (birthHour >= 6 && birthHour < 18) yangScore++; else yinScore++;
+    
+    const totalPoints = yangScore + yinScore;
+    const yangPercentage = Math.round((yangScore / totalPoints) * 100);
+    const yinPercentage = 100 - yangPercentage;
+    
+    const panel = document.querySelector('.yinyang-panel');
+    if (panel) {
+        const yinBar = panel.querySelector('.yin-bar');
+        const yangBar = panel.querySelector('.yang-bar');
+        const yinText = panel.querySelector('.yin-text');
+        const yangText = panel.querySelector('.yang-text');
+        
+        if (yinBar && yangBar) {
+            yinBar.style.width = `${yinPercentage}%`;
+            yangBar.style.width = `${yangPercentage}%`;
+        }
+        
+        if (yinText) yinText.textContent = `${yinPercentage}%`;
+        if (yangText) yangText.textContent = `${yangPercentage}%`;
+        
+        const yinDesc = panel.querySelector('.yin-energy-desc');
+        const yangDesc = panel.querySelector('.yang-energy-desc');
+        
+        if (yinDesc) {
+            yinDesc.querySelector('h4').textContent = `🌙 YIN ENERGY (${yinPercentage}%)`;
+            yinDesc.querySelector('p:nth-child(2)').textContent = 'Feminine Energy: Receptive, Intuitive, Nurturing';
+            yinDesc.querySelector('p:nth-child(3)').textContent = 
+                `Your ${yinPercentage}% Yin energy represents your receptive, introspective nature. This is the quiet strength of water—flowing, adapting, and nurturing the inner world. It's about emotional depth, intuition, and the wisdom of listening.`;
+        }
+        
+        if (yangDesc) {
+            yangDesc.querySelector('h4').textContent = `☀️ YANG ENERGY (${yangPercentage}%)`;
+            yangDesc.querySelector('p:nth-child(2)').textContent = 'Masculine Energy: Active, Logical, Assertive';
+            yangDesc.querySelector('p:nth-child(3)').textContent = 
+                `Your ${yangPercentage}% Yang energy fuels your active, outward-directed nature. This is the driving force of fire—initiating, creating, and shaping the external world. It's about action, logic, and the power of doing.`;
+        }
+    }
+}
+
+function calculateDayOfWeek(birthDate) {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const rulers = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'];
+    
+    const dayOfWeek = birthDate.getDay();
+    const dayName = days[dayOfWeek];
+    const ruler = rulers[dayOfWeek];
+    
+    const descriptions = {
+        'Sunday': 'Sunday births fall under the Sun\'s dominion, bestowing exceptional communicative prowess and intellectual agility. Those born on this day naturally excel in analytical thinking and verbal expression.',
+        'Monday': 'Monday births fall under the Moon\'s dominion, bestowing exceptional emotional intelligence and nurturing abilities. Those born on this day naturally excel in understanding others.',
+        'Tuesday': 'Tuesday births fall under Mars\'s dominion, bestowing exceptional courage and dynamic energy. Those born on this day naturally excel in leadership.',
+        'Wednesday': 'Wednesday births fall under Mercury\'s dominion, bestowing exceptional communicative prowess and intellectual agility. Those born on this day naturally excel in analytical thinking and verbal expression.',
+        'Thursday': 'Thursday births fall under Jupiter\'s dominion, bestowing exceptional wisdom and expansive vision. Those born on this day naturally excel in teaching.',
+        'Friday': 'Friday births fall under Venus\'s dominion, bestowing exceptional aesthetic appreciation and harmonious relationships. Those born on this day naturally excel in diplomacy.',
+        'Saturday': 'Saturday births fall under Saturn\'s dominion, bestowing exceptional discipline and structural thinking. Those born on this day naturally excel in organization.'
     };
     
-    return animalTraits[animal] + ' ' + elementTraits[element];
-}
-
-function getDayRuler(day) {
-    const rulers = {
-        'Monday': 'Moon',
-        'Tuesday': 'Mars',
-        'Wednesday': 'Mercury',
-        'Thursday': 'Jupiter',
-        'Friday': 'Venus',
-        'Saturday': 'Saturn',
-        'Sunday': 'Sun'
-    };
-    return rulers[day];
-}
-
-function getDayTraits(day) {
-    const traits = {
-        'Monday': 'Sensitivity, intuition, nurturing',
-        'Tuesday': 'Energy, courage, determination',
-        'Wednesday': 'Communication, intellect, adaptability',
-        'Thursday': 'Expansion, wisdom, generosity',
-        'Friday': 'Love, beauty, harmony',
-        'Saturday': 'Discipline, responsibility, structure',
-        'Sunday': 'Vitality, confidence, leadership'
-    };
-    return traits[day];
-}
-
-function getDayInfluence(day) {
-    const influences = {
-        'Monday': 'The Moon brings sensitivity, intuition, and nurturing energy. Those born on Monday are deeply empathetic and emotionally intelligent.',
-        'Tuesday': 'Mars brings energy, courage, and determination. Tuesday-born individuals are natural warriors and pioneers.',
-        'Wednesday': 'Mercury brings communication, intellect, and adaptability.',
-        'Thursday': 'Jupiter brings expansion, wisdom, and generosity.',
-        'Friday': 'Venus brings love, beauty, and harmony.',
-        'Saturday': 'Saturn brings discipline, responsibility, and structure.',
-        'Sunday': 'The Sun brings vitality, confidence, and leadership.'
-    };
-    return influences[day];
-}
-
-function getZodiacElement(sign) {
-    const elements = {
-        'Aries': 'Fire', 'Leo': 'Fire', 'Sagittarius': 'Fire',
-        'Taurus': 'Earth', 'Virgo': 'Earth', 'Capricorn': 'Earth',
-        'Gemini': 'Air', 'Libra': 'Air', 'Aquarius': 'Air',
-        'Cancer': 'Water', 'Scorpio': 'Water', 'Pisces': 'Water'
-    };
-    return elements[sign];
-}
-
-function getWesternZodiacTraits(sign) {
-    const traits = {
-        'Taurus': 'Reliable builders who value stability, beauty, and sensory pleasures. Taurus individuals are patient, practical, and appreciate life\'s finer things. The Earth element grounds this sign in reality, enhancing practicality, reliability, and material focus. Earth signs build tangible results, value security, and work steadily toward their goals. They are sensual, patient, and excel at manifesting their visions into physical form.',
-        'Aries': 'Bold initiators with pioneering spirit.',
-        'Gemini': 'Curious communicators who thrive on mental stimulation.',
-        'Cancer': 'Nurturing protectors with deep emotional intelligence.',
-        'Leo': 'Confident performers who radiate warmth.',
-        'Virgo': 'Analytical perfectionists who serve through improvement.',
-        'Libra': 'Diplomatic peacemakers who seek balance.',
-        'Scorpio': 'Intense transformers with penetrating insight.',
-        'Sagittarius': 'Adventurous philosophers who seek truth.',
-        'Capricorn': 'Ambitious achievers who build lasting legacies.',
-        'Aquarius': 'Innovative humanitarians who champion progress.',
-        'Pisces': 'Compassionate dreamers with artistic souls.'
-    };
-    return traits[sign];
+    const panel = document.querySelector('.day-panel');
+    if (panel) {
+        panel.querySelector('h3').textContent = dayName.toUpperCase();
+        panel.querySelector('.element-badge').textContent = `RULED BY ${ruler.toUpperCase()}`;
+        panel.querySelector('.panel-description').textContent = descriptions[dayName];
+    }
 }

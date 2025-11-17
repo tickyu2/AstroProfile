@@ -57,6 +57,27 @@
             color: #a0b4c0;
         }
 
+        .profile-management-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            color: #FFD700;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .profile-management-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #FFD700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
         .card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -197,6 +218,104 @@
             animation: shake 0.5s;
         }
 
+        .saved-profiles {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 215, 0, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .saved-profiles h3 {
+            color: #FFD700;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .profile-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .profile-item {
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-item:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+            transform: translateX(5px);
+        }
+
+        .profile-item-info {
+            flex: 1;
+        }
+
+        .profile-item-name {
+            font-weight: 600;
+            color: #FFD700;
+            margin-bottom: 4px;
+        }
+
+        .profile-item-details {
+            font-size: 0.85rem;
+            color: #a0b4c0;
+        }
+
+        .profile-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .profile-item-btn {
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: transparent;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-item-btn.load {
+            border-color: rgba(255, 215, 0, 0.5);
+            color: #FFD700;
+        }
+
+        .profile-item-btn.load:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #FFD700;
+        }
+
+        .profile-item-btn.delete {
+            border-color: rgba(255, 107, 107, 0.5);
+            color: #ff6b6b;
+        }
+
+        .profile-item-btn.delete:hover {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: #ff6b6b;
+        }
+
+        .no-profiles {
+            text-align: center;
+            color: #a0b4c0;
+            font-size: 0.9rem;
+            padding: 20px;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -250,6 +369,20 @@
             .time-inputs {
                 grid-template-columns: 1fr;
             }
+
+            .profile-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .profile-item-actions {
+                width: 100%;
+            }
+
+            .profile-item-btn {
+                flex: 1;
+            }
         }
 
         .nav-hint {
@@ -270,9 +403,18 @@
                 <span class="star">✨</span>
             </h1>
             <p>Discover your unique astrological profile</p>
+            <a href="profiles.html" class="profile-management-btn">📋 Manage Saved Profiles</a>
         </div>
 
         <div class="card">
+            <!-- Saved Profiles Section -->
+            <div id="savedProfilesSection" class="saved-profiles" style="display: none;">
+                <h3>📌 Quick Load Saved Profiles</h3>
+                <div id="profileList" class="profile-list">
+                    <!-- Profiles will be loaded here -->
+                </div>
+            </div>
+
             <form id="birthForm">
                 <div class="form-group">
                     <label>Your Name</label>
