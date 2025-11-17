@@ -171,7 +171,7 @@ function calculateAndDisplay(profile) {
     console.log('  Hour (24h):', profile.birthHour24);
     
     // Calculate Chinese Zodiac
-    calculateChineseZodiac(year);
+    calculateChineseZodiac(year, month, day);
     
     // Calculate Western Zodiac
     calculateWesternZodiac(month, day);
@@ -188,38 +188,56 @@ function calculateAndDisplay(profile) {
     console.log('✨ All calculations complete!');
 }
 
-function calculateChineseZodiac(year) {
-    const animals = [
-        { name: 'Rat', element: 'Water', traits: 'Quick-witted, resourceful, versatile, kind' },
-        { name: 'Ox', element: 'Earth', traits: 'Diligent, dependable, strong, determined' },
-        { name: 'Tiger', element: 'Wood', traits: 'Brave, confident, competitive, unpredictable' },
-        { name: 'Rabbit', element: 'Wood', traits: 'Quiet, elegant, kind, responsible' },
-        { name: 'Dragon', element: 'Earth', traits: 'Confident, intelligent, enthusiastic' },
-        { name: 'Snake', element: 'Fire', traits: 'Enigmatic, intelligent, wise' },
-        { name: 'Horse', element: 'Fire', traits: 'Animated, active, energetic' },
-        { name: 'Goat', element: 'Earth', traits: 'Calm, gentle, sympathetic' },
-        { name: 'Monkey', element: 'Metal', traits: 'Sharp, smart, curiosity' },
-        { name: 'Rooster', element: 'Metal', traits: 'Observant, hardworking, courageous' },
-        { name: 'Dog', element: 'Earth', traits: 'Lovely, honest, prudent' },
-        { name: 'Pig', element: 'Water', traits: 'Compassionate, generous, diligent' }
-    ];
+function calculateChineseZodiac(year, month, day) {
+    console.log(`🐉 Calculating Chinese Zodiac for ${year}-${month}-${day}`);
     
-    const index = (year - 4) % 12;
-    const animal = animals[index];
+    // Use the new accurate calculator with Yin/Yang
+    const zodiac = chineseZodiacCalculator.calculate(year, month, day);
     
-    console.log(`  Chinese Zodiac: ${animal.name} (${animal.element})`);
+    console.log(`  Chinese Year: ${zodiac.chineseYear}`);
+    console.log(`  Full Name: ${zodiac.fullName}`);
+    console.log(`  Polarity: ${zodiac.polarity}`);
+    console.log(`  Element: ${zodiac.element}`);
+    console.log(`  Animal: ${zodiac.animal} ${zodiac.emoji}`);
     
+    // Update the Chinese Zodiac panel
     const panel = document.querySelector('.chinese-panel');
     if (panel) {
         const h3 = panel.querySelector('h3');
         const badge = panel.querySelector('.element-badge');
         const desc = panel.querySelector('.panel-description');
         
-        if (h3) h3.innerHTML = `🐷 ${animal.name.toUpperCase()}`;
-        if (badge) badge.textContent = `${animal.element.toUpperCase()} ELEMENT`;
-        if (desc) desc.textContent = `The ${animal.name} embodies ${animal.traits.toLowerCase()}. Those born under this sign possess exceptional ${animal.traits.split(',')[0].toLowerCase()} abilities and demonstrate ${animal.traits.split(',')[1].toLowerCase()}.`;
+        // Update with Yin/Yang + Element + Animal
+        if (h3) h3.innerHTML = `${zodiac.emoji} ${zodiac.polarity.toUpperCase()} ${zodiac.element.toUpperCase()} ${zodiac.animal.toUpperCase()}`;
+        if (badge) badge.textContent = `${zodiac.element.toUpperCase()} ELEMENT`;
+        
+        // Keep existing description logic
+        if (desc) {
+            const traits = getChineseZodiacTraits(zodiac.animal);
+            desc.textContent = `The ${zodiac.polarity} ${zodiac.element} ${zodiac.animal} combines ${zodiac.polarity.toLowerCase()} energy with ${zodiac.element.toLowerCase()} characteristics. Those born under this sign possess exceptional ${traits.split(',')[0].toLowerCase()} abilities.`;
+        }
     }
 }
+
+// Helper function for traits (keeping original logic)
+function getChineseZodiacTraits(animal) {
+    const traitsMap = {
+        'Rat': 'Quick-witted, resourceful, versatile, kind',
+        'Ox': 'Diligent, dependable, strong, determined',
+        'Tiger': 'Brave, confident, competitive, unpredictable',
+        'Rabbit': 'Quiet, elegant, kind, responsible',
+        'Dragon': 'Confident, intelligent, enthusiastic',
+        'Snake': 'Enigmatic, intelligent, wise',
+        'Horse': 'Animated, active, energetic',
+        'Goat': 'Calm, gentle, sympathetic',
+        'Monkey': 'Sharp, smart, curiosity',
+        'Rooster': 'Observant, hardworking, courageous',
+        'Dog': 'Lovely, honest, prudent',
+        'Pig': 'Compassionate, generous, diligent'
+    };
+    return traitsMap[animal] || 'Unique and special';
+}
+
 
 function calculateWesternZodiac(month, day) {
     const signs = [
