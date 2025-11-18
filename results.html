@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmic Blueprint - AstroProfile</title>
+    <title>Your Cosmic Blueprint - AstroProfile</title>
     
     <style>
         * {
@@ -74,10 +74,14 @@
             gap: 10px;
         }
 
+        .profile-header {
+            margin-bottom: 25px;
+        }
+
         .profile-name {
             font-size: 2rem;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 15px;
@@ -113,8 +117,7 @@
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+            gap: 20px;
         }
 
         .info-item {
@@ -142,14 +145,14 @@
         }
 
         /* Cards Grid */
-        .cards-grid {
+        .results-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 25px;
             margin-bottom: 30px;
         }
 
-        .card {
+        .result-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 20px;
@@ -159,29 +162,25 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .card:hover {
+        .result-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 40px rgba(212, 175, 55, 0.4);
         }
 
-        .card h3 {
+        .card-title {
             color: #ffd700;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             font-size: 1.5rem;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* Chinese Zodiac Specific */
-        .chinese-panel {
-            grid-column: span 1;
-        }
-
-        .zodiac-header {
+        /* Chinese Zodiac */
+        .zodiac-display {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             margin-bottom: 20px;
         }
 
@@ -195,7 +194,7 @@
             50% { transform: translateY(-10px); }
         }
 
-        .zodiac-details {
+        .zodiac-info {
             flex: 1;
         }
 
@@ -203,17 +202,17 @@
             font-size: 1.8rem;
             font-weight: bold;
             color: white;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
-        .badges-row {
+        .badges-container {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
             margin-top: 10px;
         }
 
-        .element-badge, .polarity-badge {
+        .badge {
             padding: 5px 12px;
             border-radius: 15px;
             font-size: 0.85rem;
@@ -253,7 +252,7 @@
             box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
         }
 
-        /* Polarity Colors */
+        /* Polarity */
         .polarity-yang {
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             color: white;
@@ -266,17 +265,17 @@
             box-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
         }
 
-        .description {
+        .card-description {
             color: rgba(255, 255, 255, 0.8);
             line-height: 1.6;
             margin-top: 15px;
         }
 
-        /* Numerology Numbers */
+        /* Numerology */
         .numerology-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
             margin-top: 20px;
         }
 
@@ -286,19 +285,19 @@
 
         .number-label {
             color: #d4af37;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             margin-bottom: 10px;
             font-weight: 600;
         }
 
         .number-circle {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: bold;
             margin: 0 auto;
             transition: all 0.3s ease;
@@ -340,34 +339,56 @@
             }
         }
 
-        /* Yin Yang Section */
-        .yinyang-display {
+        /* Yin Yang Balance */
+        .balance-display {
             display: flex;
-            align-items: center;
             justify-content: space-around;
-            margin-top: 20px;
+            align-items: center;
             padding: 20px;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 15px;
+            margin-top: 20px;
         }
 
-        .yinyang-item {
+        .balance-item {
             text-align: center;
         }
 
-        .yinyang-label {
+        .balance-label {
             color: #d4af37;
             font-size: 0.9rem;
             margin-bottom: 10px;
+            font-weight: 600;
         }
 
-        .yinyang-value {
-            font-size: 2rem;
+        .balance-value {
+            font-size: 2.5rem;
             font-weight: bold;
         }
 
-        .yang-color { color: #fbbf24; }
-        .yin-color { color: #60a5fa; }
+        .yang-text { color: #fbbf24; }
+        .yin-text { color: #60a5fa; }
+
+        /* Day of Week */
+        .day-display {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .day-planet {
+            font-size: 1.5rem;
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .day-description {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
 
         /* Action Buttons */
         .action-buttons {
@@ -421,17 +442,21 @@
                 font-size: 1.5rem;
             }
 
-            .cards-grid {
+            .results-grid {
                 grid-template-columns: 1fr;
             }
 
-            .zodiac-header {
+            .zodiac-display {
                 flex-direction: column;
                 text-align: center;
             }
 
             .info-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .numerology-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -440,40 +465,9 @@
                 padding: 10px;
             }
 
-            .info-panel, .card {
+            .info-panel, .result-card {
                 padding: 20px;
             }
-
-            .numerology-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* Loading State */
-        .loading {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.6);
-            font-style: italic;
-        }
-
-        /* Day of Week Section */
-        .day-info {
-            text-align: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 15px;
-            margin-top: 20px;
-        }
-
-        .day-planet {
-            font-size: 1.5rem;
-            color: #ffd700;
-            margin-bottom: 10px;
-        }
-
-        .day-description {
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.6;
         }
     </style>
 </head>
@@ -489,82 +483,87 @@
         <div class="info-panel">
             <h2>📋 Birth Information</h2>
             
-            <div class="profile-name">
-                <span id="displayName">Loading...</span>
-                <span id="genderBadge" class="gender-badge" style="display: none;">
-                    <span id="genderIcon">⚧</span>
-                    <span id="genderText">-</span>
-                </span>
+            <div class="profile-header">
+                <div class="profile-name">
+                    <span id="displayName">Loading...</span>
+                    <span id="genderBadge" class="gender-badge" style="display: none;">
+                        <span id="genderIcon">⚧</span>
+                        <span id="genderText">-</span>
+                    </span>
+                </div>
             </div>
 
             <div class="info-grid">
                 <div class="info-item">
                     <div class="info-label">📅 Birth Date</div>
-                    <div class="info-value" id="displayBirthDate">-</div>
+                    <div class="info-value" id="birthDate">-</div>
                 </div>
 
                 <div class="info-item">
                     <div class="info-label">⏰ Birth Time</div>
-                    <div class="info-value" id="displayBirthTime">-</div>
+                    <div class="info-value" id="birthTime">-</div>
                 </div>
 
                 <div class="info-item">
                     <div class="info-label">📍 Birth Place</div>
-                    <div class="info-value" id="displayLocation">-</div>
-                    <div class="coordinates" id="displayCoordinates" style="display: none;">
+                    <div class="info-value" id="birthLocation">-</div>
+                    <div class="coordinates" id="coordinates" style="display: none;">
                         🌐 <span id="coordinatesValue">-</span>
                     </div>
                 </div>
 
                 <div class="info-item">
                     <div class="info-label">🎂 Current Age</div>
-                    <div class="info-value" id="displayAge">-</div>
+                    <div class="info-value" id="currentAge">-</div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Cards Grid -->
-        <div class="cards-grid">
+        <!-- Results Grid -->
+        <div class="results-grid">
             <!-- Chinese Zodiac Card -->
-            <div class="card chinese-panel">
-                <h3>🐉 Chinese Zodiac</h3>
+            <div class="result-card" id="chineseCard">
+                <div class="card-title">🐉 Chinese Zodiac</div>
                 
-                <div class="zodiac-header">
-                    <div class="zodiac-icon" id="zodiacEmoji">🔮</div>
-                    <div class="zodiac-details">
-                        <div class="zodiac-name" id="zodiacName">Loading...</div>
-                        <div class="badges-row">
-                            <span class="element-badge" id="elementBadge">Element</span>
-                            <span class="polarity-badge" id="polarityBadge">Polarity</span>
+                <div class="zodiac-display">
+                    <div class="zodiac-icon" id="chineseIcon">🔮</div>
+                    <div class="zodiac-info">
+                        <div class="zodiac-name" id="chineseName">Loading...</div>
+                        <div class="badges-container">
+                            <span class="badge" id="elementBadge">Element</span>
+                            <span class="badge" id="polarityBadge">Polarity</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="description" id="zodiacDescription">
+                <div class="card-description" id="chineseDescription">
                     Calculating your Chinese zodiac sign...
                 </div>
             </div>
 
             <!-- Western Zodiac Card -->
-            <div class="card">
-                <h3>♈ Western Zodiac</h3>
-                <div class="zodiac-header">
-                    <div class="zodiac-icon" id="westernEmoji">♈</div>
-                    <div class="zodiac-details">
+            <div class="result-card" id="westernCard">
+                <div class="card-title">♈ Western Zodiac</div>
+                
+                <div class="zodiac-display">
+                    <div class="zodiac-icon" id="westernIcon">♈</div>
+                    <div class="zodiac-info">
                         <div class="zodiac-name" id="westernName">Loading...</div>
-                        <div class="badges-row">
-                            <span class="element-badge" id="westernElement">Element</span>
+                        <div class="badges-container">
+                            <span class="badge" id="westernElement">Element</span>
                         </div>
                     </div>
                 </div>
-                <div class="description" id="westernDescription">
+
+                <div class="card-description" id="westernDescription">
                     Calculating your Western zodiac sign...
                 </div>
             </div>
 
             <!-- Numerology Card -->
-            <div class="card">
-                <h3>🔢 Numerology Profile</h3>
+            <div class="result-card" id="numerologyCard">
+                <div class="card-title">🔢 Numerology Profile</div>
+                
                 <div class="numerology-grid">
                     <div class="number-item">
                         <div class="number-label">Life Path</div>
@@ -586,27 +585,30 @@
             </div>
 
             <!-- Yin Yang Balance Card -->
-            <div class="card">
-                <h3>☯️ Yin/Yang Energy Balance</h3>
-                <div class="yinyang-display">
-                    <div class="yinyang-item">
-                        <div class="yinyang-label">Yang Energy</div>
-                        <div class="yinyang-value yang-color" id="yangPercent">-</div>
+            <div class="result-card" id="yinyangCard">
+                <div class="card-title">☯️ Yin/Yang Energy Balance</div>
+                
+                <div class="balance-display">
+                    <div class="balance-item">
+                        <div class="balance-label">Yang Energy</div>
+                        <div class="balance-value yang-text" id="yangPercent">-</div>
                     </div>
-                    <div class="yinyang-item">
-                        <div class="yinyang-label">Yin Energy</div>
-                        <div class="yinyang-value yin-color" id="yinPercent">-</div>
+                    <div class="balance-item">
+                        <div class="balance-label">Yin Energy</div>
+                        <div class="balance-value yin-text" id="yinPercent">-</div>
                     </div>
                 </div>
-                <div class="description" id="yinYangDescription" style="margin-top: 15px;">
+
+                <div class="card-description" id="yinyangDescription">
                     Calculating your energy balance...
                 </div>
             </div>
 
             <!-- Day of Week Card -->
-            <div class="card">
-                <h3>🌟 Day of Week Influence</h3>
-                <div class="day-info">
+            <div class="result-card" id="dayCard">
+                <div class="card-title">🌟 Day of Week Influence</div>
+                
+                <div class="day-display">
                     <div class="day-planet" id="dayPlanet">Loading...</div>
                     <div class="day-description" id="dayDescription">
                         Calculating planetary influence...
