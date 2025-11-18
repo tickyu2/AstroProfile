@@ -68,7 +68,11 @@ function createProfileCardElement(profile) {
     card.className = 'profile-item';
     
     const fullName = `${profile.firstName} ${profile.lastName}`;
-    const birthDate = new Date(profile.birthDate);
+    
+    // Parse date in local timezone to avoid UTC shift
+    const [year, month, day] = profile.birthDate.split('-').map(Number);
+    const birthDate = new Date(year, month - 1, day);
+    
     const formattedDate = birthDate.toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'long', 
