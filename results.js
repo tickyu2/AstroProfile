@@ -374,18 +374,18 @@ function getAnimalEmoji(animal) {
 
 function calculateWesternZodiac(month, day) {
     const signs = [
-        { name: 'Capricorn', dates: [[12, 22], [1, 19]], element: 'Earth' },
-        { name: 'Aquarius', dates: [[1, 20], [2, 18]], element: 'Air' },
-        { name: 'Pisces', dates: [[2, 19], [3, 20]], element: 'Water' },
-        { name: 'Aries', dates: [[3, 21], [4, 19]], element: 'Fire' },
-        { name: 'Taurus', dates: [[4, 20], [5, 20]], element: 'Earth' },
-        { name: 'Gemini', dates: [[5, 21], [6, 20]], element: 'Air' },
-        { name: 'Cancer', dates: [[6, 21], [7, 22]], element: 'Water' },
-        { name: 'Leo', dates: [[7, 23], [8, 22]], element: 'Fire' },
-        { name: 'Virgo', dates: [[8, 23], [9, 22]], element: 'Earth' },
-        { name: 'Libra', dates: [[9, 23], [10, 22]], element: 'Air' },
-        { name: 'Scorpio', dates: [[10, 23], [11, 21]], element: 'Water' },
-        { name: 'Sagittarius', dates: [[11, 22], [12, 21]], element: 'Fire' }
+        { name: 'Capricorn', dates: [[12, 22], [1, 19]], element: 'Earth', symbol: '♑' },
+        { name: 'Aquarius', dates: [[1, 20], [2, 18]], element: 'Air', symbol: '♒' },
+        { name: 'Pisces', dates: [[2, 19], [3, 20]], element: 'Water', symbol: '♓' },
+        { name: 'Aries', dates: [[3, 21], [4, 19]], element: 'Fire', symbol: '♈' },
+        { name: 'Taurus', dates: [[4, 20], [5, 20]], element: 'Earth', symbol: '♉' },
+        { name: 'Gemini', dates: [[5, 21], [6, 20]], element: 'Air', symbol: '♊' },
+        { name: 'Cancer', dates: [[6, 21], [7, 22]], element: 'Water', symbol: '♋' },
+        { name: 'Leo', dates: [[7, 23], [8, 22]], element: 'Fire', symbol: '♌' },
+        { name: 'Virgo', dates: [[8, 23], [9, 22]], element: 'Earth', symbol: '♍' },
+        { name: 'Libra', dates: [[9, 23], [10, 22]], element: 'Air', symbol: '♎' },
+        { name: 'Scorpio', dates: [[10, 23], [11, 21]], element: 'Water', symbol: '♏' },
+        { name: 'Sagittarius', dates: [[11, 22], [12, 21]], element: 'Fire', symbol: '♐' }
     ];
     
     let currentSign = signs[0];
@@ -416,11 +416,13 @@ function calculateWesternZodiac(month, day) {
     
     const panel = document.querySelector('.western-panel');
     if (panel) {
+        const icon = panel.querySelector('.western-zodiac-icon');
         const h3 = panel.querySelector('h3');
         const badge = panel.querySelector('.element-badge');
         const desc = panel.querySelector('.panel-description');
         
-        if (h3) h3.innerHTML = `⭐ ${currentSign.name.toUpperCase()}`;
+        if (icon) icon.textContent = currentSign.symbol;
+        if (h3) h3.textContent = currentSign.name.toUpperCase();
         if (badge) badge.textContent = `${currentSign.element.toUpperCase()} ELEMENT`;
         if (desc) desc.textContent = descriptions[currentSign.name];
     }
