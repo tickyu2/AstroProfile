@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profiles - AstroProfile</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-header h1 {
+            color: #ffd700;
+            margin-bottom: 1rem;
+        }
+
+        .profile-count {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .profile-card {
+            background: rgba(0, 0, 139, 0.2);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-card:hover {
+            border-color: #ffd700;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .profile-card h3 {
+            color: #ffd700;
+            margin-bottom: 1rem;
+        }
+
+        .profile-info {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .profile-info p {
+            margin: 0.5rem 0;
+        }
+
+        .precision-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 255, 0, 0.2);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #ffd700;
+            margin-top: 0.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #001a33;
+            border: none;
+        }
+
+        .action-btn.secondary {
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 215, 0, 0.3);
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>🌟 My Cosmic Profiles</h1>
+            <p class="profile-count">Loading profiles...</p>
+        </header>
+
+        <div class="action-buttons">
+            <a href="index.html" class="action-btn primary">+ Create New Profile</a>
+            <button onclick="exportAllProfiles()" class="action-btn secondary">💾 Export All</button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading your profiles from cloud...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">📭</div>
+            <h2>No Profiles Yet</h2>
+            <p>Create your first cosmic blueprint to get started!</p>
+            <a href="index.html" class="action-btn primary" style="margin-top: 2rem;">+ Create Profile</a>
+        </div>
+
+        <!-- Profiles Grid -->
+        <div id="profilesGrid" class="profile-grid" style="display: none;">
+            <!-- Profiles will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="profile-manager.js"></script>
+    
+    <script>
+        // Load all profiles
+        async function loadProfiles() {
+            try {
+                // Wait for ProfileManager to initialize
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                const profiles = await ProfileManager.getAllProfiles();
+                
+                console.log(`✅ Loaded ${profiles.length} profiles`);
+
+                // Update profile count
+                document.querySelector('.profile-count').textContent = 
+                    `${profiles.length} ${profiles.length === 1 ? 'profile' : 'profiles'} saved in cloud`;
+
+                // Hide loading
+                document.getElementById('loadingState').style.display = 'none';
+
+                if (profiles.length === 0) {
+                    // Show empty state
+                    document.getElementById('emptyState').style.display = 'block';
+                } else {
+                    // Show profiles
+                    displayProfiles(profiles);
+                    document.getElementById('profilesGrid').style.display = 'grid';
+                }
+
+            } catch (error) {
+                console.error('❌ Error loading profiles:', error);
+                document.getElementById('loadingState').innerHTML = 
+                    `<p style="color: #ff6b6b;">Error: ${error.message}</p>`;
+            }
+        }
+
+        // Display profiles in grid
+        function displayProfiles(profiles) {
+            const grid = document.getElementById('profilesGrid');
+            grid.innerHTML = '';
+
+            profiles.forEach(profile => {
+                const card = createProfileCard(profile);
+                grid.appendChild(card);
+            });
+        }
+
+        // Create profile card HTML
+        function createProfileCard(profile) {
+            const card = document.createElement('div');
+            card.className = 'profile-card';
+            card.onclick = () => window.location.href = `results.html?id=${profile.id}`;
+
+            const birthDate = new Date(profile.birthDate).toLocaleDateString();
+            const location = profile.location.hospitalName || 
+                            `${profile.location.city}, ${profile.location.country}`;
+            
+            const precisionLabels = {
+                hospital: '⭐⭐⭐⭐⭐ Hospital Precision',
+                city: '⭐⭐⭐ City Level',
+                manual: '⭐⭐⭐⭐⭐ Manual GPS'
+            };
+
+            card.innerHTML = `
+                <h3>${profile.name}</h3>
+                <div class="profile-info">
+                    <p>📅 ${birthDate}</p>
+                    <p>⏰ ${profile.birthTime}</p>
+                    <p>📍 ${location}</p>
+                    <div class="precision-tag">
+                        ${precisionLabels[profile.location.precision] || profile.location.precision}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Export all profiles
+        async function exportAllProfiles() {
+            try {
+                await ProfileManager.exportAllProfiles();
+                alert('✅ Profiles exported successfully!');
+            } catch (error) {
+                alert('❌ Export failed: ' + error.message);
+            }
+        }
+
+        // Load profiles when page loads
+        window.addEventListener('load', loadProfiles);
+    </script>
+</body>
+</html>

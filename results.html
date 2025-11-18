@@ -3,702 +3,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Cosmic Blueprint - Results</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Your Cosmic Blueprint - AstroProfile</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0a1628 0%, #1a2332 50%, #0f1b2e 100%);
-            padding: 15px;
-            min-height: 100vh;
-            color: white;
-        }
-        
-        .container {
-            max-width: 1400px;
+        .results-container {
+            max-width: 1000px;
             margin: 0 auto;
+            padding: 2rem;
         }
-        
-        .header {
+
+        .loading {
             text-align: center;
-            margin-bottom: 15px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            position: relative;
+            padding: 4rem 2rem;
         }
-        
-        .nav-buttons {
-            position: absolute;
-            top: 20px;
-            width: calc(100% - 40px);
-            display: flex;
-            justify-content: space-between;
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 215, 0, 0.3);
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
         }
-        
-        .nav-button {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
             background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(212, 175, 55, 0.5);
-            border-radius: 25px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .profile-header h1 {
             color: #ffd700;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            cursor: pointer;
+            margin-bottom: 0.5rem;
         }
-        
-        .nav-button:hover {
-            background: rgba(255, 215, 0, 0.2);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-            transform: translateY(-2px);
-        }
-        
-        .nav-button .arrow {
-            font-size: 18px;
-        }
-        
-        .header h1 {
-            font-family: 'Cinzel', serif;
-            font-size: 36px;
-            color: #ffd700;
-            margin-bottom: 8px;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-        }
-        
-        .header p {
+
+        .profile-header .tagline {
             color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
+            font-style: italic;
         }
-        
-        .dashboard {
+
+        .birth-info {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
         }
-        
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            position: relative;
+
+        .birth-info-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 139, 0.2);
+            border-radius: 8px;
         }
-        
-        .card:hover {
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-            border-color: rgba(212, 175, 55, 0.6);
-            transform: translateY(-3px);
+
+        .birth-info-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
         }
-        
-        .card-header {
+
+        .birth-info-value {
+            color: #ffd700;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .results-section {
+            background: rgba(0, 0, 139, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .results-section h2 {
+            color: #ffd700;
+            margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid rgba(212, 175, 55, 0.4);
+            gap: 0.5rem;
         }
-        
-        .icon {
-            font-size: 26px;
-        }
-        
-        .card-title {
-            font-family: 'Cinzel', serif;
-            font-size: 16px;
-            font-weight: 600;
-            color: #ffd700;
-            letter-spacing: 0.5px;
-        }
-        
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        
-        .info-label {
-            color: rgba(255, 255, 255, 0.7);
-            font-weight: 500;
-        }
-        
-        .info-value {
-            color: #ffffff;
-            font-weight: 600;
-            text-align: right;
-        }
-        
-        .zodiac-display {
-            display: flex;
+
+        .precision-badge {
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .zodiac-icons {
-            display: flex;
-            gap: 6px;
-        }
-        
-        .zodiac-icon {
-            font-size: 32px;
-        }
-        
-        .western-zodiac-icon {
-            animation: bounce 2s ease-in-out infinite;
-        }
-        
-        .zodiac-name {
-            font-family: 'Cinzel', serif;
-            font-size: 14px;
-            font-weight: 700;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+            border-radius: 8px;
             color: #ffd700;
-            flex: 1;
+            font-weight: bold;
         }
-        
-        .element-badge {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #1a1a1a;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
-        }
-        
-        /* New Chinese Zodiac Badges */
-        .zodiac-badges {
+
+        .action-buttons {
             display: flex;
-            gap: 10px;
+            gap: 1rem;
             justify-content: center;
-            margin-bottom: 15px;
+            margin-top: 3rem;
             flex-wrap: wrap;
         }
-        
-        .polarity-badge {
-            padding: 8px 16px;
-            border-radius: 25px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .polarity-badge.yang {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #1a1a1a;
-            border: 2px solid #ffd700;
-        }
-        
-        .polarity-badge.yin {
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-            color: white;
-            border: 2px solid #93c5fd;
-        }
-        
-        .element-badge.metal {
-            background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
-            color: #1a1a1a;
-            border: 2px solid #e5e7eb;
-        }
-        
-        .element-badge.water {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            border: 2px solid #60a5fa;
-        }
-        
-        .element-badge.wood {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: 2px solid #34d399;
-        }
-        
-        .element-badge.fire {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            border: 2px solid #f87171;
-        }
-        
-        .element-badge.earth {
-            background: linear-gradient(135deg, #a16207 0%, #854d0e 100%);
-            color: white;
-            border: 2px solid #ca8a04;
-        }
-        
-        .zodiac-animal {
-            text-align: center;
-            margin: 15px 0;
-        }
-        
-        .animal-icon {
-            font-size: 48px;
-            display: block;
-            margin-bottom: 10px;
-            text-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
-            animation: bounce 2s ease-in-out infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .animal-name {
-            font-size: 16px;
-            font-weight: 700;
-            color: #ffd700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            text-shadow: 0 2px 8px rgba(212, 175, 55, 0.6);
-        }
-        
-        .zodiac-tagline {
-            font-size: 12px;
-            font-style: italic;
-            color: #d4af37;
-            text-align: center;
-            margin-top: 10px;
-            padding: 0 15px;
-        }
-        
-        .planet-badge {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
-        }
-        
-        .description-box {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .description-box:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(212, 175, 55, 0.4);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-        }
-        
-        .description {
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 13px;
-            line-height: 1.6;
-        }
-        
-        .learn-more-btn {
-            margin-top: 12px;
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 20px;
-            color: white;
-            font-size: 12px;
-            font-weight: 600;
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
             cursor: pointer;
+            font-weight: bold;
             transition: all 0.3s ease;
-            display: inline-block;
-        }
-        
-        .learn-more-btn:hover {
-            box-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
-            transform: scale(1.05);
-        }
-        
-        /* Numerology specific styles */
-        .numbers-display {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-        
-        .number-circle {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .circle {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            font-weight: 700;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .circle.life-path {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .circle.expression {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        
-        .circle.soul-urge {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        
-        .circle.personality {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-        
-        .number-label {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-            font-weight: 500;
-        }
-        
-        /* Yin/Yang specific styles */
-        .energy-split-container {
-            margin-bottom: 20px;
-        }
-        
-        .energy-labels-top {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            padding: 0 5px;
-        }
-        
-        .energy-label-left {
-            font-size: 12px;
-            font-weight: 700;
-            color: #60a5fa;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .energy-label-right {
-            font-size: 12px;
-            font-weight: 700;
-            color: #f97316;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .energy-split-pill {
-            display: flex;
-            height: 35px;
-            border-radius: 25px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .energy-half {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 700;
-        }
-        
-        .energy-half.yin {
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-            color: white;
-        }
-        
-        .energy-half.yang {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: white;
-        }
-        
-        .energy-labels-bottom {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 8px;
-            padding: 0 5px;
-        }
-        
-        .energy-sublabel-left {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .energy-sublabel-right {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .energy-section {
-            margin-bottom: 15px;
-        }
-        
-        .energy-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        
-        .energy-icon {
-            font-size: 24px;
-        }
-        
-        .energy-title {
-            font-family: 'Cinzel', serif;
-            font-size: 14px;
-            font-weight: 600;
+            text-decoration: none;
+            border: 2px solid #ffd700;
             color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
         }
-        
-        .energy-subtitle {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-left: 32px;
-            margin-bottom: 8px;
+
+        .action-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+            transform: translateY(-2px);
         }
-        
-        @media (max-width: 1200px) {
-            .dashboard {
-                grid-template-columns: repeat(2, 1fr);
-            }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #001a33;
+            border: none;
         }
-        
-        @media (max-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-            .nav-buttons {
-                position: relative;
-                flex-direction: column;
-                gap: 10px;
-                margin-bottom: 15px;
-            }
+
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid rgba(255, 0, 0, 0.3);
+            border-radius: 8px;
+            color: #ff6b6b;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="nav-buttons">
-                <a href="index.html" class="nav-button">
-                    <span class="arrow">←</span>
-                    <span>Back to Data Input</span>
-                </a>
-                <a href="analysis.html" class="nav-button">
-                    <span>View Analysis</span>
-                    <span class="arrow">→</span>
-                </a>
-            </div>
-            <h1>✨ Your Cosmic Blueprint ✨</h1>
-            <p>The mathematical blueprint of your life path and purpose</p>
+    <div class="results-container">
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            <div class="loading-spinner"></div>
+            <h2>Generating Your Cosmic Blueprint...</h2>
+            <p>Calculating your astrological profile with hospital-level precision</p>
         </div>
-        
-        <div class="dashboard">
-            <!-- Birth Information Card -->
-            <div class="card info-panel">
-                <div class="card-header">
-                    <span class="icon">🎂</span>
-                    <span class="card-title">Your Birth Information</span>
-                </div>
-                <div class="info-content">
-                    <div class="info-row">
-                        <span class="info-label">Birth Date:</span>
-                        <span class="info-value" id="birthDateDisplay">Loading...</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Birth Time:</span>
-                        <span class="info-value" id="birthTimeDisplay">Loading...</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Birth Place:</span>
-                        <span class="info-value" id="birthPlaceDisplay">Loading...</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Age:</span>
-                        <span class="info-value" id="ageDisplay">Calculating...</span>
-                    </div>
-                </div>
-                <div class="description-box">
-                    <p class="description">
-                        As of today (2025-11-15), your unique cosmic blueprint has been shaped by the precise celestial alignments at your moment of birth.
-                    </p>
-                    <button class="learn-more-btn" onclick="showCalculations('birth')">Learn More</button>
-                </div>
-            </div>
-            
-            <!-- Chinese Zodiac Card -->
-            <div class="card chinese-panel">
-                <div class="card-header">
-                    <span class="icon">🏮</span>
-                    <span class="card-title">Chinese Zodiac</span>
-                </div>
-                <div class="zodiac-display">
-                    <p>Loading comprehensive zodiac data...</p>
-                </div>
-                <div class="description-box">
-                    <p class="panel-description">
-                        Calculating your complete Chinese zodiac profile...
-                    </p>
-                    <button class="learn-more-btn" onclick="showCalculations('chinese')">Learn More</button>
-                </div>
-            </div>
-            
-            <!-- Western Zodiac Card -->
-            <div class="card western-panel">
-                <div class="card-header">
-                    <span class="icon">⭐</span>
-                    <span class="card-title">Western Zodiac</span>
-                </div>
-                <div class="zodiac-display">
-                    <span class="element-badge">AIR ELEMENT</span>
-                    <h3>AQUARIUS</h3>
-                    <span class="zodiac-icon western-zodiac-icon">♒</span>
-                </div>
-                <div class="description-box">
-                    <p class="description panel-description">
-                        Calculating your Western zodiac sign...
-                    </p>
-                    <button class="learn-more-btn" onclick="showCalculations('western')">Learn More</button>
-                </div>
-            </div>
-            
-            <!-- Born On Card -->
-            <div class="card day-panel">
-                <div class="card-header">
-                    <span class="icon">📅</span>
-                    <span class="card-title">Born On</span>
-                </div>
-                <div class="zodiac-display">
-                    <h3>Loading...</h3>
-                    <span class="element-badge">LOADING...</span>
-                </div>
-                <div class="description-box">
-                    <p class="description panel-description">
-                        Calculating your birth day...
-                    </p>
-                    <button class="learn-more-btn" onclick="showCalculations('bornon')">Learn More</button>
-                </div>
-            </div>
-            
-            <!-- Numerology Profile Card -->
-            <div class="card numerology-panel">
-                <div class="card-header">
-                    <span class="icon">🔢</span>
-                    <span class="card-title">Numerology Profile</span>
-                </div>
-                <div class="numbers-display">
-                    <div class="number-circle">
-                        <div class="circle life-path">?</div>
-                        <div class="number-label">Life Path</div>
-                    </div>
-                    <div class="number-circle">
-                        <div class="circle expression">?</div>
-                        <div class="number-label">Expression</div>
-                    </div>
-                    <div class="number-circle">
-                        <div class="circle soul-urge">?</div>
-                        <div class="number-label">Soul Urge</div>
-                    </div>
-                    <div class="number-circle">
-                        <div class="circle personality">?</div>
-                        <div class="number-label">Personality</div>
-                    </div>
-                </div>
-                <div class="description-box">
-                    <p class="description panel-description">
-                        Calculating your numerology profile...
-                    </p>
-                    <button class="learn-more-btn" onclick="showCalculations('numerology')">Learn More</button>
-                </div>
-            </div>
-            
-            <!-- Yin/Yang Energy Card -->
-            <div class="card yinyang-panel">
-                <div class="card-header">
-                    <span class="icon">☯️</span>
-                    <span class="card-title">Yin/Yang Energy Balance</span>
-                </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="error-message" style="display: none;">
+            <h2>❌ Error Loading Profile</h2>
+            <p id="errorMessage"></p>
+            <a href="index.html" class="action-btn">← Back to Form</a>
+        </div>
+
+        <!-- Results Content -->
+        <div id="resultsContent" style="display: none;">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <h1 id="profileName">Loading...</h1>
+                <p class="tagline">Your Cosmic Blueprint</p>
                 
-                <div class="energy-split-container">
-                    <div class="energy-labels-top">
-                        <div class="energy-label-left">Yin Energy</div>
-                        <div class="energy-label-right">Yang Energy</div>
+                <div class="birth-info">
+                    <div class="birth-info-item">
+                        <div class="birth-info-label">📅 Birth Date</div>
+                        <div class="birth-info-value" id="birthDate">--</div>
                     </div>
-                    
-                    <div class="energy-split-pill">
-                        <div class="energy-half yin yin-bar" style="flex: 0.5;">
-                            <span class="yin-text">50%</span>
-                        </div>
-                        <div class="energy-half yang yang-bar" style="flex: 0.5;">
-                            <span class="yang-text">50%</span>
-                        </div>
+                    <div class="birth-info-item">
+                        <div class="birth-info-label">⏰ Birth Time</div>
+                        <div class="birth-info-value" id="birthTime">--</div>
                     </div>
-                    
-                    <div class="energy-labels-bottom">
-                        <div class="energy-sublabel-left">Feminine Energy</div>
-                        <div class="energy-sublabel-right">Masculine Energy</div>
+                    <div class="birth-info-item">
+                        <div class="birth-info-label">📍 Birth Location</div>
+                        <div class="birth-info-value" id="birthLocation">--</div>
+                    </div>
+                    <div class="birth-info-item">
+                        <div class="birth-info-label">🎯 Precision</div>
+                        <div class="birth-info-value" id="precision">--</div>
                     </div>
                 </div>
-                
-                <div class="description-box">
-                    <div class="energy-section yin-energy-desc">
-                        <div class="energy-header">
-                            <span class="energy-icon">🌙</span>
-                            <h4 class="energy-title">Yin Energy (50%)</h4>
-                        </div>
-                        <p class="energy-subtitle">Feminine Energy: Receptive, Intuitive, Nurturing</p>
-                        <p>Calculating your Yin energy...</p>
-                    </div>
-                    
-                    <div class="energy-section yang-energy-desc">
-                        <div class="energy-header">
-                            <span class="energy-icon">☀️</span>
-                            <h4 class="energy-title">Yang Energy (50%)</h4>
-                        </div>
-                        <p class="energy-subtitle">Masculine Energy: Active, Expressive, Assertive</p>
-                        <p>Calculating your Yang energy...</p>
-                    </div>
-                    
-                    <button class="learn-more-btn" onclick="showCalculations('yinyang')">Learn More</button>
+            </div>
+
+            <!-- Chinese Zodiac -->
+            <div class="results-section">
+                <h2>🐉 Chinese Zodiac</h2>
+                <div id="chineseZodiacContent">
+                    <p><strong>Animal:</strong> <span id="czAnimal">--</span></p>
+                    <p><strong>Element:</strong> <span id="czElement">--</span></p>
+                    <p><strong>Yin/Yang:</strong> <span id="czYinYang">--</span></p>
                 </div>
+            </div>
+
+            <!-- Western Zodiac -->
+            <div class="results-section">
+                <h2>♈ Western Zodiac</h2>
+                <div id="westernZodiacContent">
+                    <p><strong>Sun Sign:</strong> <span id="wzSign">--</span></p>
+                    <p><strong>Element:</strong> <span id="wzElement">--</span></p>
+                </div>
+            </div>
+
+            <!-- Numerology -->
+            <div class="results-section">
+                <h2>🔢 Numerology</h2>
+                <div id="numerologyContent">
+                    <p><strong>Life Path:</strong> <span id="numLifePath">--</span></p>
+                    <p><strong>Expression:</strong> <span id="numExpression">--</span></p>
+                    <p><strong>Soul Urge:</strong> <span id="numSoulUrge">--</span></p>
+                </div>
+            </div>
+
+            <!-- Ascendant (if available) -->
+            <div class="results-section" id="ascendantSection" style="display: none;">
+                <h2>⬆️ Ascendant (Rising Sign)</h2>
+                <div class="precision-badge">
+                    ⭐⭐⭐⭐⭐ Hospital-Level Precision
+                </div>
+                <div id="ascendantContent" style="margin-top: 1rem;">
+                    <p><strong>Rising Sign:</strong> <span id="ascSign">--</span></p>
+                    <p><strong>Degree:</strong> <span id="ascDegree">--</span>°</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="index.html" class="action-btn">← Create Another Profile</a>
+                <a href="dashboard.html" class="action-btn">View All Profiles</a>
+                <button onclick="shareProfile()" class="action-btn">📤 Share</button>
+                <button onclick="exportProfile()" class="action-btn primary">💾 Export</button>
             </div>
         </div>
     </div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="profile-manager.js"></script>
     
     <script>
-        // Placeholder for Learn More functionality
-        function showCalculations(section) {
-            alert(`Calculations for ${section} will be shown here.\n\nThis will open a detailed explanation of how these values were calculated based on your birth date, time, and location.`);
+        // Get profile ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const profileId = urlParams.get('id');
+
+        // Load and display profile
+        async function loadProfile() {
+            try {
+                if (!profileId) {
+                    throw new Error('No profile ID provided');
+                }
+
+                console.log('📄 Loading profile:', profileId);
+
+                // Wait for ProfileManager to initialize
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Load profile from Firebase
+                const profile = await ProfileManager.getProfile(profileId);
+                console.log('✅ Profile loaded:', profile);
+
+                // Display profile data
+                displayProfile(profile);
+
+                // Hide loading, show content
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('resultsContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('❌ Error loading profile:', error);
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                document.getElementById('errorMessage').textContent = error.message;
+            }
         }
+
+        // Display profile data in UI
+        function displayProfile(profile) {
+            // Header
+            document.getElementById('profileName').textContent = profile.name;
+            document.getElementById('birthDate').textContent = new Date(profile.birthDate).toLocaleDateString();
+            document.getElementById('birthTime').textContent = profile.birthTime;
+            
+            // Location
+            const location = profile.location;
+            let locationText = location.hospitalName || `${location.city}, ${location.country}`;
+            document.getElementById('birthLocation').textContent = locationText;
+            
+            // Precision
+            const precisionLabels = {
+                hospital: '⭐⭐⭐⭐⭐ Hospital',
+                city: '⭐⭐⭐ City',
+                manual: '⭐⭐⭐⭐⭐ Manual'
+            };
+            document.getElementById('precision').textContent = precisionLabels[location.precision] || location.precision;
+
+            // Calculations
+            const calc = profile.calculations;
+            
+            if (calc.chineseZodiac) {
+                document.getElementById('czAnimal').textContent = calc.chineseZodiac.animal;
+                document.getElementById('czElement').textContent = calc.chineseZodiac.element;
+                document.getElementById('czYinYang').textContent = calc.chineseZodiac.yinYang;
+            }
+
+            if (calc.westernZodiac) {
+                document.getElementById('wzSign').textContent = calc.westernZodiac.sign;
+                document.getElementById('wzElement').textContent = calc.westernZodiac.element;
+            }
+
+            if (calc.numerology) {
+                document.getElementById('numLifePath').textContent = calc.numerology.lifePath;
+                document.getElementById('numExpression').textContent = calc.numerology.expression;
+                document.getElementById('numSoulUrge').textContent = calc.numerology.soulUrge;
+            }
+
+            if (calc.ascendant) {
+                document.getElementById('ascendantSection').style.display = 'block';
+                document.getElementById('ascSign').textContent = calc.ascendant.sign;
+                document.getElementById('ascDegree').textContent = calc.ascendant.degree;
+            }
+        }
+
+        // Share profile
+        function shareProfile() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My AstroProfile Cosmic Blueprint',
+                    url: url
+                });
+            } else {
+                navigator.clipboard.writeText(url);
+                alert('Link copied to clipboard!');
+            }
+        }
+
+        // Export profile
+        async function exportProfile() {
+            try {
+                const profile = await ProfileManager.getProfile(profileId);
+                const json = JSON.stringify(profile, null, 2);
+                
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${profile.name}_astroprofile.json`;
+                a.click();
+                
+                console.log('✅ Profile exported');
+            } catch (error) {
+                alert('Export failed: ' + error.message);
+            }
+        }
+
+        // Load profile when page loads
+        window.addEventListener('load', loadProfile);
     </script>
-    <script src="chinese-zodiac-data.js?v=3"></script>
-    <script src="results.js?v=3"></script>
 </body>
 </html>
