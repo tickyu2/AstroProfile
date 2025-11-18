@@ -1285,11 +1285,23 @@ const CHINESE_ZODIAC_DATA = [
 function findChineseZodiac(year, month, day) {
     const birthDate = new Date(year, month - 1, day);
     
-    for (let zodiac of CHINESE_ZODIAC_DATA) {
+    for (let i = 0; i < CHINESE_ZODIAC_DATA.length; i++) {
+        const zodiac = CHINESE_ZODIAC_DATA[i];
         const startDate = new Date(zodiac.Start_Date);
-        // End date is the day before next year's start
-        const endParts = zodiac.End_Date.split('-');
-        const endDate = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
+        
+        // Calculate end date as the day before NEXT year's start
+        let endDate;
+        if (i < CHINESE_ZODIAC_DATA.length - 1) {
+            const nextZodiac = CHINESE_ZODIAC_DATA[i + 1];
+            const nextStartDate = new Date(nextZodiac.Start_Date);
+            // End date is one day before next start
+            endDate = new Date(nextStartDate);
+            endDate.setDate(endDate.getDate() - 1);
+        } else {
+            // Last entry - use Dec 31 of the following year
+            const year = parseInt(zodiac.Start_Date.split('-')[0]);
+            endDate = new Date(year + 1, 11, 31);
+        }
         
         if (birthDate >= startDate && birthDate <= endDate) {
             return zodiac;
