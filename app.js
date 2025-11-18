@@ -233,7 +233,7 @@ function convertTo24Hour(hour12, period) {
 }
 
 // Form submission handler
-document.getElementById('birthForm').addEventListener('submit', function(e) {
+document.getElementById('birthForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     console.log('========================================');
     console.log('📝 FORM SUBMISSION STARTED');
@@ -307,6 +307,34 @@ document.getElementById('birthForm').addEventListener('submit', function(e) {
     const birthHour24 = convertTo24Hour(birthHour12, birthPeriod);
     console.log('⏰ Time conversion:', birthHour12, ':', birthMinute, birthPeriod, '→', birthHour24, ':', birthMinute, '(24-hour)');
     
+    // Fetch location data (coordinates + timezone)
+    console.log('🌍 Fetching location data...');
+    let locationData = {
+        latitude: null,
+        longitude: null,
+        timezone: null,
+        display_name: null
+    };
+    
+    if (typeof getLocationData === 'function') {
+        try {
+            locationData = await getLocationData(birthCity, birthState, birthCountry);
+            if (locationData.success) {
+                console.log('✅ Location data retrieved:');
+                console.log('  Latitude:', locationData.latitude);
+                console.log('  Longitude:', locationData.longitude);
+                console.log('  Timezone:', locationData.timezone);
+                console.log('  Full name:', locationData.display_name);
+            } else {
+                console.warn('⚠️ Could not retrieve location data:', locationData.error);
+            }
+        } catch (error) {
+            console.warn('⚠️ Geocoding error:', error.message);
+        }
+    } else {
+        console.warn('⚠️ Geocoding not available - geocoding.js not loaded');
+    }
+    
     // Create profile data object
     const profileData = {
         firstName,
@@ -317,7 +345,12 @@ document.getElementById('birthForm').addEventListener('submit', function(e) {
         birthMinute,
         birthCity,
         birthState,
-        birthCountry
+        birthCountry,
+        // Add location data
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        timezone: locationData.timezone,
+        locationDisplayName: locationData.display_name
     };
     
     console.log('========================================');
