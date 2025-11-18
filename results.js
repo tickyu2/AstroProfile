@@ -200,22 +200,37 @@ function calculateChineseZodiac(year, month, day) {
     console.log(`  Element: ${zodiac.element}`);
     console.log(`  Animal: ${zodiac.animal} ${zodiac.emoji}`);
     
-    // Update the Chinese Zodiac panel
+    // Update the Chinese Zodiac card with correct selectors
     const panel = document.querySelector('.chinese-panel');
     if (panel) {
-        const h3 = panel.querySelector('h3');
+        // Update the zodiac name (line 439 in HTML)
+        const zodiacName = panel.querySelector('.zodiac-name');
+        if (zodiacName) {
+            zodiacName.textContent = `${zodiac.polarity} ${zodiac.element} ${zodiac.animal}`;
+        }
+        
+        // Update the animal icon (line 436)
+        const animalIcon = panel.querySelector('.zodiac-icon');
+        if (animalIcon) {
+            animalIcon.textContent = zodiac.emoji;
+        }
+        
+        // Update the element badge (line 440)
         const badge = panel.querySelector('.element-badge');
-        const desc = panel.querySelector('.panel-description');
+        if (badge) {
+            badge.textContent = `${zodiac.element} Element`;
+        }
         
-        // Update with Yin/Yang + Element + Animal
-        if (h3) h3.innerHTML = `${zodiac.emoji} ${zodiac.polarity.toUpperCase()} ${zodiac.element.toUpperCase()} ${zodiac.animal.toUpperCase()}`;
-        if (badge) badge.textContent = `${zodiac.element.toUpperCase()} ELEMENT`;
-        
-        // Keep existing description logic
+        // Update the description (line 443-444)
+        const desc = panel.querySelector('.description');
         if (desc) {
             const traits = getChineseZodiacTraits(zodiac.animal);
-            desc.textContent = `The ${zodiac.polarity} ${zodiac.element} ${zodiac.animal} combines ${zodiac.polarity.toLowerCase()} energy with ${zodiac.element.toLowerCase()} characteristics. Those born under this sign possess exceptional ${traits.split(',')[0].toLowerCase()} abilities.`;
+            desc.textContent = `The ${zodiac.polarity} ${zodiac.element} ${zodiac.animal} combines ${zodiac.polarity.toLowerCase()} energy with ${zodiac.element.toLowerCase()} element characteristics. Those born under this sign possess exceptional ${traits.split(',')[0].toLowerCase()} abilities and demonstrate ${traits.split(',')[1]?.trim().toLowerCase() || 'remarkable qualities'}.`;
         }
+        
+        console.log('✅ Chinese zodiac display updated!');
+    } else {
+        console.error('❌ Could not find .chinese-panel element!');
     }
 }
 
@@ -237,6 +252,7 @@ function getChineseZodiacTraits(animal) {
     };
     return traitsMap[animal] || 'Unique and special';
 }
+
 
 
 function calculateWesternZodiac(month, day) {
