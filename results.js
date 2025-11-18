@@ -170,20 +170,26 @@ function populateProfileData(profile) {
             // Format timezone if available
             let timezoneHTML = '';
             if (profile.timezone) {
+                // Calculate UTC offset for this timezone
+                const utcOffset = getUTCOffset(profile.timezone);
+                const offsetDisplay = utcOffset ? ` (UTC${utcOffset})` : '';
+                
                 timezoneHTML = `
                 <div class="info-row">
                     <span class="info-label">Timezone:</span>
-                    <span class="info-value">${profile.timezone}</span>
+                    <span class="info-value">${profile.timezone}${offsetDisplay}</span>
                 </div>`;
             }
             
             // Format gender if available
             let genderHTML = '';
             if (profile.gender) {
+                // Capitalize first letter
+                const genderCapitalized = profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1).toLowerCase();
                 genderHTML = `
                 <div class="info-row">
                     <span class="info-label">Sex:</span>
-                    <span class="info-value">${profile.gender}</span>
+                    <span class="info-value">${genderCapitalized}</span>
                 </div>`;
             }
             
@@ -588,6 +594,41 @@ function calculateDayOfWeek(birthDate) {
         if (h3) h3.textContent = dayName.toUpperCase();
         if (badge) badge.textContent = `RULED BY ${ruler.toUpperCase()}`;
         if (desc) desc.textContent = descriptions[dayName];
+    }
+}
+
+// Helper function to get UTC offset for a timezone
+function getUTCOffset(timezoneName) {
+    try {
+        // Create a date formatter for the timezone
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: timezoneName,
+            timeZoneName: 'longOffset'
+        });
+        
+        // Get the formatted string which includes offset
+        const parts = formatter.formatToParts(now);
+        const offsetPart = parts.find(part => part.type === 'timeZoneName');
+        
+        if (offsetPart && offsetPart.value) {
+            // Extract offset from string like "GMT+05:00"
+            const match = offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/);
+            if (match) {
+                const hours = match[1];
+                const minutes = match[2] || '00';
+                if (minutes === '00') {
+                    return hours; // e.g., "+5" or "-8"
+                } else {
+                    return `${hours}:${minutes}`; // e.g., "+5:30"
+                }
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        console.warn('Could not determine UTC offset for timezone:', timezoneName);
+        return null;
     }
 }
 
