@@ -177,6 +177,16 @@ function populateProfileData(profile) {
                 </div>`;
             }
             
+            // Format gender if available
+            let genderHTML = '';
+            if (profile.gender) {
+                genderHTML = `
+                <div class="info-row">
+                    <span class="info-label">Sex:</span>
+                    <span class="info-value">${profile.gender}</span>
+                </div>`;
+            }
+            
             infoContent.innerHTML = `
                 <div class="info-row">
                     <span class="info-label">Birth Date:</span>
@@ -190,6 +200,7 @@ function populateProfileData(profile) {
                     <span class="info-label">Birth Place:</span>
                     <span class="info-value">${location}</span>
                 </div>
+                ${genderHTML}
                 ${coordinatesHTML}
                 ${timezoneHTML}
                 <div class="info-row">

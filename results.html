@@ -251,6 +251,12 @@
             display: block;
             margin-bottom: 10px;
             text-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
+            animation: bounce 2s ease-in-out infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
         
         .animal-name {
@@ -375,23 +381,47 @@
         }
         
         /* Yin/Yang specific styles */
+        .energy-split-container {
+            margin-bottom: 20px;
+        }
+        
+        .energy-labels-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 0 5px;
+        }
+        
+        .energy-label-left {
+            font-size: 12px;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .energy-label-right {
+            font-size: 12px;
+            font-weight: 700;
+            color: #f97316;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
         .energy-split-pill {
             display: flex;
-            height: 45px;
+            height: 35px;
             border-radius: 25px;
             overflow: hidden;
-            margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         
         .energy-half {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 700;
-            position: relative;
         }
         
         .energy-half.yin {
@@ -404,18 +434,21 @@
             color: white;
         }
         
-        .energy-label-top {
-            position: absolute;
-            top: 4px;
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            opacity: 0.9;
+        .energy-labels-bottom {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            padding: 0 5px;
         }
         
-        .energy-percentage {
-            font-size: 18px;
-            font-weight: 700;
+        .energy-sublabel-left {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .energy-sublabel-right {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
         }
         
         .energy-section {
@@ -608,14 +641,24 @@
                     <span class="card-title">Yin/Yang Energy Balance</span>
                 </div>
                 
-                <div class="energy-split-pill">
-                    <div class="energy-half yin yin-bar" style="flex: 0.5;">
-                        <div class="energy-label-top">FEMININE ENERGY</div>
-                        <div class="energy-percentage yin-text">50%</div>
+                <div class="energy-split-container">
+                    <div class="energy-labels-top">
+                        <div class="energy-label-left">Yin Energy</div>
+                        <div class="energy-label-right">Yang Energy</div>
                     </div>
-                    <div class="energy-half yang yang-bar" style="flex: 0.5;">
-                        <div class="energy-label-top">MASCULINE ENERGY</div>
-                        <div class="energy-percentage yang-text">50%</div>
+                    
+                    <div class="energy-split-pill">
+                        <div class="energy-half yin yin-bar" style="flex: 0.5;">
+                            <span class="yin-text">50%</span>
+                        </div>
+                        <div class="energy-half yang yang-bar" style="flex: 0.5;">
+                            <span class="yang-text">50%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="energy-labels-bottom">
+                        <div class="energy-sublabel-left">Feminine Energy</div>
+                        <div class="energy-sublabel-right">Masculine Energy</div>
                     </div>
                 </div>
                 
