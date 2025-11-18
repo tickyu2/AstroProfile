@@ -1,0 +1,459 @@
+/**
+ * Hospital Search Feature Styles
+ * Add this to your existing styles.css or include as separate file
+ */
+
+/* Location Mode Toggle */
+.location-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: flex-start;
+  padding: 1rem;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.radio-option:hover {
+  border-color: rgba(255, 215, 0, 0.6);
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.radio-option input[type="radio"] {
+  margin-right: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.radio-option input[type="radio"]:checked + .radio-label {
+  color: #ffd700;
+}
+
+.radio-option.advanced-option {
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+.radio-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.radio-label strong {
+  font-size: 1.1rem;
+}
+
+.radio-label small {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+}
+
+/* Form Row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Advanced Section */
+.advanced-section {
+  background: rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* Precision Badge */
+.precision-badge {
+  display: flex;
+  gap: 1rem;
+  background: rgba(0, 0, 139, 0.3);
+  border-left: 4px solid #ffd700;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.badge-icon {
+  font-size: 2rem;
+}
+
+.badge-text p {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Secondary Button */
+.secondary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 215, 0, 0.2);
+  border: 2px solid #ffd700;
+  color: #ffd700;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 215, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+}
+
+/* Search Status */
+.search-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 215, 0, 0.3);
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.status-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Hospital Select */
+#hospitalSelect {
+  width: 100%;
+  padding: 0.5rem;
+  background: rgba(0, 0, 139, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: white;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+#hospitalSelect option {
+  padding: 0.5rem;
+  background: #001a33;
+  color: white;
+}
+
+#hospitalSelect option:hover,
+#hospitalSelect option:checked {
+  background: rgba(255, 215, 0, 0.2);
+}
+
+/* Hospital Preview */
+.hospital-preview {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(0, 255, 0, 0.05);
+  border: 2px solid rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.preview-icon {
+  font-size: 1.5rem;
+}
+
+.preview-content p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.preview-name {
+  font-weight: bold;
+  color: #ffd700;
+  font-size: 1.05rem;
+}
+
+.preview-address {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.preview-coords {
+  font-family: monospace;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.preview-precision {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.precision-badge-small {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 215, 0, 0.2);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-right: 0.5rem;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* Manual Coordinates */
+.manual-coords-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.manual-coords-section summary {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  list-style: none;
+  user-select: none;
+}
+
+.manual-coords-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.manual-coords-section summary::before {
+  content: '▶ ';
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.manual-coords-section[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.manual-coords-section summary:hover {
+  color: #ffd700;
+}
+
+/* Location Verification */
+.location-verification {
+  margin-top: 1.5rem;
+}
+
+.verification-box {
+  padding: 1rem;
+  background: rgba(0, 255, 0, 0.1);
+  border: 2px solid rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
+}
+
+.verification-box h4 {
+  margin-top: 0;
+  color: #ffd700;
+  font-size: 1.1rem;
+}
+
+.verification-box p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Field Hints */
+.field-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+.results-count {
+  color: #ffd700;
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* Form Section */
+.form-section {
+  background: rgba(0, 0, 139, 0.2);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-section h3 {
+  margin-top: 0;
+  color: #ffd700;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+/* Form Group */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(0, 0, 139, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 4px;
+  color: white;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Submit Button */
+.submit-btn {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  border: none;
+  border-radius: 8px;
+  color: #001a33;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .location-mode-toggle,
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .radio-option {
+    padding: 0.75rem;
+  }
+  
+  .precision-badge {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .badge-icon {
+    font-size: 1.5rem;
+  }
+  
+  #hospitalSelect {
+    font-size: 0.9rem;
+  }
+  
+  .form-section {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .radio-label strong {
+    font-size: 1rem;
+  }
+  
+  .radio-label small {
+    font-size: 0.8rem;
+  }
+  
+  .secondary-btn {
+    font-size: 0.95rem;
+    padding: 0.65rem 1.25rem;
+  }
+  
+  .preview-content p {
+    font-size: 0.9rem;
+  }
+}
+
+/* Loading State */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Error State */
+.error-message {
+  padding: 1rem;
+  background: rgba(255, 0, 0, 0.1);
+  border: 2px solid rgba(255, 0, 0, 0.3);
+  border-radius: 4px;
+  color: #ff6b6b;
+  margin-top: 1rem;
+}
+
+/* Success State */
+.success-message {
+  padding: 1rem;
+  background: rgba(0, 255, 0, 0.1);
+  border: 2px solid rgba(0, 255, 0, 0.3);
+  border-radius: 4px;
+  color: #51cf66;
+  margin-top: 1rem;
+}
