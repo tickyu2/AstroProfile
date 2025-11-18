@@ -1,0 +1,419 @@
+<!-- Advanced Location Entry Section -->
+<!-- Add this to your index.html form, replacing the simple birth location input -->
+
+<div class="form-section">
+  <h3>📍 Birth Location</h3>
+  
+  <!-- Location Mode Toggle -->
+  <div class="location-mode-toggle">
+    <label class="radio-option">
+      <input type="radio" name="locationMode" value="basic" checked>
+      <span class="radio-label">
+        <strong>Basic</strong>
+        <small>City-level accuracy (~15km radius)</small>
+      </span>
+    </label>
+    
+    <label class="radio-option advanced-option">
+      <input type="radio" name="locationMode" value="advanced">
+      <span class="radio-label">
+        <strong>Advanced ✨</strong>
+        <small>Hospital-level precision (~10m accuracy)</small>
+      </span>
+    </label>
+  </div>
+
+  <!-- Basic Location Fields (Always Visible) -->
+  <div id="basicLocationFields">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="birthCity">Birth City *</label>
+        <input 
+          type="text" 
+          id="birthCity" 
+          name="birthCity" 
+          placeholder="e.g., Rawalpindi" 
+          required
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="birthCountry">Birth Country *</label>
+        <input 
+          type="text" 
+          id="birthCountry" 
+          name="birthCountry" 
+          placeholder="e.g., Pakistan" 
+          required
+        >
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="birthState">State/Province (Optional)</label>
+      <input 
+        type="text" 
+        id="birthState" 
+        name="birthState" 
+        placeholder="e.g., Punjab, California, Ontario"
+      >
+      <small class="field-hint">For US/Canada/India - improves accuracy</small>
+    </div>
+  </div>
+
+  <!-- Advanced Hospital Search (Hidden by Default) -->
+  <div id="advancedLocationFields" style="display: none;">
+    <div class="advanced-section">
+      <div class="precision-badge">
+        <span class="badge-icon">🎯</span>
+        <div class="badge-text">
+          <strong>Why hospital precision?</strong>
+          <p>Your Ascendant (rising sign) changes every 4 minutes. Most apps use city center coordinates, which can be 15km off. We find your exact birth hospital for NASA-level accuracy.</p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="hospitalName">Hospital/Facility Name (Optional)</label>
+        <input 
+          type="text" 
+          id="hospitalName" 
+          name="hospitalName" 
+          placeholder="e.g., Armed Forces Institute of Cardiology"
+        >
+        <small class="field-hint">Leave blank to see all nearby hospitals</small>
+      </div>
+
+      <button type="button" id="searchHospitalsBtn" class="secondary-btn">
+        <span class="btn-icon">🔍</span>
+        Search Hospitals
+      </button>
+
+      <!-- Search Status -->
+      <div id="hospitalSearchStatus" class="search-status" style="display: none;">
+        <div class="loading-spinner"></div>
+        <span class="status-text">Searching hospitals...</span>
+      </div>
+
+      <!-- Hospital Results Dropdown -->
+      <div id="hospitalResultsContainer" style="display: none;">
+        <div class="form-group">
+          <label for="hospitalSelect">Select Your Birth Hospital</label>
+          <select id="hospitalSelect" name="hospitalSelect" size="8">
+            <!-- Options will be populated dynamically -->
+          </select>
+          <small class="field-hint results-count"></small>
+        </div>
+
+        <!-- Selected Hospital Preview -->
+        <div id="selectedHospitalPreview" class="hospital-preview" style="display: none;">
+          <div class="preview-header">
+            <span class="preview-icon">✅</span>
+            <strong>Selected Location</strong>
+          </div>
+          <div class="preview-content">
+            <p class="preview-name"></p>
+            <p class="preview-address"></p>
+            <p class="preview-coords"></p>
+            <p class="preview-precision">
+              <span class="precision-badge-small">⭐⭐⭐⭐⭐ Hospital Precision</span>
+              Ascendant accuracy: ±1 minute
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manual Coordinates Override (Power Users) -->
+      <details class="manual-coords-section">
+        <summary>Advanced: Enter coordinates manually</summary>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="manualLat">Latitude</label>
+            <input 
+              type="number" 
+              id="manualLat" 
+              name="manualLat" 
+              step="0.000001" 
+              placeholder="e.g., 33.6037"
+            >
+          </div>
+          <div class="form-group">
+            <label for="manualLon">Longitude</label>
+            <input 
+              type="number" 
+              id="manualLon" 
+              name="manualLon" 
+              step="0.000001" 
+              placeholder="e.g., 73.0483"
+            >
+          </div>
+        </div>
+        <small class="field-hint">If you know exact GPS coordinates from birth certificate</small>
+      </details>
+    </div>
+  </div>
+
+  <!-- Location Verification (Shows after geocoding) -->
+  <div id="locationVerification" class="location-verification" style="display: none;">
+    <div class="verification-box">
+      <h4>📍 Verify Your Location</h4>
+      <p class="verified-location"></p>
+      <p class="verified-coords"></p>
+      <p class="verified-timezone"></p>
+      <p class="verified-precision"></p>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Location Mode Toggle */
+.location-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: flex-start;
+  padding: 1rem;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.radio-option:hover {
+  border-color: rgba(255, 215, 0, 0.6);
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.radio-option input[type="radio"] {
+  margin-right: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.radio-option input[type="radio"]:checked + .radio-label {
+  color: #ffd700;
+}
+
+.radio-option.advanced-option {
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+.radio-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.radio-label strong {
+  font-size: 1.1rem;
+}
+
+.radio-label small {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+}
+
+/* Form Row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Advanced Section */
+.advanced-section {
+  background: rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* Precision Badge */
+.precision-badge {
+  display: flex;
+  gap: 1rem;
+  background: rgba(0, 0, 139, 0.3);
+  border-left: 4px solid #ffd700;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.badge-icon {
+  font-size: 2rem;
+}
+
+.badge-text p {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Secondary Button */
+.secondary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 215, 0, 0.2);
+  border: 2px solid #ffd700;
+  color: #ffd700;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 215, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Search Status */
+.search-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 215, 0, 0.3);
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Hospital Select */
+#hospitalSelect {
+  width: 100%;
+  padding: 0.5rem;
+  background: rgba(0, 0, 139, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: white;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+#hospitalSelect option {
+  padding: 0.5rem;
+  background: #001a33;
+}
+
+#hospitalSelect option:hover {
+  background: rgba(255, 215, 0, 0.2);
+}
+
+/* Hospital Preview */
+.hospital-preview {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(0, 255, 0, 0.05);
+  border: 2px solid rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #ffd700;
+}
+
+.preview-content p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.preview-name {
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.precision-badge-small {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 215, 0, 0.2);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-right: 0.5rem;
+}
+
+/* Manual Coordinates */
+.manual-coords-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.manual-coords-section summary {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.manual-coords-section summary:hover {
+  color: #ffd700;
+}
+
+/* Location Verification */
+.location-verification {
+  margin-top: 1.5rem;
+}
+
+.verification-box {
+  padding: 1rem;
+  background: rgba(0, 255, 0, 0.1);
+  border: 2px solid rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
+}
+
+.verification-box h4 {
+  margin-top: 0;
+  color: #ffd700;
+}
+
+.verification-box p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+/* Field Hints */
+.field-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .location-mode-toggle,
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
