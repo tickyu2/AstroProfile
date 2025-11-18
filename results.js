@@ -158,6 +158,30 @@ function calculateAge(birthDate) {
     }
 }
 
+
+
+// Generate coordinates for location (placeholder until hospital feature)
+function generateCoordinates(location) {
+    // This will be replaced with real hospital coordinates later
+    // For now, generate approximate city center coordinates
+    const cityCoords = {
+        'Pasadena, CA, USA': '34.1478°N, 118.1445°W',
+        'Alhambra, CA, USA': '34.0953°N, 118.1270°W',
+        'Rawalpindi, Pakistan': '33.5651°N, 73.0169°E',
+        'Los Angeles, CA, USA': '34.0522°N, 118.2437°W'
+    };
+    
+    // Try to find exact match
+    for (const [city, coords] of Object.entries(cityCoords)) {
+        if (location.includes(city.split(',')[0])) {
+            return coords;
+        }
+    }
+    
+    // Default approximate coordinates
+    return '(Approximate city center)';
+}
+
 function calculateAndDisplay(profile) {
     const birthDate = new Date(profile.birthDate);
     const year = birthDate.getFullYear();
@@ -200,37 +224,22 @@ function calculateChineseZodiac(year, month, day) {
     console.log(`  Element: ${zodiac.element}`);
     console.log(`  Animal: ${zodiac.animal} ${zodiac.emoji}`);
     
-    // Update the Chinese Zodiac card with correct selectors
+    // Update the Chinese Zodiac panel
     const panel = document.querySelector('.chinese-panel');
     if (panel) {
-        // Update the zodiac name (line 439 in HTML)
-        const zodiacName = panel.querySelector('.zodiac-name');
-        if (zodiacName) {
-            zodiacName.textContent = `${zodiac.polarity} ${zodiac.element} ${zodiac.animal}`;
-        }
-        
-        // Update the animal icon (line 436)
-        const animalIcon = panel.querySelector('.zodiac-icon');
-        if (animalIcon) {
-            animalIcon.textContent = zodiac.emoji;
-        }
-        
-        // Update the element badge (line 440)
+        const h3 = panel.querySelector('h3');
         const badge = panel.querySelector('.element-badge');
-        if (badge) {
-            badge.textContent = `${zodiac.element} Element`;
-        }
+        const desc = panel.querySelector('.panel-description');
         
-        // Update the description (line 443-444)
-        const desc = panel.querySelector('.description');
+        // Update with Yin/Yang + Element + Animal
+        if (h3) h3.innerHTML = `${zodiac.emoji} ${zodiac.polarity.toUpperCase()} ${zodiac.element.toUpperCase()} ${zodiac.animal.toUpperCase()}`;
+        if (badge) badge.textContent = `${zodiac.element.toUpperCase()} ELEMENT`;
+        
+        // Keep existing description logic
         if (desc) {
             const traits = getChineseZodiacTraits(zodiac.animal);
-            desc.textContent = `The ${zodiac.polarity} ${zodiac.element} ${zodiac.animal} combines ${zodiac.polarity.toLowerCase()} energy with ${zodiac.element.toLowerCase()} element characteristics. Those born under this sign possess exceptional ${traits.split(',')[0].toLowerCase()} abilities and demonstrate ${traits.split(',')[1]?.trim().toLowerCase() || 'remarkable qualities'}.`;
+            desc.textContent = `The ${zodiac.polarity} ${zodiac.element} ${zodiac.animal} combines ${zodiac.polarity.toLowerCase()} energy with ${zodiac.element.toLowerCase()} characteristics. Those born under this sign possess exceptional ${traits.split(',')[0].toLowerCase()} abilities.`;
         }
-        
-        console.log('✅ Chinese zodiac display updated!');
-    } else {
-        console.error('❌ Could not find .chinese-panel element!');
     }
 }
 
@@ -252,7 +261,6 @@ function getChineseZodiacTraits(animal) {
     };
     return traitsMap[animal] || 'Unique and special';
 }
-
 
 
 function calculateWesternZodiac(month, day) {
@@ -374,6 +382,16 @@ function calculateNumerology(firstName, lastName, birthDate) {
         
         if (desc) desc.textContent = `Life Path ${lifePathSum} ${descriptions[lifePathSum]}. Expression ${expressionNumber} ${descriptions[expressionNumber]}, while Soul Urge ${soulUrge} ${descriptions[soulUrge]}.`;
     }
+}
+
+
+
+// Get elemental color class for numerology numbers
+function getNumberColorClass(num) {
+    if (num >= 1 && num <= 3) return 'fire-energy';    // Red - Action, Passion
+    if (num >= 4 && num <= 6) return 'water-energy';   // Blue - Emotion, Flow
+    if (num >= 7 && num <= 9) return 'spirit-energy';  // Purple - Wisdom, Spirit
+    return 'neutral-energy';
 }
 
 function reduceToSingleDigit(num) {
