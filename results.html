@@ -348,10 +348,19 @@
                 console.log('📄 Loading profile:', profileId);
 
                 // Wait for ProfileManager to initialize
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                let retries = 0;
+                while ((!window.ProfileManager || !window.ProfileManager.database) && retries < 20) {
+                    console.log('⏳ Waiting for ProfileManager to initialize...');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    retries++;
+                }
+
+                if (!window.ProfileManager || !window.ProfileManager.database) {
+                    throw new Error('ProfileManager failed to initialize. Please refresh the page.');
+                }
 
                 // Load profile from Firebase
-                const profile = await ProfileManager.getProfile(profileId);
+                const profile = await window.ProfileManager.getProfile(profileId);
                 console.log('✅ Profile loaded:', profile);
 
                 // Display profile data
@@ -442,7 +451,7 @@
         // Export profile
         async function exportProfile() {
             try {
-                const profile = await ProfileManager.getProfile(profileId);
+                const profile = await window.ProfileManager.getProfile(profileId);
                 const json = JSON.stringify(profile, null, 2);
                 
                 const blob = new Blob([json], { type: 'application/json' });
