@@ -39,6 +39,8 @@ async function handleFormSubmission(event) {
       
       if (!city || !country) {
         alert('Please enter birth city and country');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
         return;
       }
       
@@ -51,7 +53,10 @@ async function handleFormSubmission(event) {
         latitude: null,
         longitude: null,
         timezone: 'UTC',
-        precision: 'city'
+        precision: 'city',
+        hospitalName: null,
+        address: null,
+        distance: null
       };
       
       console.log('🌍 Basic mode - location:', locationData);
@@ -60,11 +65,15 @@ async function handleFormSubmission(event) {
       // ADVANCED MODE: Hospital search
       if (typeof hospitalSearchUI === 'undefined') {
         alert('Hospital search not initialized. Please use Basic mode.');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
         return;
       }
       
       if (!hospitalSearchUI.validateLocationData()) {
         alert('Please search for hospitals and select one, or enter manual coordinates.');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
         return;
       }
       

@@ -139,6 +139,79 @@
             border-radius: 8px;
             color: #ff6b6b;
         }
+
+        /* Hospital Location Display */
+        .hospital-location-display {
+            margin-bottom: 2rem;
+        }
+
+        .hospital-location-box {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .location-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: #ffd700;
+            font-size: 1.1rem;
+        }
+
+        .location-icon {
+            font-size: 1.5rem;
+        }
+
+        .location-content {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .hospital-name {
+            color: #ffd700;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .hospital-address {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .hospital-coords {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .hospital-precision {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .precision-stars {
+            color: #ffd700;
+            font-size: 1.1rem;
+        }
+
+        .precision-badge-inline {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .precision-accuracy {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -177,9 +250,27 @@
                         <div class="birth-info-label">📍 Birth Location</div>
                         <div class="birth-info-value" id="birthLocation">--</div>
                     </div>
-                    <div class="birth-info-item">
-                        <div class="birth-info-label">🎯 Precision</div>
-                        <div class="birth-info-value" id="precision">--</div>
+                </div>
+            </div>
+
+            <!-- Hospital Location Details (if Advanced mode) -->
+            <div id="hospitalLocationSection" class="hospital-location-display" style="display: none;">
+                <div class="hospital-location-box">
+                    <div class="location-header">
+                        <span class="location-icon">✅</span>
+                        <strong>Selected Birth Location</strong>
+                    </div>
+                    <div class="location-content">
+                        <h3 class="hospital-name" id="displayHospitalName">--</h3>
+                        <p class="hospital-address" id="displayHospitalAddress">--</p>
+                        <p class="hospital-coords">
+                            <strong>Coordinates:</strong> <span id="displayCoordinates">--</span>
+                        </p>
+                        <p class="hospital-precision">
+                            <span class="precision-stars">⭐⭐⭐⭐⭐</span>
+                            <span class="precision-badge-inline">Hospital Precision</span>
+                            <span class="precision-accuracy">Ascendant accuracy: ±1 minute</span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -287,16 +378,25 @@
             
             // Location
             const location = profile.location;
-            let locationText = location.hospitalName || `${location.city}, ${location.country}`;
-            document.getElementById('birthLocation').textContent = locationText;
+            let locationText;
             
-            // Precision
-            const precisionLabels = {
-                hospital: '⭐⭐⭐⭐⭐ Hospital',
-                city: '⭐⭐⭐ City',
-                manual: '⭐⭐⭐⭐⭐ Manual'
-            };
-            document.getElementById('precision').textContent = precisionLabels[location.precision] || location.precision;
+            if (location.hospitalName) {
+                // Advanced mode with hospital
+                locationText = `${location.city}, ${location.country}`;
+                
+                // Show hospital details section
+                document.getElementById('hospitalLocationSection').style.display = 'block';
+                document.getElementById('displayHospitalName').textContent = location.hospitalName;
+                document.getElementById('displayHospitalAddress').textContent = location.address || location.city;
+                document.getElementById('displayCoordinates').textContent = 
+                    `${location.latitude.toFixed(4)}° N, ${location.longitude.toFixed(4)}° E` +
+                    (location.distance ? ` (${location.distance} from city center)` : '');
+            } else {
+                // Basic mode
+                locationText = `${location.city}, ${location.country}`;
+            }
+            
+            document.getElementById('birthLocation').textContent = locationText;
 
             // Calculations
             const calc = profile.calculations;
