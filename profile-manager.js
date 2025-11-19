@@ -254,15 +254,18 @@ class ProfileManager {
 // Create global instance
 const profileManager = new ProfileManager();
 
+// Export for use in other files immediately
+window.ProfileManager = profileManager;
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   // Wait a bit for Firebase to initialize
   setTimeout(() => {
-    profileManager.initialize();
+    const initialized = profileManager.initialize();
+    if (initialized) {
+      console.log('✅ ProfileManager ready for use');
+    }
   }, 500);
 });
-
-// Export for use in other files
-window.ProfileManager = profileManager;
 
 console.log('✅ ProfileManager module loaded');

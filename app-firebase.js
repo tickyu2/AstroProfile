@@ -95,12 +95,28 @@ async function handleFormSubmission(event) {
     const calculations = calculateBirthChart(profile);
     console.log('🎯 Calculations complete:', calculations);
     
-    // Save to Firebase (NOT localStorage!)
-    if (!window.ProfileManager) {
-      throw new Error('ProfileManager not loaded');
+    // Wait for ProfileManager to be ready
+    let retries = 0;
+    while ((!window.ProfileManager || !window.ProfileManager.database) && retries < 10) {
+      console.log('⏳ Waiting for ProfileManager to initialize...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      retries++;
     }
     
-    const savedProfile = await ProfileManager.saveProfile(profile, calculations);
+    // Save to Firebase (NOT localStorage!)
+    if (!window.ProfileManager) {
+      throw new Error('ProfileManager not loaded. Please refresh the page.');
+    }
+    
+    if (!window.ProfileManager.database) {
+      throw new Error('Firebase database not initialized. Please refresh the page.');
+    }
+    
+    if (typeof window.ProfileManager.saveProfile !== 'function') {
+      throw new Error('ProfileManager.saveProfile is not available. Please refresh the page.');
+    }
+    
+    const savedProfile = await window.ProfileManager.saveProfile(profile, calculations);
     console.log('💾 Profile saved to Firebase:', savedProfile.id);
     
     // Navigate to results page
