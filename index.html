@@ -239,12 +239,19 @@
         </footer>
     </div>
 
-    <!-- Scripts -->
-    <script src="chinese-zodiac-data.js"></script>
-    <script src="geocoding.js"></script>
+    <!-- Firebase SDK (load FIRST!) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <!-- Firebase Config & Profile Manager -->
+    <script src="firebase-config.js"></script>
+    <script src="profile-manager.js"></script>
+
+    <!-- Your App (use app-firebase.js for Firebase version) -->
     <script src="calculations.js"></script>
-    <script src="app.js"></script>
-    
+    <script src="app-firebase.js"></script>
+
     <!-- Hospital Search Feature -->
     <script src="hospital-search.js"></script>
     <script src="hospital-search-ui.js"></script>
