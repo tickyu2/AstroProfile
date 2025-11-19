@@ -95,6 +95,31 @@ class ProfileManager {
   }
 
   /**
+   * Get latest profile (most recent)
+   */
+  async getLatestProfile() {
+    try {
+      if (!this.profilesRef) {
+        throw new Error('Database not initialized');
+      }
+      
+      const profiles = await this.getAllProfiles();
+      
+      if (profiles.length === 0) {
+        return null;
+      }
+      
+      // Return the most recent profile
+      console.log('✅ Retrieved latest profile from cloud');
+      return profiles[0]; // getAllProfiles already sorts by newest first
+      
+    } catch (error) {
+      console.error('❌ Error loading latest profile:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get all profiles for current user
    */
   async getAllProfiles() {

@@ -1,474 +1,411 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Cosmic Blueprint - AstroProfile</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Your Cosmic Blueprint - Results</title>
     <style>
-        .results-container {
-            max-width: 1000px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a4e 0%, #2d4a7c 50%, #3d5a8c 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 2rem;
         }
 
-        .loading {
+        .header-card {
+            background: rgba(20, 40, 80, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px 30px;
             text-align: center;
-            padding: 4rem 2rem;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.2);
         }
 
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 215, 0, 0.3);
-            border-top-color: #ffd700;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+        .header-card h1 {
+            font-size: 2rem;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .profile-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding: 2rem;
-            background: rgba(255, 215, 0, 0.1);
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            border-radius: 12px;
-        }
-
-        .profile-header h1 {
-            color: #ffd700;
-            margin-bottom: 0.5rem;
-        }
-
-        .profile-header .tagline {
-            color: rgba(255, 255, 255, 0.8);
-            font-style: italic;
+        .greeting {
+            font-size: 1.1rem;
+            color: #FFD700;
+            margin-bottom: 8px;
         }
 
         .birth-info {
+            color: #d0e0f0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            color: #FFD700;
+            font-weight: 600;
+        }
+
+        .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
-        .birth-info-item {
-            text-align: center;
-            padding: 1rem;
-            background: rgba(0, 0, 139, 0.2);
-            border-radius: 8px;
-        }
-
-        .birth-info-label {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .birth-info-value {
-            color: #ffd700;
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
-
-        .results-section {
-            background: rgba(0, 0, 139, 0.2);
+        .card {
+            background: rgba(20, 40, 80, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .results-section h2 {
-            color: #ffd700;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .precision-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(0, 255, 0, 0.1);
-            border: 2px solid rgba(0, 255, 0, 0.3);
-            border-radius: 8px;
-            color: #ffd700;
-            font-weight: bold;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 3rem;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
             transition: all 0.3s ease;
-            text-decoration: none;
-            border: 2px solid #ffd700;
-            color: #ffd700;
-            background: rgba(255, 215, 0, 0.1);
         }
 
-        .action-btn:hover {
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 30px rgba(255, 215, 0, 0.2);
+            border-color: rgba(255, 215, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .card-icon {
+            font-size: 1.3rem;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .info-row {
+            margin-bottom: 10px;
+            color: #d0e0f0;
+            font-size: 0.9rem;
+        }
+
+        .info-row strong {
+            color: #FFD700;
+        }
+
+        .zodiac-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 12px 0;
+            color: #fff;
+        }
+
+        .zodiac-subtitle {
+            color: #b0c8e0;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .element-tag {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 15px;
+            color: #FFD700;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .trait-text {
+            color: #d0e0f0;
+            line-height: 1.6;
+            margin-top: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+        }
+
+        .numerology-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .numerology-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .num-9 { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+        .num-8 { background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%); }
+        .num-5 { background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%); }
+        .num-year { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
+
+        .numerology-content {
+            flex: 1;
+        }
+
+        .numerology-label {
+            font-size: 0.75rem;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+
+        .numerology-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .numerology-description {
+            font-size: 0.85rem;
+            color: #b0c8e0;
+            line-height: 1.4;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4fc3f7 0%, #81d4fa 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: width 1.5s ease-out;
+        }
+
+        .yang-indicator {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #ff9800 0%, #ffa726 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: width 1.5s ease-out;
+        }
+
+        .energy-description {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .energy-description h4 {
+            color: #FFD700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        .energy-description p {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #d0e0f0;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            color: #FFD700;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .back-btn:hover {
             background: rgba(255, 215, 0, 0.2);
+            border-color: #FFD700;
             transform: translateY(-2px);
         }
 
-        .action-btn.primary {
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
-            color: #001a33;
-            border: none;
-        }
-
-        .error-message {
+        .next-section {
             text-align: center;
-            padding: 2rem;
-            background: rgba(255, 0, 0, 0.1);
-            border: 2px solid rgba(255, 0, 0, 0.3);
-            border-radius: 8px;
-            color: #ff6b6b;
+            padding: 30px;
+            background: rgba(20, 40, 80, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
         }
 
-        /* Hospital Location Display */
-        .hospital-location-display {
-            margin-bottom: 2rem;
+        .next-section h2 {
+            color: #FFD700;
+            margin-bottom: 12px;
+            font-size: 1.4rem;
         }
 
-        .hospital-location-box {
-            background: rgba(0, 255, 0, 0.1);
-            border: 2px solid rgba(0, 255, 0, 0.3);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-
-        .location-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            color: #ffd700;
-            font-size: 1.1rem;
-        }
-
-        .location-icon {
-            font-size: 1.5rem;
-        }
-
-        .location-content {
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .hospital-name {
-            color: #ffd700;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .hospital-address {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .hospital-coords {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.95rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .hospital-precision {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        .precision-stars {
-            color: #ffd700;
-            font-size: 1.1rem;
-        }
-
-        .precision-badge-inline {
-            background: rgba(255, 215, 0, 0.2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 4px;
-            color: #ffd700;
-            font-weight: bold;
+        .next-section p {
             font-size: 0.9rem;
+            color: #b0c8e0;
+            margin-bottom: 15px;
         }
 
-        .precision-accuracy {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
+        .card > p {
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            line-height: 1.5;
+            color: #b0c8e0;
+        }
+
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+
+            .header-card h1 {
+                font-size: 1.6rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="results-container">
-        <!-- Loading State -->
-        <div id="loadingState" class="loading">
-            <div class="loading-spinner"></div>
-            <h2>Generating Your Cosmic Blueprint...</h2>
-            <p>Calculating your astrological profile with hospital-level precision</p>
+    <div class="container">
+        <div class="header-card">
+            <h1>
+                <span>Γ£¿</span>
+                Your Cosmic Blueprint
+                <span>Γ£¿</span>
+            </h1>
+            <div class="greeting" id="greeting"></div>
+            <div class="birth-info" id="birthInfo"></div>
         </div>
 
-        <!-- Error State -->
-        <div id="errorState" class="error-message" style="display: none;">
-            <h2>❌ Error Loading Profile</h2>
-            <p id="errorMessage"></p>
-            <a href="index.html" class="action-btn">← Back to Form</a>
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">≡ƒôà</span>
+                    <h3 class="card-title">Your Birth Information</h3>
+                </div>
+                <div id="birthDetails"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">≡ƒÉ░</span>
+                    <h3 class="card-title">Chinese Zodiac</h3>
+                </div>
+                <div id="chineseZodiacContent"></div>
+            </div>
         </div>
 
-        <!-- Results Content -->
-        <div id="resultsContent" style="display: none;">
-            <!-- Profile Header -->
-            <div class="profile-header">
-                <h1 id="profileName">Loading...</h1>
-                <p class="tagline">Your Cosmic Blueprint</p>
-                
-                <div class="birth-info">
-                    <div class="birth-info-item">
-                        <div class="birth-info-label">📅 Birth Date</div>
-                        <div class="birth-info-value" id="birthDate">--</div>
-                    </div>
-                    <div class="birth-info-item">
-                        <div class="birth-info-label">⏰ Birth Time</div>
-                        <div class="birth-info-value" id="birthTime">--</div>
-                    </div>
-                    <div class="birth-info-item">
-                        <div class="birth-info-label">📍 Birth Location</div>
-                        <div class="birth-info-value" id="birthLocation">--</div>
-                    </div>
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">Γ¡É</span>
+                    <h3 class="card-title">Born On</h3>
                 </div>
+                <div id="dayContent"></div>
             </div>
 
-            <!-- Hospital Location Details (if Advanced mode) -->
-            <div id="hospitalLocationSection" class="hospital-location-display" style="display: none;">
-                <div class="hospital-location-box">
-                    <div class="location-header">
-                        <span class="location-icon">✅</span>
-                        <strong>Selected Birth Location</strong>
-                    </div>
-                    <div class="location-content">
-                        <h3 class="hospital-name" id="displayHospitalName">--</h3>
-                        <p class="hospital-address" id="displayHospitalAddress">--</p>
-                        <p class="hospital-coords">
-                            <strong>Coordinates:</strong> <span id="displayCoordinates">--</span>
-                        </p>
-                        <p class="hospital-precision">
-                            <span class="precision-stars">⭐⭐⭐⭐⭐</span>
-                            <span class="precision-badge-inline">Hospital Precision</span>
-                            <span class="precision-accuracy">Ascendant accuracy: ±1 minute</span>
-                        </p>
-                    </div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">ΓÖë</span>
+                    <h3 class="card-title">Western Zodiac</h3>
                 </div>
+                <div id="westernZodiacContent"></div>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">≡ƒöó</span>
+                    <h3 class="card-title">Numerology Profile</h3>
+                </div>
+                <p>The mathematical blueprint of your life path and purpose</p>
+                <div id="numerologyContent"></div>
             </div>
 
-            <!-- Chinese Zodiac -->
-            <div class="results-section">
-                <h2>🐉 Chinese Zodiac</h2>
-                <div id="chineseZodiacContent">
-                    <p><strong>Animal:</strong> <span id="czAnimal">--</span></p>
-                    <p><strong>Element:</strong> <span id="czElement">--</span></p>
-                    <p><strong>Yin/Yang:</strong> <span id="czYinYang">--</span></p>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">Γÿ»∩╕Å</span>
+                    <h3 class="card-title">Yin/Yang Energy Balance</h3>
                 </div>
+                <p>Your energetic signature based on Chinese Animal, Element, and Western Zodiac</p>
+                <div id="yinYangContent"></div>
             </div>
+        </div>
 
-            <!-- Western Zodiac -->
-            <div class="results-section">
-                <h2>♈ Western Zodiac</h2>
-                <div id="westernZodiacContent">
-                    <p><strong>Sun Sign:</strong> <span id="wzSign">--</span></p>
-                    <p><strong>Element:</strong> <span id="wzElement">--</span></p>
-                </div>
-            </div>
-
-            <!-- Numerology -->
-            <div class="results-section">
-                <h2>🔢 Numerology</h2>
-                <div id="numerologyContent">
-                    <p><strong>Life Path:</strong> <span id="numLifePath">--</span></p>
-                    <p><strong>Expression:</strong> <span id="numExpression">--</span></p>
-                    <p><strong>Soul Urge:</strong> <span id="numSoulUrge">--</span></p>
-                </div>
-            </div>
-
-            <!-- Ascendant (if available) -->
-            <div class="results-section" id="ascendantSection" style="display: none;">
-                <h2>⬆️ Ascendant (Rising Sign)</h2>
-                <div class="precision-badge">
-                    ⭐⭐⭐⭐⭐ Hospital-Level Precision
-                </div>
-                <div id="ascendantContent" style="margin-top: 1rem;">
-                    <p><strong>Rising Sign:</strong> <span id="ascSign">--</span></p>
-                    <p><strong>Degree:</strong> <span id="ascDegree">--</span>°</p>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <a href="index.html" class="action-btn">← Create Another Profile</a>
-                <a href="dashboard.html" class="action-btn">View All Profiles</a>
-                <button onclick="shareProfile()" class="action-btn">📤 Share</button>
-                <button onclick="exportProfile()" class="action-btn primary">💾 Export</button>
-            </div>
+        <div class="next-section">
+            <h2>≡ƒö« AI Personality Analysis Coming Next...</h2>
+            <p>9-panel dashboard ΓÇó Deep Dive features ΓÇó Soulmate matching ΓÇó And more!</p>
+            <a href="index.html" class="back-btn">ΓåÉ Edit Birth Information</a>
         </div>
     </div>
 
-    <!-- Scripts -->
+
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="profile-manager.js"></script>
     
-    <script>
-        // Get profile ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const profileId = urlParams.get('id');
-
-        // Load and display profile
-        async function loadProfile() {
-            try {
-                if (!profileId) {
-                    throw new Error('No profile ID provided');
-                }
-
-                console.log('📄 Loading profile:', profileId);
-
-                // Wait for ProfileManager to initialize
-                let retries = 0;
-                while ((!window.ProfileManager || !window.ProfileManager.database) && retries < 20) {
-                    console.log('⏳ Waiting for ProfileManager to initialize...');
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    retries++;
-                }
-
-                if (!window.ProfileManager || !window.ProfileManager.database) {
-                    throw new Error('ProfileManager failed to initialize. Please refresh the page.');
-                }
-
-                // Load profile from Firebase
-                const profile = await window.ProfileManager.getProfile(profileId);
-                console.log('✅ Profile loaded:', profile);
-
-                // Display profile data
-                displayProfile(profile);
-
-                // Hide loading, show content
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('resultsContent').style.display = 'block';
-
-            } catch (error) {
-                console.error('❌ Error loading profile:', error);
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('errorState').style.display = 'block';
-                document.getElementById('errorMessage').textContent = error.message;
-            }
-        }
-
-        // Display profile data in UI
-        function displayProfile(profile) {
-            // Header
-            document.getElementById('profileName').textContent = profile.name;
-            document.getElementById('birthDate').textContent = new Date(profile.birthDate).toLocaleDateString();
-            document.getElementById('birthTime').textContent = profile.birthTime;
-            
-            // Location
-            const location = profile.location;
-            let locationText;
-            
-            if (location.hospitalName) {
-                // Advanced mode with hospital
-                locationText = `${location.city}, ${location.country}`;
-                
-                // Show hospital details section
-                document.getElementById('hospitalLocationSection').style.display = 'block';
-                document.getElementById('displayHospitalName').textContent = location.hospitalName;
-                document.getElementById('displayHospitalAddress').textContent = location.address || location.city;
-                document.getElementById('displayCoordinates').textContent = 
-                    `${location.latitude.toFixed(4)}° N, ${location.longitude.toFixed(4)}° E` +
-                    (location.distance ? ` (${location.distance} from city center)` : '');
-            } else {
-                // Basic mode
-                locationText = `${location.city}, ${location.country}`;
-            }
-            
-            document.getElementById('birthLocation').textContent = locationText;
-
-            // Calculations
-            const calc = profile.calculations;
-            
-            if (calc.chineseZodiac) {
-                document.getElementById('czAnimal').textContent = calc.chineseZodiac.animal;
-                document.getElementById('czElement').textContent = calc.chineseZodiac.element;
-                document.getElementById('czYinYang').textContent = calc.chineseZodiac.yinYang;
-            }
-
-            if (calc.westernZodiac) {
-                document.getElementById('wzSign').textContent = calc.westernZodiac.sign;
-                document.getElementById('wzElement').textContent = calc.westernZodiac.element;
-            }
-
-            if (calc.numerology) {
-                document.getElementById('numLifePath').textContent = calc.numerology.lifePath;
-                document.getElementById('numExpression').textContent = calc.numerology.expression;
-                document.getElementById('numSoulUrge').textContent = calc.numerology.soulUrge;
-            }
-
-            if (calc.ascendant) {
-                document.getElementById('ascendantSection').style.display = 'block';
-                document.getElementById('ascSign').textContent = calc.ascendant.sign;
-                document.getElementById('ascDegree').textContent = calc.ascendant.degree;
-            }
-        }
-
-        // Share profile
-        function shareProfile() {
-            const url = window.location.href;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'My AstroProfile Cosmic Blueprint',
-                    url: url
-                });
-            } else {
-                navigator.clipboard.writeText(url);
-                alert('Link copied to clipboard!');
-            }
-        }
-
-        // Export profile
-        async function exportProfile() {
-            try {
-                const profile = await window.ProfileManager.getProfile(profileId);
-                const json = JSON.stringify(profile, null, 2);
-                
-                const blob = new Blob([json], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${profile.name}_astroprofile.json`;
-                a.click();
-                
-                console.log('✅ Profile exported');
-            } catch (error) {
-                alert('Export failed: ' + error.message);
-            }
-        }
-
-        // Load profile when page loads
-        window.addEventListener('load', loadProfile);
-    </script>
+    <script src="results.js"></script>
 </body>
 </html>

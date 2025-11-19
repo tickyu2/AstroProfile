@@ -1,259 +1,390 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AstroProfile - Don't Date Blind. Date Soul-First.</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>AstroProfile - Your Cosmic Blueprint</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a4e 0%, #2d4a7c 50%, #3d5a8c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .cosmic-header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease-in;
+        }
+
+        .cosmic-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .star {
+            font-size: 2rem;
+            animation: twinkle 2s infinite;
+        }
+
+        .cosmic-header p {
+            font-size: 1.1rem;
+            color: #a0b4c0;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.8s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.2),
+                        inset 0 0 30px rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .name-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .location-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #FFD700;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3),
+                        inset 0 0 20px rgba(255, 215, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .time-input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .time-input-group label {
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            color: #a0b4c0;
+            text-transform: none;
+        }
+
+        .time-input-group input {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border: none;
+            border-radius: 12px;
+            color: #0f2027;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.2);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @media (max-width: 600px) {
+            .cosmic-header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 30px 20px;
+            }
+
+            .name-row,
+            .location-row,
+            .time-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .nav-hint {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #a0b4c0;
+            opacity: 0.7;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🌟 AstroProfile</h1>
-            <p class="tagline">Don't date blind. Date soul-first.</p>
-            <p class="subtitle">Your cosmic blueprint with hospital-level precision</p>
-        </header>
+        <div class="cosmic-header">
+            <h1>
+                <span class="star">Γ£¿</span>
+                Your Cosmic Blueprint
+                <span class="star">Γ£¿</span>
+            </h1>
+            <p>Discover your unique astrological profile</p>
+        </div>
 
-        <main>
-            <form id="birthInfoForm">
-                <!-- Personal Information -->
-                <div class="form-section">
-                    <h3>👤 Personal Information</h3>
-                    
-                    <div class="form-group">
-                        <label for="name">Full Name *</label>
-                        <input 
-                            type="text" 
-                            id="name" 
-                            name="name" 
-                            placeholder="Enter your full name" 
-                            required
-                        >
-                    </div>
-                </div>
-
-                <!-- Birth Date & Time -->
-                <div class="form-section">
-                    <h3>📅 Birth Date & Time</h3>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="birthDate">Birth Date *</label>
-                            <input 
-                                type="date" 
-                                id="birthDate" 
-                                name="birthDate" 
-                                required
-                            >
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="birthTime">Birth Time *</label>
-                            <input 
-                                type="time" 
-                                id="birthTime" 
-                                name="birthTime" 
-                                required
-                            >
-                            <small class="field-hint">Be as precise as possible for accurate Ascendant</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Birth Location with Hospital Search -->
-                <div class="form-section">
-                    <h3>📍 Birth Location</h3>
-                    
-                    <!-- Location Mode Toggle -->
-                    <div class="location-mode-toggle">
-                        <label class="radio-option">
-                            <input type="radio" name="locationMode" value="basic" checked>
-                            <span class="radio-label">
-                                <strong>Basic</strong>
-                                <small>City-level accuracy (~15km radius)</small>
-                            </span>
-                        </label>
-                        
-                        <label class="radio-option advanced-option">
-                            <input type="radio" name="locationMode" value="advanced">
-                            <span class="radio-label">
-                                <strong>Advanced ✨</strong>
-                                <small>Hospital-level precision (~10m accuracy)</small>
-                            </span>
-                        </label>
-                    </div>
-
-                    <!-- Basic Location Fields (Always Visible) -->
-                    <div id="basicLocationFields">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="birthCity">Birth City *</label>
-                                <input 
-                                    type="text" 
-                                    id="birthCity" 
-                                    name="birthCity" 
-                                    placeholder="e.g., Rawalpindi" 
-                                    required
-                                >
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="birthCountry">Birth Country *</label>
-                                <input 
-                                    type="text" 
-                                    id="birthCountry" 
-                                    name="birthCountry" 
-                                    placeholder="e.g., Pakistan" 
-                                    required
-                                >
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="birthState">State/Province (Optional)</label>
+        <div class="card">
+            <form id="birthForm">
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <div class="name-row">
+                        <div>
                             <input 
                                 type="text" 
-                                id="birthState" 
-                                name="birthState" 
-                                placeholder="e.g., Punjab, California, Ontario"
-                            >
-                            <small class="field-hint">For US/Canada/India - improves accuracy</small>
+                                id="firstName" 
+                                placeholder="First Name (σÉì)"
+                                required
+                                tabindex="1"
+                            />
+                        </div>
+                        <div>
+                            <input 
+                                type="text" 
+                                id="lastName" 
+                                placeholder="Last Name (σºô)"
+                                required
+                                tabindex="2"
+                            />
                         </div>
                     </div>
-
-                    <!-- Advanced Hospital Search (Hidden by Default) -->
-                    <div id="advancedLocationFields" style="display: none;">
-                        <div class="advanced-section">
-                            <div class="precision-badge">
-                                <span class="badge-icon">🎯</span>
-                                <div class="badge-text">
-                                    <strong>Why hospital precision?</strong>
-                                    <p>Your Ascendant (rising sign) changes every 4 minutes. Most apps use city center coordinates, which can be 15km off. We find your exact birth hospital for NASA-level accuracy.</p>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="hospitalName">Hospital/Facility Name (Optional)</label>
-                                <input 
-                                    type="text" 
-                                    id="hospitalName" 
-                                    name="hospitalName" 
-                                    placeholder="e.g., Armed Forces Institute of Cardiology"
-                                >
-                                <small class="field-hint">Leave blank to see all nearby hospitals</small>
-                            </div>
-
-                            <button type="button" id="searchHospitalsBtn" class="secondary-btn">
-                                <span class="btn-icon">🔍</span>
-                                Search Hospitals
-                            </button>
-
-                            <!-- Search Status -->
-                            <div id="hospitalSearchStatus" class="search-status" style="display: none;">
-                                <div class="loading-spinner"></div>
-                                <span class="status-text">Searching hospitals...</span>
-                            </div>
-
-                            <!-- Hospital Results Dropdown -->
-                            <div id="hospitalResultsContainer" style="display: none;">
-                                <div class="form-group">
-                                    <label for="hospitalSelect">Select Your Birth Hospital</label>
-                                    <select id="hospitalSelect" name="hospitalSelect" size="8">
-                                        <!-- Options will be populated dynamically -->
-                                    </select>
-                                    <small class="field-hint results-count"></small>
-                                </div>
-
-                                <!-- Selected Hospital Preview -->
-                                <div id="selectedHospitalPreview" class="hospital-preview" style="display: none;">
-                                    <div class="preview-header">
-                                        <span class="preview-icon">✅</span>
-                                        <strong>Selected Location</strong>
-                                    </div>
-                                    <div class="preview-content">
-                                        <p class="preview-name"></p>
-                                        <p class="preview-address"></p>
-                                        <p class="preview-coords"></p>
-                                        <p class="preview-precision">
-                                            <span class="precision-badge-small">⭐⭐⭐⭐⭐ Hospital Precision</span>
-                                            Ascendant accuracy: ±1 minute
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Manual Coordinates Override (Power Users) -->
-                            <details class="manual-coords-section">
-                                <summary>Advanced: Enter coordinates manually</summary>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="manualLat">Latitude</label>
-                                        <input 
-                                            type="number" 
-                                            id="manualLat" 
-                                            name="manualLat" 
-                                            step="0.000001" 
-                                            placeholder="e.g., 33.6037"
-                                        >
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="manualLon">Longitude</label>
-                                        <input 
-                                            type="number" 
-                                            id="manualLon" 
-                                            name="manualLon" 
-                                            step="0.000001" 
-                                            placeholder="e.g., 73.0483"
-                                        >
-                                    </div>
-                                </div>
-                                <small class="field-hint">If you know exact GPS coordinates from birth certificate</small>
-                            </details>
-                        </div>
-                    </div>
-
-                    <!-- Location Verification (Shows after geocoding) -->
-                    <div id="locationVerification" class="location-verification" style="display: none;">
-                        <div class="verification-box">
-                            <h4>📍 Verify Your Location</h4>
-                            <p class="verified-location"></p>
-                            <p class="verified-coords"></p>
-                            <p class="verified-timezone"></p>
-                            <p class="verified-precision"></p>
-                        </div>
-                    </div>
+                    <div class="error-message" id="nameError">Please enter your name</div>
                 </div>
 
-                <!-- Submit Button -->
-                <div class="form-section">
-                    <button type="submit" class="submit-btn">
-                        Generate My Cosmic Blueprint
-                    </button>
+                <div class="form-group">
+                    <label for="birthDate">Birth Date</label>
+                    <input 
+                        type="date" 
+                        id="birthDate" 
+                        required
+                        tabindex="3"
+                    />
+                    <div class="error-message" id="dateError">Please enter your birth date</div>
                 </div>
+
+                <div class="form-group">
+                    <label>Birth Time</label>
+                    <div class="time-inputs">
+                        <div class="time-input-group">
+                            <label>Hour (0-23)</label>
+                            <input 
+                                type="number" 
+                                id="birthHour" 
+                                min="0" 
+                                max="23" 
+                                placeholder="09"
+                                required
+                                tabindex="4"
+                            />
+                        </div>
+                        <div class="time-input-group">
+                            <label>Minute (0-59)</label>
+                            <input 
+                                type="number" 
+                                id="birthMinute" 
+                                min="0" 
+                                max="59" 
+                                placeholder="25"
+                                required
+                                tabindex="5"
+                            />
+                        </div>
+                    </div>
+                    <div class="error-message" id="timeError">Please enter valid time</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Birth Location</label>
+                    <div class="location-row">
+                        <div>
+                            <input 
+                                type="text" 
+                                id="birthCity" 
+                                placeholder="City (e.g., Rawalpindi)"
+                                required
+                                tabindex="6"
+                            />
+                        </div>
+                        <div>
+                            <input 
+                                type="text" 
+                                id="birthCountry" 
+                                placeholder="Country"
+                                required
+                                tabindex="7"
+                            />
+                        </div>
+                    </div>
+                    <div class="error-message" id="locationError">Please enter your birth location</div>
+                </div>
+
+                <button type="submit" class="analyze-btn" tabindex="8">
+                    Reveal My Cosmic Blueprint
+                </button>
             </form>
-        </main>
 
-        <footer>
-            <p>&copy; 2025 AstroProfile - Hospital-level precision for your birth chart</p>
-            <p class="feature-badge">⭐⭐⭐⭐⭐ 99.93% more accurate than traditional apps</p>
-        </footer>
+            <div class="nav-hint">
+                Press TAB to move between fields ΓÇó Press ENTER to advance
+            </div>
+        </div>
     </div>
 
-    <!-- Firebase SDK (load FIRST!) -->
+
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
-    <!-- Firebase Config & Profile Manager -->
     <script src="firebase-config.js"></script>
     <script src="profile-manager.js"></script>
-
-    <!-- Your App (use app-firebase.js for Firebase version) -->
-    <script src="calculations.js"></script>
-    <script src="app-firebase.js"></script>
-
-    <!-- Hospital Search Feature -->
-    <script src="hospital-search.js"></script>
-    <script src="hospital-search-ui.js"></script>
+    
+    <script src="app.js"></script>
 </body>
 </html>
