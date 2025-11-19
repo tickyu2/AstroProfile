@@ -1,27 +1,7 @@
-// Results Page Logic - Firebase Version
-// Restored from working commit 9087d92 + Firebase cloud storage
+// Results Page Logic - Original Version with Complete Numerology
 
-window.addEventListener('DOMContentLoaded', async () => {
-    let results;
-    
-    // Try to load from Firebase first
-    try {
-        if (window.ProfileManager && window.ProfileManager.database) {
-            results = await window.ProfileManager.getLatestProfile();
-            console.log('✅ Loaded profile from Firebase');
-        }
-    } catch (error) {
-        console.warn('Firebase load failed, trying localStorage:', error);
-    }
-    
-    // Fallback to localStorage if Firebase fails
-    if (!results) {
-        const storedResults = localStorage.getItem('astroResults');
-        if (storedResults) {
-            results = JSON.parse(storedResults);
-            console.log('✅ Loaded profile from localStorage (fallback)');
-        }
-    }
+window.addEventListener('DOMContentLoaded', () => {
+    const results = JSON.parse(localStorage.getItem('astroResults'));
     
     if (!results) {
         window.location.href = 'index.html';
@@ -128,14 +108,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         </div>
         
         <div class="energy-description">
-            <h4>≡ƒîÖ YIN ENERGY (${results.yinYangBalance.yin}%)</h4>
-            <p>Receptive, introspective, intuitive. Yin is the quiet strength of waterΓÇöflowing, adapting, nurturing the inner world, emotional depth, and the wisdom of listening.</p>
+            <h4>🌙 YIN ENERGY (${results.yinYangBalance.yin}%)</h4>
+            <p>Receptive, introspective, intuitive. Yin is the quiet strength of water—flowing, adapting, nurturing the inner world, emotional depth, and the wisdom of listening.</p>
         </div>
 
         ${results.yinYangBalance.yang > 0 ? `
         <div class="energy-description">
-            <h4>ΓÿÇ∩╕Å YANG ENERGY (${results.yinYangBalance.yang}%)</h4>
-            <p>Active, expressive, dynamic. Yang is the bright power of fireΓÇöinitiating, leading, creating the outer world, action-taking, and the courage to assert yourself.</p>
+            <h4>☀️ YANG ENERGY (${results.yinYangBalance.yang}%)</h4>
+            <p>Active, expressive, dynamic. Yang is the bright power of fire—initiating, leading, creating the outer world, action-taking, and the courage to assert yourself.</p>
         </div>
         ` : ''}
     `;

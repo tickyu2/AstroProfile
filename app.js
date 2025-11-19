@@ -1,7 +1,7 @@
-// AstroProfile Application Logic - Firebase Version
-// Restored from working commit 9087d92 + Firebase cloud storage
+// AstroProfile Application Logic - Updated for separate name and location fields
+// No localStorage configuration needed - works automatically in all modern browsers
 
-// Load saved form data on page load (still uses localStorage for convenience)
+// Load saved data on page load
 window.addEventListener('DOMContentLoaded', () => {
     const savedData = localStorage.getItem('astroFormData');
     if (savedData) {
@@ -49,124 +49,144 @@ inputs.forEach((input, index) => {
             if (index < inputs.length - 1) {
                 inputs[index + 1].focus();
             } else {
-                document.querySelector('form').dispatchEvent(new Event('submit'));
+                document.getElementById('birthForm').dispatchEvent(new Event('submit'));
             }
         }
     });
 });
 
-// Auto-advance for hour and minute inputs after 2 digits
-const birthHour = document.getElementById('birthHour');
-const birthMinute = document.getElementById('birthMinute');
-
-if (birthHour) {
-    birthHour.addEventListener('input', (e) => {
-        if (e.target.value.length === 2) {
-            birthMinute.focus();
-        }
-    });
-}
-
-// Form submission
-document.querySelector('form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const data = {
-        firstName: document.getElementById('firstName').value.trim(),
-        lastName: document.getElementById('lastName').value.trim(),
-        birthDate: document.getElementById('birthDate').value,
-        birthHour: document.getElementById('birthHour').value,
-        birthMinute: document.getElementById('birthMinute').value,
-        birthCity: document.getElementById('birthCity').value.trim(),
-        birthCountry: document.getElementById('birthCountry').value.trim()
-    };
-    
-    // Validate inputs
-    if (!data.firstName || !data.lastName || !data.birthDate || !data.birthHour || !data.birthMinute || !data.birthCity || !data.birthCountry) {
-        alert('Please fill in all fields before submitting.');
-        return;
-    }
-    
-    // Validate hour (0-23) and minute (0-59)
-    const hour = parseInt(data.birthHour);
-    const minute = parseInt(data.birthMinute);
-    
-    if (isNaN(hour) || hour < 0 || hour > 23) {
-        alert('Hour must be between 0 and 23');
-        return;
-    }
-    
-    if (isNaN(minute) || minute < 0 || minute > 59) {
-        alert('Minute must be between 0 and 59');
-        return;
-    }
-    
-    // Save form data for convenience (still localStorage)
-    localStorage.setItem('astroFormData', JSON.stringify(data));
-    
-    // Show loading state
-    const submitButton = document.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = 'Calculating your cosmic blueprint...';
-    submitButton.disabled = true;
-    
-    try {
-        // Process the data
-        await processFormData(data);
-    } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
-        submitButton.textContent = originalText;
-        submitButton.disabled = false;
+// Auto-advance for time inputs when 2 digits entered
+document.getElementById('birthHour').addEventListener('input', (e) => {
+    if (e.target.value.length === 2 && parseInt(e.target.value) <= 23) {
+        document.getElementById('birthMinute').focus();
     }
 });
 
-async function processFormData(data) {
-    // Parse birth date
-    const birthDate = new Date(data.birthDate + 'T00:00:00');
-    const today = new Date();
-    
-    // Calculate age
-    let ageYears = today.getFullYear() - birthDate.getFullYear();
-    let ageMonths = today.getMonth() - birthDate.getMonth();
-    let ageDays = today.getDate() - birthDate.getDate();
-    
-    if (ageDays < 0) {
-        ageMonths--;
-        const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-        ageDays += lastMonth.getDate();
+document.getElementById('birthMinute').addEventListener('input', (e) => {
+    if (e.target.value.length === 2 && parseInt(e.target.value) <= 59) {
+        document.getElementById('birthCity').focus();
     }
+});
+
+// Form validation and submission
+document.getElementById('birthForm').addEventListener('submit', (e) => {
+    e.preventDefault();
     
-    if (ageMonths < 0) {
-        ageYears--;
-        ageMonths += 12;
+    let isValid = true;
+    
+    // Clear previous errors
+    document.querySelectorAll('.error-message').forEach(err => {
+        err.classList.remove('show');
+    });
+
+    // Validate names
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    if (!firstName || !lastName) {
+        document.getElementById('nameError').classList.add('show');
+        isValid = false;
     }
+
+    // Validate date
+    const date = document.getElementById('birthDate').value;
+    if (!date) {
+        document.getElementById('dateError').classList.add('show');
+        isValid = false;
+    }
+
+    // Validate time
+    const hour = document.getElementById('birthHour').value;
+    const minute = document.getElementById('birthMinute').value;
+    if (!hour || !minute || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        document.getElementById('timeError').classList.add('show');
+        isValid = false;
+    }
+
+    // Validate location
+    const city = document.getElementById('birthCity').value.trim();
+    const country = document.getElementById('birthCountry').value.trim();
+    if (!city || !country) {
+        document.getElementById('locationError').classList.add('show');
+        isValid = false;
+    }
+
+    if (isValid) {
+        // Save form data to localStorage
+        const formData = {
+            firstName: firstName,
+            lastName: lastName,
+            birthDate: date,
+            birthHour: hour,
+            birthMinute: minute,
+            birthCity: city,
+            birthCountry: country
+        };
+        
+        localStorage.setItem('astroFormData', JSON.stringify(formData));
+        
+        // Generate and navigate to results
+        generateResults(formData);
+    }
+});
+
+function generateResults(data) {
+    // Parse the date CORRECTLY
+    const [year, month, day] = data.birthDate.split('-').map(Number);
+    const birthDate = new Date(year, month - 1, day); // month is 0-indexed in JavaScript!
     
-    // Format birth date
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    const birthDateFormatted = birthDate.toLocaleDateString('en-US', options);
-    
-    // Get day of week
+    // Calculate day of week
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dayOfWeek = daysOfWeek[birthDate.getDay()];
     
-    // Calculate astrological data
-    const chineseZodiac = getChineseZodiac(birthDate.getFullYear());
-    const element = getElement(birthDate.getFullYear());
-    const westernZodiac = getWesternZodiac(birthDate.getMonth() + 1, birthDate.getDate());
-    const yinYangBalance = calculateYinYang(birthDate);
+    // Calculate age accurately
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    let monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+        monthDiff = 12 + monthDiff;
+    }
+    
+    if (monthDiff < 0) monthDiff = 0;
+    
+    // Calculate days in current age year
+    const lastBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+    if (lastBirthday > today) {
+        lastBirthday.setFullYear(today.getFullYear() - 1);
+    }
+    const ageDays = Math.floor((today - lastBirthday) / (1000 * 60 * 60 * 24));
+    
+    // Calculate Chinese Zodiac
+    const chineseZodiac = getChineseZodiac(year);
+    const element = getChineseElement(year);
+    
+    // Calculate Western Zodiac
+    const westernZodiac = getWesternZodiac(month, day);
+    
+    // Calculate Yin/Yang
+    const yinYangBalance = calculateYinYang(birthDate, parseInt(data.birthHour));
+    
+    // Calculate Numerology
     const lifePathNumber = calculateLifePath(birthDate);
     
-    // Create results object
+    // Combine first and last name for display
+    const fullName = `${data.firstName} ${data.lastName}`;
+    
+    // Store results and navigate
     const results = {
         firstName: data.firstName,
         lastName: data.lastName,
-        fullName: `${data.firstName} ${data.lastName}`,
-        birthDate: data.birthDate,
-        birthDateFormatted: birthDateFormatted,
+        fullName: fullName,
+        birthDateFormatted: birthDate.toLocaleDateString('en-US', { 
+            weekday: 'long',
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        }),
         dayOfWeek: dayOfWeek,
-        age: ageYears,
-        ageMonths: ageMonths,
+        age: age,
+        ageMonths: monthDiff,
         ageDays: ageDays,
         birthTime: `${data.birthHour.padStart(2, '0')}:${data.birthMinute.padStart(2, '0')}`,
         birthCity: data.birthCity,
@@ -176,27 +196,11 @@ async function processFormData(data) {
         element: element,
         westernZodiac: westernZodiac,
         yinYangBalance: yinYangBalance,
-        lifePathNumber: lifePathNumber,
-        createdAt: new Date().toISOString()
+        lifePathNumber: lifePathNumber
     };
     
-    // Save to Firebase instead of localStorage
-    if (!window.ProfileManager || !window.ProfileManager.database) {
-        console.error('Firebase not ready, falling back to localStorage');
-        localStorage.setItem('astroResults', JSON.stringify(results));
-        window.location.href = 'results.html';
-        return;
-    }
-    
-    try {
-        await window.ProfileManager.saveProfile(results);
-        console.log('✅ Profile saved to Firebase');
-        window.location.href = 'results.html';
-    } catch (error) {
-        console.error('Firebase save error, falling back to localStorage:', error);
-        localStorage.setItem('astroResults', JSON.stringify(results));
-        window.location.href = 'results.html';
-    }
+    localStorage.setItem('astroResults', JSON.stringify(results));
+    window.location.href = 'results.html';
 }
 
 // Helper Functions
@@ -207,82 +211,61 @@ function getChineseZodiac(year) {
     return animals[(year - 4) % 12];
 }
 
-function getElement(year) {
-    const elements = ['Metal', 'Water', 'Wood', 'Fire', 'Earth'];
+function getChineseElement(year) {
+    const elements = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
     return elements[Math.floor(((year - 4) % 10) / 2)];
 }
 
 function getWesternZodiac(month, day) {
-    const zodiacSigns = [
-        { sign: 'Capricorn', start: [12, 22], end: [1, 19] },
-        { sign: 'Aquarius', start: [1, 20], end: [2, 18] },
-        { sign: 'Pisces', start: [2, 19], end: [3, 20] },
-        { sign: 'Aries', start: [3, 21], end: [4, 19] },
-        { sign: 'Taurus', start: [4, 20], end: [5, 20] },
-        { sign: 'Gemini', start: [5, 21], end: [6, 20] },
-        { sign: 'Cancer', start: [6, 21], end: [7, 22] },
-        { sign: 'Leo', start: [7, 23], end: [8, 22] },
-        { sign: 'Virgo', start: [8, 23], end: [9, 22] },
-        { sign: 'Libra', start: [9, 23], end: [10, 22] },
-        { sign: 'Scorpio', start: [10, 23], end: [11, 21] },
-        { sign: 'Sagittarius', start: [11, 22], end: [12, 21] }
-    ];
-    
-    for (const zodiac of zodiacSigns) {
-        const [startMonth, startDay] = zodiac.start;
-        const [endMonth, endDay] = zodiac.end;
-        
-        if ((month === startMonth && day >= startDay) || (month === endMonth && day <= endDay)) {
-            return zodiac.sign;
-        }
-    }
-    
+    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'Aries';
+    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'Taurus';
+    if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'Gemini';
+    if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'Cancer';
+    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'Leo';
+    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'Virgo';
+    if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'Libra';
+    if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'Scorpio';
+    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'Sagittarius';
+    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'Capricorn';
+    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'Aquarius';
+    if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return 'Pisces';
     return 'Capricorn';
 }
 
-function calculateYinYang(birthDate) {
-    const year = birthDate.getFullYear();
-    const month = birthDate.getMonth() + 1;
-    const day = birthDate.getDate();
-    
+function calculateYinYang(birthDate, hour) {
     let yinScore = 0;
     let yangScore = 0;
     
-    // Year influences
-    if (year % 2 === 0) yinScore += 30; else yangScore += 30;
+    // Year (odd = yang, even = yin)
+    if (birthDate.getFullYear() % 2 === 0) yinScore++; else yangScore++;
     
-    // Month influences
-    if (month % 2 === 0) yinScore += 20; else yangScore += 20;
+    // Month (odd = yang, even = yin)
+    if ((birthDate.getMonth() + 1) % 2 === 0) yinScore++; else yangScore++;
     
-    // Day influences
-    if (day % 2 === 0) yinScore += 25; else yangScore += 25;
+    // Day (odd = yang, even = yin)
+    if (birthDate.getDate() % 2 === 0) yinScore++; else yangScore++;
     
-    // Chinese zodiac influences
-    const zodiac = getChineseZodiac(year);
-    const yinAnimals = ['Rabbit', 'Snake', 'Goat', 'Rooster', 'Pig', 'Ox'];
-    if (yinAnimals.includes(zodiac)) {
-        yinScore += 25;
-    } else {
-        yangScore += 25;
-    }
+    // Hour (night = yin, day = yang)
+    if (hour >= 6 && hour < 18) yangScore++; else yinScore++;
     
     const total = yinScore + yangScore;
-    return {
-        yin: Math.round((yinScore / total) * 100),
-        yang: Math.round((yangScore / total) * 100)
-    };
+    const yinPercent = Math.round((yinScore / total) * 100);
+    const yangPercent = 100 - yinPercent;
+    
+    return { yin: yinPercent, yang: yangPercent };
 }
 
 function calculateLifePath(birthDate) {
-    const dateString = birthDate.toISOString().split('T')[0].replace(/-/g, '');
+    const dateString = birthDate.getFullYear().toString() + 
+                     (birthDate.getMonth() + 1).toString().padStart(2, '0') + 
+                     birthDate.getDate().toString().padStart(2, '0');
     
-    function reduceToSingleDigit(num) {
-        while (num > 9 && num !== 11 && num !== 22 && num !== 33) {
-            num = num.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
-        }
-        return num;
+    let sum = dateString.split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+    
+    // Reduce to single digit (except master numbers 11, 22, 33)
+    while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) {
+        sum = sum.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
     }
     
-    const sum = dateString.split('').reduce((acc, digit) => acc + parseInt(digit), 0);
-    return reduceToSingleDigit(sum);
+    return sum;
 }
