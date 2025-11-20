@@ -157,8 +157,8 @@ function populateProfileData(profile) {
             if (profile.latitude && profile.longitude) {
                 const latDir = profile.latitude >= 0 ? 'N' : 'S';
                 const lonDir = profile.longitude >= 0 ? 'E' : 'W';
-                const latStr = `${Math.abs(profile.latitude).toFixed(4)}┬░ ${latDir}`;
-                const lonStr = `${Math.abs(profile.longitude).toFixed(4)}┬░ ${lonDir}`;
+                const latStr = `${Math.abs(profile.latitude).toFixed(4)}° ${latDir}`;
+                const lonStr = `${Math.abs(profile.longitude).toFixed(4)}° ${lonDir}`;
                 
                 coordinatesHTML = `
                 <div class="info-row">
