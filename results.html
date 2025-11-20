@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -377,6 +377,17 @@
             background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
         }
         
+        /* Enhancement: Hover animation for numerology circles */
+        .circle:hover {
+            animation: spin 3s ease-in-out;
+            transform: scale(1.05);
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg) scale(1.05); }
+            to { transform: rotate(360deg) scale(1.05); }
+        }
+        
         .number-label {
             font-size: 11px;
             color: rgba(255, 255, 255, 0.7);
@@ -418,6 +429,13 @@
             border-radius: 25px;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        /* Enhancement: Gentle pulse on hover */
+        .energy-split-pill:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
         }
         
         .energy-half {
@@ -508,15 +526,15 @@
         <div class="header">
             <div class="nav-buttons">
                 <a href="index.html" class="nav-button">
-                    <span class="arrow">←</span>
+                    <span class="arrow">ΓåÉ</span>
                     <span>Back to Data Input</span>
                 </a>
                 <a href="analysis.html" class="nav-button">
                     <span>View Analysis</span>
-                    <span class="arrow">→</span>
+                    <span class="arrow">ΓåÆ</span>
                 </a>
             </div>
-            <h1>✨ Your Cosmic Blueprint ✨</h1>
+            <h1>Γ£¿ Your Cosmic Blueprint Γ£¿</h1>
             <p>The mathematical blueprint of your life path and purpose</p>
         </div>
         
@@ -524,10 +542,18 @@
             <!-- Birth Information Card -->
             <div class="card info-panel">
                 <div class="card-header">
-                    <span class="icon">🎂</span>
+                    <span class="icon">≡ƒÄé</span>
                     <span class="card-title">Your Birth Information</span>
                 </div>
                 <div class="info-content">
+                    <div class="info-row">
+                        <span class="info-label">Name:</span>
+                        <span class="info-value" id="nameDisplay">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Sex:</span>
+                        <span class="info-value" id="sexDisplay">Loading...</span>
+                    </div>
                     <div class="info-row">
                         <span class="info-label">Birth Date:</span>
                         <span class="info-value" id="birthDateDisplay">Loading...</span>
@@ -539,6 +565,10 @@
                     <div class="info-row">
                         <span class="info-label">Birth Place:</span>
                         <span class="info-value" id="birthPlaceDisplay">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Coordinates:</span>
+                        <span class="info-value" id="coordinatesDisplay">Loading...</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Age:</span>
@@ -556,7 +586,7 @@
             <!-- Chinese Zodiac Card -->
             <div class="card chinese-panel">
                 <div class="card-header">
-                    <span class="icon">🏮</span>
+                    <span class="icon">≡ƒÅ«</span>
                     <span class="card-title">Chinese Zodiac</span>
                 </div>
                 <div class="zodiac-display">
@@ -573,13 +603,13 @@
             <!-- Western Zodiac Card -->
             <div class="card western-panel">
                 <div class="card-header">
-                    <span class="icon">⭐</span>
+                    <span class="icon">Γ¡É</span>
                     <span class="card-title">Western Zodiac</span>
                 </div>
                 <div class="zodiac-display">
                     <span class="element-badge">AIR ELEMENT</span>
                     <h3>AQUARIUS</h3>
-                    <span class="zodiac-icon western-zodiac-icon">♒</span>
+                    <span class="zodiac-icon western-zodiac-icon">ΓÖÆ</span>
                 </div>
                 <div class="description-box">
                     <p class="description panel-description">
@@ -592,7 +622,7 @@
             <!-- Born On Card -->
             <div class="card day-panel">
                 <div class="card-header">
-                    <span class="icon">📅</span>
+                    <span class="icon">≡ƒôà</span>
                     <span class="card-title">Born On</span>
                 </div>
                 <div class="zodiac-display">
@@ -610,7 +640,7 @@
             <!-- Numerology Profile Card -->
             <div class="card numerology-panel">
                 <div class="card-header">
-                    <span class="icon">🔢</span>
+                    <span class="icon">≡ƒöó</span>
                     <span class="card-title">Numerology Profile</span>
                 </div>
                 <div class="numbers-display">
@@ -642,7 +672,7 @@
             <!-- Yin/Yang Energy Card -->
             <div class="card yinyang-panel">
                 <div class="card-header">
-                    <span class="icon">☯️</span>
+                    <span class="icon">Γÿ»∩╕Å</span>
                     <span class="card-title">Yin/Yang Energy Balance</span>
                 </div>
                 
@@ -670,7 +700,7 @@
                 <div class="description-box">
                     <div class="energy-section yin-energy-desc">
                         <div class="energy-header">
-                            <span class="energy-icon">🌙</span>
+                            <span class="energy-icon">≡ƒîÖ</span>
                             <h4 class="energy-title">Yin Energy (50%)</h4>
                         </div>
                         <p class="energy-subtitle">Feminine Energy: Receptive, Intuitive, Nurturing</p>
@@ -679,7 +709,7 @@
                     
                     <div class="energy-section yang-energy-desc">
                         <div class="energy-header">
-                            <span class="energy-icon">☀️</span>
+                            <span class="energy-icon">ΓÿÇ∩╕Å</span>
                             <h4 class="energy-title">Yang Energy (50%)</h4>
                         </div>
                         <p class="energy-subtitle">Masculine Energy: Active, Expressive, Assertive</p>
