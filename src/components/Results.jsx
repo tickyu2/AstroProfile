@@ -8,6 +8,7 @@ import { useProfiles } from '../contexts/ProfileContext'
 import LoadingSpinner from './layout/LoadingSpinner'
 import { calculateYinYang, getBattleWeights, getBattleMetadata } from '../utils/calculations'
 import { getZodiacProfile } from '../data/chineseZodiacKnowledge'
+import { calculateFourPillars } from '../utils/fourPillarsCalculator' // ← NEW! Calculate Four Pillars!
 
 // Panel Components
 import BirthDetailsPanel from './results/BirthDetailsPanel'
@@ -17,6 +18,7 @@ import PlanetaryRulerPanel from './results/PlanetaryRulerPanel'
 import YinYangPanel from './results/YinYangPanel'
 import NumerologyPanel from './results/NumerologyPanel'
 import NotesPanel from './results/NotesPanel'
+import FourPillarsPanel from './results/FourPillarsPanel'
 
 export default function Results() {
     const { profileId } = useParams()
@@ -135,6 +137,28 @@ export default function Results() {
         ? getZodiacProfile(chinese.animal, chinese.element)
         : null
 
+    // Calculate Four Pillars data NOW! 🚀
+    let fourPillars = calc.fourPillars || null
+    
+    // If not in calculations, calculate it now!
+    if (!fourPillars && profile.birthDate && profile.birthTime) {
+        try {
+            // Convert birthDate string to Date object
+            const birthDateObj = new Date(profile.birthDate)
+            
+            fourPillars = calculateFourPillars(
+                birthDateObj,  // Now passing Date object, not string!
+                profile.birthTime,
+                profile.location?.lat || 0,
+                profile.location?.lng || 0
+            )
+            console.log('✅ Four Pillars calculated:', fourPillars)
+        } catch (error) {
+            console.error('❌ Error calculating Four Pillars:', error)
+            fourPillars = null
+        }
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
             {/* Header */}
@@ -216,6 +240,26 @@ export default function Results() {
                     <NumerologyPanel 
                         numerology={numerology}
                     />
+
+                    {/* Panel 7: Four Pillars - FULL WIDTH! 🚀 */}
+                    {fourPillars && (
+                        <div className="lg:col-span-2">
+                            <FourPillarsPanel 
+                                profile={profile}
+                                fourPillars={{
+                                    year: fourPillars.pillars.year,
+                                    month: fourPillars.pillars.month,
+                                    day: fourPillars.pillars.day,
+                                    hour: fourPillars.pillars.hour,
+                                    elementBalance: fourPillars.elementalBalance?.elements || {},
+                                    yinYangBalance: {
+                                        yin: fourPillars.yinYangBalance?.yinPercentage || 0,
+                                        yang: fourPillars.yinYangBalance?.yangPercentage || 0
+                                    }
+                                }}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* Notes Section */}
