@@ -9,7 +9,43 @@ export default function FourPillarsPanel({ profile, fourPillars }) {
         return null
     }
 
-    const { year, month, day, hour, elementBalance, yinYangBalance } = fourPillars
+    const { year, month, day, hour, elementBalance: rawElementBalance, yinYangBalance } = fourPillars
+
+    // ========================================
+    // NORMALIZE ELEMENT BALANCE TO 100%
+    // ========================================
+    // Convert raw counts to percentages that total exactly 100%
+    const normalizeElementBalance = (rawElements) => {
+        // Calculate total
+        const total = Object.values(rawElements).reduce((sum, count) => sum + count, 0)
+        
+        if (total === 0) {
+            return { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 }
+        }
+        
+        // Convert to percentages (with rounding)
+        const percentages = {}
+        let percentTotal = 0
+        const elements = ['Wood', 'Fire', 'Earth', 'Metal', 'Water']
+        
+        elements.forEach(element => {
+            percentages[element] = Math.round((rawElements[element] / total) * 100)
+            percentTotal += percentages[element]
+        })
+        
+        // Adjust for rounding errors (distribute difference to largest element)
+        if (percentTotal !== 100) {
+            const diff = 100 - percentTotal
+            const largestElement = elements.reduce((a, b) => 
+                rawElements[a] > rawElements[b] ? a : b
+            )
+            percentages[largestElement] += diff
+        }
+        
+        return percentages
+    }
+
+    const elementBalance = normalizeElementBalance(rawElementBalance)
 
     // Pillar weights (for educational visualization)
     // Must total exactly 100%
@@ -20,6 +56,25 @@ export default function FourPillarsPanel({ profile, fourPillars }) {
         year: 5    // Ancestral foundation
     }
     // Total: 70 + 15 + 10 + 5 = 100% ✓
+
+    // Circle sizes - CALCULATED FROM AREA (π r²)
+    // Each circle's area represents its cumulative percentage of total influence
+    // Formula: radius = √(percentage) × outerRadius
+    const outerRadius = 170  // Total radius in pixels
+    const circleSizes = {
+        // Year = 100% of area (outermost) = full circle
+        year: outerRadius * 2,  // 340px diameter
+        
+        // Month = 95% of area (Year 5% + Month 10% + Hour 15% + Core 70%)
+        month: Math.sqrt(0.95) * outerRadius * 2,  // 332px diameter
+        
+        // Hour = 85% of area (Hour 15% + Core 70%)
+        hour: Math.sqrt(0.85) * outerRadius * 2,  // 313px diameter
+        
+        // Core = 70% of area (most important!)
+        day: Math.sqrt(0.70) * outerRadius * 2   // 284px diameter
+    }
+    // Now the VISUAL AREA matches the IMPORTANCE percentages! 🎯
 
     // Get animal emoji
     const getAnimalEmoji = (animal) => {
@@ -40,17 +95,31 @@ export default function FourPillarsPanel({ profile, fourPillars }) {
         Water: 'from-blue-500 to-cyan-600'
     }
 
-    // Pillar card component
-    const PillarCard = ({ pillar, weight, title, subtitle, isExpanded, onToggle }) => (
-        <div 
-            className={`
-                relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 
-                backdrop-blur-lg rounded-xl p-4 border-2 cursor-pointer
-                transition-all duration-300 hover:scale-105
-                ${isExpanded ? 'border-amber-500 shadow-lg shadow-amber-500/30' : 'border-slate-700/50'}
-            `}
-            onClick={onToggle}
-        >
+    // Pillar card component with SYNCHRONIZED animation matching its ring!
+    const PillarCard = ({ pillar, weight, title, subtitle, pillarType, isExpanded, onToggle }) => {
+        // Map pillar type to animation name and GOLDEN RATIO frequency!
+        const animationMap = {
+            'day': { animation: 'pulse-day-card', duration: '2.5s' },      // Syncs with Core ring! (Base)
+            'hour': { animation: 'pulse-hour-card', duration: '3.09s' },   // Syncs with Hour ring! (Golden ratio)
+            'month': { animation: 'pulse-month-card', duration: '3.82s' }, // Syncs with Month ring! (Golden ratio)
+            'year': { animation: 'pulse-year-card', duration: '4.72s' }    // Syncs with Year ring! (Golden ratio)
+        }
+        
+        const { animation, duration } = animationMap[pillarType] || animationMap['day']
+        
+        return (
+            <div 
+                className={`
+                    relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 
+                    backdrop-blur-lg rounded-xl p-4 border-2 cursor-pointer
+                    transition-all duration-300 hover:scale-105
+                    ${isExpanded ? 'border-amber-500 shadow-lg shadow-amber-500/30' : 'border-slate-700/50'}
+                `}
+                style={{
+                    animation: `${animation} ${duration} ease-in-out infinite`
+                }}
+                onClick={onToggle}
+            >
             {/* Weight Badge */}
             <div className="absolute -top-3 -right-3 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full w-12 h-12 flex items-center justify-center font-bold text-white shadow-lg">
                 {weight}%
@@ -110,88 +179,357 @@ export default function FourPillarsPanel({ profile, fourPillars }) {
                 {isExpanded ? '▼' : '▶'}
             </div>
         </div>
-    )
+        )
+    }
 
     return (
+        <>
+            {/* Harmonic Resonance Pulsing Animations - Each ring pulses at its own frequency */}
+            <style>{`
+                @keyframes pulse-container {
+                    0%, 100% { 
+                        border-color: rgba(168, 85, 247, 0.3);
+                        box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+                    }
+                    50% { 
+                        border-color: rgba(168, 85, 247, 0.6);
+                        box-shadow: 0 0 40px rgba(168, 85, 247, 0.4);
+                    }
+                }
+                
+                /* SYNCHRONICITY PRINCIPLE: Each pillar card pulses at same frequency as its ring! */
+                
+                /* DAY PILLAR CARD - Syncs with Day/Core ring (2.5s, PURPLE) */
+                @keyframes pulse-day-card {
+                    0%, 100% { 
+                        border-color: rgba(168, 85, 247, 0.4);
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    }
+                    50% { 
+                        border-color: rgba(168, 85, 247, 0.9);
+                        box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4), 
+                                    0 0 25px rgba(168, 85, 247, 0.3);
+                    }
+                }
+                
+                /* HOUR PILLAR CARD - Syncs with Hour ring (3.0s, GREEN) */
+                @keyframes pulse-hour-card {
+                    0%, 100% { 
+                        border-color: rgba(34, 197, 94, 0.4);
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    }
+                    50% { 
+                        border-color: rgba(34, 197, 94, 0.9);
+                        box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4), 
+                                    0 0 25px rgba(34, 197, 94, 0.3);
+                    }
+                }
+                
+                /* MONTH PILLAR CARD - Syncs with Month ring (3.5s, BLUE) */
+                @keyframes pulse-month-card {
+                    0%, 100% { 
+                        border-color: rgba(59, 130, 246, 0.4);
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    }
+                    50% { 
+                        border-color: rgba(59, 130, 246, 0.9);
+                        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4), 
+                                    0 0 25px rgba(59, 130, 246, 0.3);
+                    }
+                }
+                
+                /* YEAR PILLAR CARD - Syncs with Year ring (4.0s, YELLOW) */
+                @keyframes pulse-year-card {
+                    0%, 100% { 
+                        border-color: rgba(251, 191, 36, 0.4);
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    }
+                    50% { 
+                        border-color: rgba(251, 191, 36, 0.9);
+                        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4), 
+                                    0 0 25px rgba(251, 191, 36, 0.3);
+                    }
+                }
+                
+                @keyframes pulse-elements {
+                    0%, 100% { 
+                        border-color: rgba(59, 130, 246, 0.3);
+                        box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+                    }
+                    50% { 
+                        border-color: rgba(59, 130, 246, 0.6);
+                        box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+                    }
+                }
+                
+                @keyframes pulse-year {
+                    0%, 100% { 
+                        opacity: 0.8;
+                        transform: scale(1);
+                    }
+                    50% { 
+                        opacity: 1;
+                        transform: scale(1.005);
+                    }
+                }
+                
+                @keyframes pulse-month {
+                    0%, 100% { 
+                        opacity: 0.8;
+                        transform: scale(1);
+                    }
+                    50% { 
+                        opacity: 1;
+                        transform: scale(1.008);
+                    }
+                }
+                
+                @keyframes pulse-hour {
+                    0%, 100% { 
+                        opacity: 0.8;
+                        transform: scale(1);
+                    }
+                    50% { 
+                        opacity: 1;
+                        transform: scale(1.01);
+                    }
+                }
+                
+                @keyframes pulse-core {
+                    0%, 100% { 
+                        opacity: 0.9;
+                        transform: scale(1);
+                        box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+                    }
+                    50% { 
+                        opacity: 1;
+                        transform: scale(1.015);
+                        box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
+                    }
+                }
+                
+                /* LEGEND LINE PULSING - Each line pulses at its pillar's frequency! */
+                @keyframes pulse-legend-day {
+                    0%, 100% { 
+                        opacity: 0.8;
+                        transform: scaleX(1);
+                    }
+                    50% { 
+                        opacity: 1;
+                        transform: scaleX(1.1);
+                    }
+                }
+                
+                @keyframes pulse-legend-hour {
+                    0%, 100% { 
+                        opacity: 0.8;
+                        transform: scaleX(1);
+                    }
+                    50% { 
+                        opacity: 1;
+                        transform: scaleX(1.1);
+                    }
+                }
+                
+                @keyframes pulse-legend-month {
+                    0%, 100% { 
+                        opacity: 0.8;
+                        transform: scaleX(1);
+                    }
+                    50% { 
+                        opacity: 1;
+                        transform: scaleX(1.1);
+                    }
+                }
+                
+                @keyframes pulse-legend-year {
+                    0%, 100% { 
+                        opacity: 0.8;
+                        transform: scaleX(1);
+                    }
+                    50% { 
+                        opacity: 1;
+                        transform: scaleX(1.1);
+                    }
+                }
+            `}</style>
         <div className="fade-in delay-3">
-            {/* Header */}
+            {/* Header - PULSING! */}
             <div className="mb-6 text-center">
-                <div className="inline-block bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-lg rounded-lg px-6 py-3 border border-purple-500/30">
+                <div className="inline-block bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-lg rounded-lg px-6 py-3 border border-purple-500/30"
+                     style={{
+                         animation: 'pulse-container 6s ease-in-out infinite'
+                     }}>
                     <div className="text-xl text-purple-300 font-bold uppercase tracking-wide flex items-center gap-2 justify-center">
-                        ⭐ YOUR COMPLETE SOUL CONSTITUTION ⭐
+                        ⭐ YOUR COSMIC BLUEPRINT ⭐
                     </div>
                     <div className="text-sm text-white/70 mt-1">
-                        The Four Pillars of Destiny (四柱命理)
+                        What Makes You, You
                     </div>
                 </div>
             </div>
 
             {/* Concentric Circles Visualization */}
-            <div className="mb-6 bg-gradient-to-br from-slate-900/50 to-blue-900/50 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/30 relative overflow-hidden">
+            <div className="mb-6 bg-gradient-to-br from-slate-900/50 to-blue-900/50 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/30 relative overflow-hidden"
+                 style={{
+                     animation: 'pulse-container 6s ease-in-out infinite'
+                 }}>
                 {/* Background Effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5"></div>
                 
                 <div className="relative">
                     <div className="text-center mb-6">
-                        <h3 className="text-lg font-bold text-white mb-2">Constitutional Hierarchy</h3>
-                        <p className="text-sm text-white/70">Circle size = Influence strength</p>
+                        <h3 className="text-lg font-bold text-white mb-2">What Shapes You</h3>
+                        <p className="text-sm text-white/70">Circle size = How much it influences you (π r²)</p>
                     </div>
 
-                    {/* Concentric Circles */}
-                    <div className="flex items-center justify-center relative" style={{height: '400px'}}>
-                        {/* Year Pillar - Outermost (5%) */}
+                    {/* Concentric Circles - area-based sizing */}
+                    <div className="flex items-center justify-center relative py-12" style={{height: '450px'}}>
+                        {/* Year Pillar - Outermost (5%) - PULSING ANIMATION - GOLDEN RATIO! */}
                         <div 
-                            className="absolute rounded-full border-4 border-amber-500/30 flex items-center justify-center cursor-pointer hover:border-amber-500/60 transition-all"
-                            style={{width: '360px', height: '360px'}}
+                            className="absolute rounded-full border-[3px] border-amber-400/80 bg-amber-400/10 flex items-center justify-center cursor-pointer hover:border-amber-300 hover:bg-amber-400/20 hover:shadow-lg hover:shadow-amber-500/30 transition-all animate-pulse-slow"
+                            style={{
+                                width: `${circleSizes.year}px`,
+                                height: `${circleSizes.year}px`,
+                                zIndex: 1,
+                                animation: 'pulse-year 4.72s ease-in-out infinite'
+                            }}
                             onClick={() => setExpandedPillar(expandedPillar === 'year' ? null : 'year')}
                         >
-                            <div className="absolute -top-8 text-center">
-                                <div className="text-xs text-amber-400 font-bold">YEAR (5%)</div>
-                                <div className="text-lg">{getAnimalEmoji(year.branch.animal)}</div>
-                                <div className="text-xs text-white/70">{year.stem.name} {year.branch.animal}</div>
-                            </div>
                         </div>
 
-                        {/* Month Pillar - Mid (10%) */}
+                        {/* Month Pillar - Mid (10%) - PULSING ANIMATION - GOLDEN RATIO! */}
                         <div 
-                            className="absolute rounded-full border-4 border-blue-500/40 flex items-center justify-center cursor-pointer hover:border-blue-500/70 transition-all"
-                            style={{width: '280px', height: '280px'}}
+                            className="absolute rounded-full border-[3px] border-blue-400/80 bg-blue-400/10 flex items-center justify-center cursor-pointer hover:border-blue-300 hover:bg-blue-400/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all"
+                            style={{
+                                width: `${circleSizes.month}px`,
+                                height: `${circleSizes.month}px`,
+                                zIndex: 2,
+                                animation: 'pulse-month 3.82s ease-in-out infinite'
+                            }}
                             onClick={() => setExpandedPillar(expandedPillar === 'month' ? null : 'month')}
                         >
-                            <div className="absolute -right-16 top-1/2 -translate-y-1/2 text-center">
-                                <div className="text-xs text-blue-400 font-bold">MONTH (10%)</div>
-                                <div className="text-xl">{getAnimalEmoji(month.branch.animal)}</div>
-                                <div className="text-xs text-white/70">{month.stem.name} {month.branch.animal}</div>
-                            </div>
                         </div>
 
-                        {/* Hour Pillar - Inner (20%) */}
+                        {/* Hour Pillar - Inner (15%) - PULSING ANIMATION - GOLDEN RATIO! */}
                         <div 
-                            className="absolute rounded-full border-4 border-green-500/50 flex items-center justify-center cursor-pointer hover:border-green-500/80 transition-all"
-                            style={{width: '200px', height: '200px'}}
+                            className="absolute rounded-full border-[3px] border-green-400/80 bg-green-400/10 flex items-center justify-center cursor-pointer hover:border-green-300 hover:bg-green-400/20 hover:shadow-lg hover:shadow-green-500/30 transition-all"
+                            style={{
+                                width: `${circleSizes.hour}px`,
+                                height: `${circleSizes.hour}px`,
+                                zIndex: 3,
+                                animation: 'pulse-hour 3.09s ease-in-out infinite'
+                            }}
                             onClick={() => setExpandedPillar(expandedPillar === 'hour' ? null : 'hour')}
                         >
-                            <div className="absolute -left-16 top-1/2 -translate-y-1/2 text-center">
-                                <div className="text-xs text-green-400 font-bold">HOUR (20%)</div>
-                                <div className="text-xl">{getAnimalEmoji(hour.branch.animal)}</div>
-                                <div className="text-xs text-white/70">{hour.stem.name} {hour.branch.animal}</div>
+                        </div>
+
+                        {/* Day Pillar - Center (70% of AREA) - CORE SOUL - PULSING ANIMATION */}
+                        <div 
+                            className="absolute rounded-full border-[5px] border-purple-400 bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center cursor-pointer hover:border-purple-300 hover:from-purple-500/40 hover:to-pink-500/40 hover:shadow-2xl hover:shadow-purple-500/50 transition-colors"
+                            style={{
+                                width: `${circleSizes.day}px`,
+                                height: `${circleSizes.day}px`,
+                                zIndex: 4,
+                                animation: 'pulse-core 2.5s ease-in-out infinite'
+                            }}
+                            onClick={() => setExpandedPillar(expandedPillar === 'day' ? null : 'day')}
+                        >
+                            <div className="text-center px-6">
+                                <div className="text-xs text-purple-300 font-bold uppercase mb-1">Day Pillar</div>
+                                <div className="text-4xl mb-2">{getAnimalEmoji(day.branch.animal)}</div>
+                                <div className="text-sm text-white font-bold mb-1">{day.stem.name} {day.branch.animal}</div>
+                                <div className="text-xs text-purple-300 font-bold mb-2">70%</div>
+                                <div className="text-xs text-white/80 leading-relaxed border-t border-purple-400/30 pt-2">
+                                    This is your core essence - who you really are deep inside. It shapes 70% of your personality!
+                                </div>
                             </div>
                         </div>
 
-                        {/* Day Pillar - Center (70%) - CORE SOUL */}
-                        <div 
-                            className="absolute rounded-full border-4 border-purple-500 bg-gradient-to-br from-purple-600/30 to-pink-600/30 backdrop-blur-lg flex items-center justify-center cursor-pointer hover:border-purple-400 hover:shadow-2xl hover:shadow-purple-500/50 transition-all"
-                            style={{width: '120px', height: '120px'}}
-                            onClick={() => setExpandedPillar(expandedPillar === 'day' ? null : 'day')}
-                        >
-                            <div className="text-center">
-                                <div className="text-xs text-purple-300 font-bold uppercase">Core</div>
-                                <div className="text-3xl mb-1">{getAnimalEmoji(day.branch.animal)}</div>
-                                <div className="text-xs text-white font-bold">{day.stem.name}</div>
-                                <div className="text-xs text-white">{day.branch.animal}</div>
-                                <div className="text-xs text-purple-300 font-bold mt-1">70%</div>
+                        {/* EXTERNAL LABELS REMOVED - TOO CLUTTERED */}
+                        {/* Information now in the ranked list instead */}
+
+                        {/* RANKED PILLAR LIST - CENTERED LEFT - Each line pulses at its frequency! */}
+                        <div className="absolute top-1/2 left-0 transform -translate-x-4 -translate-y-1/2 bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 border border-white/10 z-10" style={{minWidth: '280px'}}>
+                            <div className="text-xs text-white/70 font-bold uppercase mb-3 text-center">What Makes You, You</div>
+                            
+                            {/* Day Pillar - 70% - Most Important - PULSING LINE! */}
+                            <div className="mb-3 pb-3 border-b border-white/10">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-12 h-1 bg-purple-400 rounded" 
+                                         style={{
+                                             animation: 'pulse-legend-day 2.5s ease-in-out infinite'
+                                         }}></div>
+                                    <div className="text-sm text-purple-400 font-bold">Day Pillar</div>
+                                    <div className="text-sm text-purple-400 font-bold">70%</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="text-2xl">{getAnimalEmoji(day.branch.animal)}</div>
+                                    <div>
+                                        <div className="text-xs text-white font-semibold">{day.stem.name} {day.branch.animal}</div>
+                                        <div className="text-xs text-white/60">Your core soul essence</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Hour Pillar - 15% - PULSING LINE! */}
+                            <div className="mb-3 pb-3 border-b border-white/10">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-10 h-1 bg-green-400 rounded"
+                                         style={{
+                                             animation: 'pulse-legend-hour 3.09s ease-in-out infinite'
+                                         }}></div>
+                                    <div className="text-sm text-green-400 font-bold">Hour Pillar</div>
+                                    <div className="text-sm text-green-400 font-bold">15%</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="text-xl">{getAnimalEmoji(hour.branch.animal)}</div>
+                                    <div>
+                                        <div className="text-xs text-white font-semibold">{hour.stem.name} {hour.branch.animal}</div>
+                                        <div className="text-xs text-white/60">Your private inner nature</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Month Pillar - 10% - PULSING LINE! */}
+                            <div className="mb-3 pb-3 border-b border-white/10">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-8 h-1 bg-blue-400 rounded"
+                                         style={{
+                                             animation: 'pulse-legend-month 3.82s ease-in-out infinite'
+                                         }}></div>
+                                    <div className="text-sm text-blue-400 font-bold">Month Pillar</div>
+                                    <div className="text-sm text-blue-400 font-bold">10%</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="text-xl">{getAnimalEmoji(month.branch.animal)}</div>
+                                    <div>
+                                        <div className="text-xs text-white font-semibold">{month.stem.name} {month.branch.animal}</div>
+                                        <div className="text-xs text-white/60">Your seasonal influence</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Year Pillar - 5% - PULSING LINE! */}
+                            <div className="mb-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-6 h-1 bg-amber-400 rounded"
+                                         style={{
+                                             animation: 'pulse-legend-year 4.72s ease-in-out infinite'
+                                         }}></div>
+                                    <div className="text-sm text-amber-400 font-bold">Year Pillar</div>
+                                    <div className="text-sm text-amber-400 font-bold">5%</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="text-xl">{getAnimalEmoji(year.branch.animal)}</div>
+                                    <div>
+                                        <div className="text-xs text-white font-semibold">{year.stem.name} {year.branch.animal}</div>
+                                        <div className="text-xs text-white/60">Your ancestral foundation</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
                     </div>
 
                     <div className="text-center mt-6 text-xs text-white/60">
@@ -207,6 +545,7 @@ export default function FourPillarsPanel({ profile, fourPillars }) {
                     weight={weights.day}
                     title="Day Pillar (日柱)"
                     subtitle="Your Core Soul Essence"
+                    pillarType="day"
                     isExpanded={expandedPillar === 'day'}
                     onToggle={() => setExpandedPillar(expandedPillar === 'day' ? null : 'day')}
                 />
@@ -215,6 +554,7 @@ export default function FourPillarsPanel({ profile, fourPillars }) {
                     weight={weights.hour}
                     title="Hour Pillar (时柱)"
                     subtitle="Your Private Inner Nature"
+                    pillarType="hour"
                     isExpanded={expandedPillar === 'hour'}
                     onToggle={() => setExpandedPillar(expandedPillar === 'hour' ? null : 'hour')}
                 />
@@ -223,6 +563,7 @@ export default function FourPillarsPanel({ profile, fourPillars }) {
                     weight={weights.month}
                     title="Month Pillar (月柱)"
                     subtitle="Your Seasonal Constitution"
+                    pillarType="month"
                     isExpanded={expandedPillar === 'month'}
                     onToggle={() => setExpandedPillar(expandedPillar === 'month' ? null : 'month')}
                 />
@@ -231,13 +572,17 @@ export default function FourPillarsPanel({ profile, fourPillars }) {
                     weight={weights.year}
                     title="Year Pillar (年柱)"
                     subtitle="Your Ancestral Foundation"
+                    pillarType="year"
                     isExpanded={expandedPillar === 'year'}
                     onToggle={() => setExpandedPillar(expandedPillar === 'year' ? null : 'year')}
                 />
             </div>
 
             {/* Element Balance Chart */}
-            <div className="mb-6 bg-gradient-to-br from-slate-900/50 to-blue-900/50 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
+            <div className="mb-6 bg-gradient-to-br from-slate-900/50 to-blue-900/50 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30"
+                 style={{
+                     animation: 'pulse-elements 5.5s ease-in-out infinite'
+                 }}>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-white">🌟 Five Elements Balance</h3>
                     <button
@@ -328,5 +673,6 @@ export default function FourPillarsPanel({ profile, fourPillars }) {
                 </div>
             </div>
         </div>
+        </>
     )
 }

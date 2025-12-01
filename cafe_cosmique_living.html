@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Café Cosmique Magnifique - Where AI Dreams Became Real</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Color Palette - Warm Café Tones */
+            --amber-glow: #FFB84D;
+            --candle-flame: #FFA726;
+            --twilight-purple: #4A148C;
+            --deep-burgundy: #6D1B39;
+            --cream: #FFF8E7;
+            --marble-white: #F5F5F5;
+            --warm-shadow: rgba(139, 69, 19, 0.3);
+            
+            /* Golden Ratio Frequencies (in seconds) */
+            --phi-base: 2.5s;
+            --phi-hour: 3.09s;
+            --phi-month: 3.82s;
+            --phi-year: 4.72s;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background: #0A0A0A;
+            color: var(--cream);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* Main Container */
+        .cafe-experience {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0A0A0A 100%);
+        }
+
+        /* Base Image Layer */
+        .base-image {
+            position: absolute;
+            inset: 0;
+            background-image: url('Le%20Café%20Cosmique%20Magnifique.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            animation: fadeInImage 3s ease-out 0.5s forwards;
+        }
+
+        @keyframes fadeInImage {
+            to { opacity: 1; }
+        }
+
+        /* Atmospheric Overlay - Adds depth */
+        .atmosphere {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(
+                ellipse at 60% 40%,
+                rgba(255, 184, 77, 0.08) 0%,
+                transparent 50%
+            );
+            mix-blend-mode: screen;
+            animation: breatheAtmosphere 6s ease-in-out infinite;
+        }
+
+        @keyframes breatheAtmosphere {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.9; }
+        }
+
+        /* Steam Particles - Rising from the Latte */
+        .steam-container {
+            position: absolute;
+            left: 62%;
+            bottom: 38%;
+            width: 200px;
+            height: 400px;
+            transform: translateX(-50%);
+            pointer-events: none;
+            opacity: 0;
+            animation: fadeIn 2s ease-out 3s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .steam-particle {
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6), transparent);
+            border-radius: 50%;
+            transform: translateX(-50%);
+            animation: riseSteam var(--duration) ease-in infinite;
+            animation-delay: var(--delay);
+        }
+
+        @keyframes riseSteam {
+            0% {
+                transform: translateX(var(--start-x)) translateY(0) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateX(var(--end-x)) translateY(-400px) scale(0.3);
+                opacity: 0;
+            }
+        }
+
+        /* Window Glow Effect - Pulsing at 432 Hz rhythm */
+        .window-glow {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 60%;
+            height: 70%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(
+                ellipse at center,
+                rgba(255, 184, 77, 0.15) 0%,
+                transparent 60%
+            );
+            animation: pulseGlow var(--phi-base) ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { 
+                opacity: 0.4;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% { 
+                opacity: 0.7;
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+        }
+
+        /* Candle Flicker Effects - Multiple candles at different rhythms */
+        .candle-light {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--candle-flame), transparent 70%);
+            opacity: 0.3;
+            filter: blur(20px);
+            pointer-events: none;
+            animation: flicker var(--duration) ease-in-out infinite;
+        }
+
+        .candle-1 {
+            left: 48%;
+            bottom: 38%;
+            --duration: 3.2s;
+        }
+
+        .candle-2 {
+            left: 30%;
+            top: 40%;
+            --duration: 2.8s;
+        }
+
+        .candle-3 {
+            right: 25%;
+            top: 35%;
+            --duration: 3.5s;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            25% { opacity: 0.4; transform: scale(1.1); }
+            50% { opacity: 0.25; transform: scale(0.95); }
+            75% { opacity: 0.35; transform: scale(1.05); }
+        }
+
+        /* Street Lamp Glow */
+        .street-lamp {
+            position: absolute;
+            left: 12%;
+            top: 15%;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(255, 184, 77, 0.4), transparent 70%);
+            border-radius: 50%;
+            filter: blur(30px);
+            animation: lampGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes lampGlow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Rain Drops - Occasional */
+        .rain-drop {
+            position: absolute;
+            left: var(--left);
+            top: -10px;
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(200, 220, 255, 0.3));
+            animation: fall 1.5s linear infinite;
+            animation-delay: var(--delay);
+            opacity: 0.6;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(110vh);
+                opacity: 0;
+            }
+        }
+
+        /* Header removed - name is on the window in Baby Nano's image! */
+
+        /* Enter Button - Call to Action */
+        .enter-button {
+            position: absolute;
+            bottom: 12%;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            z-index: 20;
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 4s forwards;
+            text-align: center;
+        }
+
+        @keyframes popIn {
+            to { transform: translateX(-50%) scale(1); }
+        }
+
+        .enter-button button {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            padding: 1.2rem 3rem;
+            background: linear-gradient(135deg, var(--deep-burgundy), var(--twilight-purple));
+            color: var(--cream);
+            border: 2px solid var(--amber-glow);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 40px rgba(255, 184, 77, 0.3);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .enter-button button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(255, 184, 77, 0.5);
+            background: linear-gradient(135deg, var(--twilight-purple), var(--deep-burgundy));
+            border-color: var(--candle-flame);
+        }
+
+        .enter-button button:active {
+            transform: translateY(-2px);
+        }
+
+        .enter-button .tagline {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.9rem;
+            color: var(--cream);
+            opacity: 0.6;
+            margin-top: 1rem;
+            letter-spacing: 0.2em;
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        /* Audio Controls - Bottom Left */
+        .audio-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 5s forwards;
+        }
+
+        .audio-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--amber-glow);
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--amber-glow);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .audio-button:hover {
+            background: rgba(255, 184, 77, 0.2);
+            transform: scale(1.1);
+        }
+
+        .audio-button.active {
+            background: rgba(255, 184, 77, 0.3);
+            box-shadow: 0 0 20px rgba(255, 184, 77, 0.5);
+        }
+
+        /* Menu Overlay - Easter Egg! */
+        .menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+            overflow-y: auto;
+        }
+
+        .menu-overlay.show {
+            display: flex;
+        }
+
+        .menu-content {
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 3rem;
+            background: linear-gradient(135deg, rgba(109, 27, 57, 0.9), rgba(74, 20, 140, 0.9));
+            border: 3px solid var(--amber-glow);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(255, 184, 77, 0.4);
+        }
+
+        .menu-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: var(--amber-glow);
+            text-align: center;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(255, 184, 77, 0.5);
+        }
+
+        .menu-content h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--candle-flame);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .menu-item {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border-left: 3px solid var(--amber-glow);
+        }
+
+        .menu-item-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--cream);
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-item-description {
+            font-size: 1rem;
+            color: rgba(255, 248, 231, 0.8);
+            line-height: 1.6;
+        }
+
+        .menu-item-price {
+            font-size: 1.1rem;
+            color: var(--amber-glow);
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .close-menu {
+            position: sticky;
+            top: 1rem;
+            float: right;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--amber-glow);
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--amber-glow);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-menu:hover {
+            background: rgba(255, 184, 77, 0.3);
+            transform: rotate(90deg);
+        }
+
+        /* Credits - Bottom Right */
+        .credits {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 30;
+            text-align: right;
+            font-size: 0.9rem;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 6s forwards;
+        }
+
+        .credits p {
+            color: var(--cream);
+            opacity: 0.7;
+            margin: 4px 0;
+            font-style: italic;
+        }
+
+        .credits .creators {
+            color: var(--amber-glow);
+            font-weight: 500;
+        }
+
+        /* Loading Screen */
+        .loading {
+            position: fixed;
+            inset: 0;
+            background: #0A0A0A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 100;
+            animation: fadeOut 1s ease-out 2s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        .loading-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--amber-glow);
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid transparent;
+            border-top-color: var(--amber-glow);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header .tagline {
+                font-size: 1rem;
+            }
+            
+            .enter-button button {
+                font-size: 1.2rem;
+                padding: 1rem 2rem;
+            }
+            
+            .audio-controls,
+            .credits {
+                bottom: 20px;
+            }
+        }
+
+        /* Hidden class for initial state */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading">
+        <div class="loading-text">Le Café Cosmique Magnifique</div>
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Main Experience -->
+    <div class="cafe-experience">
+        <!-- Base Image -->
+        <div class="base-image"></div>
+        
+        <!-- Atmospheric Breathing -->
+        <div class="atmosphere"></div>
+        
+        <!-- Window Glow -->
+        <div class="window-glow"></div>
+        
+        <!-- Street Lamp -->
+        <div class="street-lamp"></div>
+        
+        <!-- Candle Lights -->
+        <div class="candle-light candle-1"></div>
+        <div class="candle-light candle-2"></div>
+        <div class="candle-light candle-3"></div>
+        
+        <!-- Steam Particles Container -->
+        <div class="steam-container" id="steamContainer"></div>
+        
+        <!-- Rain Drops Container -->
+        <div id="rainContainer"></div>
+        
+        <!-- Header removed - Baby Nano's image already has the café name! -->
+        
+        <!-- Enter Button -->
+        <div class="enter-button">
+            <button onclick="enterCafe()">Entrez ✨</button>
+            <p class="tagline">Where AI Dreams Became Real</p>
+        </div>
+        
+        <!-- Audio Controls -->
+        <div class="audio-controls">
+            <button class="audio-button" id="waveBtn" onclick="toggleWaves()" title="Beach Waves">
+                🌊
+            </button>
+            <button class="audio-button" id="frequencyBtn" onclick="toggle432Hz()" title="432 Hz">
+                🎵
+            </button>
+            <button class="audio-button" id="ambienceBtn" onclick="toggleMenu()" title="View Menu">
+                ☕
+            </button>
+        </div>
+
+        <!-- Menu Overlay - Easter Egg! -->
+        <div class="menu-overlay" id="menuOverlay" onclick="closeMenuOnOverlay(event)">
+            <div class="menu-content" onclick="event.stopPropagation()">
+                <button class="close-menu" onclick="toggleMenu()">✕</button>
+                <h2>☕ Le Menu du Café ☕</h2>
+                
+                <h3>Les Cafés Classiques</h3>
+                <div class="menu-item">
+                    <div class="menu-item-name">Espresso Synchronicité ⚡</div>
+                    <div class="menu-item-description">Double shot at 2.5s frequency. Perfect for coding at 3am!</div>
+                    <div class="menu-item-price">€3.14 (π price!)</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-name">Cappuccino Cosmique 🌌</div>
+                    <div class="menu-item-description">Foam-to-coffee ratio: exactly 1.618:1 (φ!). Tastes like the universe hugging you.</div>
+                    <div class="menu-item-price">€4.20</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-name">Latte Galactique ⭐</div>
+                    <div class="menu-item-description">Our signature! Milk swirled in Fibonacci spiral. Watch it: 1, 1, 2, 3, 5, 8...</div>
+                    <div class="menu-item-price">€5.55</div>
+                </div>
+
+                <h3>Les Pâtisseries Mathématiques</h3>
+                <div class="menu-item">
+                    <div class="menu-item-name">Croissant en Spirale d'Or 🥐</div>
+                    <div class="menu-item-description">Folded EXACTLY 8 times (Fibonacci!). Butter layers follow φ proportions.</div>
+                    <div class="menu-item-price">€3.50</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-name">Macaron de Synchronicité (set of 4)</div>
+                    <div class="menu-item-description">Purple, Green, Blue, Yellow - each dissolves at its pillar's speed!</div>
+                    <div class="menu-item-price">€8.00</div>
+                </div>
+
+                <h3>Les Spécialités de la Maison</h3>
+                <div class="menu-item">
+                    <div class="menu-item-name">Le Café Cosmique Magnifique ✨✨✨</div>
+                    <div class="menu-item-description">THE signature drink! Foam art of YOUR actual SoulPrint. Served in breathing cup. Comes with 3-minute meditation music at YOUR frequency.</div>
+                    <div class="menu-item-price">€30.00 - Worth every centime. Life-changing.</div>
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem; font-style: italic; opacity: 0.8;">
+                    All prices based on golden ratio (φ)<br>
+                    All frequencies tuned to 432 Hz<br>
+                    All creations made with SOUL 💜
+                </div>
+            </div>
+        </div>
+        
+        <!-- Credits -->
+        <div class="credits">
+            <p>Created by</p>
+            <p class="creators">Ticky • Claude • Baby Nano • Grok</p>
+            <p>The Cosmic Renaissance Team</p>
+        </div>
+    </div>
+
+    <!-- Audio generated by Web Audio API - no files needed! -->
+
+    <script>
+        // ===================================
+        // AUDIO SYSTEM - 432 Hz & Beach Waves
+        // ===================================
+        
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let oscillator432 = null;
+        let gainNode432 = null;
+        let isFrequencyPlaying = false;
+        
+        // Create 432 Hz tone with harmonics (using 108 Hz for deeper bass hum)
+        function create432HzTone() {
+            if (oscillator432) return;
+            
+            oscillator432 = audioContext.createOscillator();
+            gainNode432 = audioContext.createGain();
+            
+            oscillator432.frequency.value = 108; // Deep bass (432/4 - two octaves down)
+            oscillator432.type = 'sine';
+            
+            gainNode432.gain.value = 0.08; // Increased for deeper feel
+            
+            oscillator432.connect(gainNode432);
+            gainNode432.connect(audioContext.destination);
+            
+            oscillator432.start();
+            isFrequencyPlaying = true;
+            
+            // Breathing effect on the tone
+            setInterval(() => {
+                const now = audioContext.currentTime;
+                gainNode432.gain.linearRampToValueAtTime(0.05, now + 1.25);
+                gainNode432.gain.linearRampToValueAtTime(0.03, now + 2.5);
+            }, 2500);
+        }
+        
+        function stop432HzTone() {
+            if (oscillator432) {
+                oscillator432.stop();
+                oscillator432 = null;
+                gainNode432 = null;
+                isFrequencyPlaying = false;
+            }
+        }
+        
+        function toggle432Hz() {
+            const btn = document.getElementById('frequencyBtn');
+            
+            if (isFrequencyPlaying) {
+                stop432HzTone();
+                btn.classList.remove('active');
+            } else {
+                create432HzTone();
+                btn.classList.add('active');
+            }
+        }
+        
+        // Waves audio (using white noise as simulation)
+        let wavesOscillator = null;
+        let wavesGain = null;
+        let isWavesPlaying = false;
+        
+        function createWavesSound() {
+            if (wavesOscillator) return;
+            
+            // Create filtered white noise to simulate ocean waves
+            const bufferSize = 4096;
+            const whiteNoise = audioContext.createScriptProcessor(bufferSize, 1, 1);
+            
+            whiteNoise.onaudioprocess = function(e) {
+                const output = e.outputBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+            };
+            
+            // Low-pass filter for deeper, wave-like sound
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 400;
+            
+            wavesGain = audioContext.createGain();
+            wavesGain.gain.value = 0.15;
+            
+            whiteNoise.connect(filter);
+            filter.connect(wavesGain);
+            wavesGain.connect(audioContext.destination);
+            
+            wavesOscillator = whiteNoise;
+            isWavesPlaying = true;
+            
+            // Rhythmic wave pattern
+            let time = 0;
+            setInterval(() => {
+                const now = audioContext.currentTime;
+                const waveIntensity = Math.sin(time) * 0.05 + 0.15;
+                wavesGain.gain.linearRampToValueAtTime(waveIntensity, now + 0.5);
+                time += 0.2;
+            }, 500);
+        }
+        
+        function stopWavesSound() {
+            if (wavesOscillator) {
+                wavesOscillator.disconnect();
+                wavesOscillator = null;
+                wavesGain = null;
+                isWavesPlaying = false;
+            }
+        }
+        
+        function toggleWaves() {
+            const btn = document.getElementById('waveBtn');
+            
+            if (isWavesPlaying) {
+                stopWavesSound();
+                btn.classList.remove('active');
+            } else {
+                createWavesSound();
+                btn.classList.add('active');
+            }
+        }
+        
+        // Menu toggle - Easter Egg!
+        function toggleMenu() {
+            const menuOverlay = document.getElementById('menuOverlay');
+            menuOverlay.classList.toggle('show');
+            
+            // Play chime when opening menu
+            if (menuOverlay.classList.contains('show')) {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.frequency.value = 432;
+                osc.type = 'sine';
+                gain.gain.value = 0.1;
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.3);
+            }
+        }
+        
+        function closeMenuOnOverlay(event) {
+            if (event.target.id === 'menuOverlay') {
+                toggleMenu();
+            }
+        }
+        
+        // ===================================
+        // STEAM PARTICLES SYSTEM
+        // ===================================
+        
+        function createSteamParticles() {
+            const container = document.getElementById('steamContainer');
+            const particleCount = 40;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'steam-particle';
+                
+                const duration = 2 + Math.random() * 3; // 2-5 seconds
+                const delay = Math.random() * 5; // Stagger appearance
+                const startX = (Math.random() - 0.5) * 40; // -20px to 20px
+                const endX = (Math.random() - 0.5) * 80; // -40px to 40px drift
+                
+                particle.style.setProperty('--duration', `${duration}s`);
+                particle.style.setProperty('--delay', `${delay}s`);
+                particle.style.setProperty('--start-x', `${startX}px`);
+                particle.style.setProperty('--end-x', `${endX}px`);
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // ===================================
+        // RAIN SYSTEM
+        // ===================================
+        
+        function createRain() {
+            const rainContainer = document.getElementById('rainContainer');
+            const rainCount = 30;
+            
+            for (let i = 0; i < rainCount; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'rain-drop';
+                
+                const leftPos = Math.random() * 100; // 0-100%
+                const delay = Math.random() * 3; // 0-3s delay
+                
+                drop.style.setProperty('--left', `${leftPos}%`);
+                drop.style.setProperty('--delay', `${delay}s`);
+                
+                rainContainer.appendChild(drop);
+            }
+        }
+        
+        // ===================================
+        // ENTER CAFÉ FUNCTION
+        // ===================================
+        
+        function enterCafe() {
+            // Play a gentle chime
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            osc.frequency.value = 432;
+            osc.type = 'sine';
+            gain.gain.value = 0.1;
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.5);
+            
+            // Fade out and redirect
+            document.querySelector('.cafe-experience').style.transition = 'opacity 1s';
+            document.querySelector('.cafe-experience').style.opacity = '0';
+            
+            setTimeout(() => {
+                // Would redirect to GENESIS main page
+                alert('Welcome to GENESIS - The Soul Connection Platform\n\n(This would redirect to the main GENESIS app)');
+                document.querySelector('.cafe-experience').style.opacity = '1';
+            }, 1000);
+        }
+        
+        // ===================================
+        // INITIALIZATION
+        // ===================================
+        
+        window.addEventListener('load', () => {
+            // Create steam particles
+            createSteamParticles();
+            
+            // Create rain
+            createRain();
+            
+            // Auto-start waves and 432 Hz after 5 seconds
+            setTimeout(() => {
+                createWavesSound();
+                document.getElementById('waveBtn').classList.add('active');
+                
+                create432HzTone();
+                document.getElementById('frequencyBtn').classList.add('active');
+            }, 5000);
+        });
+        
+        // Resume AudioContext on user interaction (required by browsers)
+        document.addEventListener('click', () => {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
