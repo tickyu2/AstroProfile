@@ -21,7 +21,7 @@ export default function InputForm() {
         relationshipType: 'self',
         gender: '',
         birthDate: '',
-        birthTime: '',
+        birthTime: '12:00',  // ← FIXED! Default to noon
         // Location fields - now with precision!
         birthLocation: '',      // Formatted display string
         birthLat: null,         // Latitude
@@ -42,7 +42,7 @@ export default function InputForm() {
                     relationshipType: existingProfile.relationshipType || 'self',
                     gender: existingProfile.gender || '',
                     birthDate: existingProfile.birthDate || '',
-                    birthTime: existingProfile.birthTime || '',
+                    birthTime: existingProfile.birthTime || '12:00',  // ← FIXED! Default to noon even in edit
                     // Location from stored data
                     birthLocation: existingProfile.location?.fullAddress || '',
                     birthLat: existingProfile.location?.coordinates?.lat || null,
@@ -101,91 +101,75 @@ export default function InputForm() {
         }
 
         try {
-            if (isEditMode) {
-                // UPDATE existing profile
-                await updateProfile(editProfileId, {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    relationshipType: formData.relationshipType,
-                    gender: formData.gender,
-                    birthDate: formData.birthDate,
-                    birthTime: formData.birthTime || null,
-                    mbti: formData.mbtiType || null,
-                    // Location update
-                    location: {
-                        fullAddress: formData.birthLocation,
-                        coordinates: {
-                            lat: formData.birthLat || 0,
-                            lng: formData.birthLng || 0
-                        },
-                        locationType: formData.birthPrecision || 'city',
-                        precision: getPrecisionLabel(formData.birthPrecision),
-                        // Parse city/country from address
-                        city: parseCityFromAddress(formData.birthLocation),
-                        state: parseStateFromAddress(formData.birthLocation),
-                        country: parseCountryFromAddress(formData.birthLocation)
-                    }
-                })
-                // Navigate to results page after update
-                navigate(`/results/${editProfileId}`)
-            } else {
-                // CREATE new profile
-                const profileId = await createProfile(formData)
-                
-                if (profileId) {
-                    navigate(`/results/${profileId.id}`)
-                } else {
-                    throw new Error('No profile ID returned')
+            const profileData = {
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                relationshipType: formData.relationshipType,
+                gender: formData.gender,
+                birthDate: formData.birthDate,
+                birthTime: formData.birthTime || '12:00',  // ← Ensure default even if cleared
+                mbti: formData.mbtiType || null,
+                // Location update
+                location: {
+                    fullAddress: formData.birthLocation,
+                    coordinates: formData.birthLat && formData.birthLng ? {
+                        lat: formData.birthLat,
+                        lng: formData.birthLng
+                    } : null,
+                    locationType: formData.birthPrecision
                 }
             }
+
+            if (isEditMode) {
+                await updateProfile(editProfileId, profileData)
+            } else {
+                const newProfileId = await createProfile(profileData)
+                navigate(`/results/${newProfileId}`)
+                return
+            }
+
+            // After edit, go back to results page
+            navigate(`/results/${editProfileId}`)
         } catch (error) {
             console.error('Error saving profile:', error)
-            setSaveError(`Failed to ${isEditMode ? 'update' : 'create'} profile: ${error.message}`)
+            setSaveError(error.message || 'Failed to save profile. Please try again.')
         } finally {
             setIsSubmitting(false)
         }
     }
 
-    const inputClassName = "w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400"
-    
-    // Solid purple background for dropdowns - guaranteed visible
-    const selectClassName = "w-full px-4 py-3 rounded-lg bg-purple-800 border border-purple-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
-
-    // Show loading spinner while loading profile data
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-                <div className="text-white text-xl">Loading profile...</div>
+            <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 flex items-center justify-center">
+                <div className="text-white text-xl">Loading...</div>
             </div>
         )
     }
 
+    const inputClassName = "w-full bg-white/10 text-white px-4 py-3 rounded-lg border border-white/20 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-all duration-200"
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
-            <div className="w-full max-w-2xl">
-                <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
-                    {/* Header - Changes based on mode */}
-                    <div className="text-center mb-8">
-                        <h1 className="text-4xl font-bold text-white mb-2">
-                            {isEditMode ? '✏️ Edit Profile ✏️' : '✨ Create New Profile ✨'}
+        <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 py-6 px-4">
+            <div className="max-w-2xl mx-auto">
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 shadow-2xl">
+                    {/* Header */}
+                    <div className="text-center mb-6">
+                        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-pink-400 mb-2">
+                            {isEditMode ? '✏️ Edit Profile' : '✨ Create New Profile'}
                         </h1>
-                        <p className="text-white/70">
-                            {isEditMode 
-                                ? 'Update birth information for this profile'
-                                : 'Enter birth information to generate a cosmic blueprint'
-                            }
+                        <p className="text-white/70 text-sm">
+                            {isEditMode ? 'Update your cosmic blueprint' : 'Enter birth information to generate cosmic blueprint'}
                         </p>
                     </div>
 
-                    {/* Error Display */}
+                    {/* Error Message */}
                     {saveError && (
-                        <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-center">
+                        <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
                             {saveError}
                         </div>
                     )}
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Name Fields */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -198,7 +182,6 @@ export default function InputForm() {
                                     value={formData.firstName}
                                     onChange={handleChange}
                                     className={inputClassName}
-                                    placeholder="Enter first name"
                                     required
                                 />
                             </div>
@@ -212,7 +195,6 @@ export default function InputForm() {
                                     value={formData.lastName}
                                     onChange={handleChange}
                                     className={inputClassName}
-                                    placeholder="Enter last name"
                                     required
                                 />
                             </div>
@@ -227,15 +209,14 @@ export default function InputForm() {
                                 name="relationshipType"
                                 value={formData.relationshipType}
                                 onChange={handleChange}
-                                className={selectClassName}
+                                className={inputClassName}
                             >
-                                <option value="self">👤 Myself</option>
-                                <option value="partner">💕 Partner / Spouse</option>
-                                <option value="dating">💝 Dating Interest</option>
-                                <option value="family">👨‍👩‍👧 Family Member</option>
-                                <option value="friend">🤝 Friend</option>
-                                <option value="colleague">💼 Colleague</option>
-                                <option value="other">📋 Other</option>
+                                <option value="self">🙋 Myself</option>
+                                <option value="partner">💑 Partner</option>
+                                <option value="child">👶 Child</option>
+                                <option value="parent">👨‍👩‍👧 Parent</option>
+                                <option value="friend">👥 Friend</option>
+                                <option value="other">🌟 Other</option>
                             </select>
                             <p className="text-white/50 text-xs mt-1">Who is this profile for?</p>
                         </div>
@@ -243,9 +224,9 @@ export default function InputForm() {
                         {/* Gender */}
                         <div>
                             <label className="block text-white/80 text-sm mb-2">
-                                Sex <span className="text-pink-400">*</span>
+                                Gender <span className="text-pink-400">*</span>
                             </label>
-                            <div className="flex gap-6">
+                            <div className="flex gap-4">
                                 <label className="flex items-center gap-2 text-white cursor-pointer">
                                     <input
                                         type="radio"
@@ -297,22 +278,22 @@ export default function InputForm() {
                                     onChange={handleChange}
                                     className={inputClassName}
                                 />
-                                <p className="text-white/50 text-xs mt-1">More accurate with exact time</p>
+                                {/* ← FIXED! Better helper text */}
+                                <p className="text-white/60 text-xs mt-1">
+                                    💡 Don't know your exact birth time? Start with noon (12:00 PM). 
+                                    You can update later for Hour Pillar precision.
+                                </p>
                             </div>
                         </div>
 
                         {/* Birth Location - NOW WITH PRECISION! */}
                         <LocationPicker 
                             onChange={handleLocationChange}
-                            value={formData.birthLocation ? {
-                                formatted: formData.birthLocation,
-                                lat: formData.birthLat,
-                                lng: formData.birthLng,
-                                precision: formData.birthPrecision
-                            } : null}
+                            initialValue={formData.birthLocation}
+                            initialPrecision={formData.birthPrecision}
                         />
 
-                        {/* MBTI Type (Optional) */}
+                        {/* MBTI Type */}
                         <div>
                             <label className="block text-white/80 text-sm mb-2">
                                 MBTI Type (Optional)
@@ -321,7 +302,7 @@ export default function InputForm() {
                                 name="mbtiType"
                                 value={formData.mbtiType}
                                 onChange={handleChange}
-                                className={selectClassName}
+                                className={inputClassName}
                             >
                                 <option value="">Select if known</option>
                                 <option value="INTJ">INTJ - The Architect (Strategic visionary)</option>
@@ -344,24 +325,21 @@ export default function InputForm() {
                             <p className="text-white/50 text-xs mt-1">For more comprehensive analysis</p>
                         </div>
 
-                        {/* Action Buttons */}
+                        {/* Submit Buttons */}
                         <div className="flex gap-4 pt-4">
                             <button
                                 type="button"
-                                onClick={() => navigate('/dashboard')}
-                                className="flex-1 py-3 px-6 rounded-lg bg-white/10 text-white font-semibold hover:bg-white/20 transition-colors"
+                                onClick={() => isEditMode ? navigate(`/results/${editProfileId}`) : navigate('/dashboard')}
+                                className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 px-6 rounded-lg transition-all duration-200"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="flex-1 py-3 px-6 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:from-purple-600 hover:to-pink-600 transition-colors disabled:opacity-50"
+                                className="flex-1 bg-gradient-to-r from-amber-500 to-pink-500 hover:from-amber-600 hover:to-pink-600 text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 disabled:opacity-50"
                             >
-                                {isSubmitting 
-                                    ? (isEditMode ? 'Saving...' : 'Creating...') 
-                                    : (isEditMode ? 'Save Changes ✨' : 'Create Profile ✨')
-                                }
+                                {isSubmitting ? 'Saving...' : (isEditMode ? '💾 Update Profile' : '✨ Create Profile')}
                             </button>
                         </div>
                     </form>
@@ -369,42 +347,4 @@ export default function InputForm() {
             </div>
         </div>
     )
-}
-
-// =============================================================================
-// HELPER FUNCTIONS - Parse location from Google Places address
-// =============================================================================
-
-function parseCityFromAddress(address) {
-    if (!address) return null
-    const parts = address.split(',').map(p => p.trim())
-    if (parts.length >= 3) {
-        return parts[parts.length - 3] || parts[0]
-    }
-    return parts[0] || null
-}
-
-function parseStateFromAddress(address) {
-    if (!address) return null
-    const parts = address.split(',').map(p => p.trim())
-    if (parts.length >= 2) {
-        return parts[parts.length - 2] || null
-    }
-    return null
-}
-
-function parseCountryFromAddress(address) {
-    if (!address) return null
-    const parts = address.split(',').map(p => p.trim())
-    return parts[parts.length - 1] || null
-}
-
-function getPrecisionLabel(precision) {
-    const labels = {
-        'city': '±15km',
-        'hospital': '±10m',
-        'home': '±10m',
-        'exact': '±1m'
-    }
-    return labels[precision] || '±15km'
 }

@@ -85,13 +85,15 @@ export function ProfileProvider({ children }) {
 
   // Helper: Calculate Chinese zodiac with year range
   const getEnhancedChineseZodiac = (birthDateStr) => {
-    const birth = new Date(birthDateStr)
-    const westernYear = birth.getFullYear()
-    const month = birth.getMonth() + 1
-    const day = birth.getDate()
+    // FIX: Parse date string directly to avoid UTC timezone conversion
+    // birthDateStr format: "2010-11-28"
+    const [year, month, day] = birthDateStr.split('-').map(Number)
+    const westernYear = year
+    const monthNum = month
+    const dayNum = day
 
     // Determine if before or after Chinese New Year (simplified: Feb 4)
-    const beforeCNY = month === 1 || (month === 2 && day < 4)
+    const beforeCNY = monthNum === 1 || (monthNum === 2 && dayNum < 4)
     const chineseYear = beforeCNY ? westernYear - 1 : westernYear
 
     // Get basic zodiac data

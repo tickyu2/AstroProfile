@@ -19,6 +19,7 @@ import YinYangPanel from './results/YinYangPanel'
 import NumerologyPanel from './results/NumerologyPanel'
 import NotesPanel from './results/NotesPanel'
 import FourPillarsPanel from './results/FourPillarsPanel'
+import MBTIPanel from './results/MBTIPanel' // ← ADDED! MBTI Panel
 
 export default function Results() {
     const { profileId } = useParams()
@@ -178,6 +179,15 @@ export default function Results() {
                             ← Dashboard
                         </button>
                         <span className="text-white/60">|</span>
+                        {/* ✏️ EDIT BUTTON - ADDED! */}
+                        <button
+                            onClick={() => navigate(`/create-profile?edit=${profileId}`)}
+                            className="text-white/80 hover:text-white transition-colors flex items-center gap-2"
+                        >
+                            ✏️ Edit
+                        </button>
+                        <span className="text-white/60">|</span>
+                        {/* END EDIT BUTTON */}
                         <span className="text-white/80">{currentUser?.email}</span>
                         <button
                             onClick={handleLogout}
@@ -194,14 +204,10 @@ export default function Results() {
                 {/* Profile Header */}
                 <div className="text-center mb-8 fade-in">
                     <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 mb-2">
-                        ✨ {profile.name}'s Cosmic Blueprint ✨
+                        ✨ {profile.firstName} {profile.lastName}'s Cosmic Blueprint ✨
                     </h1>
                     <p className="text-white/60 text-lg">
-                        Born {new Date(profile.birthDate).toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                        })}
+                        The mathematical blueprint of your life path and purpose
                     </p>
                 </div>
 
@@ -241,7 +247,14 @@ export default function Results() {
                         numerology={numerology}
                     />
 
-                    {/* Panel 7: Four Pillars - FULL WIDTH! 🚀 */}
+                    {/* 🧠 MBTI PANEL - ADDED! */}
+                    {/* Panel 7: MBTI Personality */}
+                    <MBTIPanel 
+                        mbti={profile.mbti}
+                    />
+                    {/* END MBTI PANEL */}
+
+                    {/* Panel 8: Four Pillars - FULL WIDTH! 🚀 */}
                     {fourPillars && (
                         <div className="lg:col-span-2">
                             <FourPillarsPanel 
