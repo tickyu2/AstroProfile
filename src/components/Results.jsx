@@ -20,6 +20,7 @@ import NumerologyPanel from './results/NumerologyPanel'
 import NotesPanel from './results/NotesPanel'
 import FourPillarsPanel from './results/FourPillarsPanel'
 import MBTIPanel from './results/MBTIPanel' // ← ADDED! MBTI Panel
+import SevenBattlesPanel from './results/SevenBattlesPanel' // ← THE LOST SHEEP! 7 Battles with Learn Why flaps
 
 export default function Results() {
     const { profileId } = useParams()
@@ -242,19 +243,25 @@ export default function Results() {
                         yinYangData={yinYangData}
                     />
 
-                    {/* Panel 6: Numerology */}
+                    {/* Panel 6: The 7 Constitutional Battles - THE LOST SHEEP FOUND! 🐑✨ */}
+                    <SevenBattlesPanel 
+                        profile={profile}
+                        yinYang={yinYangData}
+                    />
+
+                    {/* Panel 7: Numerology */}
                     <NumerologyPanel 
                         numerology={numerology}
                     />
 
                     {/* 🧠 MBTI PANEL - ADDED! */}
-                    {/* Panel 7: MBTI Personality */}
+                    {/* Panel 8: MBTI Personality */}
                     <MBTIPanel 
                         mbti={profile.mbti}
                     />
                     {/* END MBTI PANEL */}
 
-                    {/* Panel 8: Four Pillars - FULL WIDTH! 🚀 */}
+                    {/* Panel 9: Four Pillars - FULL WIDTH! 🚀 */}
                     {fourPillars && (
                         <div className="lg:col-span-2">
                             <FourPillarsPanel 
