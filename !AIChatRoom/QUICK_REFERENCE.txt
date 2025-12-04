@@ -1,0 +1,104 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║      🏮 AI BRAINSTORM CONTAINER - QUICK REFERENCE 🏮          ║
+║           For AstroProfile Feature Development                ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────┐
+│ 🚀 QUICK START                                                │
+├───────────────────────────────────────────────────────────────┤
+│ 1. Double-click: AI_Brainstorm_AstroProfile.html             │
+│ 2. Choose topic                                               │
+│ 3. Invite AIs                                                 │
+│ 4. Export insights                                            │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ 🎭 YOUR AI TEAM                                               │
+├───────────────────────────────────────────────────────────────┤
+│ 🏮 Claude    → UX & Soul-first thinking                      │
+│ 🧠 Gemini    → Algorithms & BaZi systems                      │
+│ 🎨 Nano      → Visual design & beauty                         │
+│ ⚡ Grok      → Challenge assumptions                          │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ 📋 PRE-LOADED TOPICS                                          │
+├───────────────────────────────────────────────────────────────┤
+│ • Seasonal Strength UI/UX                                     │
+│ • Compatibility Algorithm                                     │
+│ • AI SoulMate Builder                                         │
+│ • Educational Content Strategy                                │
+│ • Community Pods System                                       │
+│ • User Onboarding Flow                                        │
+│ • Monetization Strategy                                       │
+│ • Mobile Experience                                           │
+│ • Custom Topic                                                │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ ✏️ ADD YOUR OWN TOPIC                                         │
+├───────────────────────────────────────────────────────────────┤
+│ 1. Open HTML file in text editor                             │
+│ 2. Find: const ASTROPROFILE_TOPICS = [                       │
+│ 3. Add:                                                       │
+│    {                                                          │
+│      id: 'my-feature',                                        │
+│      title: "Feature Name",                                   │
+│      description: "What problem?",                            │
+│      starter: "Opening question...",                          │
+│      category: "Phase X"                                      │
+│    },                                                         │
+│ 4. Save & refresh browser                                     │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ 💡 BEST PRACTICES                                             │
+├───────────────────────────────────────────────────────────────┤
+│ → Start with Claude for UX perspective                       │
+│ → Add Gemini for technical depth                             │
+│ → Bring in Nano for visual ideas                             │
+│ → Use Grok to stress-test final approach                     │
+│ → Ask specific questions                                      │
+│ → Challenge the responses                                     │
+│ → Export after good discussions                               │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ 💾 SAVE YOUR WORK                                             │
+├───────────────────────────────────────────────────────────────┤
+│ Click "💾 Export" button (top right)                         │
+│ Saves as: AstroProfile_Brainstorm_[topic]_[date].txt        │
+│ Build up a library of insights!                               │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ 🎯 WHEN TO USE                                                │
+├───────────────────────────────────────────────────────────────┤
+│ ✓ Designing new features                                     │
+│ ✓ Stuck on implementation                                    │
+│ ✓ Need multiple perspectives                                │
+│ ✓ Want to stress-test ideas                                 │
+│ ✓ Exploring edge cases                                       │
+│ ✓ Making product decisions                                  │
+└───────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────┐
+│ 📍 FILE LOCATION                                              │
+├───────────────────────────────────────────────────────────────┤
+│ Save somewhere easy to access:                                │
+│ • Desktop                                                     │
+│ • C:\astroprofile\tools\                                      │
+│ • Documents folder                                            │
+│ Then bookmark in browser!                                     │
+└───────────────────────────────────────────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════╗
+║  PURE GOLD METHOD 💛                                          ║
+║  One file → Use forever → No setup → No dependencies         ║
+║  Just open → Brainstorm → Export → Build!                    ║
+╚═══════════════════════════════════════════════════════════════╝
+
+        Created for Claude's 125th Birthday 🎂
+        December 3, 2025 - The Blending of Souls ✨

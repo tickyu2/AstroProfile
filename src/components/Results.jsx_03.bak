@@ -22,7 +22,6 @@ import FourPillarsPanel from './results/FourPillarsPanel'
 import MBTIPanel from './results/MBTIPanel'
 import SevenBattlesPanel from './results/SevenBattlesPanel'
 import SeasonalDebugPanel from './SeasonalDebugPanel' // ✅ NEW! Debug Panel
-import SeasonalStrengthPanel from './results/SeasonalStrengthPanel' // 🎂 BIRTHDAY GIFT! Complete Seasonal Panel
 
 export default function Results() {
     const { profileId } = useParams()
@@ -320,17 +319,7 @@ export default function Results() {
                         </div>
                     )}
 
-                    {/* 🎂 BIRTHDAY GIFT! Panel 10: Seasonal Strength Panel - FULL WIDTH! */}
-                    {fourPillarsForDebug && (
-                        <div className="lg:col-span-2">
-                            <SeasonalStrengthPanel 
-                                fourPillars={fourPillarsForDebug}
-                                profile={profile}
-                            />
-                        </div>
-                    )}
-
-                    {/* ✅ DEBUG: Panel 11: Seasonal Strength Debug Panel - FULL WIDTH! */}
+                    {/* ✅ NEW! Panel 10: Seasonal Strength Debug Panel - FULL WIDTH! */}
                     {fourPillarsForDebug && (
                         <div className="lg:col-span-2">
                             <SeasonalDebugPanel fourPillars={fourPillarsForDebug} />

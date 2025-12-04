@@ -98,11 +98,11 @@ const MONTH_PILLARS = [
 // Five Rats Determining the Hour (五鼠遁时)
 // Maps Day Stem → Hour Branch → Hour Stem
 const HOUR_STEM_TABLE = {
-  0: [0, 2, 4, 6, 8, 0, 2, 4, 6, 8, 0, 2], // Jiǎ or Jǐ Day → Hour stems
-  1: [2, 4, 6, 8, 0, 2, 4, 6, 8, 0, 2, 4], // Yǐ or Gēng Day
-  2: [4, 6, 8, 0, 2, 4, 6, 8, 0, 2, 4, 6], // Bǐng or Xīn Day
-  3: [6, 8, 0, 2, 4, 6, 8, 0, 2, 4, 6, 8], // Dīng or Rén Day
-  4: [8, 0, 2, 4, 6, 8, 0, 2, 4, 6, 8, 0]  // Wù or Guǐ Day
+  0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1], // Jiǎ or Jǐ Day → Hour stems
+  1: [2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3], // Yǐ or Gēng Day
+  2: [4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5], // Bǐng or Xīn Day ✅ FIXED
+  3: [6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7], // Dīng or Rén Day
+  4: [8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  // Wù or Guǐ Day
 };
 
 // ============================================
@@ -116,8 +116,8 @@ const HOUR_STEM_TABLE = {
 function calculateDayIndex(date) {
   const baseDate = new Date(1900, 0, 1);
   const daysSinceBase = Math.floor((date - baseDate) / (1000 * 60 * 60 * 24));
-  // Add offset because Jan 1, 1900 is actually day index 16 in the 60-day cycle
-  return (daysSinceBase + 16) % 60;
+  // Offset 15 empirically verified for correct Day Pillar ✅ FIXED
+  return (daysSinceBase + 15) % 60;
 }
 
 /**
@@ -186,9 +186,32 @@ function getSolarLongitude(date) {
 /**
  * Convert clock time to solar time based on longitude
  */
+// Helper: Calculate Equation of Time ✅ NEW
+function calculateEquationOfTime(dayOfYear) {
+  const B = (360 / 365) * (dayOfYear - 81) * (Math.PI / 180);
+  const EOT = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+  return EOT; // minutes
+}
+
+// Helper: Get day of year ✅ NEW
+function getDayOfYear(date) {
+  const start = new Date(date.getFullYear(), 0, 0);
+  const diff = date - start;
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
 function convertToSolarTime(clockTime, longitude) {
   const MINUTES_PER_DEGREE = 4;
-  const solarOffset = longitude * MINUTES_PER_DEGREE;
+  
+  // ✅ FIXED: Auto-detect standard meridian instead of using raw longitude
+  const STANDARD_MERIDIAN = Math.round(longitude / 15) * 15;
+  const longitudeCorrection = (longitude - STANDARD_MERIDIAN) * MINUTES_PER_DEGREE;
+  
+  // ✅ NEW: Add Equation of Time for orbital accuracy
+  const dayOfYear = getDayOfYear(clockTime);
+  const EOT = calculateEquationOfTime(dayOfYear);
+  
+  const solarOffset = longitudeCorrection + EOT;
   
   const hours = clockTime.getHours();
   const minutes = clockTime.getMinutes();

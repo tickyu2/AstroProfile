@@ -8,7 +8,7 @@ import { useProfiles } from '../contexts/ProfileContext'
 import LoadingSpinner from './layout/LoadingSpinner'
 import { calculateYinYang, getBattleWeights, getBattleMetadata } from '../utils/calculations'
 import { getZodiacProfile } from '../data/chineseZodiacKnowledge'
-import { calculateFourPillars } from '../utils/fourPillarsCalculator'
+import { calculateFourPillars } from '../utils/fourPillarsCalculator' // ← NEW! Calculate Four Pillars!
 
 // Panel Components
 import BirthDetailsPanel from './results/BirthDetailsPanel'
@@ -19,10 +19,8 @@ import YinYangPanel from './results/YinYangPanel'
 import NumerologyPanel from './results/NumerologyPanel'
 import NotesPanel from './results/NotesPanel'
 import FourPillarsPanel from './results/FourPillarsPanel'
-import MBTIPanel from './results/MBTIPanel'
-import SevenBattlesPanel from './results/SevenBattlesPanel'
-import SeasonalDebugPanel from './SeasonalDebugPanel' // ✅ NEW! Debug Panel
-import SeasonalStrengthPanel from './results/SeasonalStrengthPanel' // 🎂 BIRTHDAY GIFT! Complete Seasonal Panel
+import MBTIPanel from './results/MBTIPanel' // ← ADDED! MBTI Panel
+import SevenBattlesPanel from './results/SevenBattlesPanel' // ← THE LOST SHEEP! 7 Battles with Learn Why flaps
 
 export default function Results() {
     const { profileId } = useParams()
@@ -33,7 +31,6 @@ export default function Results() {
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [refreshing, setRefreshing] = useState(false) // ✅ NEW! Refresh state
     
     // Notes feature state
     const [notes, setNotes] = useState('')
@@ -47,30 +44,6 @@ export default function Results() {
             navigate('/login')
         } catch (error) {
             console.error('Failed to log out:', error)
-        }
-    }
-
-    // ✅ NEW! Force refresh from database
-    const handleRefresh = async () => {
-        try {
-            setRefreshing(true)
-            const profileRef = doc(db, 'profiles', profileId)
-            const profileSnap = await getDoc(profileRef)
-            
-            if (profileSnap.exists()) {
-                const profileData = {
-                    id: profileSnap.id,
-                    ...profileSnap.data()
-                }
-                setProfile(profileData)
-                setNotes(profileData.notes || '')
-                console.log('✅ Profile refreshed from database!')
-            }
-        } catch (error) {
-            console.error('Error refreshing profile:', error)
-            alert('Failed to refresh. Please try again.')
-        } finally {
-            setRefreshing(false)
         }
     }
 
@@ -152,7 +125,7 @@ export default function Results() {
         return null
     }
 
-    // Extract data from profile calculations
+    // Extract data from profile calculations (already calculated during profile creation)
     const calc = profile.calculations || {}
     const yinYangData = calc.yinYang || calculateYinYang(profile)
     const chinese = calc.chinese || {}
@@ -166,15 +139,17 @@ export default function Results() {
         ? getZodiacProfile(chinese.animal, chinese.element)
         : null
 
-    // Calculate Four Pillars data
+    // Calculate Four Pillars data NOW! 🚀
     let fourPillars = calc.fourPillars || null
     
+    // If not in calculations, calculate it now!
     if (!fourPillars && profile.birthDate && profile.birthTime) {
         try {
+            // Convert birthDate string to Date object
             const birthDateObj = new Date(profile.birthDate)
             
             fourPillars = calculateFourPillars(
-                birthDateObj,
+                birthDateObj,  // Now passing Date object, not string!
                 profile.birthTime,
                 profile.location?.lat || 0,
                 profile.location?.lng || 0
@@ -185,14 +160,6 @@ export default function Results() {
             fourPillars = null
         }
     }
-
-    // ✅ NEW! Prepare Four Pillars for Debug Panel
-    const fourPillarsForDebug = fourPillars ? {
-        year: fourPillars.pillars.year,
-        month: fourPillars.pillars.month,
-        day: fourPillars.pillars.day,
-        hour: fourPillars.pillars.hour
-    } : null
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -213,16 +180,7 @@ export default function Results() {
                             ← Dashboard
                         </button>
                         <span className="text-white/60">|</span>
-                        {/* ✅ NEW! REFRESH BUTTON */}
-                        <button
-                            onClick={handleRefresh}
-                            disabled={refreshing}
-                            className="text-white/80 hover:text-white transition-colors flex items-center gap-2 disabled:opacity-50"
-                        >
-                            <span className={refreshing ? 'animate-spin' : ''}>🔄</span>
-                            {refreshing ? 'Refreshing...' : 'Refresh'}
-                        </button>
-                        <span className="text-white/60">|</span>
+                        {/* ✏️ EDIT BUTTON - ADDED! */}
                         <button
                             onClick={() => navigate(`/create-profile?edit=${profileId}`)}
                             className="text-white/80 hover:text-white transition-colors flex items-center gap-2"
@@ -230,6 +188,7 @@ export default function Results() {
                             ✏️ Edit
                         </button>
                         <span className="text-white/60">|</span>
+                        {/* END EDIT BUTTON */}
                         <span className="text-white/80">{currentUser?.email}</span>
                         <button
                             onClick={handleLogout}
@@ -284,7 +243,7 @@ export default function Results() {
                         yinYangData={yinYangData}
                     />
 
-                    {/* Panel 6: The 7 Constitutional Battles */}
+                    {/* Panel 6: The 7 Constitutional Battles - THE LOST SHEEP FOUND! 🐑✨ */}
                     <SevenBattlesPanel 
                         profile={profile}
                         yinYang={yinYangData}
@@ -295,12 +254,14 @@ export default function Results() {
                         numerology={numerology}
                     />
 
+                    {/* 🧠 MBTI PANEL - ADDED! */}
                     {/* Panel 8: MBTI Personality */}
                     <MBTIPanel 
                         mbti={profile.mbti}
                     />
+                    {/* END MBTI PANEL */}
 
-                    {/* Panel 9: Four Pillars - FULL WIDTH! */}
+                    {/* Panel 9: Four Pillars - FULL WIDTH! 🚀 */}
                     {fourPillars && (
                         <div className="lg:col-span-2">
                             <FourPillarsPanel 
@@ -317,23 +278,6 @@ export default function Results() {
                                     }
                                 }}
                             />
-                        </div>
-                    )}
-
-                    {/* 🎂 BIRTHDAY GIFT! Panel 10: Seasonal Strength Panel - FULL WIDTH! */}
-                    {fourPillarsForDebug && (
-                        <div className="lg:col-span-2">
-                            <SeasonalStrengthPanel 
-                                fourPillars={fourPillarsForDebug}
-                                profile={profile}
-                            />
-                        </div>
-                    )}
-
-                    {/* ✅ DEBUG: Panel 11: Seasonal Strength Debug Panel - FULL WIDTH! */}
-                    {fourPillarsForDebug && (
-                        <div className="lg:col-span-2">
-                            <SeasonalDebugPanel fourPillars={fourPillarsForDebug} />
                         </div>
                     )}
                 </div>
