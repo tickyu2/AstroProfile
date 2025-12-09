@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { getZodiacSecrets, SECTION_TITLES } from '../../data/westernZodiacContent'
 
 const zodiacEmojis = {
     'Aries': '♈', 'Taurus': '♉', 'Gemini': '♊', 'Cancer': '♋', 
@@ -23,7 +24,15 @@ const westernPersonality = {
 
 export default function WesternAstrologyPanel({ westZodiac }) {
     const western = westZodiac || {}
-    
+    const [secretsUnlocked, setSecretsUnlocked] = useState(false)
+
+    // Get the deep soul content for this sign
+    const secrets = getZodiacSecrets(western.sign)
+
+    const toggleSecrets = () => {
+        setSecretsUnlocked(!secretsUnlocked)
+    }
+
     return (
         <div className="bg-white/5 backdrop-blur-lg rounded-xl p-4 border border-amber-500/30 hover:border-amber-400/60 hover:shadow-[0_0_25px_rgba(255,215,0,0.3)] transition-all duration-300 hover:-translate-y-1 fade-in delay-3">
             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-amber-500/30">
@@ -60,9 +69,60 @@ export default function WesternAstrologyPanel({ westZodiac }) {
                 </p>
             </div>
 
-            <button className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 text-sm font-bold rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all hover:scale-[1.02] shadow-lg">
-                Unlock {western.sign} Secrets →
+            <button
+                onClick={toggleSecrets}
+                className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 text-sm font-bold rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all hover:scale-[1.02] shadow-lg"
+            >
+                {secretsUnlocked ? `✨ Hide ${western.sign} Secrets ✨` : `🔓 Unlock ${western.sign} Secrets →`}
             </button>
+
+            {/* 🪞 SOUL MIRROR - Expandable Secrets Section */}
+            {secretsUnlocked && secrets && (
+                <div className="mt-4 space-y-4 animate-fadeIn">
+                    {/* Section divider */}
+                    <div className="border-t-2 border-amber-500/50 pt-4">
+                        <div className="text-center mb-4">
+                            <div className="text-2xl mb-2">🪞</div>
+                            <h3 className="text-lg font-bold text-amber-400">
+                                The Soul Mirror
+                            </h3>
+                            <p className="text-xs text-white/60 mt-1">
+                                Deep truths about {western.sign}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Each soul section */}
+                    {Object.entries(secrets).map(([key, content]) => (
+                        <div
+                            key={key}
+                            className="bg-slate-900/60 rounded-lg p-4 border border-amber-500/20"
+                        >
+                            <h4 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
+                                <span className="text-base">✨</span>
+                                {SECTION_TITLES[key]}
+                            </h4>
+                            <div
+                                className="text-xs text-white/90 leading-relaxed space-y-2"
+                                style={{ whiteSpace: 'pre-wrap' }}
+                                dangerouslySetInnerHTML={{
+                                    __html: content
+                                        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-300 font-bold">$1</strong>')
+                                        .replace(/\n\n/g, '</p><p class="mt-2">')
+                                        .replace(/^(.+)$/gm, '<p>$1</p>')
+                                }}
+                            />
+                        </div>
+                    ))}
+
+                    {/* Footer note */}
+                    <div className="text-center pt-4 border-t border-amber-500/30">
+                        <p className="text-[10px] text-white/50 italic">
+                            These truths are mirrors - they reflect what's already within you. 🪞✨
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
