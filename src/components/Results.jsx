@@ -31,9 +31,13 @@ import SevenBattlesPanel from './results/SevenBattlesPanel'
 import SeasonalDebugPanel from './results/SeasonalDebugPanel'
 import SeasonalStrengthPanel from './results/SeasonalStrengthPanel'
 import TenGodsPanel from './results/TenGodsPanel'
+import ArchetypePanel from './results/ArchetypePanel'
 
 // 🔥 NEW! THE COMPLETE BAZI PANEL WITH SOUL!
 import BaZiPanel from './bazi/BaZiPanel'
+
+// 🎭 NEW! ARCHETYPE MAPPING
+import { determineArchetypeFromFourPillars } from '../utils/archetypeMapper'
 
 export default function Results() {
     const { profileId } = useParams()
@@ -237,12 +241,20 @@ export default function Results() {
     const personalityTraits = tenGods ? calculatePersonalityTraits(tenGods) : null
     const topTraits = personalityTraits ? getTopTraits(personalityTraits, 3) : null
 
+    // 🎭 NEW! Determine personality archetype from elemental balance
+    const archetype = fourPillars ? determineArchetypeFromFourPillars(fourPillars, tenGods) : null
+
     // 🔍 DEBUG: Log Ten Gods data
     if (tenGods) {
         console.log('🔍 [Results.jsx] Ten Gods calculated:', tenGods);
         console.log('🔍 [Results.jsx] Day Master:', dayMaster);
         console.log('🔍 [Results.jsx] Personality traits:', personalityTraits);
         console.log('🔍 [Results.jsx] Top traits:', topTraits);
+    }
+
+    // 🔍 DEBUG: Log archetype data
+    if (archetype) {
+        console.log('🎭 [Results.jsx] Personality Archetype:', archetype.name, archetype.symbol);
     }
 
     return (
@@ -348,7 +360,17 @@ export default function Results() {
                         </div>
                     )}
 
-                    {/* 🔥 NEW! Panel 12: TEN GODS (十神) ANALYSIS - FULL WIDTH! */}
+                    {/* 🎭 NEW! Panel 12: PERSONALITY ARCHETYPE - FULL WIDTH! */}
+                    {archetype && (
+                        <div className="lg:col-span-2">
+                            <ArchetypePanel
+                                archetype={archetype}
+                                profile={profile}
+                            />
+                        </div>
+                    )}
+
+                    {/* 🔥 NEW! Panel 13: TEN GODS (十神) ANALYSIS - FULL WIDTH! */}
                     <div className="lg:col-span-2">
                         <TenGodsPanel
                             tenGods={tenGods}
