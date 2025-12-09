@@ -6,9 +6,15 @@ import { db } from '../config/firebase'
 import { useAuth } from '../contexts/AuthContext'
 import { useProfiles } from '../contexts/ProfileContext'
 import LoadingSpinner from './layout/LoadingSpinner'
-import { calculateYinYang, getBattleWeights, getBattleMetadata } from '../utils/calculations'
+import { calculateYinYang, getBattleWeights, getBattleMetadata, getChineseZodiac } from '../utils/calculations'
 import { getZodiacProfile } from '../data/chineseZodiacKnowledge'
 import { calculateFourPillars } from '../utils/fourPillarsCalculator'
+import { calculateTenGods, getDayMaster, calculatePersonalityTraits, getTopTraits } from '../utils/tenGodsCalculations'
+
+// Layout Components
+import ResultsHeader from './results/layout/ResultsHeader'
+import ProfileTitle from './results/layout/ProfileTitle'
+import CompatibilityCTA from './results/layout/CompatibilityCTA'
 
 // Panel Components
 import BirthDetailsPanel from './results/BirthDetailsPanel'
@@ -20,9 +26,14 @@ import NumerologyPanel from './results/NumerologyPanel'
 import NotesPanel from './results/NotesPanel'
 import FourPillarsPanel from './results/FourPillarsPanel'
 import MBTIPanel from './results/MBTIPanel'
+import Big5Panel from './results/Big5Panel'
 import SevenBattlesPanel from './results/SevenBattlesPanel'
-import SeasonalDebugPanel from './SeasonalDebugPanel' // ✅ NEW! Debug Panel
-import SeasonalStrengthPanel from './results/SeasonalStrengthPanel' // 🎂 BIRTHDAY GIFT! Complete Seasonal Panel
+import SeasonalDebugPanel from './results/SeasonalDebugPanel'
+import SeasonalStrengthPanel from './results/SeasonalStrengthPanel'
+import TenGodsPanel from './results/TenGodsPanel'
+
+// 🔥 NEW! THE COMPLETE BAZI PANEL WITH SOUL!
+import BaZiPanel from './bazi/BaZiPanel'
 
 export default function Results() {
     const { profileId } = useParams()
@@ -33,14 +44,15 @@ export default function Results() {
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [refreshing, setRefreshing] = useState(false) // ✅ NEW! Refresh state
-    
+    const [refreshing, setRefreshing] = useState(false)
+
     // Notes feature state
     const [notes, setNotes] = useState('')
+    const [recentCustomTags, setRecentCustomTags] = useState([])
     const [notesSaving, setNotesSaving] = useState(false)
     const [notesSaved, setNotesSaved] = useState(false)
     const notesRef = useRef(null)
-    
+
     const handleLogout = async () => {
         try {
             await logout()
@@ -50,13 +62,13 @@ export default function Results() {
         }
     }
 
-    // ✅ NEW! Force refresh from database
+    // Force refresh from database
     const handleRefresh = async () => {
         try {
             setRefreshing(true)
             const profileRef = doc(db, 'profiles', profileId)
             const profileSnap = await getDoc(profileRef)
-            
+
             if (profileSnap.exists()) {
                 const profileData = {
                     id: profileSnap.id,
@@ -64,7 +76,9 @@ export default function Results() {
                 }
                 setProfile(profileData)
                 setNotes(profileData.notes || '')
+                setRecentCustomTags(profileData.recentCustomTags || [])
                 console.log('✅ Profile refreshed from database!')
+                console.log('🏷️ [DEBUG] Loaded custom tags from Firebase:', profileData.recentCustomTags || [])
             }
         } catch (error) {
             console.error('Error refreshing profile:', error)
@@ -80,26 +94,28 @@ export default function Results() {
                 setLoading(true)
                 const profileRef = doc(db, 'profiles', profileId)
                 const profileSnap = await getDoc(profileRef)
-                
+
                 if (!profileSnap.exists()) {
                     setError('Profile not found')
                     return
                 }
-                
+
                 const profileData = {
                     id: profileSnap.id,
                     ...profileSnap.data()
                 }
-                
+
                 // Validate ownership
                 if (profileData.userId !== currentUser?.uid) {
                     setError('You do not have permission to view this profile')
                     return
                 }
-                
+
                 setProfile(profileData)
                 setNotes(profileData.notes || '')
-                
+                setRecentCustomTags(profileData.recentCustomTags || [])
+                console.log('🏷️ [DEBUG] Initial load - custom tags from Firebase:', profileData.recentCustomTags || [])
+
             } catch (err) {
                 console.error('Error loading profile:', err)
                 setError('Failed to load profile')
@@ -116,9 +132,13 @@ export default function Results() {
     const handleSaveNotes = async () => {
         try {
             setNotesSaving(true)
-            await updateProfile(profileId, { notes })
+            await updateProfile(profileId, {
+                notes,
+                recentCustomTags
+            })
             setNotesSaved(true)
             setTimeout(() => setNotesSaved(false), 3000)
+            console.log('💾 [DEBUG] Saved notes and custom tags to Firebase')
         } catch (error) {
             console.error('Error saving notes:', error)
             alert('Failed to save notes. Please try again.')
@@ -155,155 +175,150 @@ export default function Results() {
     // Extract data from profile calculations
     const calc = profile.calculations || {}
     const yinYangData = calc.yinYang || calculateYinYang(profile)
-    const chinese = calc.chinese || {}
+
+    // 🔧 FIX: Recalculate Chinese zodiac if bornBeforeLiChun is missing (for old profiles)
+    let chinese = calc.chinese || {}
+    if (profile.birthDate && chinese.bornBeforeLiChun === undefined) {
+        console.log('🔧 [Results.jsx] bornBeforeLiChun missing, recalculating Chinese zodiac...');
+        chinese = getChineseZodiac(profile.birthDate);
+        console.log('🔧 [Results.jsx] Recalculated chinese:', chinese);
+    }
+
     const westZodiac = calc.western || {}
     const dayInfo = calc.dayOfWeek || {}
     const numerology = calc.numerology || {}
     const age = calc.age || {}
-    
-    // Get rich Chinese Zodiac profile from knowledge database
-    const zodiacProfile = (chinese.animal && chinese.element) 
-        ? getZodiacProfile(chinese.animal, chinese.element)
-        : null
 
-    // Calculate Four Pillars data
+
+	const zodiacProfile = (chinese.animal && chinese.element)
+    ? {
+        ...getZodiacProfile(chinese.animal, chinese.element),
+        year: chinese.year,  // Add BaZi year
+        bornBeforeLiChun: chinese.bornBeforeLiChun,  // For education
+        liChunDate: chinese.liChunDate  // For explanation
+      }
+    : null
+
+    // 🔍 DEBUG: Log chinese and zodiacProfile data
+    console.log('🔍 [Results.jsx] chinese:', chinese);
+    console.log('🔍 [Results.jsx] zodiacProfile:', zodiacProfile);
+
+    // Calculate Four Pillars data (for old panels)
     let fourPillars = calc.fourPillars || null
-    
+
     if (!fourPillars && profile.birthDate && profile.birthTime) {
         try {
             const birthDateObj = new Date(profile.birthDate)
-            
+
             fourPillars = calculateFourPillars(
                 birthDateObj,
                 profile.birthTime,
-                profile.location?.lat || 0,
-                profile.location?.lng || 0
+                profile.locationData
             )
-            console.log('✅ Four Pillars calculated:', fourPillars)
         } catch (error) {
-            console.error('❌ Error calculating Four Pillars:', error)
-            fourPillars = null
+            console.error('Error calculating Four Pillars:', error)
         }
     }
 
-    // ✅ NEW! Prepare Four Pillars for Debug Panel
+    // Create fourPillarsForDebug for seasonal panels
     const fourPillarsForDebug = fourPillars ? {
-        year: fourPillars.pillars.year,
-        month: fourPillars.pillars.month,
-        day: fourPillars.pillars.day,
-        hour: fourPillars.pillars.hour
+        ...fourPillars,
+        pillars: fourPillars.pillars || {},
+        elementalBalance: fourPillars.elementalBalance || {},
+        yinYangBalance: fourPillars.yinYangBalance || {},
+        dayMaster: fourPillars.dayMaster || {}
     } : null
+
+    // 🔥 NEW! Calculate Ten Gods (十神) for deeper analysis
+    const tenGods = fourPillars ? calculateTenGods(fourPillars) : null
+    const dayMaster = fourPillars ? getDayMaster(fourPillars) : null
+
+    // 🔥 NEW! Calculate personality traits from Ten Gods
+    const personalityTraits = tenGods ? calculatePersonalityTraits(tenGods) : null
+    const topTraits = personalityTraits ? getTopTraits(personalityTraits, 3) : null
+
+    // 🔍 DEBUG: Log Ten Gods data
+    if (tenGods) {
+        console.log('🔍 [Results.jsx] Ten Gods calculated:', tenGods);
+        console.log('🔍 [Results.jsx] Day Master:', dayMaster);
+        console.log('🔍 [Results.jsx] Personality traits:', personalityTraits);
+        console.log('🔍 [Results.jsx] Top traits:', topTraits);
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-            {/* Header */}
-            <div className="bg-slate-900/80 backdrop-blur-lg border-b border-amber-500/30 sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <span className="text-3xl">✨</span>
-                        <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300">
-                            AstroProfile
-                        </h1>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => navigate('/dashboard')}
-                            className="text-white/80 hover:text-white transition-colors flex items-center gap-2"
-                        >
-                            ← Dashboard
-                        </button>
-                        <span className="text-white/60">|</span>
-                        {/* ✅ NEW! REFRESH BUTTON */}
-                        <button
-                            onClick={handleRefresh}
-                            disabled={refreshing}
-                            className="text-white/80 hover:text-white transition-colors flex items-center gap-2 disabled:opacity-50"
-                        >
-                            <span className={refreshing ? 'animate-spin' : ''}>🔄</span>
-                            {refreshing ? 'Refreshing...' : 'Refresh'}
-                        </button>
-                        <span className="text-white/60">|</span>
-                        <button
-                            onClick={() => navigate(`/create-profile?edit=${profileId}`)}
-                            className="text-white/80 hover:text-white transition-colors flex items-center gap-2"
-                        >
-                            ✏️ Edit
-                        </button>
-                        <span className="text-white/60">|</span>
-                        <span className="text-white/80">{currentUser?.email}</span>
-                        <button
-                            onClick={handleLogout}
-                            className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-all"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </div>
-            </div>
+            {/* Top Navigation */}
+            <ResultsHeader
+                currentUser={currentUser}
+                handleLogout={handleLogout}
+                handleRefresh={handleRefresh}
+                refreshing={refreshing}
+                profileId={profileId}
+            />
 
             {/* Main Content */}
             <div className="max-w-6xl mx-auto px-4 py-8">
                 {/* Profile Header */}
-                <div className="text-center mb-8 fade-in">
-                    <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 mb-2">
-                        ✨ {profile.firstName} {profile.lastName}'s Cosmic Blueprint ✨
-                    </h1>
-                    <p className="text-white/60 text-lg">
-                        The mathematical blueprint of your life path and purpose
-                    </p>
-                </div>
+                <ProfileTitle profile={profile} />
 
                 {/* Panels Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     {/* Panel 1: Birth Details */}
-                    <BirthDetailsPanel 
+                    <BirthDetailsPanel
                         profile={profile}
                         age={age}
                     />
 
                     {/* Panel 2: Year Pillar (Chinese Zodiac) */}
-                    <YearPillarPanel 
+                    <YearPillarPanel
                         profile={profile}
                         chinese={chinese}
                         zodiacProfile={zodiacProfile}
                     />
 
                     {/* Panel 3: Western Astrology */}
-                    <WesternAstrologyPanel 
+                    <WesternAstrologyPanel
                         westZodiac={westZodiac}
                     />
 
                     {/* Panel 4: Planetary Ruler */}
-                    <PlanetaryRulerPanel 
+                    <PlanetaryRulerPanel
                         dayInfo={dayInfo}
                     />
 
                     {/* Panel 5: Yin/Yang Balance */}
-                    <YinYangPanel 
+                    <YinYangPanel
                         profile={profile}
                         yinYangData={yinYangData}
                     />
 
                     {/* Panel 6: The 7 Constitutional Battles */}
-                    <SevenBattlesPanel 
+                    <SevenBattlesPanel
                         profile={profile}
                         yinYang={yinYangData}
                     />
 
                     {/* Panel 7: Numerology */}
-                    <NumerologyPanel 
+                    <NumerologyPanel
                         numerology={numerology}
                     />
 
                     {/* Panel 8: MBTI Personality */}
-                    <MBTIPanel 
+                    <MBTIPanel
                         mbti={profile.mbti}
+                        profile={profile}
                     />
 
-                    {/* Panel 9: Four Pillars - FULL WIDTH! */}
+                    {/* Panel 9: Big 5 Personality (OCEAN) */}
+                    <Big5Panel
+                        big5={profile.big5}
+                        profile={profile}
+                    />
+
+                    {/* Panel 10: Four Pillars - Old Version (Optional - can be removed later) */}
                     {fourPillars && (
                         <div className="lg:col-span-2">
-                            <FourPillarsPanel 
+                            <FourPillarsPanel
                                 profile={profile}
                                 fourPillars={{
                                     year: fourPillars.pillars.year,
@@ -320,44 +335,70 @@ export default function Results() {
                         </div>
                     )}
 
-                    {/* 🎂 BIRTHDAY GIFT! Panel 10: Seasonal Strength Panel - FULL WIDTH! */}
+                    {/* 🔥 NEW! Panel 11: COMPLETE BAZI PANEL - FULL WIDTH! */}
+                    {profile.birthDate && profile.birthTime && (
+                        <div className="lg:col-span-2">
+                            <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 p-1 rounded-2xl">
+                                <BaZiPanel
+                                    birthDate={new Date(profile.birthDate)}
+                                    birthTime={profile.birthTime}
+                                    locationData={profile.locationData}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 🔥 NEW! Panel 12: TEN GODS (十神) ANALYSIS - FULL WIDTH! */}
+                    <div className="lg:col-span-2">
+                        <TenGodsPanel
+                            tenGods={tenGods}
+                            dayMaster={dayMaster}
+                            profile={profile}
+                            personalityTraits={personalityTraits}
+                            topTraits={topTraits}
+                        />
+                    </div>
+
+                    {/* TEMPORARILY DISABLED - OLD PANEL WITH CALCULATION ERRORS
+                    Panel 12: Seasonal Strength Panel - FULL WIDTH!
                     {fourPillarsForDebug && (
                         <div className="lg:col-span-2">
-                            <SeasonalStrengthPanel 
+                            <SeasonalStrengthPanel
                                 fourPillars={fourPillarsForDebug}
                                 profile={profile}
                             />
                         </div>
                     )}
+                    */}
 
-                    {/* ✅ DEBUG: Panel 11: Seasonal Strength Debug Panel - FULL WIDTH! */}
-                    {fourPillarsForDebug && (
+                    {/* TEMPORARILY DISABLED - OLD DEBUG PANEL
+                    Panel 13: Seasonal Debug Panel - FULL WIDTH! (Can be hidden in production)
+                    {fourPillarsForDebug && process.env.NODE_ENV === 'development' && (
                         <div className="lg:col-span-2">
-                            <SeasonalDebugPanel fourPillars={fourPillarsForDebug} />
+                            <SeasonalDebugPanel
+                                fourPillars={fourPillarsForDebug}
+                                profile={profile}
+                            />
                         </div>
                     )}
+                    */}
                 </div>
 
                 {/* Notes Section */}
                 <NotesPanel
+                    profile={profile}
                     notes={notes}
                     setNotes={setNotes}
+                    recentCustomTags={recentCustomTags}
+                    setRecentCustomTags={setRecentCustomTags}
                     notesSaving={notesSaving}
                     notesSaved={notesSaved}
                     handleSaveNotes={handleSaveNotes}
                     notesRef={notesRef}
                 />
 
-                {/* Footer CTA */}
-                <div className="mt-8 bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 text-center fade-in delay-6">
-                    <h3 className="text-2xl font-bold text-white mb-2">Ready to Go Deeper?</h3>
-                    <p className="text-white/80 mb-4">
-                        This is just the surface. Unlock your complete cosmic analysis, compatibility reports, and AI-powered insights.
-                    </p>
-                    <button className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all hover:scale-105 shadow-lg">
-                        Get Your Full Report 🚀
-                    </button>
-                </div>
+                {/* SoulPartner Compatibility CTA */}
+                <CompatibilityCTA />
             </div>
         </div>
     )
