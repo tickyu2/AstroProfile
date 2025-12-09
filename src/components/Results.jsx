@@ -39,6 +39,10 @@ import BaZiPanel from './bazi/BaZiPanel'
 // 🎭 NEW! ARCHETYPE MAPPING
 import { determineArchetypeFromFourPillars } from '../utils/archetypeMapper'
 
+// 🧬 NEW! SOULDNA ENCODING
+import { generateSoulDNA, decodeSoulDNA } from '../utils/soulDNAEncoder'
+import SoulDNADisplay from './results/SoulDNADisplay'
+
 export default function Results() {
     const { profileId } = useParams()
     const navigate = useNavigate()
@@ -257,6 +261,16 @@ export default function Results() {
         console.log('🎭 [Results.jsx] Personality Archetype:', archetype.name, archetype.symbol);
     }
 
+    // 🧬 NEW! Generate SoulDNA code
+    const soulDNA = fourPillars ? generateSoulDNA(fourPillars, tenGods) : null
+    const decodedDNA = soulDNA ? decodeSoulDNA(soulDNA) : null
+
+    // 🔍 DEBUG: Log SoulDNA
+    if (soulDNA) {
+        console.log('🧬 [Results.jsx] SoulDNA:', soulDNA);
+        console.log('🧬 [Results.jsx] Decoded:', decodedDNA);
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
             {/* Top Navigation */}
@@ -370,7 +384,17 @@ export default function Results() {
                         </div>
                     )}
 
-                    {/* 🔥 NEW! Panel 13: TEN GODS (十神) ANALYSIS - FULL WIDTH! */}
+                    {/* 🧬 NEW! Panel 13: SOULDNA CODE - FULL WIDTH! */}
+                    {soulDNA && (
+                        <div className="lg:col-span-2">
+                            <SoulDNADisplay
+                                soulDNA={soulDNA}
+                                decodedDNA={decodedDNA}
+                            />
+                        </div>
+                    )}
+
+                    {/* 🔥 NEW! Panel 14: TEN GODS (十神) ANALYSIS - FULL WIDTH! */}
                     <div className="lg:col-span-2">
                         <TenGodsPanel
                             tenGods={tenGods}
