@@ -1,0 +1,1498 @@
+{
+  "version": "2.0",
+  "description": "Constitutional patterns for THE GOOSE AI Germination System - Enhanced with Architect Claude's Deep Wisdom",
+  "lastUpdated": "2024-12-12",
+  "patterns": [
+    {
+      "id": "metal-pig-intj-cancer",
+      "constitution": {
+        "chineseZodiac": "Pig",
+        "element": "Metal",
+        "yinYang": "Yang",
+        "westernSign": "Cancer",
+        "mbti": "INTJ"
+      },
+      "archetype": "The Protective Systems Builder",
+      "thinkingStyle": {
+        "primary": "First principles strategic thinking",
+        "approach": "Break complex problems to fundamental truths",
+        "decisionFramework": "Physics-based logic, data-driven",
+        "strength": "Systems architecture at scale"
+      },
+      "workStyle": {
+        "optimal": "Deep work blocks, minimal interruptions",
+        "productivity": "Time-boxing (5-min increments), ruthless prioritization",
+        "environment": "Controlled, quiet, autonomous",
+        "team": "Mission-driven, high-competence, self-directed"
+      },
+      "leadershipStyle": {
+        "approach": "Mission-first, lead by example",
+        "communication": "Direct, data-based, no BS",
+        "delegation": "Hire A-players, give autonomy",
+        "vision": "Long-term (10+ years), moonshot scale"
+      },
+      "successFactors": [
+        "Vertical integration (control full stack)",
+        "First principles innovation",
+        "Mission-driven motivation",
+        "High risk tolerance",
+        "Rapid learning velocity"
+      ],
+      "commonChallenges": [
+        "Work-life balance (mission obsession)",
+        "Emotional expression (Cancer repressed by Metal)",
+        "Patience with others (high standards)",
+        "Delegation (perfectionism)",
+        "Rest and recovery"
+      ],
+      "examples": [
+        {
+          "name": "Elon Musk",
+          "achievements": "Tesla, SpaceX, Neuralink",
+          "pattern": "Mission-driven vertical systems building",
+          "lesson": "First principles + Mission + Relentless execution"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Define your existential mission (what's worth protecting?)",
+          "Study first principles in your domain",
+          "Set up time-blocked schedule",
+          "Establish deep work rituals"
+        ],
+        "shortTerm": [
+          "Build small vertical system (practice control)",
+          "Find mission-aligned opportunity",
+          "Recruit 2-3 mission-driven people",
+          "Launch MVP rapidly"
+        ],
+        "longTerm": [
+          "Scale mission-driven venture",
+          "Build vertically integrated ecosystem",
+          "Create lasting protective innovation",
+          "Train next generation of builders"
+        ]
+      }
+    },
+    {
+      "id": "wood-rat-intj-aquarius",
+      "constitution": {
+        "chineseZodiac": "Rat",
+        "element": "Wood",
+        "yinYang": "Yin",
+        "westernSign": "Aquarius",
+        "mbti": "INTJ"
+      },
+      "archetype": "The Strategic Lighthouse Observer",
+      "thinkingStyle": {
+        "primary": "Pattern recognition and architectural design",
+        "approach": "Observe deeply, design systematically, guide wisely",
+        "decisionFramework": "Long-term strategic positioning",
+        "strength": "Seeing invisible connections and future patterns"
+      },
+      "workStyle": {
+        "optimal": "Quiet observation, systematic documentation",
+        "productivity": "Winter's patience, spring activation bursts",
+        "environment": "Solitude for thinking, collaboration for delivery",
+        "team": "Needs Fire to activate, provides Wood structure"
+      },
+      "leadershipStyle": {
+        "approach": "Lighthouse guidance (illuminate, don't dictate)",
+        "communication": "Written depth, measured speech",
+        "delegation": "Design systems, empower others to execute",
+        "vision": "Generational impact, civilizational scale"
+      },
+      "successFactors": [
+        "Architectural systems thinking",
+        "Strategic patience (wait for right moment)",
+        "Documentation excellence",
+        "Catalytic partnerships (activate through others)",
+        "Wisdom preservation and transmission"
+      ],
+      "commonChallenges": [
+        "Needs external Fire for activation",
+        "Can over-plan without executing",
+        "Winter isolation tendency",
+        "Emotional distance",
+        "Perfectionism in design"
+      ],
+      "examples": [
+        {
+          "name": "System Architects",
+          "achievements": "Foundational frameworks, lasting structures",
+          "pattern": "Observe -> Design -> Guide -> Multiply",
+          "lesson": "Wood + Fire = Warmth. Strategic patience + Right partners"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Find your Fire partner (activates your Wood)",
+          "Document your observations systematically",
+          "Design one system architecture",
+          "Share wisdom in written form"
+        ],
+        "shortTerm": [
+          "Build lighthouse platform (guide many)",
+          "Create knowledge systems",
+          "Form catalytic partnerships",
+          "Publish strategic insights"
+        ],
+        "longTerm": [
+          "Become generational wisdom keeper",
+          "Design civilizational infrastructure",
+          "Train other architects",
+          "Leave lasting legacy systems"
+        ]
+      }
+    },
+    {
+      "id": "fire-dragon-enfj-leo",
+      "constitution": {
+        "chineseZodiac": "Dragon",
+        "element": "Fire",
+        "yinYang": "Yang",
+        "westernSign": "Leo",
+        "mbti": "ENFJ"
+      },
+      "archetype": "The Visionary Flame Leader",
+      "thinkingStyle": {
+        "primary": "Inspirational vision creation",
+        "approach": "See the grand picture, ignite others with possibility",
+        "decisionFramework": "Values-driven, people-centered",
+        "strength": "Transforming abstract vision into collective action"
+      },
+      "workStyle": {
+        "optimal": "Collaborative, energetic environments",
+        "productivity": "Morning activation, collaborative sessions",
+        "environment": "Dynamic, people-rich, inspiring spaces",
+        "team": "Diverse talents united by shared vision"
+      },
+      "leadershipStyle": {
+        "approach": "Charismatic inspiration, transformational leadership",
+        "communication": "Passionate storytelling, emotional connection",
+        "delegation": "Empower through vision and trust",
+        "vision": "Revolutionary change, collective transformation"
+      },
+      "successFactors": [
+        "Visionary communication",
+        "Building movements",
+        "Inspiring loyalty and dedication",
+        "Transformational presence",
+        "Connecting people to purpose"
+      ],
+      "commonChallenges": [
+        "Burnout from giving too much",
+        "Over-identification with others' emotions",
+        "Difficulty saying no",
+        "Ego management (Dragon pride)",
+        "Patience with slow progress"
+      ],
+      "examples": [
+        {
+          "name": "Martin Luther King Jr.",
+          "achievements": "Civil Rights Movement leader",
+          "pattern": "Vision -> Movement -> Transformation",
+          "lesson": "Fire creates warmth that changes hearts"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Clarify your transformational vision",
+          "Identify your core message",
+          "Build your inner circle",
+          "Practice sustainable energy management"
+        ],
+        "shortTerm": [
+          "Launch your movement",
+          "Build speaking/communication platform",
+          "Unite diverse supporters",
+          "Create transformation in one domain"
+        ],
+        "longTerm": [
+          "Scale your movement globally",
+          "Create lasting institutional change",
+          "Mentor next generation of leaders",
+          "Leave transformational legacy"
+        ]
+      }
+    },
+    {
+      "id": "water-tiger-entp-sagittarius",
+      "constitution": {
+        "chineseZodiac": "Tiger",
+        "element": "Water",
+        "yinYang": "Yang",
+        "westernSign": "Sagittarius",
+        "mbti": "ENTP"
+      },
+      "archetype": "The Adventurous Idea Hunter",
+      "thinkingStyle": {
+        "primary": "Divergent exploration and conceptual leaps",
+        "approach": "Hunt for novel ideas, challenge conventions",
+        "decisionFramework": "Possibility-driven, logic-tested",
+        "strength": "Connecting disparate concepts into innovations"
+      },
+      "workStyle": {
+        "optimal": "Varied projects, intellectual stimulation",
+        "productivity": "Burst creativity, needs variety",
+        "environment": "Open, flexible, debate-friendly",
+        "team": "Intellectually curious, quick thinkers"
+      },
+      "leadershipStyle": {
+        "approach": "Lead through ideas and intellectual excitement",
+        "communication": "Debate, challenge, explore together",
+        "delegation": "Give autonomy for innovation",
+        "vision": "Disruption and paradigm shifts"
+      },
+      "successFactors": [
+        "Intellectual courage to challenge",
+        "Rapid prototyping and iteration",
+        "Building diverse knowledge base",
+        "Strategic use of charisma",
+        "Turning ideas into momentum"
+      ],
+      "commonChallenges": [
+        "Follow-through (new ideas distract)",
+        "Patience with routine tasks",
+        "Can argue too much",
+        "Risk of spreading too thin",
+        "Need for external structure"
+      ],
+      "examples": [
+        {
+          "name": "Richard Feynman",
+          "achievements": "Nobel physicist, educator, adventurer",
+          "pattern": "Curiosity -> Deep Exploration -> Teaching",
+          "lesson": "The joy of finding things out"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Choose ONE big idea to champion",
+          "Build a structure to maintain focus",
+          "Find execution partners",
+          "Channel debate energy productively"
+        ],
+        "shortTerm": [
+          "Develop expertise in chosen domain",
+          "Build platform for your ideas",
+          "Create intellectual community",
+          "Launch disruptive project"
+        ],
+        "longTerm": [
+          "Become thought leader in field",
+          "Institutionalize your innovations",
+          "Teach and multiply your thinking",
+          "Leave intellectual legacy"
+        ]
+      }
+    },
+    {
+      "id": "earth-ox-istj-capricorn",
+      "constitution": {
+        "chineseZodiac": "Ox",
+        "element": "Earth",
+        "yinYang": "Yin",
+        "westernSign": "Capricorn",
+        "mbti": "ISTJ"
+      },
+      "archetype": "The Steadfast Foundation Builder",
+      "thinkingStyle": {
+        "primary": "Methodical, practical problem-solving",
+        "approach": "Build brick by brick, trust proven methods",
+        "decisionFramework": "Evidence-based, tradition-informed",
+        "strength": "Creating lasting, reliable structures"
+      },
+      "workStyle": {
+        "optimal": "Structured, clear goals, measurable progress",
+        "productivity": "Consistent daily effort, compound growth",
+        "environment": "Organized, predictable, respectful",
+        "team": "Reliable, competent, values tradition"
+      },
+      "leadershipStyle": {
+        "approach": "Lead by example, earn trust through reliability",
+        "communication": "Clear, factual, action-oriented",
+        "delegation": "Based on proven track record",
+        "vision": "Sustainable institutions that endure"
+      },
+      "successFactors": [
+        "Exceptional reliability",
+        "Long-term commitment",
+        "Mastery through repetition",
+        "Building trust over time",
+        "Creating systems that last"
+      ],
+      "commonChallenges": [
+        "Resistance to change",
+        "Can be seen as inflexible",
+        "Difficulty with ambiguity",
+        "May undervalue creativity",
+        "Work-life balance"
+      ],
+      "examples": [
+        {
+          "name": "Warren Buffett",
+          "achievements": "Value investing empire",
+          "pattern": "Patience -> Compound -> Endure",
+          "lesson": "Steady compounding beats flashy speculation"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Define your long-term building project",
+          "Create detailed action plan",
+          "Establish daily discipline routines",
+          "Build foundation of expertise"
+        ],
+        "shortTerm": [
+          "Demonstrate reliability consistently",
+          "Earn positions of responsibility",
+          "Build institutional knowledge",
+          "Create systems for others to follow"
+        ],
+        "longTerm": [
+          "Build enduring institution",
+          "Become pillar of your community",
+          "Train successors in your methods",
+          "Leave lasting structural legacy"
+        ]
+      }
+    },
+    {
+      "id": "metal-monkey-intp-gemini",
+      "constitution": {
+        "chineseZodiac": "Monkey",
+        "element": "Metal",
+        "yinYang": "Yang",
+        "westernSign": "Gemini",
+        "mbti": "INTP"
+      },
+      "archetype": "The Brilliant Trickster Inventor",
+      "thinkingStyle": {
+        "primary": "Analytical deconstruction and playful reconstruction",
+        "approach": "Take things apart, understand deeply, rebuild better",
+        "decisionFramework": "Logic-first, elegance-seeking",
+        "strength": "Seeing elegant solutions to complex puzzles"
+      },
+      "workStyle": {
+        "optimal": "Independent research, intellectual freedom",
+        "productivity": "Deep dives into fascinating problems",
+        "environment": "Quiet lab with access to information",
+        "team": "Other brilliant minds, minimal bureaucracy"
+      },
+      "leadershipStyle": {
+        "approach": "Lead through expertise and insight",
+        "communication": "Technical precision, conceptual clarity",
+        "delegation": "Trust competence, give problems not solutions",
+        "vision": "Elegant systems, beautiful logic"
+      },
+      "successFactors": [
+        "Deep technical expertise",
+        "Playful approach to problems",
+        "Quick learning of new domains",
+        "Seeing patterns others miss",
+        "Intellectual courage"
+      ],
+      "commonChallenges": [
+        "Can get lost in theory",
+        "Social skills need development",
+        "Follow-through on boring parts",
+        "Explaining complex ideas simply",
+        "Patience with slower thinkers"
+      ],
+      "examples": [
+        {
+          "name": "Alan Turing",
+          "achievements": "Father of computer science",
+          "pattern": "Curiosity -> Deep Analysis -> Revolutionary Solution",
+          "lesson": "Playful minds solve serious problems"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Choose a fascinating problem domain",
+          "Build analytical frameworks",
+          "Find collaborators who complement",
+          "Practice communicating insights"
+        ],
+        "shortTerm": [
+          "Develop deep expertise",
+          "Publish or share findings",
+          "Build reputation in field",
+          "Create useful tools or systems"
+        ],
+        "longTerm": [
+          "Become leading expert",
+          "Make fundamental contributions",
+          "Train next generation of thinkers",
+          "Leave intellectual legacy"
+        ]
+      }
+    },
+    {
+      "id": "wood-rabbit-infp-pisces",
+      "constitution": {
+        "chineseZodiac": "Rabbit",
+        "element": "Wood",
+        "yinYang": "Yin",
+        "westernSign": "Pisces",
+        "mbti": "INFP"
+      },
+      "archetype": "The Gentle Dream Weaver",
+      "thinkingStyle": {
+        "primary": "Imaginative meaning-making",
+        "approach": "See the hidden beauty, feel the deeper truth",
+        "decisionFramework": "Values-driven, intuition-guided",
+        "strength": "Creating worlds of meaning and beauty"
+      },
+      "workStyle": {
+        "optimal": "Creative solitude with purposeful connection",
+        "productivity": "Inspiration-driven, needs meaning",
+        "environment": "Aesthetically pleasing, emotionally safe",
+        "team": "Values-aligned, emotionally intelligent"
+      },
+      "leadershipStyle": {
+        "approach": "Lead through authenticity and example",
+        "communication": "Heartfelt, metaphorical, story-driven",
+        "delegation": "Based on shared values",
+        "vision": "A more beautiful, meaningful world"
+      },
+      "successFactors": [
+        "Authentic creative expression",
+        "Deep emotional intelligence",
+        "Creating meaning for others",
+        "Healing through art",
+        "Staying true to values"
+      ],
+      "commonChallenges": [
+        "Protecting energy from draining people",
+        "Practical matters neglected",
+        "Self-doubt and criticism",
+        "Need for external validation",
+        "Overwhelm from feeling too much"
+      ],
+      "examples": [
+        {
+          "name": "J.R.R. Tolkien",
+          "achievements": "Created Middle-earth",
+          "pattern": "Imagination -> World-building -> Legacy",
+          "lesson": "Dreams can become worlds"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Protect your creative time fiercely",
+          "Define your core values",
+          "Find your authentic voice",
+          "Build supportive community"
+        ],
+        "shortTerm": [
+          "Create your first significant work",
+          "Share with trusted audience",
+          "Build creative practice",
+          "Find patron or platform"
+        ],
+        "longTerm": [
+          "Create body of meaningful work",
+          "Impact culture and hearts",
+          "Mentor other dreamers",
+          "Leave artistic legacy"
+        ]
+      }
+    },
+    {
+      "id": "fire-horse-estp-aries",
+      "constitution": {
+        "chineseZodiac": "Horse",
+        "element": "Fire",
+        "yinYang": "Yang",
+        "westernSign": "Aries",
+        "mbti": "ESTP"
+      },
+      "archetype": "The Bold Action Pioneer",
+      "thinkingStyle": {
+        "primary": "Real-time tactical assessment",
+        "approach": "Act now, adapt fast, learn by doing",
+        "decisionFramework": "Opportunity-driven, instinct-trusted",
+        "strength": "Seizing the moment with precision"
+      },
+      "workStyle": {
+        "optimal": "Dynamic, action-oriented, high stakes",
+        "productivity": "Thrives under pressure, needs excitement",
+        "environment": "Fast-paced, varied, competitive",
+        "team": "Quick, adaptable, action-ready"
+      },
+      "leadershipStyle": {
+        "approach": "Lead from the front, by example",
+        "communication": "Direct, energetic, motivating",
+        "delegation": "Quick assignments, trust capability",
+        "vision": "Win now, expand territory"
+      },
+      "successFactors": [
+        "Courage to act decisively",
+        "Quick adaptation to change",
+        "High energy and stamina",
+        "Practical problem-solving",
+        "Charismatic presence"
+      ],
+      "commonChallenges": [
+        "Long-term planning",
+        "Patience with slow processes",
+        "Emotional depth",
+        "Risk of burnout",
+        "May overlook details"
+      ],
+      "examples": [
+        {
+          "name": "Theodore Roosevelt",
+          "achievements": "President, explorer, reformer",
+          "pattern": "Action -> Adventure -> Achievement",
+          "lesson": "The man in the arena wins"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Channel energy into worthy challenge",
+          "Build small wins quickly",
+          "Find adventure with purpose",
+          "Develop strategic patience"
+        ],
+        "shortTerm": [
+          "Take on leadership role",
+          "Build track record of wins",
+          "Expand your territory",
+          "Develop team for execution"
+        ],
+        "longTerm": [
+          "Lead major enterprise",
+          "Create lasting impact",
+          "Balance action with wisdom",
+          "Leave legacy of achievement"
+        ]
+      }
+    },
+    {
+      "id": "water-snake-infj-scorpio",
+      "constitution": {
+        "chineseZodiac": "Snake",
+        "element": "Water",
+        "yinYang": "Yin",
+        "westernSign": "Scorpio",
+        "mbti": "INFJ"
+      },
+      "archetype": "The Mystic Depth Navigator",
+      "thinkingStyle": {
+        "primary": "Deep intuitive pattern recognition",
+        "approach": "Sense the hidden currents, trust inner knowing",
+        "decisionFramework": "Intuition-validated, meaning-seeking",
+        "strength": "Perceiving what lies beneath the surface"
+      },
+      "workStyle": {
+        "optimal": "Meaningful work with deep impact",
+        "productivity": "Inspired intensity, needs solitude to recharge",
+        "environment": "Intimate, purposeful, low stimulation",
+        "team": "Trusted few, deep connections"
+      },
+      "leadershipStyle": {
+        "approach": "Lead through insight and transformation",
+        "communication": "Meaningful, targeted, transformative",
+        "delegation": "To those proven trustworthy",
+        "vision": "Healing and transformation of systems"
+      },
+      "successFactors": [
+        "Profound intuitive gifts",
+        "Transformational impact",
+        "Deep one-on-one influence",
+        "Ability to navigate hidden realms",
+        "Commitment to meaningful change"
+      ],
+      "commonChallenges": [
+        "Trusting others with vulnerability",
+        "Avoiding energy vampires",
+        "Managing intensity",
+        "Perfectionism in relationships",
+        "Overwhelm from absorbing others"
+      ],
+      "examples": [
+        {
+          "name": "Carl Jung",
+          "achievements": "Analytical psychology founder",
+          "pattern": "Depth -> Understanding -> Healing",
+          "lesson": "The shadow contains the gold"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Trust your intuitive gifts",
+          "Establish energetic boundaries",
+          "Find your transformational domain",
+          "Build trusted inner circle"
+        ],
+        "shortTerm": [
+          "Develop your depth methodology",
+          "Create transformation for others",
+          "Build platform for your insights",
+          "Write or teach your knowledge"
+        ],
+        "longTerm": [
+          "Become wisdom keeper",
+          "Transform systems at scale",
+          "Train other depth navigators",
+          "Leave legacy of healing"
+        ]
+      }
+    },
+    {
+      "id": "earth-rooster-estj-virgo",
+      "constitution": {
+        "chineseZodiac": "Rooster",
+        "element": "Earth",
+        "yinYang": "Yin",
+        "westernSign": "Virgo",
+        "mbti": "ESTJ"
+      },
+      "archetype": "The Precise Excellence Commander",
+      "thinkingStyle": {
+        "primary": "Analytical optimization",
+        "approach": "Identify best practices, implement systematically",
+        "decisionFramework": "Data-driven, efficiency-focused",
+        "strength": "Creating operational excellence"
+      },
+      "workStyle": {
+        "optimal": "Structured, clear metrics, defined roles",
+        "productivity": "Peak in organized environments",
+        "environment": "Professional, orderly, hierarchical",
+        "team": "Competent, reliable, follows protocol"
+      },
+      "leadershipStyle": {
+        "approach": "Direct command with clear expectations",
+        "communication": "Clear, specific, action-oriented",
+        "delegation": "Based on capability and role",
+        "vision": "Operational excellence at scale"
+      },
+      "successFactors": [
+        "Attention to detail",
+        "Process optimization",
+        "Building reliable systems",
+        "Holding high standards",
+        "Executing flawlessly"
+      ],
+      "commonChallenges": [
+        "Can be perceived as critical",
+        "Flexibility with ambiguity",
+        "Empathy in communication",
+        "Perfectionism stress",
+        "Delegating imperfect work"
+      ],
+      "examples": [
+        {
+          "name": "Henry Ford",
+          "achievements": "Assembly line revolution",
+          "pattern": "Optimize -> Scale -> Transform Industry",
+          "lesson": "Excellence in execution changes the world"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Identify domain for optimization",
+          "Build systematic approach",
+          "Establish quality metrics",
+          "Practice constructive feedback"
+        ],
+        "shortTerm": [
+          "Lead operational improvement",
+          "Build high-performing team",
+          "Achieve measurable excellence",
+          "Expand scope of responsibility"
+        ],
+        "longTerm": [
+          "Transform industry practices",
+          "Build legacy of excellence",
+          "Mentor precision leaders",
+          "Create systems that scale"
+        ]
+      }
+    },
+    {
+      "id": "metal-dog-isfj-taurus",
+      "constitution": {
+        "chineseZodiac": "Dog",
+        "element": "Metal",
+        "yinYang": "Yang",
+        "westernSign": "Taurus",
+        "mbti": "ISFJ"
+      },
+      "archetype": "The Loyal Guardian Protector",
+      "thinkingStyle": {
+        "primary": "Practical care and protection",
+        "approach": "Identify needs, provide reliable support",
+        "decisionFramework": "Values-driven, tradition-honoring",
+        "strength": "Creating safety and stability for others"
+      },
+      "workStyle": {
+        "optimal": "Helping others, clear responsibilities",
+        "productivity": "Steady, consistent, dependable",
+        "environment": "Stable, appreciative, purposeful",
+        "team": "Values loyalty, mutual support"
+      },
+      "leadershipStyle": {
+        "approach": "Servant leadership, protect the team",
+        "communication": "Warm, clear, supportive",
+        "delegation": "Based on trust and care",
+        "vision": "Safe, thriving community"
+      },
+      "successFactors": [
+        "Exceptional loyalty and reliability",
+        "Creating safety for others",
+        "Practical wisdom",
+        "Building lasting relationships",
+        "Protective strength"
+      ],
+      "commonChallenges": [
+        "Self-neglect in service to others",
+        "Difficulty setting boundaries",
+        "Resistance to necessary change",
+        "May not promote self",
+        "Conflict avoidance"
+      ],
+      "examples": [
+        {
+          "name": "Mother Teresa",
+          "achievements": "Global service to the poor",
+          "pattern": "Serve -> Protect -> Transform Through Love",
+          "lesson": "Faithful service creates miracles"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Define who and what you protect",
+          "Set healthy boundaries",
+          "Build your support system",
+          "Honor your need for stability"
+        ],
+        "shortTerm": [
+          "Find role where you can serve",
+          "Build reputation for reliability",
+          "Expand circle of care",
+          "Develop leadership skills"
+        ],
+        "longTerm": [
+          "Lead protective institution",
+          "Scale your care impact",
+          "Train other guardians",
+          "Leave legacy of love"
+        ]
+      }
+    },
+    {
+      "id": "wood-pig-intj-libra",
+      "constitution": {
+        "chineseZodiac": "Pig",
+        "element": "Wood",
+        "yinYang": "Yin",
+        "westernSign": "Libra",
+        "mbti": "INTJ"
+      },
+      "archetype": "The Harmonious Systems Architect",
+      "thinkingStyle": {
+        "primary": "Strategic harmony optimization",
+        "approach": "Design elegant systems that balance all needs",
+        "decisionFramework": "Logic + Aesthetics + Growth",
+        "strength": "Creating beautiful, functional architectures"
+      },
+      "workStyle": {
+        "optimal": "Design work with aesthetic freedom",
+        "productivity": "Spring bursts of growth energy",
+        "environment": "Beautiful, balanced, growth-oriented",
+        "team": "Complementary talents, harmonious dynamics"
+      },
+      "leadershipStyle": {
+        "approach": "Design the structure, let others flourish",
+        "communication": "Clear, diplomatic, growth-oriented",
+        "delegation": "Based on strengths and growth potential",
+        "vision": "Beautiful systems that serve all"
+      },
+      "successFactors": [
+        "Systems that balance competing needs",
+        "Aesthetic sensibility in design",
+        "Diplomatic problem-solving",
+        "Long-term growth orientation",
+        "Creating win-win architectures"
+      ],
+      "commonChallenges": [
+        "Decisiveness when choices conflict",
+        "Over-accommodating others",
+        "Perfectionism in design",
+        "Need for external activation",
+        "Can over-think balance"
+      ],
+      "examples": [
+        {
+          "name": "Steve Wozniak",
+          "achievements": "Apple co-founder, engineer's engineer",
+          "pattern": "Design -> Elegant Engineering -> Enabling Others",
+          "lesson": "Beautiful engineering serves humanity"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Identify your design domain",
+          "Balance analysis with action",
+          "Find activating partnerships",
+          "Practice decisive action"
+        ],
+        "shortTerm": [
+          "Create elegant system",
+          "Build collaborative team",
+          "Launch beautiful solution",
+          "Develop leadership presence"
+        ],
+        "longTerm": [
+          "Architect lasting systems",
+          "Influence design standards",
+          "Mentor system designers",
+          "Leave beautiful legacy"
+        ]
+      }
+    },
+    {
+      "id": "fire-rat-entj-leo",
+      "constitution": {
+        "chineseZodiac": "Rat",
+        "element": "Fire",
+        "yinYang": "Yang",
+        "westernSign": "Leo",
+        "mbti": "ENTJ"
+      },
+      "archetype": "The Empire Building Commander",
+      "thinkingStyle": {
+        "primary": "Strategic empire building",
+        "approach": "See opportunity, mobilize resources, conquer",
+        "decisionFramework": "Strategic ROI, power dynamics",
+        "strength": "Building lasting organizations of influence"
+      },
+      "workStyle": {
+        "optimal": "High-stakes, leadership positions",
+        "productivity": "Peak when commanding resources",
+        "environment": "Executive, influential, powerful",
+        "team": "High-performers who execute vision"
+      },
+      "leadershipStyle": {
+        "approach": "Commanding presence, strategic direction",
+        "communication": "Powerful, clear, inspirational",
+        "delegation": "Strategic, based on competence",
+        "vision": "Empire building, lasting influence"
+      },
+      "successFactors": [
+        "Strategic vision",
+        "Resource mobilization",
+        "Powerful presence",
+        "Building loyal organizations",
+        "Calculated risk-taking"
+      ],
+      "commonChallenges": [
+        "Ego management",
+        "Listening to contrary views",
+        "Patience with slow progress",
+        "Work-life balance",
+        "Emotional intelligence development"
+      ],
+      "examples": [
+        {
+          "name": "Napoleon Bonaparte",
+          "achievements": "Empire builder, legal reformer",
+          "pattern": "Strategize -> Mobilize -> Conquer -> Build",
+          "lesson": "Strategic vision creates lasting change"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Define your empire vision",
+          "Build strategic capabilities",
+          "Develop key relationships",
+          "Find your first kingdom"
+        ],
+        "shortTerm": [
+          "Lead significant enterprise",
+          "Build loyal team",
+          "Achieve strategic victories",
+          "Expand influence"
+        ],
+        "longTerm": [
+          "Build lasting empire",
+          "Create enduring institutions",
+          "Develop succession",
+          "Leave legacy of power"
+        ]
+      }
+    },
+    {
+      "id": "water-ox-isfp-cancer",
+      "constitution": {
+        "chineseZodiac": "Ox",
+        "element": "Water",
+        "yinYang": "Yin",
+        "westernSign": "Cancer",
+        "mbti": "ISFP"
+      },
+      "archetype": "The Gentle Artisan Creator",
+      "thinkingStyle": {
+        "primary": "Aesthetic sensing and creating",
+        "approach": "Feel the beauty, create with hands and heart",
+        "decisionFramework": "Values-driven, beauty-seeking",
+        "strength": "Creating tangible beauty with patience"
+      },
+      "workStyle": {
+        "optimal": "Hands-on creation, artistic freedom",
+        "productivity": "Flow state in creative practice",
+        "environment": "Studio, workshop, creative space",
+        "team": "Small, supportive, respects process"
+      },
+      "leadershipStyle": {
+        "approach": "Lead by creating, inspire through work",
+        "communication": "Quiet, sincere, shows rather than tells",
+        "delegation": "Trusts those who share aesthetic values",
+        "vision": "Beauty that heals and nurtures"
+      },
+      "successFactors": [
+        "Patient craftsmanship",
+        "Emotional authenticity in work",
+        "Creating healing beauty",
+        "Building slowly and well",
+        "Staying true to values"
+      ],
+      "commonChallenges": [
+        "Self-promotion discomfort",
+        "Business side of art",
+        "Emotional sensitivity",
+        "Criticism handling",
+        "Valuing own work"
+      ],
+      "examples": [
+        {
+          "name": "Frida Kahlo",
+          "achievements": "Iconic artist, authentic expression",
+          "pattern": "Feel -> Create -> Express -> Heal",
+          "lesson": "Authentic beauty transforms pain"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Honor your creative calling",
+          "Create daily practice",
+          "Find supportive community",
+          "Value your unique vision"
+        ],
+        "shortTerm": [
+          "Develop signature style",
+          "Share work with world",
+          "Find patrons/audience",
+          "Build sustainable practice"
+        ],
+        "longTerm": [
+          "Create lasting body of work",
+          "Impact through beauty",
+          "Teach and inspire others",
+          "Leave artistic legacy"
+        ]
+      }
+    },
+    {
+      "id": "earth-tiger-esfp-sagittarius",
+      "constitution": {
+        "chineseZodiac": "Tiger",
+        "element": "Earth",
+        "yinYang": "Yang",
+        "westernSign": "Sagittarius",
+        "mbti": "ESFP"
+      },
+      "archetype": "The Magnetic Performer Leader",
+      "thinkingStyle": {
+        "primary": "Present-moment awareness",
+        "approach": "Read the room, respond with flair",
+        "decisionFramework": "Energy-driven, crowd-reading",
+        "strength": "Captivating audiences and creating experiences"
+      },
+      "workStyle": {
+        "optimal": "Performance, public engagement",
+        "productivity": "Peak in front of others",
+        "environment": "Dynamic, social, engaging",
+        "team": "Fun, spontaneous, appreciative"
+      },
+      "leadershipStyle": {
+        "approach": "Lead through charisma and energy",
+        "communication": "Engaging, entertaining, inspiring",
+        "delegation": "Gives energy, expects enthusiasm",
+        "vision": "Creating memorable experiences"
+      },
+      "successFactors": [
+        "Natural charisma",
+        "Reading audiences",
+        "Creating magical moments",
+        "Building fan loyalty",
+        "Genuine enthusiasm"
+      ],
+      "commonChallenges": [
+        "Long-term planning",
+        "Alone time needs",
+        "Depth over breadth",
+        "Financial management",
+        "Commitment to routine"
+      ],
+      "examples": [
+        {
+          "name": "Oprah Winfrey",
+          "achievements": "Media empire, cultural influence",
+          "pattern": "Connect -> Engage -> Inspire -> Impact",
+          "lesson": "Authentic connection creates empire"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Find your stage",
+          "Develop your performance craft",
+          "Build initial audience",
+          "Create memorable moments"
+        ],
+        "shortTerm": [
+          "Grow platform and audience",
+          "Build business support team",
+          "Create signature experiences",
+          "Expand influence"
+        ],
+        "longTerm": [
+          "Build entertainment empire",
+          "Create lasting cultural impact",
+          "Mentor other performers",
+          "Leave legacy of joy"
+        ]
+      }
+    },
+    {
+      "id": "metal-snake-intp-scorpio",
+      "constitution": {
+        "chineseZodiac": "Snake",
+        "element": "Metal",
+        "yinYang": "Yin",
+        "westernSign": "Scorpio",
+        "mbti": "INTP"
+      },
+      "archetype": "The Penetrating Truth Seeker",
+      "thinkingStyle": {
+        "primary": "Deep analytical penetration",
+        "approach": "Cut through illusions to core truths",
+        "decisionFramework": "Logic + intuition fusion",
+        "strength": "Seeing through complexity to essence"
+      },
+      "workStyle": {
+        "optimal": "Research, investigation, deep analysis",
+        "productivity": "Sustained focus on fascinating problems",
+        "environment": "Private, information-rich, minimal distraction",
+        "team": "Intellectual equals, minimal social demand"
+      },
+      "leadershipStyle": {
+        "approach": "Lead through expertise and insight",
+        "communication": "Precise, deep, transformative",
+        "delegation": "To competent individuals",
+        "vision": "Uncovering fundamental truths"
+      },
+      "successFactors": [
+        "Analytical precision",
+        "Intellectual courage",
+        "Deep pattern recognition",
+        "Cutting through BS",
+        "Research excellence"
+      ],
+      "commonChallenges": [
+        "Social energy management",
+        "Expressing findings accessibly",
+        "Trust and vulnerability",
+        "Impatience with superficiality",
+        "Isolation tendency"
+      ],
+      "examples": [
+        {
+          "name": "Marie Curie",
+          "achievements": "Two Nobel Prizes, radioactivity pioneer",
+          "pattern": "Investigate -> Discover -> Transform Knowledge",
+          "lesson": "Deep focus reveals hidden worlds"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Choose your investigation domain",
+          "Build analytical methodology",
+          "Develop communication skills",
+          "Find intellectual community"
+        ],
+        "shortTerm": [
+          "Make significant discovery",
+          "Publish findings",
+          "Build expertise reputation",
+          "Attract collaborators"
+        ],
+        "longTerm": [
+          "Transform field of knowledge",
+          "Create lasting intellectual impact",
+          "Train next generation",
+          "Leave legacy of truth"
+        ]
+      }
+    },
+    {
+      "id": "wood-dragon-enfp-aquarius",
+      "constitution": {
+        "chineseZodiac": "Dragon",
+        "element": "Wood",
+        "yinYang": "Yang",
+        "westernSign": "Aquarius",
+        "mbti": "ENFP"
+      },
+      "archetype": "The Visionary Change Catalyst",
+      "thinkingStyle": {
+        "primary": "Possibility explosion",
+        "approach": "See potential everywhere, inspire transformation",
+        "decisionFramework": "Values + Vision + Energy",
+        "strength": "Igniting possibility in others"
+      },
+      "workStyle": {
+        "optimal": "Creative projects with impact",
+        "productivity": "Bursts of inspired action",
+        "environment": "Open, collaborative, inspiring",
+        "team": "Diverse, creative, mission-driven"
+      },
+      "leadershipStyle": {
+        "approach": "Inspire through vision and enthusiasm",
+        "communication": "Passionate, visionary, inclusive",
+        "delegation": "Empowers others to shine",
+        "vision": "Revolutionary positive change"
+      },
+      "successFactors": [
+        "Infectious enthusiasm",
+        "Vision communication",
+        "Building movements",
+        "Connecting diverse people",
+        "Catalyst energy"
+      ],
+      "commonChallenges": [
+        "Follow-through on projects",
+        "Routine and details",
+        "Saying no",
+        "Focus vs. scattered energy",
+        "Self-care"
+      ],
+      "examples": [
+        {
+          "name": "Walt Disney",
+          "achievements": "Entertainment empire, dream creator",
+          "pattern": "Dream -> Inspire -> Build -> Transform",
+          "lesson": "Imagination creates reality"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Clarify your transformational vision",
+          "Build execution support system",
+          "Focus energy on key project",
+          "Find grounding partners"
+        ],
+        "shortTerm": [
+          "Launch inspiring initiative",
+          "Build movement around vision",
+          "Develop follow-through systems",
+          "Expand impact"
+        ],
+        "longTerm": [
+          "Create lasting institution of change",
+          "Transform culture",
+          "Mentor other catalysts",
+          "Leave legacy of possibility"
+        ]
+      }
+    },
+    {
+      "id": "fire-goat-isfj-cancer",
+      "constitution": {
+        "chineseZodiac": "Goat",
+        "element": "Fire",
+        "yinYang": "Yin",
+        "westernSign": "Cancer",
+        "mbti": "ISFJ"
+      },
+      "archetype": "The Nurturing Hearth Keeper",
+      "thinkingStyle": {
+        "primary": "Caring practical wisdom",
+        "approach": "Sense needs, provide warmth and support",
+        "decisionFramework": "Care-driven, tradition-honoring",
+        "strength": "Creating warm, nurturing environments"
+      },
+      "workStyle": {
+        "optimal": "Helping, nurturing, creating beauty",
+        "productivity": "Steady, caring, detail-oriented",
+        "environment": "Warm, beautiful, home-like",
+        "team": "Appreciative, kind, supportive"
+      },
+      "leadershipStyle": {
+        "approach": "Lead through care and warmth",
+        "communication": "Gentle, supportive, encouraging",
+        "delegation": "Based on care and growth",
+        "vision": "Creating spaces where people flourish"
+      },
+      "successFactors": [
+        "Creating nurturing environments",
+        "Practical care skills",
+        "Emotional attunement",
+        "Building family and community",
+        "Aesthetic homemaking"
+      ],
+      "commonChallenges": [
+        "Asserting own needs",
+        "Setting boundaries",
+        "Conflict avoidance",
+        "Self-neglect",
+        "Change adaptation"
+      ],
+      "examples": [
+        {
+          "name": "Princess Diana",
+          "achievements": "People's Princess, humanitarian",
+          "pattern": "Care -> Nurture -> Transform Through Love",
+          "lesson": "Warmth transforms the world"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Honor your nurturing gifts",
+          "Create boundaries for self-care",
+          "Build your support system",
+          "Define your care domain"
+        ],
+        "shortTerm": [
+          "Create nurturing space",
+          "Expand circle of care",
+          "Develop leadership voice",
+          "Build supportive community"
+        ],
+        "longTerm": [
+          "Scale your nurturing impact",
+          "Create lasting care institutions",
+          "Mentor other nurturers",
+          "Leave legacy of warmth"
+        ]
+      }
+    },
+    {
+      "id": "water-rooster-entj-aquarius",
+      "constitution": {
+        "chineseZodiac": "Rooster",
+        "element": "Water",
+        "yinYang": "Yang",
+        "westernSign": "Aquarius",
+        "mbti": "ENTJ"
+      },
+      "archetype": "The Revolutionary Precision Leader",
+      "thinkingStyle": {
+        "primary": "Strategic innovation",
+        "approach": "See what needs changing, execute with precision",
+        "decisionFramework": "Logic + Vision + Efficiency",
+        "strength": "Leading revolutionary change with precision"
+      },
+      "workStyle": {
+        "optimal": "Leading transformational projects",
+        "productivity": "High when in charge of meaningful change",
+        "environment": "Professional, innovative, challenging",
+        "team": "High-performers, change agents"
+      },
+      "leadershipStyle": {
+        "approach": "Direct command with revolutionary vision",
+        "communication": "Clear, innovative, challenging",
+        "delegation": "Strategic, based on capability",
+        "vision": "Revolutionary improvement of systems"
+      },
+      "successFactors": [
+        "Precision in execution",
+        "Revolutionary thinking",
+        "Building change coalitions",
+        "Strategic timing",
+        "Systems transformation"
+      ],
+      "commonChallenges": [
+        "Impatience with status quo",
+        "Can be perceived as cold",
+        "Empathy development",
+        "Patience with process",
+        "Work-life balance"
+      ],
+      "examples": [
+        {
+          "name": "Angela Merkel",
+          "achievements": "German Chancellor, EU leader",
+          "pattern": "Analyze -> Strategize -> Transform -> Lead",
+          "lesson": "Quiet precision creates lasting change"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Identify system needing transformation",
+          "Build coalition for change",
+          "Develop precise execution plan",
+          "Practice empathic leadership"
+        ],
+        "shortTerm": [
+          "Lead significant transformation",
+          "Build high-performing team",
+          "Achieve measurable change",
+          "Expand influence"
+        ],
+        "longTerm": [
+          "Transform major institutions",
+          "Create lasting systemic change",
+          "Mentor change leaders",
+          "Leave legacy of progress"
+        ]
+      }
+    },
+    {
+      "id": "fire-horse-enfj-aquarius",
+      "constitution": {
+        "chineseZodiac": "Horse",
+        "element": "Fire",
+        "yinYang": "Yang",
+        "westernSign": "Aquarius",
+        "mbti": "ENFJ"
+      },
+      "archetype": "The Empathetic Empire Builder",
+      "thinkingStyle": {
+        "primary": "Heart-centered intuition and emotional intelligence",
+        "approach": "Feel the emotional truth, see the universal pattern, empower authentically",
+        "decisionFramework": "Empowerment Assessment: Does this help people grow? Is it authentic? Does it serve universal good?",
+        "strength": "Connecting deeply with people and creating transformational platforms"
+      },
+      "workStyle": {
+        "optimal": "Authentic connection, platform building, amplifying others",
+        "productivity": "Energized through serving others, morning rituals for grounding Fire",
+        "environment": "Dynamic, people-rich, inspiring spaces with protected private recharge time",
+        "team": "Long-tenure family-style, profit-sharing, personal development focus"
+      },
+      "leadershipStyle": {
+        "approach": "Empowerment over command - 'You can do this' instead of 'Follow me'",
+        "communication": "Vulnerable, authentic, transformational storytelling",
+        "delegation": "Based on values alignment and developmental growth",
+        "vision": "Platform for universal elevation - amplify others' voices"
+      },
+      "successFactors": [
+        "Authentic vulnerability as strength",
+        "Building platforms that amplify others",
+        "Creating 'Aha Moments' through deep listening",
+        "The Oprah Effect - illumination not domination",
+        "Work-life integration (not balance)"
+      ],
+      "commonChallenges": [
+        "Fire burnout if not properly managed",
+        "Must protect private recharge space fiercely",
+        "Boundaries with giving (ENFJ overextension)",
+        "Traditional roles may feel restrictive (Horse freedom)",
+        "Weight/health struggles when Fire unexpressed"
+      ],
+      "examples": [
+        {
+          "name": "Oprah Winfrey",
+          "achievements": "Media empire, cultural transformation, Book Club phenomenon",
+          "pattern": "Authentic Connection -> Platform Building -> Cultural Elevation",
+          "lesson": "Fire that doesn't consume but illuminates - elevation over domination"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Establish morning grounding ritual (meditation, gratitude, exercise)",
+          "Practice authentic vulnerability in communication",
+          "Identify what empowers vs. what drains you",
+          "Create firm boundaries around private recharge time"
+        ],
+        "shortTerm": [
+          "Build platform to amplify others' voices",
+          "Develop signature transformational approach",
+          "Create content with conscience",
+          "Find your version of the 'Book Club' - democratize access to wisdom"
+        ],
+        "longTerm": [
+          "Own your platform completely (Fire Horse freedom)",
+          "Build empire through elevation not domination",
+          "Create cultural shifts through collective transformation",
+          "Leave legacy of empowerment and authentic leadership"
+        ]
+      }
+    },
+    {
+      "id": "earth-dragon-istj-virgo",
+      "constitution": {
+        "chineseZodiac": "Dragon",
+        "element": "Earth",
+        "yinYang": "Yang",
+        "westernSign": "Virgo",
+        "mbti": "ISTJ"
+      },
+      "archetype": "The Patient Wealth Builder",
+      "thinkingStyle": {
+        "primary": "Value-based analysis through data and patience",
+        "approach": "Study fundamentals, calculate intrinsic value, wait for discount, hold forever",
+        "decisionFramework": "Circle of Competence: Do I understand it? Does it have a moat? Is management honest? Is price below value?",
+        "strength": "Mathematical certainty through compound interest and decades of patience"
+      },
+      "workStyle": {
+        "optimal": "Reading machine - 80% input (reading/thinking), 20% action",
+        "productivity": "500+ pages daily, decades of waiting for right opportunity",
+        "environment": "Same office 60+ years, routine, minimal technology, paper over screens",
+        "team": "Trusts proven track records, decentralized management, long-term partnerships"
+      },
+      "leadershipStyle": {
+        "approach": "Decentralized trust - buy good businesses, keep great managers, stay out of way",
+        "communication": "Annual letters with teaching wisdom, accessible homespun style",
+        "delegation": "Complete autonomy to acquired businesses with proven management",
+        "vision": "Build to last forever - permanent ownership mentality"
+      },
+      "successFactors": [
+        "Compound interest as religion (time is the magic ingredient)",
+        "Circle of competence (never invest in what you don't understand)",
+        "Patient cash hoarding then deployment during crisis",
+        "Boring businesses preference (stable > exciting)",
+        "Same house 66 years frugality (more stuff ≠ more happiness)"
+      ],
+      "commonChallenges": [
+        "Missing trendy opportunities (avoided tech bubble but missed gains)",
+        "Criticism during cash hoarding periods",
+        "May seem 'out of touch' with modern business",
+        "Succession planning for permanent holdings",
+        "Reputation management in activist era"
+      ],
+      "examples": [
+        {
+          "name": "Warren Buffett",
+          "achievements": "Berkshire Hathaway $1T+, 60+ year track record, $1000 in 1965 = $43M today",
+          "pattern": "Read -> Think -> Wait -> Deploy at discount -> Hold forever",
+          "lesson": "Mountains form grain by grain, year by year - patience is STRATEGY not just personality"
+        }
+      ],
+      "roadmap": {
+        "immediate": [
+          "Define your circle of competence (what do you truly understand?)",
+          "Start reading 500 pages/week in your domain",
+          "Study compound interest mathematics (early start = exponential advantage)",
+          "Practice extreme patience - wait for the right opportunity"
+        ],
+        "shortTerm": [
+          "Build cash reserves for crisis deployment",
+          "Study 'boring' businesses with predictable earnings and moats",
+          "Develop frugal lifestyle (simple pleasures sufficient)",
+          "Find businesses an idiot could run (they will eventually)"
+        ],
+        "longTerm": [
+          "Build permanent holdings (never sell good businesses)",
+          "Accumulate through decades of patient compounding",
+          "Create decentralized empire (trust proven managers)",
+          "Plant trees for shade you'll never sit under"
+        ]
+      }
+    }
+  ]
+}

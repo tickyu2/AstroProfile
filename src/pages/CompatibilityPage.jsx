@@ -26,26 +26,42 @@ export default function CompatibilityPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isRevealing, setIsRevealing] = useState(false)
   const [error, setError] = useState(null)
-  
-  // 🔍 DEBUG: Log profiles when they load
-  useEffect(() => {
-    if (savedProfiles.length > 0) {
-      console.log('🔍 DEBUG: Loaded', savedProfiles.length, 'profiles')
-      savedProfiles.forEach(p => {
-        console.log(`Profile: ${p.displayName}`)
-        console.log('  - Has calculations?', !!p.calculations)
-        console.log('  - Has fourPillars?', !!p.calculations?.fourPillars)
-        console.log('  - BirthTime:', p.birthTime)
-        if (!p.calculations?.fourPillars) {
-          console.warn(`  ⚠️ ${p.displayName} is MISSING fourPillars!`)
-        }
-      })
+
+  // 🔧 Cache for processed profile data to avoid recalculating on every render
+  const processedProfileCache = React.useRef(new Map())
+
+  // Helper to extract BASIC display data (no heavy calculations)
+  const getBasicProfileData = (profile) => {
+    if (!profile) return null
+
+    const calculations = profile.calculations || {}
+    const chineseData = profile.chineseZodiac || calculations.chinese || {}
+
+    return {
+      id: profile.id,
+      name: profile.displayName || 'Unknown',
+      emoji: profile.emoji || getRelationshipEmoji(profile.relationship),
+      westernSign: calculations.western?.sign || 'Unknown',
+      chineseAnimal: chineseData.animal || 'Unknown',
+      chineseElement: chineseData.element || '',
+      animal: `${chineseData.element || ''} ${chineseData.animal || ''}`.trim(),
+      mbti: profile.mbti,
+      baziYear: chineseData.year || chineseData.baziYear,
+      bornBeforeLiChun: chineseData.bornBeforeLiChun || false,
+      elements: calculations.fourPillars?.elementBalance?.percentages || null
     }
-  }, [savedProfiles])
-  
-  // Helper to extract display data from profile
+  }
+
+  // Helper to extract FULL display data WITH calculations (for analysis only)
+  // Uses cache to avoid recalculating on every render
   const getProfileData = (profile) => {
     if (!profile) return null
+
+    // Check cache first
+    const cacheKey = profile.id
+    if (processedProfileCache.current.has(cacheKey)) {
+      return processedProfileCache.current.get(cacheKey)
+    }
 
     const calculations = profile.calculations || {}
 
@@ -56,7 +72,6 @@ export default function CompatibilityPage() {
     if (profile.birthDate && chineseData.bornBeforeLiChun === undefined) {
       console.log('🔧 [CompatibilityPage] bornBeforeLiChun missing for', profile.displayName, '- recalculating...');
       chineseData = getChineseZodiac(profile.birthDate);
-      console.log('🔧 [CompatibilityPage] Recalculated chinese for', profile.displayName, ':', chineseData);
     }
 
     // 🔧 FIX: Calculate fourPillars if missing (required for compatibility analysis)
@@ -70,13 +85,12 @@ export default function CompatibilityPage() {
           profile.birthTime,
           profile.locationData || profile.location
         );
-        console.log('🔧 [CompatibilityPage] Calculated fourPillars for', profile.displayName);
       } catch (error) {
         console.error('Error calculating fourPillars for', profile.displayName, ':', error);
       }
     }
 
-    return {
+    const result = {
       id: profile.id,
       name: profile.displayName || 'Unknown',
       emoji: profile.emoji || getRelationshipEmoji(profile.relationship),
@@ -117,19 +131,33 @@ export default function CompatibilityPage() {
       // Elements for display
       elements: calculations.elements
     }
+
+    // Cache the result
+    processedProfileCache.current.set(cacheKey, result)
+    return result
   }
-  
-  // Filter profiles based on search
+
+  // Clear cache when going back to selection (to allow fresh calculations if profiles change)
+  const handleCompareAnother = () => {
+    processedProfileCache.current.clear()
+    setStage('selection')
+    setSelectedPerson1(null)
+    setSelectedPerson2(null)
+    setSearchQuery('')
+    setError(null)
+  }
+
+  // Filter profiles based on search (uses lightweight data - no heavy calculations)
   const filteredProfiles = savedProfiles.filter(profile => {
     if (!searchQuery) return true
     const query = searchQuery.toLowerCase()
-    const data = getProfileData(profile)
+    const data = getBasicProfileData(profile)
     return (
       data.name?.toLowerCase().includes(query) ||
       data.westernSign?.toLowerCase().includes(query) ||
       data.chineseAnimal?.toLowerCase().includes(query) ||
       data.mbti?.toLowerCase().includes(query) ||
-      data.relationship?.toLowerCase().includes(query)
+      profile.relationship?.toLowerCase().includes(query)
     )
   })
   
@@ -194,15 +222,7 @@ export default function CompatibilityPage() {
       setIsRevealing(false)
     }, 1500)
   }
-  
-  const handleCompareAnother = () => {
-    setStage('selection')
-    setSelectedPerson1(null)
-    setSelectedPerson2(null)
-    setSearchQuery('')
-    setError(null)
-  }
-  
+
   const handleBack = () => {
     if (stage === 'analysis') {
       setStage('selection')
@@ -219,24 +239,58 @@ export default function CompatibilityPage() {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Header */}
+      {/* Header - Consistent Navigation Bar */}
       <div className="bg-slate-900/50 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <button
-              onClick={handleBack}
-              className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
-            >
-              <span className="text-xl">←</span>
-              <span>Back</span>
-            </button>
+            {/* Left: Navigation */}
+            <div className="flex items-center gap-4">
+              {stage === 'analysis' ? (
+                <button
+                  onClick={() => {
+                    setStage('selection')
+                    setSelectedPerson1(null)
+                    setSelectedPerson2(null)
+                  }}
+                  className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
+                >
+                  <span className="text-xl">←</span>
+                  <span>Compare Different People</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
+                >
+                  <span className="text-xl">←</span>
+                  <span>Back</span>
+                </button>
+              )}
+            </div>
             
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <span className="text-3xl">🔮</span>
-              SoulPrint Compatibility
-            </h1>
+            {/* Center: Title (only on selection stage) */}
+            {stage === 'selection' && (
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <span className="text-3xl">🔮</span>
+                SoulPrint Compatibility
+              </h1>
+            )}
             
-            <div className="w-20" /> {/* Spacer for center alignment */}
+            {/* Right: Actions */}
+            <div className="flex items-center gap-4">
+              {stage === 'analysis' && (
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/20 text-white rounded-lg transition-colors"
+                >
+                  Dashboard
+                </button>
+              )}
+              <button className="flex items-center gap-2 px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-200 rounded-lg transition-colors">
+                <span>↗</span>
+                <span>Share Results</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -343,7 +397,7 @@ export default function CompatibilityPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredProfiles.map((profile) => {
-                    const profileData = getProfileData(profile)
+                    const profileData = getBasicProfileData(profile) // ✅ Use lightweight version!
                     return (
                       <ProfileCard
                         key={profile.id}
@@ -486,58 +540,20 @@ export default function CompatibilityPage() {
           const data1 = getProfileData(selectedPerson1)
           const data2 = getProfileData(selectedPerson2)
           return (
-            <div className="space-y-8 animate-fadeIn">
-              {/* Back to Selection Button */}
-              <div className="flex justify-between items-center">
-                <button
-                  onClick={handleCompareAnother}
-                  className="px-6 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-white/20 text-white rounded-xl transition-colors"
-                >
-                  ← Compare Different People
-                </button>
-                
-                <button
-                  className="px-6 py-3 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 rounded-xl transition-colors"
-                >
-                  📤 Share Results
-                </button>
-              </div>
+            <div className="space-y-6 animate-fadeIn">
               
-              {/* Names Header */}
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">
+              {/* Single Main Title - ONLY white heading */}
+              <div className="text-center mb-6">
+                <h2 className="text-3xl font-bold text-white">
                   {data1.name} & {data2.name}
-                </div>
-                <div className="text-white/60 mt-2">Constitutional Compatibility Analysis</div>
+                </h2>
+                <div className="text-white/60 mt-2">SoulDNA Compatibility Analysis</div>
               </div>
 
-              {/* Educational Banner - Professional BaZi System */}
-              <div className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 rounded-lg p-4 border border-amber-500/30">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">ℹ️</span>
-                  <div className="flex-1">
-                    <div className="text-sm text-amber-200 leading-relaxed">
-                      <strong className="text-amber-300">GENESIS uses the Professional BaZi System</strong> (Li Chun boundary ~Feb 4) for maximum astronomical accuracy.
-                      {(data1.bornBeforeLiChun || data2.bornBeforeLiChun) && (
-                        <>
-                          {' '}This analysis uses the <strong>BaZi year</strong> for{' '}
-                          {data1.bornBeforeLiChun && data2.bornBeforeLiChun
-                            ? 'both profiles'
-                            : data1.bornBeforeLiChun
-                              ? data1.name
-                              : data2.name
-                          } (born before Li Chun), ensuring constitutional precision.
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Compatibility Analysis Panel */}
+              {/* Compatibility Analysis Panel - starts immediately */}
               <CompatibilityAnalysisPanel
-                profileA={data1.fourPillars}
-                profileB={data2.fourPillars}
+                profileA={{ ...data1.fourPillars, name: data1.name }}
+                profileB={{ ...data2.fourPillars, name: data2.name }}
               />
 
               {/* 🎭 NEW! Archetype Compatibility Panel */}
@@ -549,6 +565,27 @@ export default function CompatibilityPage() {
                   />
                 </div>
               )}
+
+              {/* Educational Banner - Professional BaZi System (MOVED TO BOTTOM) */}
+              <div className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 rounded-lg px-4 py-3 border border-amber-500/30 mt-6">
+                <div className="flex items-center gap-2 text-sm text-amber-200">
+                  <span className="text-lg">ℹ️</span>
+                  <div className="flex-1 leading-snug">
+                    <strong className="text-amber-300">Professional BaZi System</strong> (Li Chun boundary ~Feb 4) for maximum astronomical accuracy.
+                    {(data1.bornBeforeLiChun || data2.bornBeforeLiChun) && (
+                      <>
+                        {' '}Uses <strong>BaZi year</strong> for{' '}
+                        {data1.bornBeforeLiChun && data2.bornBeforeLiChun
+                          ? 'both profiles'
+                          : data1.bornBeforeLiChun
+                            ? data1.name
+                            : data2.name
+                        } (born before Li Chun).
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
 
               {/* Bottom Actions */}
               <div className="flex justify-center gap-4 pt-8 border-t border-white/10">

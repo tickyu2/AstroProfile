@@ -124,8 +124,15 @@ function calculateDayIndex(date) {
  * Get stem and branch from sexagenary index
  */
 function getStemBranch(index) {
-  const stemIndex = index % 10;
-  const branchIndex = index % 12;
+  // Handle negative modulo for historical dates (before reference point)
+  let stemIndex = index % 10;
+  let branchIndex = index % 12;
+  
+  // JavaScript's modulo returns negative for negative numbers
+  // Convert to positive equivalent
+  if (stemIndex < 0) stemIndex += 10;
+  if (branchIndex < 0) branchIndex += 12;
+  
   return {
     stem: HEAVENLY_STEMS[stemIndex],
     branch: EARTHLY_BRANCHES[branchIndex]
@@ -288,18 +295,57 @@ function calculateMonthPillar(birthDate, yearStem) {
   // In production, use precise astronomical calculation
   let solarMonth;
   
-  if (month === 1 && day >= 4) solarMonth = 1;      // Tiger - Spring Begins ~Feb 4
-  else if (month === 2 && day >= 5) solarMonth = 2; // Rabbit - Insects Awaken ~Mar 5
-  else if (month === 3 && day >= 5) solarMonth = 3; // Dragon - Clear Bright ~Apr 5
-  else if (month === 4 && day >= 5) solarMonth = 4; // Snake - Summer Begins ~May 5
-  else if (month === 5 && day >= 6) solarMonth = 5; // Horse - Grain in Ear ~Jun 6
-  else if (month === 6 && day >= 7) solarMonth = 6; // Goat - Minor Heat ~Jul 7
-  else if (month === 7 && day >= 7) solarMonth = 7; // Monkey - Autumn Begins ~Aug 7
-  else if (month === 8 && day >= 7) solarMonth = 8; // Rooster - White Dew ~Sep 7
-  else if (month === 9 && day >= 8) solarMonth = 9; // Dog - Cold Dew ~Oct 8
-  else if (month === 10 && day >= 7) solarMonth = 10; // Pig - Winter Begins ~Nov 7
-  else if (month === 11 && day >= 7) solarMonth = 11; // Rat - Major Snow ~Dec 7
-  else solarMonth = 12; // Ox - Minor Cold ~Jan 5
+  // Each month transitions when day >= solar term day
+  // If before transition, use previous month
+  if (month === 0) {
+    // January
+    if (day >= 5) solarMonth = 12; // Ox - Minor Cold ~Jan 5
+    else solarMonth = 11; // Still in Rat month
+  } else if (month === 1) {
+    // February
+    if (day >= 4) solarMonth = 1; // Tiger - Spring Begins ~Feb 4
+    else solarMonth = 12; // Still in Ox month
+  } else if (month === 2) {
+    // March
+    if (day >= 5) solarMonth = 2; // Rabbit - Insects Awaken ~Mar 5
+    else solarMonth = 1; // Still in Tiger month
+  } else if (month === 3) {
+    // April
+    if (day >= 5) solarMonth = 3; // Dragon - Clear Bright ~Apr 5
+    else solarMonth = 2; // Still in Rabbit month
+  } else if (month === 4) {
+    // May
+    if (day >= 5) solarMonth = 4; // Snake - Summer Begins ~May 5
+    else solarMonth = 3; // Still in Dragon month
+  } else if (month === 5) {
+    // June
+    if (day >= 6) solarMonth = 5; // Horse - Grain in Ear ~Jun 6
+    else solarMonth = 4; // Still in Snake month
+  } else if (month === 6) {
+    // July ✅ FIXED: July 6 should be Horse (5), not fall through to Ox (12)
+    if (day >= 7) solarMonth = 6; // Goat - Minor Heat ~Jul 7
+    else solarMonth = 5; // Still in Horse month
+  } else if (month === 7) {
+    // August
+    if (day >= 7) solarMonth = 7; // Monkey - Autumn Begins ~Aug 7
+    else solarMonth = 6; // Still in Goat month
+  } else if (month === 8) {
+    // September
+    if (day >= 7) solarMonth = 8; // Rooster - White Dew ~Sep 7
+    else solarMonth = 7; // Still in Monkey month
+  } else if (month === 9) {
+    // October
+    if (day >= 8) solarMonth = 9; // Dog - Cold Dew ~Oct 8
+    else solarMonth = 8; // Still in Rooster month
+  } else if (month === 10) {
+    // November
+    if (day >= 7) solarMonth = 10; // Pig - Winter Begins ~Nov 7
+    else solarMonth = 9; // Still in Dog month
+  } else {
+    // December
+    if (day >= 7) solarMonth = 11; // Rat - Major Snow ~Dec 7
+    else solarMonth = 10; // Still in Pig month
+  }
   
   const monthInfo = MONTH_PILLARS[solarMonth - 1];
   const branchIndex = monthInfo.branch;

@@ -6,33 +6,174 @@
 // Purpose: Compare two profiles and calculate compatibility
 
 import { calculateSeasonalStrength, getSeasonFromMonth } from './seasonalCalculations'
+import { calculateTenGodCompatibility } from './tenGodsCalculations'
+
+// ═══════════════════════════════════════════════════════
+// EARTHLY BRANCH MAPPINGS - MULTILINGUAL SUPPORT
+// ═══════════════════════════════════════════════════════
+
+const BRANCH_TO_ENGLISH = {
+  // Chinese characters to English animal names
+  '子': 'Rat',
+  '丑': 'Ox',
+  '寅': 'Tiger',
+  '卯': 'Rabbit',
+  '辰': 'Dragon',
+  '巳': 'Snake',
+  '午': 'Horse',
+  '未': 'Goat',
+  '申': 'Monkey',
+  '酉': 'Rooster',
+  '戌': 'Dog',
+  '亥': 'Pig',
+  // Pinyin to English (fallback)
+  'Zi': 'Rat',
+  'Zǐ': 'Rat',
+  'Chou': 'Ox',
+  'Chǒu': 'Ox',
+  'Yin': 'Tiger',
+  'Yín': 'Tiger',
+  'Mao': 'Rabbit',
+  'Mǎo': 'Rabbit',
+  'Chen': 'Dragon',
+  'Chén': 'Dragon',
+  'Si': 'Snake',
+  'Sì': 'Snake',
+  'Wu': 'Horse',
+  'Wǔ': 'Horse',
+  'Wei': 'Goat',
+  'Wèi': 'Goat',
+  'Shen': 'Monkey',
+  'Shēn': 'Monkey',
+  'You': 'Rooster',
+  'Yǒu': 'Rooster',
+  'Xu': 'Dog',
+  'Xū': 'Dog',
+  'Hai': 'Pig',
+  'Hài': 'Pig'
+}
 
 // ═══════════════════════════════════════════════════════
 // MAIN COMPATIBILITY FUNCTION
 // ═══════════════════════════════════════════════════════
 
 export function calculateCompatibility(profileA, profileB) {
-  // Get seasonal strength for both profiles
-  const seasonA = getSeasonFromMonth(profileA.month.branch || profileA.month.earthlyBranch)
-  const seasonB = getSeasonFromMonth(profileB.month.branch || profileB.month.earthlyBranch)
+  // DEBUG: Log what we receive
+  console.log('🔍 calculateCompatibility called with:')
+  console.log('profileA:', profileA)
+  console.log('profileB:', profileB)
+
+  // 🔧 FIX: Extract names FIRST before drilling into pillars
+  // Names come from the profile level, not the nested pillars structure
+  const nameA = profileA.name || profileA.displayName || 'Person A';
+  const nameB = profileB.name || profileB.displayName || 'Person B';
+  console.log('🔍 Extracted names:', nameA, nameB);
+
+  // fourPillars structure: { pillars: { month, day, year, hour }, elementBalance, yinYangBalance }
+  const pillarsA = profileA.pillars || profileA
+  const pillarsB = profileB.pillars || profileB
   
-  const strengthA = calculateSeasonalStrength(profileA, seasonA)
-  const strengthB = calculateSeasonalStrength(profileB, seasonB)
+  console.log('pillarsA after extraction:', pillarsA)
+  console.log('pillarsB after extraction:', pillarsB)
+  console.log('pillarsA.month:', pillarsA.month)
+  console.log('pillarsB.month:', pillarsB.month)
+  
+  // Extract branch strings and convert to English animal names
+  const getBranchString = (pillar) => {
+    const branch = pillar.month?.branch || pillar.month?.earthlyBranch
+    if (!branch) return null
+    
+    // If it's an object, try different properties
+    if (typeof branch === 'object') {
+      // Try englishName first (most direct)
+      if (branch.englishName) {
+        // Extract just the animal name (e.g., "Yin Earth Ox" → "Ox")
+        const match = branch.englishName.match(/(Rat|Ox|Tiger|Rabbit|Dragon|Snake|Horse|Goat|Monkey|Rooster|Dog|Pig)/)
+        if (match) return match[1]
+      }
+      
+      // Try chinese character mapping
+      if (branch.chinese && BRANCH_TO_ENGLISH[branch.chinese]) {
+        return BRANCH_TO_ENGLISH[branch.chinese]
+      }
+      
+      // Try pinyin mapping
+      if (branch.pinyin && BRANCH_TO_ENGLISH[branch.pinyin]) {
+        return BRANCH_TO_ENGLISH[branch.pinyin]
+      }
+      
+      // Last resort: return what we have
+      return branch.chinese || branch.pinyin || branch.name
+    }
+    
+    // If it's a string, check if it needs conversion
+    if (typeof branch === 'string') {
+      // Check if it's a Chinese character or pinyin that needs mapping
+      if (BRANCH_TO_ENGLISH[branch]) {
+        return BRANCH_TO_ENGLISH[branch]
+      }
+      // Otherwise assume it's already in English
+      return branch
+    }
+    
+    return null
+  }
+  
+  const branchA = getBranchString(pillarsA)
+  const branchB = getBranchString(pillarsB)
+  console.log('branchA:', branchA)
+  console.log('branchB:', branchB)
+  
+  // Get seasonal strength for both profiles
+  const seasonA = getSeasonFromMonth(branchA)
+  const seasonB = getSeasonFromMonth(branchB)
+  
+  console.log('seasonA after fix:', seasonA)
+  console.log('seasonB after fix:', seasonB)
+  
+  const strengthA = calculateSeasonalStrength(pillarsA, seasonA)
+  const strengthB = calculateSeasonalStrength(pillarsB, seasonB)
   
   // Calculate all compatibility dimensions
-  const elementBalance = calculateElementBalance(strengthA, strengthB)
+  // 🔧 FIX: Use nameA/nameB extracted at top of function (not pillarsA.name which doesn't exist)
+  const firstNameA = nameA.split(' ')[0] || nameA;
+  const firstNameB = nameB.split(' ')[0] || nameB;
+  
+  const elementBalance = calculateElementBalance(strengthA, strengthB, firstNameA, firstNameB)
   const seasonalHarmony = calculateSeasonalHarmony(seasonA, seasonB)
-  const qiStateSynergy = calculateQiStateSynergy(strengthA, strengthB)
-  const yinYangBalance = calculateYinYangBalance(profileA, profileB)
-  
-  // Overall score (weighted)
-  const overallScore = Math.round(
-    elementBalance.score * 0.40 +
-    seasonalHarmony.score * 0.30 +
-    qiStateSynergy.score * 0.20 +
-    yinYangBalance.score * 0.10
-  )
-  
+  const qiStateSynergy = calculateQiStateSynergy(strengthA, strengthB, firstNameA, firstNameB)
+  const yinYangBalance = calculateYinYangBalance(pillarsA, pillarsB)
+
+  // 🔥 NEW! Calculate Ten God compatibility (requires complete Four Pillars)
+  let tenGodCompatibility = null
+  try {
+    tenGodCompatibility = calculateTenGodCompatibility(profileA, profileB)
+    console.log('🔥 Ten God Compatibility calculated:', tenGodCompatibility)
+  } catch (error) {
+    console.warn('⚠️ Could not calculate Ten God compatibility:', error.message)
+  }
+
+  // Overall score (weighted) - include Ten Gods if available
+  let overallScore
+  if (tenGodCompatibility) {
+    // With Ten Gods: redistribute weights
+    overallScore = Math.round(
+      elementBalance.score * 0.30 +
+      seasonalHarmony.score * 0.25 +
+      qiStateSynergy.score * 0.15 +
+      yinYangBalance.score * 0.10 +
+      tenGodCompatibility.mutualRelationship.score * 0.20
+    )
+  } else {
+    // Without Ten Gods: original weights
+    overallScore = Math.round(
+      elementBalance.score * 0.40 +
+      seasonalHarmony.score * 0.30 +
+      qiStateSynergy.score * 0.20 +
+      yinYangBalance.score * 0.10
+    )
+  }
+
   return {
     overallScore,
     rating: getRating(overallScore),
@@ -40,17 +181,27 @@ export function calculateCompatibility(profileA, profileB) {
     seasonalHarmony,
     qiStateSynergy,
     yinYangBalance,
+    tenGodCompatibility, // 🔥 NEW! Ten Gods relationship
     profileA: {
       season: seasonA,
       strength: strengthA,
-      name: profileA.name || 'Person A'
+      name: nameA  // 🔧 FIX: Use nameA extracted at top of function
     },
     profileB: {
       season: seasonB,
       strength: strengthB,
-      name: profileB.name || 'Person B'
+      name: nameB  // 🔧 FIX: Use nameB extracted at top of function
     },
-    insights: generateInsights(overallScore, elementBalance, seasonalHarmony, seasonA, seasonB)
+    insights: generateInsights(
+      overallScore,
+      elementBalance,
+      seasonalHarmony,
+      seasonA,
+      seasonB,
+      tenGodCompatibility,
+      nameA,  // 🔧 FIX: Use nameA
+      nameB   // 🔧 FIX: Use nameB
+    )
   }
 }
 
@@ -58,7 +209,7 @@ export function calculateCompatibility(profileA, profileB) {
 // ELEMENT BALANCE CALCULATION (40% weight)
 // ═══════════════════════════════════════════════════════
 
-function calculateElementBalance(strengthA, strengthB) {
+function calculateElementBalance(strengthA, strengthB, firstNameA = 'Person A', firstNameB = 'Person B') {
   const elements = ['Wood', 'Fire', 'Earth', 'Metal', 'Water']
   const complementarityPairs = []
   let totalComplementarity = 0
@@ -82,8 +233,8 @@ function calculateElementBalance(strengthA, strengthB) {
         personBPercent: pctB,
         score: complementarityScore,
         description: isAStrong 
-          ? `Person A's ${element} (${Math.round(pctA)}%) fills Person B's gap (${Math.round(pctB)}%)`
-          : `Person B's ${element} (${Math.round(pctB)}%) fills Person A's gap (${Math.round(pctA)}%)`
+          ? `${firstNameA}'s ${element} (${Math.round(pctA)}%) fills ${firstNameB}'s gap (${Math.round(pctB)}%)`
+          : `${firstNameB}'s ${element} (${Math.round(pctB)}%) fills ${firstNameA}'s gap (${Math.round(pctA)}%)`
       })
       totalComplementarity += complementarityScore
     }
@@ -99,7 +250,7 @@ function calculateElementBalance(strengthA, strengthB) {
         element,
         personAPercent: pctA,
         personBPercent: pctB,
-        warning: `Both weak in ${element} (A: ${Math.round(pctA)}%, B: ${Math.round(pctB)}%) - seek external support`
+        warning: `Both ${firstNameA} and ${firstNameB} weak in ${element} (${firstNameA}: ${Math.round(pctA)}%, ${firstNameB}: ${Math.round(pctB)}%) - seek external support`
       })
     }
   })
@@ -186,7 +337,7 @@ function calculateSeasonalHarmony(seasonA, seasonB) {
 // QI STATE SYNERGY CALCULATION (20% weight)
 // ═══════════════════════════════════════════════════════
 
-function calculateQiStateSynergy(strengthA, strengthB) {
+function calculateQiStateSynergy(strengthA, strengthB, firstNameA = 'Person A', firstNameB = 'Person B') {
   const elements = ['Wood', 'Fire', 'Earth', 'Metal', 'Water']
   const synergies = []
   let totalSynergy = 0
@@ -208,8 +359,8 @@ function calculateQiStateSynergy(strengthA, strengthB) {
         personB: { state: qiB.nameZh, multiplier: multB },
         score: synergyScore,
         description: multA > multB
-          ? `Person A's ${qiA.nameZh} ${element} empowers Person B's ${qiB.nameZh} ${element}`
-          : `Person B's ${qiB.nameZh} ${element} empowers Person A's ${qiA.nameZh} ${element}`
+          ? `${firstNameA}'s ${qiA.nameZh} ${element} empowers ${firstNameB}'s ${qiB.nameZh} ${element}`
+          : `${firstNameB}'s ${qiB.nameZh} ${element} empowers ${firstNameA}'s ${qiA.nameZh} ${element}`
       })
       totalSynergy += synergyScore
     }
@@ -234,18 +385,44 @@ function calculateYinYangBalance(profileA, profileB) {
   const yangStems = ['甲', '丙', '戊', '庚', '壬'] // Yang
   
   const countYinYang = (profile) => {
+    console.log('🔍 countYinYang called with profile:', profile)
+    
+    // Safety check: ensure profile exists and has the required structure
+    if (!profile || typeof profile !== 'object') {
+      console.error('❌ countYinYang received invalid profile:', profile)
+      return { yin: 0, yang: 0, total: 0 }
+    }
+    
+    console.log('profile.year:', profile.year)
+    console.log('profile.month:', profile.month)
+    console.log('profile.day:', profile.day)
+    console.log('profile.hour:', profile.hour)
+    
     let yin = 0
     let yang = 0
     
     // Check each pillar's heavenly stem
-    ['year', 'month', 'day', 'hour'].forEach(pillar => {
-      const stem = profile[pillar]?.stem?.chinese || profile[pillar]?.heavenlyStem?.chinese
+    const pillars = ['year', 'month', 'day', 'hour']
+    for (const pillar of pillars) {
+      console.log(`Checking pillar: ${pillar}`)
+      const pillarData = profile[pillar]
+      console.log(`pillarData for ${pillar}:`, pillarData)
+      
+      if (!pillarData) {
+        console.warn(`⚠️ Missing pillar data for ${pillar}`)
+        continue
+      }
+      
+      const stem = pillarData.stem?.chinese || pillarData.heavenlyStem?.chinese
+      console.log(`stem for ${pillar}:`, stem)
+      
       if (stem) {
         if (yinStems.includes(stem)) yin++
         else if (yangStems.includes(stem)) yang++
       }
-    })
+    }
     
+    console.log('Final yin/yang count:', { yin, yang })
     return { yin, yang, total: yin + yang }
   }
   
@@ -317,9 +494,12 @@ function getRating(score) {
 // INSIGHTS GENERATOR
 // ═══════════════════════════════════════════════════════
 
-function generateInsights(overallScore, elementBalance, seasonalHarmony, seasonA, seasonB) {
+function generateInsights(overallScore, elementBalance, seasonalHarmony, seasonA, seasonB, tenGodCompatibility, nameA = 'Person A', nameB = 'Person B') {
+  // Extract first names
+  const firstNameA = nameA.split(' ')[0] || nameA;
+  const firstNameB = nameB.split(' ')[0] || nameB;
   const insights = []
-  
+
   // Overall insight
   if (overallScore >= 90) {
     insights.push({
@@ -327,7 +507,51 @@ function generateInsights(overallScore, elementBalance, seasonalHarmony, seasonA
       message: 'This is a rare constitutional match! Your elements naturally complement each other.'
     })
   }
-  
+
+  // 🔥 NEW! Ten Gods insights
+  if (tenGodCompatibility) {
+    const { person1, person2, mutualRelationship } = tenGodCompatibility
+
+    // Add Ten God relationship insight
+    if (mutualRelationship.quality === 'excellent') {
+      insights.push({
+        type: 'positive',
+        message: `🌟 Ten Gods: ${mutualRelationship.description}`,
+        category: 'tengods'
+      })
+    } else if (mutualRelationship.quality === 'good') {
+      insights.push({
+        type: 'positive',
+        message: `✨ Ten Gods: ${mutualRelationship.description}`,
+        category: 'tengods'
+      })
+    } else if (mutualRelationship.quality === 'challenging') {
+      insights.push({
+        type: 'warning',
+        message: `⚡ Ten Gods: ${mutualRelationship.description}`,
+        category: 'tengods'
+      })
+    } else {
+      insights.push({
+        type: 'neutral',
+        message: `💫 Ten Gods: ${mutualRelationship.description}`,
+        category: 'tengods'
+      })
+    }
+
+    // Add perspective insights
+    insights.push({
+      type: 'info',
+      message: `${firstNameA} sees ${firstNameB} as: ${person1.seesOtherAs.emoji} ${person1.seesOtherAs.chinese} ${person1.seesOtherAs.name}`,
+      category: 'tengods'
+    })
+    insights.push({
+      type: 'info',
+      message: `${firstNameB} sees ${firstNameA} as: ${person2.seesOtherAs.emoji} ${person2.seesOtherAs.chinese} ${person2.seesOtherAs.name}`,
+      category: 'tengods'
+    })
+  }
+
   // Element complementarity insights
   if (elementBalance.complementarityPairs.length > 0) {
     const topPair = elementBalance.complementarityPairs[0]
@@ -337,7 +561,7 @@ function generateInsights(overallScore, elementBalance, seasonalHarmony, seasonA
       category: 'elements'
     })
   }
-  
+
   // Shared weakness warnings
   if (elementBalance.sharedWeaknesses.length > 0) {
     elementBalance.sharedWeaknesses.forEach(weakness => {
@@ -348,7 +572,7 @@ function generateInsights(overallScore, elementBalance, seasonalHarmony, seasonA
       })
     })
   }
-  
+
   // Same season warning
   if (seasonalHarmony.type === 'Same Season') {
     insights.push({
@@ -357,7 +581,7 @@ function generateInsights(overallScore, elementBalance, seasonalHarmony, seasonA
       category: 'seasons'
     })
   }
-  
+
   // Adjacent season celebration
   if (seasonalHarmony.type === 'Adjacent Seasons') {
     insights.push({
@@ -366,7 +590,7 @@ function generateInsights(overallScore, elementBalance, seasonalHarmony, seasonA
       category: 'seasons'
     })
   }
-  
+
   return insights
 }
 

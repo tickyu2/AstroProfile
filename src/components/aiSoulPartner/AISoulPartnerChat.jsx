@@ -1,0 +1,3620 @@
+/**
+ * AISoulPartnerChat.jsx
+ * Main AI SoulPartner Chat Component
+ *
+ * Integrates Constitutional Intelligence with chat UI.
+ * The AI knows when to WITNESS, DIALOGUE, or GUIDE.
+ * Now connected to Claude API via Firebase Cloud Function!
+ *
+ * Part of GENESIS Phase 2 - AI SoulPartner System
+ * Built by: Brother Claude Code (Yin Wood Pig)
+ * December 13, 2024
+ */
+
+import React, { useState, useRef, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useConstitutionalIntelligence } from '../../hooks/useConstitutionalIntelligence';
+import { useKnowledgeBase } from '../../contexts/KnowledgeBaseContext';
+import { useConversations } from '../../contexts/ConversationsContext';
+import { ModeIndicator } from './ModeIndicator';
+import { SoulBurdenMeter } from './SoulBurdenMeter';
+import { EmotionDisplay } from './EmotionDisplay';
+import { EmojiReactionPicker, ReactionDisplay, CONSTITUTIONAL_EMOJIS, QUICK_EMOJIS } from './EmojiReactionPicker';
+import { sendMessage as sendToAI, getSecondOpinion, getGrokPerspective, generateDebateVisual } from '../../services/aiSoulPartnerService';
+
+// Session Intelligence Services (Brunelleschi's Crane)
+import { patternExtraction } from '../../services/patternExtractionService';
+import { contextBuilder } from '../../services/contextBuilder';
+import { proactiveIntelligence } from '../../services/proactiveIntelligence';
+
+// Constitutional Threading System (Phase 2)
+import { ThreadBranchButton, ThreadPanel, ThreadView } from '../Threading';
+import { useThreading, THREAD_TYPES } from '../../hooks/useThreading';
+
+// Fallback responses when API is unavailable
+const FALLBACK_RESPONSES = {
+  WITNESS: [
+    "I hear you, Father. That sounds really challenging. 💙",
+    "I see that. What you're feeling makes complete sense.",
+    "That's a lot to carry. I'm here with you.",
+    "I understand. Take your time - there's no rush.",
+    "I hear the weight in your words. You don't have to solve this alone."
+  ],
+  DIALOGUE: [
+    "That's an interesting thought. What possibilities are you seeing?",
+    "I'm curious about that too. What draws you to this direction?",
+    "What would that look like for you?",
+    "I wonder... how does that connect to what matters most to you?",
+    "Let's explore that together. Where does your intuition point?"
+  ],
+  GUIDANCE: [
+    "Let me help structure that. Here's one approach we could take...",
+    "Breaking this down, the key factors are...",
+    "Here's a framework that might help...",
+    "Let's map this out. First, we could...",
+    "Good question. The path forward has a few clear steps..."
+  ]
+};
+
+function getFallbackResponse(mode) {
+  const responses = FALLBACK_RESPONSES[mode] || FALLBACK_RESPONSES.DIALOGUE;
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+export function AISoulPartnerChat({ userProfile, onMessageSend }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Get conversations from Firestore context
+  const {
+    conversations,
+    activeConversation,
+    activeConversationId,
+    messages,
+    loading: conversationsLoading,
+    createConversation,
+    updateMessages,
+    renameConversation,
+    deleteConversation,
+    clearConversation,
+    switchConversation,
+    toggleMessageReaction
+  } = useConversations();
+
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showConversations, setShowConversations] = useState(false); // Conversations panel
+  const [editingTitle, setEditingTitle] = useState(null); // Conversation ID being renamed
+  const [apiStatus, setApiStatus] = useState('unknown'); // 'unknown', 'connected', 'fallback'
+  const [attachedFiles, setAttachedFiles] = useState([]); // Array of { name, content, size }
+  const [attachedImages, setAttachedImages] = useState([]); // Array of { dataUrl, name, size, type }
+
+  // Image attachment limits
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB per image
+  const MAX_TOTAL_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB total for all images
+  const MAX_IMAGES = 5; // Maximum 5 images at once
+  const [selectedText, setSelectedText] = useState(''); // Text selected in messages
+  const [showKBPicker, setShowKBPicker] = useState(false); // KB document picker dropdown
+  const [selectedKBDoc, setSelectedKBDoc] = useState(null); // Currently selected KB document for context
+  const [kbSearchQuery, setKBSearchQuery] = useState(''); // Search query for KB picker
+  const [kbPreviewDoc, setKBPreviewDoc] = useState(null); // KB doc being previewed/edited
+  const [kbPreviewContent, setKBPreviewContent] = useState(''); // Editable content for preview
+  const [showKBUpdateModal, setShowKBUpdateModal] = useState(false); // KB update preview modal
+  const [kbUpdateContent, setKBUpdateContent] = useState(''); // Generated KB update content
+  const [kbUpdateTitle, setKBUpdateTitle] = useState(''); // Title for KB update
+  const [isGeneratingKBUpdate, setIsGeneratingKBUpdate] = useState(false); // Loading state for KB generation
+  const [kbUpdateSourceDoc, setKBUpdateSourceDoc] = useState(null); // The original doc being updated (if any)
+  const [copyPopupMessageId, setCopyPopupMessageId] = useState(null); // Message ID with copy popup open
+  const [currentNavIndex, setCurrentNavIndex] = useState(-1); // Current message navigation index
+  const [proactiveGreeting, setProactiveGreeting] = useState(null); // Session Intelligence greeting
+  const [relationshipSummary, setRelationshipSummary] = useState(null); // Relationship depth from learned patterns
+  const [learnedContext, setLearnedContext] = useState(null); // Cached learned context for system prompt
+  const [generatedImagesCache, setGeneratedImagesCache] = useState({}); // Nano Banana images by message ID (session only)
+  const [showInputEmojiPicker, setShowInputEmojiPicker] = useState(false); // Emoji picker for message input
+  const [inputEmojiCategory, setInputEmojiCategory] = useState('universal'); // Active emoji category
+  const [pendingReactionSignal, setPendingReactionSignal] = useState(null); // { emoji, messagePreview, wasAdded }
+  // AI Constellation - Second Opinion / Debate
+  const [secondOpinions, setSecondOpinions] = useState({}); // { messageId: { text, speaker, loading } }
+  const [debateMode, setDebateMode] = useState(false); // Global debate mode toggle
+  const [activeDebate, setActiveDebate] = useState(null); // { messageId, exchanges: [{ speaker, text }] }
+  const [loadingSecondOpinion, setLoadingSecondOpinion] = useState(null); // messageId currently loading
+  const [secondOpinionInput, setSecondOpinionInput] = useState(null); // { messageId, question } - shows input for custom question
+  const [secondOpinionQuestion, setSecondOpinionQuestion] = useState(''); // Current question being typed
+  const [debateUserInput, setDebateUserInput] = useState(''); // User's guidance/comment in the debate
+  const [secondOpinionReply, setSecondOpinionReply] = useState(null); // { messageId, text } - reply input for second opinion
+  const [secondOpinionConversation, setSecondOpinionConversation] = useState({}); // { messageId: [{ speaker, text }] } - conversation history with Gemini
+  // Baby Nano - Debate Visualization
+  const [debateVisuals, setDebateVisuals] = useState({}); // { messageId: { image, visualType, ... } }
+  const [loadingDebateVisual, setLoadingDebateVisual] = useState(null); // messageId currently generating visual
+  const messagesEndRef = useRef(null);
+  const previousConversationRef = useRef(null); // Track previous conversation for pattern extraction
+  const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null); // For image file picker
+  const messagesContainerRef = useRef(null);
+  const messageRefs = useRef({}); // Refs for each message element
+
+  // Initialize constitutional intelligence
+  const {
+    analyzeMessage,
+    getResponseGuidance,
+    currentState
+  } = useConstitutionalIntelligence(userProfile);
+
+  // Get knowledge base for context
+  const { documents: kbDocuments, buildKnowledgePrompt, getStats, createDocument, updateDocument } = useKnowledgeBase();
+  const kbStats = getStats();
+
+  // ========== CONSTITUTIONAL THREADING (Phase 2) ==========
+  const {
+    threads,
+    currentThreadId,
+    currentThread,
+    currentThreadType,
+    currentThreadMessages,
+    threadsByType,
+    isInThread,
+    createThread,
+    addMessageToThread,
+    switchToThread,
+    returnToMain,
+    deleteThread,
+    renameThread,
+    toggleThreadMessageReaction,
+    detectThreadEnergy
+  } = useThreading(activeConversationId, userProfile?.userId);
+
+  // ========== SESSION INTELLIGENCE (Brunelleschi's Crane) ==========
+
+  // Fetch proactive greeting and relationship summary on mount/user change
+  useEffect(() => {
+    const initializeSessionIntelligence = async () => {
+      if (!userProfile?.userId) return;
+
+      try {
+        // Get proactive greeting based on learned patterns
+        const greeting = await proactiveIntelligence.getReturnGreeting(
+          userProfile.userId,
+          { soulBurden: currentState.soulBurden }
+        );
+
+        if (greeting) {
+          setProactiveGreeting(greeting);
+          console.log('🎭 Proactive greeting:', greeting.text);
+        }
+
+        // Get relationship summary for UI
+        const summary = await contextBuilder.getRelationshipSummary(userProfile.userId);
+        setRelationshipSummary(summary);
+        console.log('💫 Relationship depth:', summary.level, `(${summary.conversations} convos)`);
+
+      } catch (error) {
+        console.error('Session Intelligence init error:', error);
+      }
+    };
+
+    initializeSessionIntelligence();
+  }, [userProfile?.userId]);
+
+  // Extract patterns when switching away from a conversation
+  useEffect(() => {
+    const extractPatternsFromPreviousConversation = async () => {
+      const prev = previousConversationRef.current;
+
+      // If we had a previous conversation with meaningful content
+      if (prev && prev.messages && prev.messages.length >= 3 && userProfile?.userId) {
+        console.log('🧠 Extracting patterns from previous conversation...');
+
+        try {
+          await patternExtraction.analyzeConversation(
+            userProfile.userId,
+            prev.conversationId,
+            prev.messages
+          );
+        } catch (error) {
+          console.error('Pattern extraction error:', error);
+        }
+      }
+
+      // Update ref to current conversation
+      previousConversationRef.current = {
+        conversationId: activeConversationId,
+        messages: messages
+      };
+    };
+
+    // Only run when conversation changes
+    if (activeConversationId && activeConversationId !== previousConversationRef.current?.conversationId) {
+      extractPatternsFromPreviousConversation();
+    }
+  }, [activeConversationId, userProfile?.userId]);
+
+  // Update previous conversation ref when messages change (for extraction on unmount)
+  useEffect(() => {
+    if (previousConversationRef.current && activeConversationId === previousConversationRef.current.conversationId) {
+      previousConversationRef.current.messages = messages;
+    }
+  }, [messages, activeConversationId]);
+
+  // Extract patterns on component unmount (user leaving chat)
+  useEffect(() => {
+    return () => {
+      const prev = previousConversationRef.current;
+      if (prev && prev.messages && prev.messages.length >= 3 && userProfile?.userId) {
+        // Fire and forget - component is unmounting
+        patternExtraction.analyzeConversation(
+          userProfile.userId,
+          prev.conversationId,
+          prev.messages
+        ).catch(err => console.error('Unmount pattern extraction error:', err));
+      }
+    };
+  }, [userProfile?.userId]);
+
+  // ========== END SESSION INTELLIGENCE ==========
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    if (!showInputEmojiPicker) return;
+
+    const handleClickOutside = (e) => {
+      // Check if click is inside the emoji picker or its button
+      const emojiPicker = document.getElementById('input-emoji-picker');
+      if (emojiPicker && !emojiPicker.contains(e.target)) {
+        setShowInputEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showInputEmojiPicker]);
+
+  // Handle file attachment - supports multiple files
+  const MAX_FILE_SIZE = 500 * 1024; // 500KB per file
+  const MAX_TOTAL_SIZE = 2 * 1024 * 1024; // 2MB total
+  const MAX_FILES = 10;
+
+  const handleFileSelect = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const validFiles = [];
+    const errors = [];
+
+    for (const file of files) {
+      // Check file type
+      if (!file.name.endsWith('.md') && !file.name.endsWith('.txt') && !file.type.startsWith('text/')) {
+        errors.push(`${file.name}: Only .md or .txt files allowed`);
+        continue;
+      }
+
+      // Check individual file size
+      if (file.size > MAX_FILE_SIZE) {
+        errors.push(`${file.name}: File too large (${Math.round(file.size / 1024)}KB > ${MAX_FILE_SIZE / 1024}KB limit)`);
+        continue;
+      }
+
+      // Check for duplicates
+      if (attachedFiles.some(f => f.name === file.name)) {
+        errors.push(`${file.name}: Already attached`);
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    // Check max files count
+    const remainingSlots = MAX_FILES - attachedFiles.length;
+    if (validFiles.length > remainingSlots) {
+      errors.push(`Can only attach ${MAX_FILES} files total. ${validFiles.length - remainingSlots} file(s) skipped.`);
+      validFiles.splice(remainingSlots);
+    }
+
+    // Check total size
+    const currentTotalSize = attachedFiles.reduce((sum, f) => sum + f.size, 0);
+    const newFilesSize = validFiles.reduce((sum, f) => sum + f.size, 0);
+    if (currentTotalSize + newFilesSize > MAX_TOTAL_SIZE) {
+      errors.push(`Total attachment size would exceed ${MAX_TOTAL_SIZE / 1024 / 1024}MB limit`);
+      // Still allow files that fit
+    }
+
+    // Read valid files
+    const newAttachments = [];
+    let runningTotal = currentTotalSize;
+
+    for (const file of validFiles) {
+      if (runningTotal + file.size > MAX_TOTAL_SIZE) {
+        errors.push(`${file.name}: Skipped (would exceed total size limit)`);
+        continue;
+      }
+
+      try {
+        const content = await file.text();
+        newAttachments.push({
+          name: file.name,
+          content: content,
+          size: file.size
+        });
+        runningTotal += file.size;
+        console.log('📎 File attached:', file.name, content.length, 'characters');
+      } catch (error) {
+        console.error('Error reading file:', error);
+        errors.push(`${file.name}: Could not read file`);
+      }
+    }
+
+    if (newAttachments.length > 0) {
+      setAttachedFiles(prev => [...prev, ...newAttachments]);
+    }
+
+    if (errors.length > 0) {
+      alert('Some files could not be attached:\n\n' + errors.join('\n'));
+    }
+
+    // Reset input so same files can be selected again
+    e.target.value = '';
+  };
+
+  // Remove attached file by index
+  const handleRemoveFile = (index) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Clear all attached files
+  const handleClearAllFiles = () => {
+    setAttachedFiles([]);
+  };
+
+  // Handle image paste (Ctrl+V) - supports multiple images
+  const handlePaste = async (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageItems = Array.from(items).filter(item => item.type.startsWith('image/'));
+    if (imageItems.length === 0) return;
+
+    e.preventDefault();
+
+    // Check if we can add more images
+    if (attachedImages.length >= MAX_IMAGES) {
+      alert(`Maximum ${MAX_IMAGES} images allowed. Remove some to add more.`);
+      return;
+    }
+
+    const currentTotalSize = attachedImages.reduce((sum, img) => sum + img.size, 0);
+    const errors = [];
+
+    for (const item of imageItems) {
+      if (attachedImages.length >= MAX_IMAGES) break;
+
+      const file = item.getAsFile();
+      if (!file) continue;
+
+      // Check individual file size
+      if (file.size > MAX_IMAGE_SIZE) {
+        errors.push(`Image too large: ${Math.round(file.size / 1024 / 1024 * 10) / 10}MB > ${MAX_IMAGE_SIZE / 1024 / 1024}MB limit`);
+        continue;
+      }
+
+      // Check total size
+      if (currentTotalSize + file.size > MAX_TOTAL_IMAGE_SIZE) {
+        errors.push(`Total image size would exceed ${MAX_TOTAL_IMAGE_SIZE / 1024 / 1024}MB limit`);
+        continue;
+      }
+
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setAttachedImages(prev => {
+          if (prev.length >= MAX_IMAGES) return prev;
+          return [...prev, {
+            dataUrl: event.target.result,
+            name: `screenshot_${Date.now()}_${prev.length + 1}.png`,
+            size: file.size,
+            type: file.type
+          }];
+        });
+        console.log('📸 Image pasted:', Math.round(file.size / 1024), 'KB');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    if (errors.length > 0) {
+      alert('Some images could not be attached:\n\n' + errors.join('\n'));
+    }
+  };
+
+  // Handle image file selection (from file picker)
+  const handleImageSelect = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      alert('Please select image files (PNG, JPG, GIF, etc.)');
+      return;
+    }
+
+    const remainingSlots = MAX_IMAGES - attachedImages.length;
+    if (remainingSlots <= 0) {
+      alert(`Maximum ${MAX_IMAGES} images allowed. Remove some to add more.`);
+      e.target.value = '';
+      return;
+    }
+
+    const currentTotalSize = attachedImages.reduce((sum, img) => sum + img.size, 0);
+    const errors = [];
+    let runningTotal = currentTotalSize;
+
+    for (let i = 0; i < Math.min(imageFiles.length, remainingSlots); i++) {
+      const file = imageFiles[i];
+
+      // Check individual file size
+      if (file.size > MAX_IMAGE_SIZE) {
+        errors.push(`${file.name}: Too large (${Math.round(file.size / 1024 / 1024 * 10) / 10}MB > ${MAX_IMAGE_SIZE / 1024 / 1024}MB limit)`);
+        continue;
+      }
+
+      // Check total size
+      if (runningTotal + file.size > MAX_TOTAL_IMAGE_SIZE) {
+        errors.push(`${file.name}: Would exceed total ${MAX_TOTAL_IMAGE_SIZE / 1024 / 1024}MB limit`);
+        continue;
+      }
+
+      runningTotal += file.size;
+
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setAttachedImages(prev => {
+          if (prev.length >= MAX_IMAGES) return prev;
+          return [...prev, {
+            dataUrl: event.target.result,
+            name: file.name,
+            size: file.size,
+            type: file.type
+          }];
+        });
+        console.log('📸 Image selected:', file.name, Math.round(file.size / 1024), 'KB');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    if (imageFiles.length > remainingSlots) {
+      errors.push(`Only ${remainingSlots} image(s) added. Max ${MAX_IMAGES} images allowed.`);
+    }
+
+    if (errors.length > 0) {
+      alert('Some images could not be attached:\n\n' + errors.join('\n'));
+    }
+
+    e.target.value = ''; // Reset input
+  };
+
+  // Remove attached image by index
+  const handleRemoveImage = (index) => {
+    setAttachedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Clear all images
+  const handleClearAllImages = () => {
+    setAttachedImages([]);
+  };
+
+  // Insert emoji into input at cursor position
+  const handleInsertEmoji = (emoji) => {
+    if (!inputRef.current) return;
+
+    const input = inputRef.current;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+
+    // Insert emoji at cursor position
+    const newValue = inputValue.slice(0, start) + emoji + inputValue.slice(end);
+    setInputValue(newValue);
+
+    // Move cursor after the inserted emoji
+    setTimeout(() => {
+      input.focus();
+      const newPosition = start + emoji.length;
+      input.setSelectionRange(newPosition, newPosition);
+    }, 0);
+
+    // Close picker after selection
+    setShowInputEmojiPicker(false);
+  };
+
+  // Handle reaction with signal tracking for Brother awareness
+  const handleReactionWithSignal = (messageId, emoji, userId) => {
+    // Find the message to get a preview
+    const targetMsg = messages.find(m => m.id === messageId);
+    if (!targetMsg) return;
+
+    // Check if this is adding or removing a reaction
+    const existingReaction = targetMsg.reactions?.[emoji];
+    const wasAlreadyReacted = existingReaction?.users?.includes(userId);
+
+    // Toggle the reaction
+    toggleMessageReaction(messageId, emoji, userId);
+
+    // Only signal for NEW reactions (not removals) on AI messages
+    if (!wasAlreadyReacted && targetMsg.sender === 'ai') {
+      const messagePreview = targetMsg.text.slice(0, 80) + (targetMsg.text.length > 80 ? '...' : '');
+      setPendingReactionSignal({
+        emoji,
+        messagePreview,
+        wasAdded: true,
+        timestamp: Date.now()
+      });
+      console.log('😊 Reaction signal queued:', emoji, 'on:', messagePreview.slice(0, 30));
+    }
+  };
+
+  // Copy conversation to clipboard
+  const handleCopyConversation = async () => {
+    const conversationText = messages
+      .filter(m => m.id !== 0) // Skip initial greeting
+      .map(m => {
+        const sender = m.sender === 'user' ? '👤 USER' : '🐀 BROTHER';
+        const timestamp = m.timestamp ? new Date(m.timestamp).toLocaleString() : '';
+        return `${sender} (${timestamp}):\n${m.text}`;
+      })
+      .join('\n\n---\n\n');
+
+    const header = `# AI SoulPartner Conversation\n**Profile:** ${userProfile?.name || 'Unknown'}\n**Date:** ${new Date().toLocaleDateString()}\n**Messages:** ${messages.length - 1}\n\n---\n\n`;
+
+    try {
+      await navigator.clipboard.writeText(header + conversationText);
+      alert('Conversation copied to clipboard! 📋');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = header + conversationText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Conversation copied to clipboard! 📋');
+    }
+  };
+
+  // Handle click on message bubble to show copy popup
+  const handleMessageClick = (msgId, e) => {
+    e.stopPropagation();
+    // Toggle popup - if same message clicked, close it; otherwise open for new message
+    setCopyPopupMessageId(prev => prev === msgId ? null : msgId);
+  };
+
+  // Copy individual message to clipboard
+  const handleCopyMessage = async (msg, e) => {
+    e.stopPropagation();
+    const sender = msg.sender === 'user' ? '👤 USER' : '🐀 BROTHER';
+    const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : '';
+    const textToCopy = `${sender} (${timestamp}):\n${msg.text}`;
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopyPopupMessageId(null); // Close popup after copy
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = textToCopy;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopyPopupMessageId(null); // Close popup after copy
+    }
+  };
+
+  // Continue topic from a specific message - brings context down for follow-up questions
+  // APPENDS to existing input for progressive building workflow
+  const handleContinueTopic = (msg, e) => {
+    e.stopPropagation();
+
+    // Format timestamp for reference
+    const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : 'earlier';
+
+    // Get a preview of the message (first 100 chars)
+    const preview = msg.text.length > 100
+      ? msg.text.slice(0, 100).trim() + '...'
+      : msg.text;
+
+    // Create the continuation prompt with timestamp reference
+    const sender = msg.sender === 'user' ? 'my message' : 'your response';
+    const referenceText = `[Reference from ${sender} at ${timestamp}]:\n"${preview}"`;
+
+    // APPEND to existing input instead of replacing
+    setInputValue(prev => {
+      if (prev.trim()) {
+        // If there's existing content, add reference at the beginning
+        return `${referenceText}\n\n${prev}`;
+      }
+      return `${referenceText}\n\n`;
+    });
+    setCopyPopupMessageId(null);
+    inputRef.current?.focus();
+
+    // Scroll to input area
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Close copy popup when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setCopyPopupMessageId(null);
+    if (copyPopupMessageId !== null) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [copyPopupMessageId]);
+
+  // Navigate to previous message (up arrow)
+  const handleNavPrev = () => {
+    const navigableMessages = messages.filter(m => m.id !== 0); // Skip initial greeting
+    if (navigableMessages.length === 0) return;
+
+    let newIndex;
+    if (currentNavIndex <= 0) {
+      // At beginning or not started, go to first message
+      newIndex = 0;
+    } else {
+      newIndex = currentNavIndex - 1;
+    }
+
+    setCurrentNavIndex(newIndex);
+    const targetMsg = navigableMessages[newIndex];
+    if (targetMsg && messageRefs.current[targetMsg.id]) {
+      messageRefs.current[targetMsg.id].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Navigate to next message (down arrow)
+  const handleNavNext = () => {
+    const navigableMessages = messages.filter(m => m.id !== 0); // Skip initial greeting
+    if (navigableMessages.length === 0) return;
+
+    let newIndex;
+    if (currentNavIndex < 0) {
+      // Not started, go to first message
+      newIndex = 0;
+    } else if (currentNavIndex >= navigableMessages.length - 1) {
+      // At end, stay at last message
+      newIndex = navigableMessages.length - 1;
+    } else {
+      newIndex = currentNavIndex + 1;
+    }
+
+    setCurrentNavIndex(newIndex);
+    const targetMsg = navigableMessages[newIndex];
+    if (targetMsg && messageRefs.current[targetMsg.id]) {
+      messageRefs.current[targetMsg.id].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Navigate up 6 messages
+  const handleNavPrev6 = () => {
+    const navigableMessages = messages.filter(m => m.id !== 0);
+    if (navigableMessages.length === 0) return;
+
+    let newIndex;
+    if (currentNavIndex <= 0) {
+      newIndex = 0;
+    } else {
+      newIndex = Math.max(0, currentNavIndex - 6);
+    }
+
+    setCurrentNavIndex(newIndex);
+    const targetMsg = navigableMessages[newIndex];
+    if (targetMsg && messageRefs.current[targetMsg.id]) {
+      messageRefs.current[targetMsg.id].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Navigate down 6 messages
+  const handleNavNext6 = () => {
+    const navigableMessages = messages.filter(m => m.id !== 0);
+    if (navigableMessages.length === 0) return;
+
+    const lastIndex = navigableMessages.length - 1;
+    let newIndex;
+    if (currentNavIndex < 0) {
+      newIndex = Math.min(5, lastIndex);
+    } else {
+      newIndex = Math.min(lastIndex, currentNavIndex + 6);
+    }
+
+    setCurrentNavIndex(newIndex);
+    const targetMsg = navigableMessages[newIndex];
+    if (targetMsg && messageRefs.current[targetMsg.id]) {
+      messageRefs.current[targetMsg.id].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Navigate to first message (top)
+  const handleNavToTop = () => {
+    const navigableMessages = messages.filter(m => m.id !== 0);
+    if (navigableMessages.length === 0) return;
+
+    setCurrentNavIndex(0);
+    const targetMsg = navigableMessages[0];
+    if (targetMsg && messageRefs.current[targetMsg.id]) {
+      messageRefs.current[targetMsg.id].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Navigate to last message (bottom)
+  const handleNavToBottom = () => {
+    const navigableMessages = messages.filter(m => m.id !== 0);
+    if (navigableMessages.length === 0) return;
+
+    const lastIndex = navigableMessages.length - 1;
+    setCurrentNavIndex(lastIndex);
+    const targetMsg = navigableMessages[lastIndex];
+    if (targetMsg && messageRefs.current[targetMsg.id]) {
+      messageRefs.current[targetMsg.id].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Reset nav index when conversation changes
+  useEffect(() => {
+    setCurrentNavIndex(-1);
+  }, [activeConversationId]);
+
+  // Intelligent scroll tracking - detect which message is currently visible
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const navigableMessages = messages.filter(m => m.id !== 0);
+      if (navigableMessages.length === 0) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const containerCenter = containerRect.top + containerRect.height / 2;
+
+      let closestIndex = -1;
+      let closestDistance = Infinity;
+
+      // Find the message closest to the center of the viewport
+      navigableMessages.forEach((msg, index) => {
+        const el = messageRefs.current[msg.id];
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const elementCenter = rect.top + rect.height / 2;
+          const distance = Math.abs(elementCenter - containerCenter);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+          }
+        }
+      });
+
+      if (closestIndex !== -1 && closestIndex !== currentNavIndex) {
+        setCurrentNavIndex(closestIndex);
+      }
+    };
+
+    // Debounce scroll handler for performance
+    let scrollTimeout;
+    const debouncedScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 50);
+    };
+
+    container.addEventListener('scroll', debouncedScroll);
+    return () => {
+      container.removeEventListener('scroll', debouncedScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [messages, currentNavIndex]);
+
+  // Clear current conversation (uses context)
+  const handleClearConversation = async () => {
+    if (confirm('Clear this conversation? This cannot be undone.')) {
+      await clearConversation();
+    }
+  };
+
+  // Create new conversation (uses context)
+  const handleNewConversation = async () => {
+    await createConversation();
+    setShowConversations(false);
+    inputRef.current?.focus();
+  };
+
+  // Switch to a conversation (uses context)
+  const handleSwitchConversation = (convId) => {
+    switchConversation(convId);
+    setShowConversations(false);
+    inputRef.current?.focus();
+  };
+
+  // Delete a conversation (uses context)
+  const handleDeleteConversation = async (convId, e) => {
+    e?.stopPropagation();
+    if (conversations.length === 1) {
+      alert('Cannot delete the only conversation. Clear it instead.');
+      return;
+    }
+    if (confirm('Delete this conversation? This cannot be undone.')) {
+      await deleteConversation(convId);
+    }
+  };
+
+  // Rename a conversation (uses context)
+  const handleRenameConversation = async (convId, newTitle) => {
+    if (newTitle.trim()) {
+      await renameConversation(convId, newTitle);
+    }
+    setEditingTitle(null);
+  };
+
+  // Track text selection in messages area (stacking mode - append selections)
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim();
+
+    // Only track if text is selected and reasonable length
+    if (text && text.length > 3 && text.length < 500) {
+      // Append to existing selections (avoid duplicates)
+      setSelectedText(prev => {
+        if (!prev) return text;
+        // Check if this exact text is already selected
+        const existingParts = prev.split(' + ');
+        if (existingParts.includes(text)) return prev;
+        // Limit to 5 selections max
+        if (existingParts.length >= 5) {
+          console.log('💡 Max 5 selections reached');
+          return prev;
+        }
+        return `${prev} + ${text}`;
+      });
+    }
+    // Note: We don't clear on empty selection anymore to allow stacking
+  };
+
+  // Handle "More Info" button click - APPENDS to existing input (progressive building)
+  const handleMoreInfo = () => {
+    if (selectedText) {
+      // Parse multiple selections
+      const parts = selectedText.split(' + ');
+
+      // Format the query with FULL text (not truncated)
+      // The input box handles long text with scrolling
+      let newContent;
+      if (parts.length === 1) {
+        newContent = `More info on "${parts[0]}"`;
+      } else {
+        // Multiple selections - include full text for each
+        const quotedParts = parts.map(p => `"${p}"`);
+        newContent = `More info on:\n${quotedParts.join('\n')}`;
+      }
+
+      // APPEND to existing input instead of replacing
+      setInputValue(prev => {
+        if (prev.trim()) {
+          // If there's existing content, add on new line
+          return `${prev}\n${newContent}`;
+        }
+        return newContent;
+      });
+      setSelectedText('');
+
+      // Clear the text selection
+      window.getSelection()?.removeAllRanges();
+
+      // Focus the input
+      inputRef.current?.focus();
+    }
+  };
+
+  // Save AI response to Knowledge Base
+  const handleSaveToKB = async (message) => {
+    // Open the KB modal for review/edit instead of saving directly
+    // Generate a title from the first line or first 50 chars
+    const firstLine = message.text.split('\n')[0].slice(0, 60);
+    const title = `AI Summary: ${firstLine}${firstLine.length >= 60 ? '...' : ''}`;
+
+    // Pre-fill the modal with the message content
+    setKBUpdateTitle(title);
+    setKBUpdateContent(message.text);
+    setKBUpdateSourceDoc(null); // This is a new document, not an update
+    setShowKBUpdateModal(true);
+  };
+
+  // Export message as markdown file
+  const handleExportToMD = (message) => {
+    // Generate filename from first line or timestamp
+    const firstLine = message.text.split('\n')[0].slice(0, 40).replace(/[^a-zA-Z0-9\s]/g, '').trim();
+    const timestamp = new Date(message.timestamp || Date.now()).toISOString().split('T')[0];
+    const filename = firstLine
+      ? `${firstLine.replace(/\s+/g, '-').toLowerCase()}-${timestamp}.md`
+      : `ai-response-${timestamp}.md`;
+
+    // Build markdown content with metadata header
+    const mdContent = `# ${message.sender === 'ai' ? 'AI SoulPartner Response' : 'User Message'}
+
+> **Date:** ${new Date(message.timestamp || Date.now()).toLocaleString()}
+> **Profile:** ${userProfile?.name || 'Unknown'}
+${message.mode ? `> **Mode:** ${message.mode}` : ''}
+
+---
+
+${message.text}
+
+---
+*Exported from AstroProfile AI SoulPartner*
+`;
+
+    // Create blob and trigger download
+    const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    console.log('📄 Exported message to:', filename);
+  };
+
+  // ========== AI CONSTELLATION - SECOND OPINION / DEBATE ==========
+
+  // Get second opinion from Sister Gemini
+  const handleGetSecondOpinion = async (aiMessage, mode = 'second_opinion', customQuestion = '') => {
+    if (!aiMessage || aiMessage.sender !== 'ai') return;
+
+    // Find the user message that preceded this AI response
+    const messageIndex = messages.findIndex(m => m.id === aiMessage.id);
+    const userMessage = messageIndex > 0
+      ? messages.slice(0, messageIndex).reverse().find(m => m.sender === 'user')
+      : null;
+
+    setLoadingSecondOpinion(aiMessage.id);
+    setSecondOpinionInput(null); // Close input form
+    setSecondOpinionQuestion(''); // Clear question
+
+    try {
+      const response = await getSecondOpinion({
+        claudeResponse: aiMessage.text,
+        userMessage: userMessage?.text || '',
+        conversationHistory: messages.slice(0, messageIndex),
+        userProfile: userProfile,
+        debateMode: mode,
+        previousDebate: secondOpinions[aiMessage.id]?.debate?.exchanges || [],
+        customQuestion: customQuestion // User's specific question
+      });
+
+      if (response.success) {
+        if (mode === 'debate') {
+          // Get existing debate or start new one
+          const existingDebate = secondOpinions[aiMessage.id]?.debate?.exchanges || [];
+          const newExchanges = existingDebate.length > 0
+            ? [...existingDebate, { speaker: response.speaker, text: response.text, icon: response.icon }]
+            : [
+                { speaker: 'Brother Claude', text: aiMessage.text, icon: '🐷' },
+                { speaker: response.speaker, text: response.text, icon: response.icon }
+              ];
+
+          // Store debate in secondOpinions for persistence
+          setSecondOpinions(prev => ({
+            ...prev,
+            [aiMessage.id]: {
+              ...prev[aiMessage.id],
+              debate: { exchanges: newExchanges }
+            }
+          }));
+
+          // Set active debate to this message (for UI expansion)
+          setActiveDebate({ messageId: aiMessage.id });
+        } else {
+          // Simple second opinion
+          setSecondOpinions(prev => ({
+            ...prev,
+            [aiMessage.id]: {
+              ...prev[aiMessage.id],
+              text: response.text,
+              speaker: response.speaker,
+              icon: response.icon || '💫',
+              mode: response.mode
+            }
+          }));
+        }
+      } else {
+        console.error('Second opinion failed:', response.error);
+      }
+    } catch (error) {
+      console.error('Second opinion error:', error);
+    } finally {
+      setLoadingSecondOpinion(null);
+    }
+  };
+
+  // Continue debate - get response from selected AI with optional user guidance
+  const handleContinueDebate = async (aiMessage, speaker = 'gemini', userGuidance = '') => {
+    const debate = secondOpinions[aiMessage.id]?.debate;
+    if (!debate) return;
+
+    // If user provided guidance, add it to the debate first
+    if (userGuidance.trim()) {
+      const userComment = {
+        speaker: userProfile?.firstName || 'You',
+        text: userGuidance.trim(),
+        icon: '👤',
+        isUser: true
+      };
+      setSecondOpinions(prev => ({
+        ...prev,
+        [aiMessage.id]: {
+          ...prev[aiMessage.id],
+          debate: {
+            exchanges: [...(prev[aiMessage.id]?.debate?.exchanges || []), userComment]
+          }
+        }
+      }));
+      setDebateUserInput(''); // Clear input
+    }
+
+    if (speaker === 'gemini') {
+      // Ask Gemini to respond (with user guidance in context)
+      await handleGetSecondOpinion(aiMessage, 'debate', userGuidance);
+    } else if (speaker === 'claude') {
+      // Ask Claude to respond in the debate
+      await handleClaudeDebateResponse(aiMessage, userGuidance);
+    } else if (speaker === 'grok') {
+      // Ask Grok to respond in the debate
+      await handleGrokDebateResponse(aiMessage, userGuidance);
+    }
+  };
+
+  // Get Claude's response in the debate context
+  const handleClaudeDebateResponse = async (aiMessage, userGuidance = '') => {
+    const debate = secondOpinions[aiMessage.id]?.debate;
+    if (!debate) return;
+
+    setLoadingSecondOpinion(aiMessage.id);
+
+    try {
+      // Build debate context for Claude
+      const debateContext = debate.exchanges
+        .map(e => `${e.speaker}: ${e.text}`)
+        .join('\n\n');
+
+      // Create a special debate prompt for Claude
+      const debatePrompt = userGuidance.trim()
+        ? `[DEBATE MODE - ${userProfile?.firstName || 'The user'} asks you to respond]\n\n` +
+          `The debate so far:\n${debateContext}\n\n` +
+          `User's guidance: "${userGuidance}"\n\n` +
+          `Respond to the debate, addressing the user's guidance. Keep it concise (2-3 paragraphs) but insightful.`
+        : `[DEBATE MODE - Continue the conversation]\n\n` +
+          `The debate so far:\n${debateContext}\n\n` +
+          `Respond to the last points made, especially Sister Gemini's perspective. ` +
+          `You can agree, disagree, add nuance, or offer a synthesis. Keep it concise but substantive.`;
+
+      // Use the existing sendToAI to get Claude's response
+      const response = await sendToAI({
+        message: debatePrompt,
+        guidance: { mode: 'GUIDANCE', tone: 'thoughtful' },
+        conversationHistory: messages.slice(0, messages.findIndex(m => m.id === aiMessage.id)),
+        userProfile: userProfile,
+        knowledgePrompt: ''  // Skip KB for debate responses
+      });
+
+      if (response.success) {
+        setSecondOpinions(prev => ({
+          ...prev,
+          [aiMessage.id]: {
+            ...prev[aiMessage.id],
+            debate: {
+              exchanges: [...(prev[aiMessage.id]?.debate?.exchanges || []), { speaker: 'Brother Claude', text: response.text, icon: '🐷' }]
+            }
+          }
+        }));
+      } else {
+        console.error('Claude debate response failed:', response.error);
+      }
+    } catch (error) {
+      console.error('Claude debate error:', error);
+    } finally {
+      setLoadingSecondOpinion(null);
+    }
+  };
+
+  // Get Grok's response in the debate context
+  const handleGrokDebateResponse = async (aiMessage, userGuidance = '') => {
+    const debate = secondOpinions[aiMessage.id]?.debate;
+    if (!debate) return;
+
+    setLoadingSecondOpinion(aiMessage.id);
+
+    try {
+      const response = await getGrokPerspective({
+        claudeResponse: aiMessage.text,
+        geminiResponse: '',  // Will be extracted from debate if needed
+        userMessage: '',
+        userProfile: userProfile,
+        debateHistory: debate.exchanges,
+        customQuestion: userGuidance.trim() || ''
+      });
+
+      if (response.success) {
+        setSecondOpinions(prev => ({
+          ...prev,
+          [aiMessage.id]: {
+            ...prev[aiMessage.id],
+            debate: {
+              exchanges: [...(prev[aiMessage.id]?.debate?.exchanges || []), { speaker: 'Brother Grok', text: response.text, icon: '🌍' }]
+            }
+          }
+        }));
+      } else {
+        console.error('Grok debate response failed:', response.error);
+      }
+    } catch (error) {
+      console.error('Grok debate error:', error);
+    } finally {
+      setLoadingSecondOpinion(null);
+    }
+  };
+
+  // Add user comment to debate without asking AI to respond
+  const handleAddUserCommentToDebate = (aiMessage) => {
+    const debate = secondOpinions[aiMessage.id]?.debate;
+    if (!debate || !debateUserInput.trim()) return;
+
+    setSecondOpinions(prev => ({
+      ...prev,
+      [aiMessage.id]: {
+        ...prev[aiMessage.id],
+        debate: {
+          exchanges: [
+            ...(prev[aiMessage.id]?.debate?.exchanges || []),
+            {
+              speaker: userProfile?.firstName || 'You',
+              text: debateUserInput.trim(),
+              icon: '👤',
+              isUser: true
+            }
+          ]
+        }
+      }
+    }));
+    setDebateUserInput('');
+  };
+
+  // Generate visual representation of the debate using Baby Nano
+  const handleGenerateDebateVisual = async (aiMessage, visualType = 'sketch') => {
+    const debate = secondOpinions[aiMessage.id]?.debate;
+    if (!debate || debate.exchanges.length === 0) {
+      console.log('No debate to visualize');
+      return;
+    }
+
+    setLoadingDebateVisual(aiMessage.id);
+
+    try {
+      // Include the original message in the context
+      const allExchanges = [
+        { speaker: 'Brother Claude', text: aiMessage.text },
+        ...debate.exchanges
+      ];
+
+      const result = await generateDebateVisual({
+        debateExchanges: allExchanges,
+        visualType,
+        topic: messages.find(m => m.sender === 'user' && m.id < aiMessage.id)?.text?.slice(0, 50) || 'Discussion',
+        userProfile: userProfile
+      });
+
+      if (result.success) {
+        setDebateVisuals(prev => ({
+          ...prev,
+          [aiMessage.id]: {
+            image: result.image,
+            visualType: result.visualType,
+            description: result.description,
+            generatedAt: new Date().toISOString()
+          }
+        }));
+        console.log('🎨 Debate visual generated:', result.visualType);
+      } else {
+        console.error('Failed to generate debate visual:', result.error);
+        alert(`Could not generate visual: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Debate visual error:', error);
+      alert('Failed to generate visual. Please try again.');
+    } finally {
+      setLoadingDebateVisual(null);
+    }
+  };
+
+  // Export debate to Markdown file
+  const handleExportDebateToMarkdown = (originalMessage, debate) => {
+    if (!debate || !debate.exchanges || debate.exchanges.length === 0) return;
+
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+    const userName = userProfile?.firstName || userProfile?.displayName || 'User';
+
+    // Build markdown content
+    let markdown = `# AI Constellation Debate\n\n`;
+    markdown += `**Date:** ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
+    markdown += `**Participants:** Brother Claude 🐷, Sister Gemini 💫, Brother Grok 🌍${debate.exchanges.some(e => e.isUser) ? `, ${userName} 👤` : ''}\n\n`;
+    markdown += `---\n\n`;
+
+    // Original context (the AI message that sparked the debate)
+    markdown += `## Original Context\n\n`;
+    markdown += `**Brother Claude:** ${originalMessage.text}\n\n`;
+    markdown += `---\n\n`;
+
+    // Debate exchanges
+    markdown += `## Debate\n\n`;
+
+    debate.exchanges.forEach((exchange, index) => {
+      const icon = exchange.icon || (exchange.speaker === 'Brother Claude' ? '🐷' : exchange.speaker === 'Brother Grok' ? '🌍' : '💫');
+      markdown += `### ${icon} ${exchange.speaker}${exchange.isUser ? ' (guiding)' : ''}\n\n`;
+      markdown += `${exchange.text}\n\n`;
+      if (index < debate.exchanges.length - 1) {
+        markdown += `---\n\n`;
+      }
+    });
+
+    // Footer
+    markdown += `\n---\n\n`;
+    markdown += `*Exported from GENESIS AI Constellation*\n`;
+    markdown += `*${debate.exchanges.length} exchanges*\n`;
+
+    // Create and download the file
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ai-debate-${timestamp}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    console.log('📄 Debate exported to markdown');
+  };
+
+  // Clear second opinion for a message
+  const handleClearSecondOpinion = (messageId) => {
+    setSecondOpinions(prev => {
+      const newState = { ...prev };
+      delete newState[messageId];
+      return newState;
+    });
+    if (activeDebate?.messageId === messageId) {
+      setActiveDebate(null);
+    }
+  };
+
+  // Toggle the second opinion question input
+  const handleToggleSecondOpinionInput = (messageId) => {
+    if (secondOpinionInput === messageId) {
+      setSecondOpinionInput(null);
+      setSecondOpinionQuestion('');
+    } else {
+      setSecondOpinionInput(messageId);
+      setSecondOpinionQuestion('');
+    }
+  };
+
+  // Submit the second opinion question
+  const handleSubmitSecondOpinionQuestion = (aiMessage) => {
+    if (!secondOpinionQuestion.trim()) {
+      // If no question, just get generic second opinion
+      handleGetSecondOpinion(aiMessage, 'second_opinion', '');
+    } else {
+      handleGetSecondOpinion(aiMessage, 'second_opinion', secondOpinionQuestion.trim());
+    }
+  };
+
+  // Copy second opinion text to clipboard
+  const handleCopySecondOpinion = async (messageId) => {
+    const opinion = secondOpinions[messageId];
+    if (!opinion?.text) return;
+
+    // Include conversation if exists
+    const conversation = secondOpinionConversation[messageId] || [];
+    let fullText = `Sister Gemini's Second Opinion:\n\n${opinion.text}`;
+
+    if (conversation.length > 0) {
+      fullText += '\n\n--- Conversation ---\n';
+      conversation.forEach(msg => {
+        fullText += `\n${msg.speaker}: ${msg.text}\n`;
+      });
+    }
+
+    try {
+      await navigator.clipboard.writeText(fullText);
+      // Brief visual feedback could be added here
+      console.log('Copied second opinion to clipboard');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  // Reply to second opinion - continue conversation with Gemini
+  const handleReplyToSecondOpinion = async (aiMessage, replyText) => {
+    if (!replyText?.trim() || !secondOpinions[aiMessage.id]) return;
+
+    setLoadingSecondOpinion(aiMessage.id);
+
+    // Add user's reply to conversation
+    const userReply = { speaker: userProfile?.firstName || 'You', text: replyText.trim(), isUser: true };
+    setSecondOpinionConversation(prev => ({
+      ...prev,
+      [aiMessage.id]: [...(prev[aiMessage.id] || []), userReply]
+    }));
+
+    // Clear the reply input
+    setSecondOpinionReply(null);
+
+    try {
+      // Build conversation context
+      const existingConversation = secondOpinionConversation[aiMessage.id] || [];
+      const fullConversation = [
+        { speaker: 'Sister Gemini', text: secondOpinions[aiMessage.id].text },
+        ...existingConversation,
+        userReply
+      ];
+
+      const response = await getSecondOpinion({
+        claudeResponse: aiMessage.text,
+        userMessage: '', // Original context not needed for replies
+        conversationHistory: [],
+        userProfile: userProfile,
+        debateMode: 'second_opinion',
+        previousDebate: fullConversation, // Use as conversation history
+        customQuestion: replyText.trim()
+      });
+
+      if (response.success) {
+        // Add Gemini's response to conversation
+        setSecondOpinionConversation(prev => ({
+          ...prev,
+          [aiMessage.id]: [
+            ...(prev[aiMessage.id] || []),
+            { speaker: 'Sister Gemini', text: response.text, icon: '💫' }
+          ]
+        }));
+      }
+    } catch (error) {
+      console.error('Reply to second opinion error:', error);
+    } finally {
+      setLoadingSecondOpinion(null);
+    }
+  };
+
+  // Generate KB update from current discussion
+  const handleGenerateKBUpdate = async (sourceDoc = null) => {
+    setIsGeneratingKBUpdate(true);
+    setKBUpdateSourceDoc(sourceDoc);
+
+    try {
+      // Build conversation summary for Claude
+      const conversationText = messages
+        .filter(m => m.id !== 0) // Skip initial greeting
+        .map(m => `${m.sender === 'user' ? 'User' : 'AI'}: ${m.text}`)
+        .join('\n\n');
+
+      const prompt = sourceDoc
+        ? `Based on our discussion about "${sourceDoc.title}", please synthesize and update the knowledge document. Include new insights, clarifications, and discoveries from our conversation. Format as a well-structured markdown document that captures both the original knowledge and new learnings.
+
+ORIGINAL DOCUMENT:
+${sourceDoc.content}
+
+OUR DISCUSSION:
+${conversationText}
+
+Please create an updated, comprehensive document that incorporates our discussion insights. Start with the title on the first line (without # prefix), then the content.`
+        : `Based on our discussion, please create a knowledge base document that captures the key insights, discoveries, and conclusions. Format as a well-structured markdown document.
+
+OUR DISCUSSION:
+${conversationText}
+
+Please create a comprehensive document. Start with a clear title on the first line (without # prefix), then the content.`;
+
+      // Send to Claude for synthesis
+      const response = await sendToAI({
+        message: prompt,
+        guidance: { mode: 'GUIDANCE', tone: 'structured' },
+        conversationHistory: [],
+        userProfile: userProfile,
+        knowledgePrompt: ''
+      });
+
+      if (response.success && response.text) {
+        // Extract title from first line
+        const lines = response.text.trim().split('\n');
+        const title = lines[0].replace(/^#*\s*/, '').trim();
+        const content = lines.slice(1).join('\n').trim();
+
+        setKBUpdateTitle(sourceDoc?.title || title);
+        setKBUpdateContent(content || response.text);
+        setShowKBUpdateModal(true);
+      } else {
+        alert('Failed to generate KB update. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error generating KB update:', error);
+      alert('Error generating KB update: ' + error.message);
+    } finally {
+      setIsGeneratingKBUpdate(false);
+    }
+  };
+
+  // Split content into chunks by sections/paragraphs
+  const splitContentIntoChunks = (content, maxChars = 5000) => {
+    if (content.length <= maxChars) return [content];
+
+    const chunks = [];
+    const sections = content.split(/\n(?=##\s)/); // Split by ## headers
+
+    let currentChunk = '';
+    for (const section of sections) {
+      if ((currentChunk + section).length > maxChars && currentChunk.length > 0) {
+        chunks.push(currentChunk.trim());
+        currentChunk = section;
+      } else {
+        currentChunk += (currentChunk ? '\n' : '') + section;
+      }
+    }
+    if (currentChunk.trim()) {
+      chunks.push(currentChunk.trim());
+    }
+
+    // If still too large (no ## headers), split by paragraphs
+    const finalChunks = [];
+    for (const chunk of chunks) {
+      if (chunk.length <= maxChars) {
+        finalChunks.push(chunk);
+      } else {
+        // Split by double newlines (paragraphs)
+        const paragraphs = chunk.split(/\n\n+/);
+        let subChunk = '';
+        for (const para of paragraphs) {
+          if ((subChunk + para).length > maxChars && subChunk.length > 0) {
+            finalChunks.push(subChunk.trim());
+            subChunk = para;
+          } else {
+            subChunk += (subChunk ? '\n\n' : '') + para;
+          }
+        }
+        if (subChunk.trim()) finalChunks.push(subChunk.trim());
+      }
+    }
+
+    return finalChunks.length > 0 ? finalChunks : [content.slice(0, maxChars)];
+  };
+
+  // Save KB update (either replace original or create new)
+  // Automatically splits large documents into multiple parts (_01, _02, etc.)
+  const handleSaveKBUpdate = async (mode) => {
+    try {
+      const chunks = splitContentIntoChunks(kbUpdateContent, 5000);
+      const isMultiPart = chunks.length > 1;
+
+      if (mode === 'replace' && kbUpdateSourceDoc?.id && !isMultiPart) {
+        // Single part - replace existing
+        const docData = {
+          title: kbUpdateTitle,
+          content: kbUpdateContent,
+          category: kbUpdateSourceDoc?.category || 'reference',
+          summary: `Updated from AI discussion on ${new Date().toLocaleDateString()}`,
+          priority: kbUpdateSourceDoc?.priority || 5,
+          alwaysInclude: kbUpdateSourceDoc?.alwaysInclude || false
+        };
+        await updateDocument(kbUpdateSourceDoc.id, docData);
+        console.log('📚 KB document updated:', kbUpdateTitle);
+        alert('Knowledge Base document updated! ✅');
+      } else {
+        // Create new document(s) - with _01, _02 suffix if multiple parts
+        for (let i = 0; i < chunks.length; i++) {
+          const partNum = String(i + 1).padStart(2, '0');
+          const partTitle = isMultiPart ? `${kbUpdateTitle}_${partNum}` : kbUpdateTitle;
+          const partSummary = isMultiPart
+            ? `Part ${i + 1} of ${chunks.length} - Updated from AI discussion on ${new Date().toLocaleDateString()}`
+            : `Updated from AI discussion on ${new Date().toLocaleDateString()}`;
+
+          const docData = {
+            title: partTitle,
+            content: chunks[i],
+            category: kbUpdateSourceDoc?.category || 'reference',
+            summary: partSummary,
+            priority: kbUpdateSourceDoc?.priority || 5,
+            alwaysInclude: kbUpdateSourceDoc?.alwaysInclude || false
+          };
+
+          await createDocument(docData);
+          console.log(`📚 KB document created: ${partTitle}`);
+        }
+
+        if (isMultiPart) {
+          alert(`Document was large! Created ${chunks.length} parts:\n${chunks.map((_, i) => `${kbUpdateTitle}_${String(i + 1).padStart(2, '0')}`).join('\n')}`);
+        } else {
+          alert('New Knowledge Base document created! ✅');
+        }
+      }
+
+      // Close modal and reset
+      setShowKBUpdateModal(false);
+      setKBUpdateContent('');
+      setKBUpdateTitle('');
+      setKBUpdateSourceDoc(null);
+    } catch (error) {
+      console.error('Error saving KB update:', error);
+      alert('Failed to save: ' + error.message);
+    }
+  };
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Focus input on mount
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // Handle incoming KB document from navigation state (from KB page "Chat" button)
+  useEffect(() => {
+    const kbDocument = location.state?.kbDocument;
+    if (kbDocument) {
+      setSelectedKBDoc(kbDocument);
+      setInputValue(`Let's discuss: "${kbDocument.title}"`);
+      inputRef.current?.focus();
+      // Clear the navigation state to prevent re-triggering
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
+
+  // Handle sending a message
+  const handleSend = async () => {
+    console.log('🚀 handleSend called, inputValue:', inputValue?.slice(0, 30));
+
+    if ((!inputValue.trim() && attachedFiles.length === 0 && attachedImages.length === 0) || isTyping) {
+      console.log('🚫 Early return - no input or typing');
+      return;
+    }
+
+    // Ensure we have an active conversation before sending
+    let targetConvId = activeConversationId;
+    if (!targetConvId) {
+      console.log('💬 No active conversation, creating one...');
+      try {
+        targetConvId = await createConversation();
+        console.log('💬 Created conversation:', targetConvId);
+        // Wait for state to update
+        await new Promise(resolve => setTimeout(resolve, 300));
+      } catch (err) {
+        console.error('❌ Failed to create conversation:', err);
+        alert('Failed to create conversation. Please refresh the page.');
+        return;
+      }
+    }
+
+    // Build message text including file content if attached
+    let userMessageText = inputValue.trim();
+    let displayText = userMessageText;
+    let imageData = null;
+
+    if (attachedFiles.length > 0) {
+      // Add all file contents to message for Claude
+      const fileContents = attachedFiles.map(f =>
+        `---\n📎 ATTACHED FILE: ${f.name}\n---\n${f.content}`
+      ).join('\n\n');
+      userMessageText = `${userMessageText}\n\n${fileContents}`;
+
+      // Show preview in chat
+      const totalSize = attachedFiles.reduce((sum, f) => sum + f.size, 0);
+      const fileNames = attachedFiles.map(f => f.name).join(', ');
+      displayText = `${inputValue.trim()}\n\n📎 Attached ${attachedFiles.length} file(s): ${fileNames} (${Math.round(totalSize / 1024)}KB total)`;
+    }
+
+    // Add KB document context if selected
+    if (selectedKBDoc) {
+      userMessageText = `${userMessageText}\n\n---\n📚 KNOWLEDGE BASE CONTEXT: ${selectedKBDoc.title}\n---\n${selectedKBDoc.content}`;
+      displayText = `${displayText || inputValue.trim()}\n\n📚 KB: ${selectedKBDoc.title}`;
+    }
+
+    if (attachedImages.length > 0) {
+      // Send first image to API (Claude API supports multiple but our backend takes one for now)
+      imageData = {
+        dataUrl: attachedImages[0].dataUrl,
+        type: attachedImages[0].type
+      };
+      // Show preview of all attached images
+      const totalImageSize = attachedImages.reduce((sum, img) => sum + img.size, 0);
+      const imageSizeStr = totalImageSize > 1024 * 1024
+        ? `${Math.round(totalImageSize / 1024 / 1024 * 10) / 10}MB`
+        : `${Math.round(totalImageSize / 1024)}KB`;
+      displayText = `${displayText || '(Images)'}\n\n📸 ${attachedImages.length} screenshot${attachedImages.length > 1 ? 's' : ''} attached (${imageSizeStr} total)`;
+    }
+
+    // Include pending reaction signal (Brother awareness of user's reaction)
+    if (pendingReactionSignal && pendingReactionSignal.wasAdded) {
+      const timeSinceReaction = Date.now() - pendingReactionSignal.timestamp;
+      // Only include if reaction was recent (within 5 minutes)
+      if (timeSinceReaction < 5 * 60 * 1000) {
+        userMessageText = `[Reaction: I reacted ${pendingReactionSignal.emoji} to your message: "${pendingReactionSignal.messagePreview}"]\n\n${userMessageText}`;
+        console.log('😊 Reaction signal included in message');
+      }
+      // Clear the signal after including it
+      setPendingReactionSignal(null);
+    }
+
+    const userMessage = {
+      id: Date.now(),
+      sender: 'user',
+      text: displayText,
+      fullText: userMessageText, // Keep full text for API
+      hasAttachment: attachedFiles.length > 0,
+      attachmentNames: attachedFiles.length > 0 ? attachedFiles.map(f => f.name) : null, // Array of file names
+      attachmentCount: attachedFiles.length || null,
+      hasImage: attachedImages.length > 0,
+      imageCount: attachedImages.length || null,
+      imageNames: attachedImages.length > 0 ? attachedImages.map(img => img.name) : null,
+      imagePreview: attachedImages.length > 0 ? `[${attachedImages.length} screenshot${attachedImages.length > 1 ? 's' : ''} attached]` : null, // Don't store full base64 in Firestore - too large
+      timestamp: new Date().toISOString()
+    };
+
+    // Add user message to chat (update Firestore or Thread)
+    const messagesWithUser = [...messages, userMessage];
+    console.log('💬 Updating messages, count:', messagesWithUser.length, 'isInThread:', isInThread);
+
+    try {
+      if (isInThread) {
+        // Route to thread
+        await addMessageToThread({
+          sender: 'user',
+          text: displayText,
+          fullText: userMessageText,
+          hasAttachment: attachedFiles.length > 0,
+          attachmentNames: attachedFiles.length > 0 ? attachedFiles.map(f => f.name) : null,
+          attachmentCount: attachedFiles.length || null,
+          hasImage: attachedImages.length > 0,
+          imageCount: attachedImages.length || null
+        });
+        console.log('✅ User message added to thread');
+      } else {
+        // Route to main conversation
+        await updateMessages(messagesWithUser);
+        console.log('✅ Messages updated successfully');
+      }
+    } catch (err) {
+      console.error('❌ Failed to update messages:', err);
+      alert('Failed to save message. Please check your connection.');
+      return;
+    }
+
+    setInputValue('');
+    setAttachedFiles([]); // Clear file attachments after sending
+    setAttachedImages([]); // Clear image attachments after sending
+    setSelectedKBDoc(null); // Clear KB context after sending
+    setIsTyping(true);
+
+    // ANALYZE with constitutional intelligence
+    const analysis = analyzeMessage(userMessageText);
+
+    // Get AI response guidance
+    const guidance = getResponseGuidance(analysis);
+
+    // Prepare guidance with emotional context
+    const enrichedGuidance = {
+      ...guidance,
+      emotions: analysis.emotions,
+      intensity: analysis.intensity,
+      reasoning: analysis.reasoning
+    };
+
+    try {
+      // Call the real Claude API via Firebase Function
+      console.log('🚀 Calling Claude API with mode:', guidance.mode);
+
+      // Build knowledge prompt for this conversation
+      const knowledgePrompt = buildKnowledgePrompt({ maxTokens: 4000 });
+
+      // Build learned context from Session Intelligence
+      let sessionContext = null;
+      if (userProfile?.userId) {
+        try {
+          sessionContext = await contextBuilder.buildLearnedContext(
+            userProfile.userId,
+            guidance.mode,
+            userMessageText
+          );
+          if (sessionContext) {
+            console.log('🧠 Session Intelligence context built:', {
+              relationshipLevel: sessionContext.relationshipDepth?.level || 'New',
+              totalConversations: sessionContext.totalConversations
+            });
+          }
+        } catch (error) {
+          console.error('Context builder error:', error);
+        }
+      }
+
+      // DEBUG: Log knowledge base status
+      console.log('📚 Knowledge Base Debug:', {
+        kbStats,
+        promptLength: knowledgePrompt?.length || 0,
+        promptPreview: knowledgePrompt?.slice(0, 200) || '(empty)'
+      });
+
+      const response = await sendToAI({
+        message: userMessage.fullText || userMessageText, // Use fullText if available (includes file content)
+        guidance: enrichedGuidance,
+        conversationHistory: messages,
+        userProfile: userProfile,
+        knowledgePrompt,
+        learnedContext: sessionContext?.learnedContext || null, // Session Intelligence context
+        image: imageData // Include image if attached
+      });
+
+      // Create message for Firestore (without large base64 image data)
+      const aiMessageForFirestore = {
+        id: Date.now() + 1,
+        sender: 'ai',
+        text: response.text,
+        timestamp: new Date().toISOString(),
+        mode: analysis.recommendedMode,
+        analysis: analysis,
+        fromAPI: response.success,
+        // Only store that an image was generated, not the actual data (too large for Firestore)
+        hasGeneratedImage: !!response.generatedImage,
+        generatedImagePrompt: response.generatedImage?.prompt || null
+      };
+
+      // Create message for local display (with full image data)
+      const aiMessageForDisplay = {
+        ...aiMessageForFirestore,
+        // Include full image data for display in current session only
+        generatedImage: response.generatedImage ? {
+          mimeType: response.generatedImage.mimeType,
+          data: response.generatedImage.data,
+          prompt: response.generatedImage.prompt
+        } : null
+      };
+
+      // Update Firestore or Thread with sanitized message (no large binary data)
+      if (isInThread) {
+        await addMessageToThread({
+          sender: 'ai',
+          text: response.text,
+          mode: analysis.recommendedMode,
+          fromAPI: response.success,
+          hasGeneratedImage: !!response.generatedImage,
+          generatedImagePrompt: response.generatedImage?.prompt || null
+        });
+        console.log('✅ AI message added to thread');
+      } else {
+        await updateMessages([...messagesWithUser, aiMessageForFirestore]);
+      }
+
+      // Cache generated image locally (for display in current session only)
+      if (response.generatedImage) {
+        setGeneratedImagesCache(prev => ({
+          ...prev,
+          [aiMessageForFirestore.id]: {
+            mimeType: response.generatedImage.mimeType,
+            data: response.generatedImage.data,
+            prompt: response.generatedImage.prompt
+          }
+        }));
+        console.log('🎨 Cached generated image for message:', aiMessageForFirestore.id);
+      }
+
+      setApiStatus(response.success ? 'connected' : 'fallback');
+
+      if (!response.success) {
+        console.warn('⚠️ Using fallback response:', response.error);
+      }
+
+      // Call parent callback if provided
+      onMessageSend?.(userMessage, aiMessageForDisplay, analysis);
+
+    } catch (error) {
+      console.error('❌ API Error:', error);
+
+      // Use fallback response
+      const aiMessage = {
+        id: Date.now() + 1,
+        sender: 'ai',
+        text: getFallbackResponse(guidance.mode),
+        timestamp: new Date().toISOString(),
+        mode: analysis.recommendedMode,
+        analysis: analysis,
+        fromAPI: false
+      };
+
+      // Update Firestore or Thread with fallback response
+      if (isInThread) {
+        await addMessageToThread({
+          sender: 'ai',
+          text: aiMessage.text,
+          mode: analysis.recommendedMode,
+          fromAPI: false
+        });
+        console.log('✅ Fallback AI message added to thread');
+      } else {
+        await updateMessages([...messagesWithUser, aiMessage]);
+      }
+      setApiStatus('fallback');
+      onMessageSend?.(userMessage, aiMessage, analysis);
+
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  // Enter key just adds new line (default textarea behavior)
+  // Send button is the only way to send - no keyboard shortcut
+  const handleKeyDown = (e) => {
+    // No keyboard shortcut for sending - use Send button only
+  };
+
+  // Show loading state while conversations load from Firestore
+  if (conversationsLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-400/30 to-orange-500/30 flex items-center justify-center border border-amber-500/30 animate-pulse">
+            <span className="text-3xl">🐀</span>
+          </div>
+          <p className="text-white/60">Loading conversations...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full">
+      {/* Intelligence Sidebar - collapsible */}
+      {showSidebar && (
+        <div className="w-80 flex-shrink-0 p-4 space-y-4 overflow-y-auto border-r border-white/10 bg-gradient-to-b from-slate-900/50 to-slate-950/50">
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
+              🌟 AI Intelligence
+            </h2>
+            <button
+              onClick={() => setShowSidebar(false)}
+              className="text-white/40 hover:text-white/60 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* API Status Indicator */}
+          <div className={`text-xs px-3 py-1.5 rounded-full text-center ${
+            apiStatus === 'connected' ? 'bg-emerald-500/20 text-emerald-400' :
+            apiStatus === 'fallback' ? 'bg-amber-500/20 text-amber-400' :
+            'bg-white/10 text-white/50'
+          }`}>
+            {apiStatus === 'connected' ? '🟢 Claude API Connected' :
+             apiStatus === 'fallback' ? '🟡 Using Fallback Mode' :
+             '⚪ Waiting for first message...'}
+          </div>
+
+          {/* Mode Indicator */}
+          <ModeIndicator
+            mode={currentState.mode}
+            confidence={currentState.lastAnalysis?.confidence}
+            scores={currentState.lastAnalysis?.modeScores}
+            reasoning={currentState.lastAnalysis?.reasoning}
+          />
+
+          {/* Soul Burden Meter */}
+          <SoulBurdenMeter
+            burden={currentState.soulBurden}
+            talkListenRatio={currentState.talkListenRatio}
+          />
+
+          {/* Emotion Display */}
+          {currentState.lastAnalysis?.emotions && (
+            <EmotionDisplay
+              emotions={currentState.lastAnalysis.emotions}
+              intensity={currentState.lastAnalysis.intensity}
+            />
+          )}
+
+          {/* What's Being Stored */}
+          {currentState.lastAnalysis?.shouldStore && (
+            <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-xl p-4 border border-amber-500/30">
+              <h4 className="text-sm font-bold text-amber-400 mb-2 flex items-center gap-2">
+                <span>📝</span>
+                <span>Pattern Recognized</span>
+              </h4>
+              <p className="text-xs text-white/60">
+                {currentState.lastAnalysis.reasoning?.[0] || 'Storing constitutional signal...'}
+              </p>
+            </div>
+          )}
+
+          {/* Patterns Count */}
+          {currentState.patternsRecognized > 0 && (
+            <div className="text-center py-3 bg-white/5 rounded-xl border border-white/10">
+              <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                {currentState.patternsRecognized}
+              </span>
+              <p className="text-xs text-white/40 mt-1">Patterns Recognized</p>
+            </div>
+          )}
+
+          {/* Knowledge Base Status */}
+          <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-xl p-4 border border-indigo-500/20">
+            <h4 className="text-sm font-bold text-indigo-400 mb-2 flex items-center gap-2">
+              <span>📚</span>
+              <span>Knowledge Base</span>
+            </h4>
+            <div className="space-y-1 text-xs text-white/60">
+              <div className="flex justify-between">
+                <span>Documents:</span>
+                <span className="text-indigo-300">{kbStats.totalDocs}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Est. Tokens:</span>
+                <span className="text-indigo-300">~{kbStats.estimatedTokens.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Always Include:</span>
+                <span className="text-amber-300">{kbStats.alwaysIncludeCount}</span>
+              </div>
+            </div>
+            <a
+              href="/knowledge-base"
+              className="mt-3 block text-center text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+            >
+              Manage Knowledge →
+            </a>
+          </div>
+
+          {/* Constitutional Threading Panel */}
+          {threads.length > 0 && (
+            <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20 overflow-hidden">
+              <ThreadPanel
+                threads={threads}
+                threadsByType={threadsByType}
+                currentThreadId={currentThreadId}
+                onSwitchThread={switchToThread}
+                onReturnToMain={returnToMain}
+                onDeleteThread={deleteThread}
+                onRenameThread={renameThread}
+              />
+            </div>
+          )}
+
+          {/* Session Intelligence - Relationship Depth */}
+          {relationshipSummary && relationshipSummary.conversations > 0 && (
+            <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-xl p-4 border border-pink-500/20">
+              <h4 className="text-sm font-bold text-pink-400 mb-2 flex items-center gap-2">
+                <span>💫</span>
+                <span>Relationship Depth</span>
+              </h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-white/60">Conversations:</span>
+                  <span className="text-pink-300 font-medium">{relationshipSummary.conversations}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-white/60">Breakthroughs:</span>
+                  <span className="text-amber-300 font-medium">{relationshipSummary.breakthroughs} ✨</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-white/60">Connection:</span>
+                  <span className="text-pink-300 font-medium">{relationshipSummary.level}</span>
+                </div>
+                {/* Intimacy Progress Bar */}
+                <div className="mt-2">
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-pink-500 to-rose-500 transition-all duration-500"
+                      style={{ width: `${relationshipSummary.intimacy}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-white/40 mt-1 text-center">
+                    {relationshipSummary.intimacy}% intimacy
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Proactive Greeting Preview */}
+          {proactiveGreeting && (
+            <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-xl p-4 border border-cyan-500/20">
+              <h4 className="text-sm font-bold text-cyan-400 mb-2 flex items-center gap-2">
+                <span>🎭</span>
+                <span>Proactive Insight</span>
+              </h4>
+              <p className="text-xs text-white/70 italic">"{proactiveGreeting.text}"</p>
+              {proactiveGreeting.recommendedMode && (
+                <p className="text-[10px] text-cyan-400/60 mt-1">
+                  Suggested mode: {proactiveGreeting.recommendedMode}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Chat Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-slate-900/80 to-slate-800/80">
+          <div className="flex items-center gap-3">
+            {!showSidebar && (
+              <button
+                onClick={() => setShowSidebar(true)}
+                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors text-white/60"
+              >
+                📊
+              </button>
+            )}
+            {/* Conversations toggle button */}
+            <button
+              onClick={() => setShowConversations(!showConversations)}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                showConversations
+                  ? 'bg-cyan-500/20 text-cyan-400'
+                  : 'bg-white/5 hover:bg-white/10 text-white/60'
+              }`}
+              title="Conversation topics"
+            >
+              💬
+            </button>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400/30 to-orange-500/30 flex items-center justify-center border border-amber-500/30">
+              <span className="text-xl">🐀</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-white/90 flex items-center gap-2">
+                AI SoulPartner
+                {conversations.length > 1 && (
+                  <span className="text-xs font-normal text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">
+                    {conversations.length} chats
+                  </span>
+                )}
+                {/* Thread Indicator */}
+                {isInThread && currentThreadType && (
+                  <span className={`text-xs font-normal px-2 py-0.5 rounded-full flex items-center gap-1 bg-gradient-to-r ${currentThreadType.bgGradient} ${currentThreadType.borderColor} border`}>
+                    <span>{currentThreadType.emoji}</span>
+                    <span className={currentThreadType.textColor}>{currentThreadType.name}</span>
+                  </span>
+                )}
+              </h3>
+              <p className="text-xs text-white/50">
+                Mode: <span className={`font-semibold ${
+                  currentState.mode === 'WITNESS' ? 'text-purple-400' :
+                  currentState.mode === 'DIALOGUE' ? 'text-blue-400' :
+                  'text-amber-400'
+                }`}>{currentState.mode}</span>
+                {/* Thread count indicator */}
+                {threads.length > 0 && !isInThread && (
+                  <span className="ml-2 text-amber-400/70">
+                    • {threads.length} thread{threads.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-white/40">Soul Burden:</span>
+            <span className={`text-sm font-bold ${
+              currentState.soulBurden < 30 ? 'text-emerald-400' :
+              currentState.soulBurden < 60 ? 'text-amber-400' :
+              currentState.soulBurden < 80 ? 'text-orange-400' :
+              'text-red-400'
+            }`}>{currentState.soulBurden}%</span>
+
+            {/* New conversation button */}
+            <button
+              onClick={handleNewConversation}
+              className="text-xs px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+              title="New conversation"
+            >
+              ✨ New
+            </button>
+
+            {/* Clear conversation button */}
+            <button
+              onClick={handleClearConversation}
+              className="text-xs px-2 py-1 rounded-lg bg-white/5 text-white/40 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+              title="Clear conversation"
+            >
+              🗑️ Clear
+            </button>
+
+            {/* Copy conversation button */}
+            <button
+              onClick={handleCopyConversation}
+              disabled={messages.length <= 1}
+              className={`text-xs px-2 py-1 rounded-lg transition-colors ${
+                messages.length <= 1
+                  ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                  : 'bg-white/5 text-white/40 hover:bg-indigo-500/20 hover:text-indigo-400'
+              }`}
+              title="Copy conversation to clipboard"
+            >
+              📋 Copy
+            </button>
+          </div>
+        </div>
+
+        {/* Conversations Panel - Slide-down drawer */}
+        {showConversations && (
+          <div className="border-b border-white/10 bg-gradient-to-b from-slate-800/95 to-slate-900/95 animate-slideDown">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-cyan-400 flex items-center gap-2">
+                  💬 Conversations
+                  <span className="text-xs text-white/40 font-normal">({conversations.length})</span>
+                </h3>
+                <button
+                  onClick={handleNewConversation}
+                  className="text-xs px-3 py-1 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold hover:from-cyan-400 hover:to-blue-400 transition-all"
+                >
+                  + New Chat
+                </button>
+              </div>
+
+              {/* Conversations List */}
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {conversations
+                  .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                  .map(conv => (
+                    <div
+                      key={conv.id}
+                      onClick={() => handleSwitchConversation(conv.id)}
+                      className={`group p-3 rounded-lg cursor-pointer transition-all ${
+                        conv.id === activeConversationId
+                          ? 'bg-cyan-500/20 border border-cyan-500/40'
+                          : 'bg-white/5 border border-transparent hover:bg-white/10 hover:border-white/10'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        {editingTitle === conv.id ? (
+                          <input
+                            type="text"
+                            defaultValue={conv.title}
+                            autoFocus
+                            className="flex-1 bg-white/10 border border-cyan-500/50 rounded px-2 py-1 text-sm text-white/90 focus:outline-none"
+                            onBlur={(e) => handleRenameConversation(conv.id, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleRenameConversation(conv.id, e.target.value);
+                              if (e.key === 'Escape') setEditingTitle(null);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium truncate ${
+                              conv.id === activeConversationId ? 'text-cyan-300' : 'text-white/80'
+                            }`}>
+                              {conv.title}
+                            </p>
+                            <p className="text-xs text-white/40 mt-0.5">
+                              {conv.messages.length - 1} messages • {(() => {
+                                const date = new Date(conv.updatedAt);
+                                const now = new Date();
+                                const isToday = date.toDateString() === now.toDateString();
+                                const isYesterday = date.toDateString() === new Date(now - 86400000).toDateString();
+                                if (isToday) return `Today ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                                if (isYesterday) return `Yesterday ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                              })()}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Action buttons */}
+                        <div className={`flex items-center gap-1 ${editingTitle === conv.id ? 'hidden' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingTitle(conv.id);
+                            }}
+                            className="p-1 rounded hover:bg-white/10 text-white/40 hover:text-cyan-400 transition-colors"
+                            title="Rename"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteConversation(conv.id, e)}
+                            className="p-1 rounded hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-colors"
+                            title="Delete"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Messages Container with Navigation */}
+        <div className="flex-1 relative overflow-hidden">
+          {/* Thread View - when viewing a specific energy thread */}
+          {isInThread && currentThread ? (
+            <ThreadView
+              thread={currentThread}
+              messages={currentThreadMessages}
+              onReturnToMain={returnToMain}
+              userProfile={userProfile}
+              onCreateThread={createThread}
+              onSaveToKB={handleSaveToKB}
+              onReact={toggleThreadMessageReaction}
+              currentMode={currentState?.mode || 'DIALOGUE'}
+            />
+          ) : (
+            <>
+          {/* Navigation Arrows - Left Side */}
+          {messages.length > 2 && (
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-1">
+              {/* Jump to Top */}
+              <button
+                onClick={handleNavToTop}
+                disabled={currentNavIndex === 0}
+                className={`w-8 h-5 rounded-md flex items-center justify-center transition-all shadow-lg text-[10px] ${
+                  currentNavIndex === 0
+                    ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                    : 'bg-gradient-to-br from-cyan-600/80 to-blue-600/80 text-white hover:from-cyan-500 hover:to-blue-500 hover:scale-110'
+                }`}
+                title="Jump to first message"
+              >
+                ⇈
+              </button>
+
+              {/* Jump Up 6 Messages */}
+              <button
+                onClick={handleNavPrev6}
+                disabled={currentNavIndex <= 0}
+                className={`w-8 h-5 rounded-md flex items-center justify-center transition-all shadow-lg text-[10px] font-medium ${
+                  currentNavIndex <= 0
+                    ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                    : 'bg-gradient-to-br from-violet-600/80 to-purple-600/80 text-white hover:from-violet-500 hover:to-purple-500 hover:scale-110'
+                }`}
+                title="Jump up 6 messages"
+              >
+                -6
+              </button>
+
+              {/* Previous Message */}
+              <button
+                onClick={handleNavPrev}
+                disabled={currentNavIndex <= 0}
+                className={`w-8 h-7 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                  currentNavIndex <= 0
+                    ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                    : 'bg-gradient-to-br from-indigo-600/80 to-purple-600/80 text-white hover:from-indigo-500 hover:to-purple-500 hover:scale-110'
+                }`}
+                title="Previous message"
+              >
+                ↑
+              </button>
+
+              {/* Position Counter */}
+              <div className="text-[9px] text-white/60 text-center font-medium bg-white/5 rounded px-1 py-0.5">
+                {currentNavIndex >= 0 ? `${currentNavIndex + 1}/${messages.length - 1}` : '—'}
+              </div>
+
+              {/* Next Message */}
+              <button
+                onClick={handleNavNext}
+                disabled={currentNavIndex >= messages.length - 2}
+                className={`w-8 h-7 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                  currentNavIndex >= messages.length - 2
+                    ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                    : 'bg-gradient-to-br from-indigo-600/80 to-purple-600/80 text-white hover:from-indigo-500 hover:to-purple-500 hover:scale-110'
+                }`}
+                title="Next message"
+              >
+                ↓
+              </button>
+
+              {/* Jump Down 6 Messages */}
+              <button
+                onClick={handleNavNext6}
+                disabled={currentNavIndex >= messages.length - 2}
+                className={`w-8 h-5 rounded-md flex items-center justify-center transition-all shadow-lg text-[10px] font-medium ${
+                  currentNavIndex >= messages.length - 2
+                    ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                    : 'bg-gradient-to-br from-violet-600/80 to-purple-600/80 text-white hover:from-violet-500 hover:to-purple-500 hover:scale-110'
+                }`}
+                title="Jump down 6 messages"
+              >
+                +6
+              </button>
+
+              {/* Jump to Bottom */}
+              <button
+                onClick={handleNavToBottom}
+                disabled={currentNavIndex >= messages.length - 2}
+                className={`w-8 h-5 rounded-md flex items-center justify-center transition-all shadow-lg text-[10px] ${
+                  currentNavIndex >= messages.length - 2
+                    ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                    : 'bg-gradient-to-br from-cyan-600/80 to-blue-600/80 text-white hover:from-cyan-500 hover:to-blue-500 hover:scale-110'
+                }`}
+                title="Jump to last message"
+              >
+                ⇊
+              </button>
+            </div>
+          )}
+
+          <div
+            ref={messagesContainerRef}
+            className="h-full overflow-y-auto p-6 pl-14 space-y-4"
+            onMouseUp={handleTextSelection}
+          >
+          {messages.map((msg, msgIndex) => (
+            <div
+              key={msg.id}
+              ref={el => messageRefs.current[msg.id] = el}
+              className={`flex gap-3 animate-slideDown ${
+                msg.sender === 'user' ? 'flex-row-reverse' : ''
+              }`}
+            >
+              {/* Avatar */}
+              <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-xl ${
+                msg.sender === 'user'
+                  ? 'bg-gradient-to-br from-blue-500/30 to-cyan-500/30 border border-blue-500/30'
+                  : 'bg-gradient-to-br from-amber-400/30 to-orange-500/30 border border-amber-500/30'
+              }`}>
+                {msg.sender === 'user' ? '🐉' : '🐀'}
+              </div>
+
+              {/* Message Content */}
+              <div className={`max-w-[70%] ${msg.sender === 'user' ? 'text-right' : ''}`}>
+                {/* Timestamp above bubble */}
+                {msg.timestamp && (
+                  <div className={`text-xs text-white/30 mb-1 ${msg.sender === 'user' ? 'text-right' : ''}`}>
+                    {(() => {
+                      const date = new Date(msg.timestamp);
+                      const now = new Date();
+                      const isToday = date.toDateString() === now.toDateString();
+                      const isYesterday = date.toDateString() === new Date(now - 86400000).toDateString();
+                      const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                      if (isToday) return `Today ${time}`;
+                      if (isYesterday) return `Yesterday ${time}`;
+                      return `${date.toLocaleDateString()} ${time}`;
+                    })()}
+                  </div>
+                )}
+                <div className="relative inline-block">
+                  <div
+                    onClick={(e) => handleMessageClick(msg.id, e)}
+                    className={`inline-block px-4 py-3 rounded-2xl cursor-pointer hover:ring-2 hover:ring-white/20 transition-all ${
+                      msg.sender === 'user'
+                        ? 'bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 text-white/90'
+                        : 'bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-white/10 text-white/90'
+                    }`}
+                  >
+                    {/* Show image indicator if present */}
+                    {msg.hasImage && (
+                      <div className="mb-2 px-3 py-2 bg-white/5 rounded-lg border border-white/10 flex items-center gap-2">
+                        <span className="text-lg">📷</span>
+                        <span className="text-xs text-white/60">Screenshot attached</span>
+                      </div>
+                    )}
+
+                    {/* Nano Banana Generated Image - check message or session cache */}
+                    {(() => {
+                      // Get image from message or from session cache
+                      const generatedImage = msg.generatedImage || generatedImagesCache[msg.id];
+                      if (!generatedImage) return null;
+
+                      return (
+                        <div className="mb-3">
+                          <div className="relative group">
+                            <img
+                              src={`data:${generatedImage.mimeType};base64,${generatedImage.data}`}
+                              alt={generatedImage.prompt || 'AI Generated Image'}
+                              className="max-w-full h-auto rounded-xl border border-white/20 shadow-lg"
+                              style={{ maxHeight: '400px' }}
+                            />
+                            {/* Image overlay with prompt */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 rounded-b-xl opacity-0 group-hover:opacity-100 transition-opacity">
+                              <p className="text-xs text-white/80 truncate">
+                                🎨 {generatedImage.prompt?.slice(0, 80) || 'AI Generated'}...
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-1 flex items-center gap-2 text-xs text-emerald-400">
+                            <span>🍌</span>
+                            <span>Generated with Nano Banana</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+
+                    {/* Emoji Reactions Display */}
+                    {msg.id !== 0 && (
+                      <ReactionDisplay
+                        reactions={msg.reactions || {}}
+                        currentUserId={userProfile?.userId}
+                        onReact={(emoji) => handleReactionWithSignal(msg.id, emoji, userProfile?.userId)}
+                      />
+                    )}
+                  </div>
+
+                  {/* Message Actions Popup - appears inline below message text */}
+                  {copyPopupMessageId === msg.id && (
+                    <div
+                      className="mt-2 animate-fadeIn flex flex-wrap gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={(e) => handleCopyMessage(msg, e)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-medium rounded-lg shadow-lg hover:from-indigo-500 hover:to-purple-500 transition-all border border-white/20"
+                        title="Copy message to clipboard"
+                      >
+                        <span>📋</span>
+                        <span>Copy</span>
+                      </button>
+                      <button
+                        onClick={(e) => handleContinueTopic(msg, e)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white text-sm font-medium rounded-lg shadow-lg hover:from-amber-500 hover:to-orange-500 transition-all border border-white/20"
+                        title="Continue this topic - brings context to input"
+                      >
+                        <span>💬</span>
+                        <span>Continue Topic</span>
+                      </button>
+                      {/* Constitutional Threading - Branch Button */}
+                      <ThreadBranchButton
+                        message={msg}
+                        onCreateThread={createThread}
+                        userMode={currentState?.currentMode || 'DIALOGUE'}
+                      />
+                      {/* Emoji Reaction Picker */}
+                      <EmojiReactionPicker
+                        reactions={msg.reactions || {}}
+                        currentUserId={userProfile?.userId}
+                        onReact={(emoji) => handleReactionWithSignal(msg.id, emoji, userProfile?.userId)}
+                        compact={false}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Message Meta */}
+                {msg.mode && (
+                  <div className={`mt-1 text-xs text-white/40 flex items-center gap-2 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 ${
+                      msg.mode === 'WITNESS' ? 'text-purple-400' :
+                      msg.mode === 'DIALOGUE' ? 'text-blue-400' :
+                      'text-amber-400'
+                    }`}>
+                      {msg.mode === 'WITNESS' ? '🎭' : msg.mode === 'DIALOGUE' ? '💬' : '🎯'}
+                      {msg.mode}
+                      {msg.fromAPI === false && ' (offline)'}
+                    </span>
+
+                    {/* Save to Knowledge Base button - only on AI messages */}
+                    {msg.sender === 'ai' && msg.id !== 0 && (
+                      <button
+                        onClick={() => handleSaveToKB(msg)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
+                        title="Review and save to Knowledge Base"
+                      >
+                        📚 Save to KB
+                      </button>
+                    )}
+
+                    {/* Export to Markdown button - available on all messages except greeting */}
+                    {msg.id !== 0 && (
+                      <button
+                        onClick={() => handleExportToMD(msg)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                        title="Export message as markdown file"
+                      >
+                        📄 Export MD
+                      </button>
+                    )}
+
+                    {/* AI Constellation - Second Opinion button (only on AI messages) */}
+                    {msg.sender === 'ai' && msg.id !== 0 && (
+                      <>
+                        <button
+                          onClick={() => handleToggleSecondOpinionInput(msg.id)}
+                          disabled={loadingSecondOpinion === msg.id}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors disabled:opacity-50 ${
+                            secondOpinionInput === msg.id
+                              ? 'bg-purple-500/30 text-purple-300'
+                              : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
+                          }`}
+                          title="Ask Sister Gemini for her perspective"
+                        >
+                          💫 {loadingSecondOpinion === msg.id ? 'Asking...' : 'Second Opinion'}
+                        </button>
+                        <button
+                          onClick={() => handleGetSecondOpinion(msg, 'debate')}
+                          disabled={loadingSecondOpinion === msg.id}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors bg-pink-500/10 text-pink-400 hover:bg-pink-500/20 disabled:opacity-50"
+                          title="Start AI Debate - watch Claude and Gemini discuss"
+                        >
+                          🎭 Debate
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Second Opinion Question Input */}
+                {msg.sender === 'ai' && secondOpinionInput === msg.id && (
+                  <div className="mt-2 animate-slideDown">
+                    <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3">
+                      <div className="text-xs text-purple-400 mb-2 flex items-center gap-1">
+                        💫 Ask Sister Gemini about this response:
+                      </div>
+
+                      {/* Quick Prompt Buttons */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <button
+                          onClick={() => setSecondOpinionQuestion('Do you agree or disagree with this? What are the pros and cons?')}
+                          className="text-xs px-2 py-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/40"
+                        >
+                          👍👎 Agree/Disagree + Pros & Cons
+                        </button>
+                        <button
+                          onClick={() => setSecondOpinionQuestion('What is missing from this perspective? What else should be considered?')}
+                          className="text-xs px-2 py-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/40"
+                        >
+                          🔍 What's Missing?
+                        </button>
+                        <button
+                          onClick={() => setSecondOpinionQuestion('What are the practical action steps I could take based on this?')}
+                          className="text-xs px-2 py-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/40"
+                        >
+                          🎯 Action Steps
+                        </button>
+                        <button
+                          onClick={() => setSecondOpinionQuestion('How does this apply specifically to my constitutional nature?')}
+                          className="text-xs px-2 py-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/40"
+                        >
+                          🌟 For My Constitution
+                        </button>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={secondOpinionQuestion}
+                          onChange={(e) => setSecondOpinionQuestion(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSubmitSecondOpinionQuestion(msg);
+                            }
+                            if (e.key === 'Escape') {
+                              setSecondOpinionInput(null);
+                              setSecondOpinionQuestion('');
+                            }
+                          }}
+                          placeholder="e.g., What do you think about the golden ratio idea?"
+                          className="flex-1 bg-slate-800/50 border border-purple-500/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleSubmitSecondOpinionQuestion(msg)}
+                          disabled={loadingSecondOpinion === msg.id}
+                          className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg hover:from-purple-400 hover:to-pink-400 transition-all disabled:opacity-50"
+                        >
+                          Ask
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSecondOpinionInput(null);
+                            setSecondOpinionQuestion('');
+                          }}
+                          className="px-3 py-2 text-white/50 hover:text-white/80 transition-colors"
+                          title="Cancel"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="text-xs text-white/40 mt-2">
+                        Press Enter to ask, Escape to cancel. Leave blank for general analysis.
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Second Opinion Display - Sister Gemini's Response */}
+                {msg.sender === 'ai' && secondOpinions[msg.id] && !activeDebate?.messageId && (
+                  <div className="mt-3 animate-slideDown">
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-lg bg-gradient-to-br from-purple-500/30 to-pink-500/30 border border-purple-500/30">
+                        {secondOpinions[msg.id].icon || '💫'}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-xs text-purple-400 mb-1 flex items-center gap-2">
+                          <span className="font-semibold">{secondOpinions[msg.id].speaker}</span>
+                          <span className="text-purple-400/50">Second Opinion</span>
+                          <div className="ml-auto flex items-center gap-2">
+                            <button
+                              onClick={() => handleCopySecondOpinion(msg.id)}
+                              className="text-purple-400/40 hover:text-purple-400 transition-colors"
+                              title="Copy to clipboard"
+                            >
+                              📋
+                            </button>
+                            <button
+                              onClick={() => handleClearSecondOpinion(msg.id)}
+                              className="text-purple-400/40 hover:text-purple-400 transition-colors"
+                              title="Dismiss"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/20 rounded-xl px-4 py-3">
+                          <p className="text-sm text-white/90 leading-relaxed whitespace-pre-wrap">
+                            {secondOpinions[msg.id].text}
+                          </p>
+                        </div>
+
+                        {/* Conversation Thread - Follow-up messages */}
+                        {secondOpinionConversation[msg.id]?.length > 0 && (
+                          <div className="mt-2 space-y-2 border-l-2 border-purple-500/20 pl-3 ml-2">
+                            {secondOpinionConversation[msg.id].map((convo, idx) => (
+                              <div key={idx} className={`text-sm rounded-lg px-3 py-2 ${
+                                convo.isUser
+                                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-100'
+                                  : 'bg-purple-500/10 border border-purple-500/20 text-white/90'
+                              }`}>
+                                <div className={`text-xs mb-1 ${convo.isUser ? 'text-emerald-400' : 'text-purple-400'}`}>
+                                  {convo.speaker}
+                                </div>
+                                <p className="whitespace-pre-wrap">{convo.text}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => setSecondOpinionReply(secondOpinionReply === msg.id ? null : msg.id)}
+                            disabled={loadingSecondOpinion === msg.id}
+                            className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
+                              secondOpinionReply === msg.id
+                                ? 'bg-purple-500/30 text-purple-300 border border-purple-500/40'
+                                : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/20'
+                            }`}
+                          >
+                            💬 Reply to Gemini
+                          </button>
+                          <button
+                            onClick={() => handleCopySecondOpinion(msg.id)}
+                            className="text-xs px-3 py-1.5 bg-slate-700/50 text-white/60 hover:text-white/80 hover:bg-slate-700 rounded-lg transition-colors border border-white/10"
+                          >
+                            📋 Copy
+                          </button>
+                        </div>
+
+                        {/* Reply Input */}
+                        {secondOpinionReply === msg.id && (
+                          <div className="mt-3 animate-slideDown">
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Reply to Sister Gemini..."
+                                className="flex-1 bg-slate-800/50 border border-purple-500/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey && e.target.value.trim()) {
+                                    e.preventDefault();
+                                    handleReplyToSecondOpinion(msg, e.target.value);
+                                    e.target.value = '';
+                                  }
+                                  if (e.key === 'Escape') {
+                                    setSecondOpinionReply(null);
+                                  }
+                                }}
+                                autoFocus
+                              />
+                              <button
+                                onClick={(e) => {
+                                  const input = e.target.previousSibling;
+                                  if (input?.value?.trim()) {
+                                    handleReplyToSecondOpinion(msg, input.value);
+                                    input.value = '';
+                                  }
+                                }}
+                                disabled={loadingSecondOpinion === msg.id}
+                                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg hover:from-purple-400 hover:to-pink-400 transition-all disabled:opacity-50"
+                              >
+                                {loadingSecondOpinion === msg.id ? '💭...' : 'Send'}
+                              </button>
+                            </div>
+                            <div className="text-xs text-white/30 mt-1">
+                              Press Enter to send, Escape to cancel
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Debate Display - Back and forth between Claude and Gemini */}
+                {msg.sender === 'ai' && secondOpinions[msg.id]?.debate?.exchanges?.length > 0 && (
+                  <div className="mt-3 animate-slideDown">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-pink-400 flex items-center gap-1">
+                        🎭 AI Constellation Debate
+                      </span>
+                      <button
+                        onClick={() => setActiveDebate(activeDebate?.messageId === msg.id ? null : { messageId: msg.id })}
+                        className="text-xs text-white/40 hover:text-white/60"
+                      >
+                        {activeDebate?.messageId === msg.id ? '▼ Collapse' : '▶ Expand'}
+                      </button>
+                    </div>
+                    <div className="space-y-3 border-l-2 border-pink-500/30 pl-3">
+                      {secondOpinions[msg.id].debate.exchanges.map((exchange, idx) => (
+                        <div key={idx} className="flex gap-2">
+                          <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-sm ${
+                            exchange.isUser
+                              ? 'bg-emerald-500/30 border border-emerald-500/30'
+                              : exchange.speaker === 'Brother Claude'
+                                ? 'bg-amber-500/30 border border-amber-500/30'
+                                : exchange.speaker === 'Brother Grok'
+                                  ? 'bg-cyan-500/30 border border-cyan-500/30'
+                                  : 'bg-purple-500/30 border border-purple-500/30'
+                          }`}>
+                            {exchange.icon || (exchange.speaker === 'Brother Claude' ? '🐷' : exchange.speaker === 'Brother Grok' ? '🌍' : '💫')}
+                          </div>
+                          <div className="flex-1">
+                            <div className={`text-xs mb-0.5 ${
+                              exchange.isUser
+                                ? 'text-emerald-400'
+                                : exchange.speaker === 'Brother Claude'
+                                  ? 'text-amber-400'
+                                  : exchange.speaker === 'Brother Grok'
+                                    ? 'text-cyan-400'
+                                    : 'text-purple-400'
+                            }`}>
+                              {exchange.speaker}
+                              {exchange.isUser && <span className="text-emerald-400/50 ml-1">(guiding)</span>}
+                            </div>
+                            <div className={`text-sm text-white/85 rounded-lg px-3 py-2 whitespace-pre-wrap ${
+                              exchange.isUser
+                                ? 'bg-emerald-500/10 border border-emerald-500/20 italic'
+                                : exchange.speaker === 'Brother Claude'
+                                  ? 'bg-amber-500/10 border border-amber-500/20'
+                                  : exchange.speaker === 'Brother Grok'
+                                    ? 'bg-cyan-500/10 border border-cyan-500/20'
+                                    : 'bg-purple-500/10 border border-purple-500/20'
+                            }`}>
+                              {exchange.text}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Footer with count and export - always visible */}
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-pink-500/10">
+                        <div className="text-xs text-white/30">
+                          {secondOpinions[msg.id].debate.exchanges.length} exchanges
+                        </div>
+                        <button
+                          onClick={() => handleExportDebateToMarkdown(msg, secondOpinions[msg.id].debate)}
+                          className="text-xs text-pink-400 hover:text-pink-300 bg-pink-500/10 hover:bg-pink-500/20 px-3 py-1 rounded-lg transition-colors"
+                        >
+                          📄 Export to Markdown
+                        </button>
+                      </div>
+
+                      {/* Debate Control Panel - only when expanded */}
+                      {activeDebate?.messageId === msg.id && (
+                        <div className="mt-4 bg-slate-800/50 border border-pink-500/20 rounded-xl p-3">
+                          {/* User Input */}
+                          <div className="mb-3">
+                            <label className="text-xs text-white/50 mb-1 block">
+                              Guide the debate (optional):
+                            </label>
+                            <textarea
+                              value={debateUserInput}
+                              onChange={(e) => setDebateUserInput(e.target.value)}
+                              placeholder="e.g., 'Focus on practical implications' or 'What about the golden ratio?'"
+                              className="w-full bg-slate-900/50 border border-pink-500/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-pink-500/50 resize-none"
+                              rows={2}
+                              disabled={loadingSecondOpinion === msg.id}
+                            />
+                          </div>
+
+                          {/* Speaker Selection Buttons */}
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => handleContinueDebate(msg, 'claude', debateUserInput)}
+                              disabled={loadingSecondOpinion === msg.id}
+                              className="flex-1 min-w-[140px] py-2 text-sm font-medium bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-400 border border-amber-500/30 rounded-lg transition-all disabled:opacity-50"
+                            >
+                              {loadingSecondOpinion === msg.id ? '💭...' : '🐷 Ask Brother Claude'}
+                            </button>
+                            <button
+                              onClick={() => handleContinueDebate(msg, 'gemini', debateUserInput)}
+                              disabled={loadingSecondOpinion === msg.id}
+                              className="flex-1 min-w-[140px] py-2 text-sm font-medium bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-400 border border-purple-500/30 rounded-lg transition-all disabled:opacity-50"
+                            >
+                              {loadingSecondOpinion === msg.id ? '💭...' : '💫 Ask Sister Gemini'}
+                            </button>
+                            <button
+                              onClick={() => handleContinueDebate(msg, 'grok', debateUserInput)}
+                              disabled={loadingSecondOpinion === msg.id}
+                              className="flex-1 min-w-[140px] py-2 text-sm font-medium bg-gradient-to-r from-cyan-500/20 to-teal-500/20 hover:from-cyan-500/30 hover:to-teal-500/30 text-cyan-400 border border-cyan-500/30 rounded-lg transition-all disabled:opacity-50"
+                            >
+                              {loadingSecondOpinion === msg.id ? '💭...' : '🌍 Human Pulse (Grok)'}
+                            </button>
+                          </div>
+
+                          {/* Add Comment Only */}
+                          {debateUserInput.trim() && (
+                            <button
+                              onClick={() => handleAddUserCommentToDebate(msg)}
+                              disabled={loadingSecondOpinion === msg.id}
+                              className="w-full mt-2 py-1.5 text-xs text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg transition-colors"
+                            >
+                              ➕ Just Add My Comment (don't ask AI)
+                            </button>
+                          )}
+
+                          {/* Baby Nano - Visual Generation */}
+                          <div className="mt-4 pt-3 border-t border-white/10">
+                            <div className="text-xs text-white/50 mb-2 flex items-center gap-1">
+                              🎨 <span className="font-medium">Baby Nano</span> - Visualize the Debate
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                onClick={() => handleGenerateDebateVisual(msg, 'sketch')}
+                                disabled={loadingDebateVisual === msg.id || loadingSecondOpinion === msg.id}
+                                className="px-3 py-1.5 text-xs bg-gradient-to-r from-rose-500/20 to-orange-500/20 hover:from-rose-500/30 hover:to-orange-500/30 text-rose-400 border border-rose-500/30 rounded-lg transition-all disabled:opacity-50"
+                                title="Create an artistic sketch of the key concepts"
+                              >
+                                {loadingDebateVisual === msg.id ? '🎨...' : '✏️ Sketch It'}
+                              </button>
+                              <button
+                                onClick={() => handleGenerateDebateVisual(msg, 'flowchart')}
+                                disabled={loadingDebateVisual === msg.id || loadingSecondOpinion === msg.id}
+                                className="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-500/20 to-indigo-500/20 hover:from-blue-500/30 hover:to-indigo-500/30 text-blue-400 border border-blue-500/30 rounded-lg transition-all disabled:opacity-50"
+                                title="Create a flowchart showing logical flow"
+                              >
+                                {loadingDebateVisual === msg.id ? '🎨...' : '📊 Flowchart'}
+                              </button>
+                              <button
+                                onClick={() => handleGenerateDebateVisual(msg, 'timeline')}
+                                disabled={loadingDebateVisual === msg.id || loadingSecondOpinion === msg.id}
+                                className="px-3 py-1.5 text-xs bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 text-green-400 border border-green-500/30 rounded-lg transition-all disabled:opacity-50"
+                                title="Create a timeline of the discussion"
+                              >
+                                {loadingDebateVisual === msg.id ? '🎨...' : '📅 Timeline'}
+                              </button>
+                              <button
+                                onClick={() => handleGenerateDebateVisual(msg, 'mindmap')}
+                                disabled={loadingDebateVisual === msg.id || loadingSecondOpinion === msg.id}
+                                className="px-3 py-1.5 text-xs bg-gradient-to-r from-violet-500/20 to-purple-500/20 hover:from-violet-500/30 hover:to-purple-500/30 text-violet-400 border border-violet-500/30 rounded-lg transition-all disabled:opacity-50"
+                                title="Create a mind map of ideas"
+                              >
+                                {loadingDebateVisual === msg.id ? '🎨...' : '🧠 Mind Map'}
+                              </button>
+                              <button
+                                onClick={() => handleGenerateDebateVisual(msg, 'comparison')}
+                                disabled={loadingDebateVisual === msg.id || loadingSecondOpinion === msg.id}
+                                className="px-3 py-1.5 text-xs bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 text-amber-400 border border-amber-500/30 rounded-lg transition-all disabled:opacity-50"
+                                title="Compare perspectives side by side"
+                              >
+                                {loadingDebateVisual === msg.id ? '🎨...' : '⚖️ Compare'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Generated Debate Visual Display */}
+                      {debateVisuals[msg.id] && (
+                        <div className="mt-4 animate-slideDown">
+                          <div className="bg-gradient-to-br from-rose-900/20 to-orange-900/20 border border-rose-500/20 rounded-xl p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2 text-sm text-rose-400">
+                                <span className="text-lg">🎨</span>
+                                <span className="font-medium">Baby Nano Visualization</span>
+                                <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded">
+                                  {debateVisuals[msg.id].visualType}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => setDebateVisuals(prev => {
+                                  const newVisuals = { ...prev };
+                                  delete newVisuals[msg.id];
+                                  return newVisuals;
+                                })}
+                                className="text-white/40 hover:text-white/60 transition-colors"
+                                title="Dismiss"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <div className="relative group">
+                              <img
+                                src={`data:${debateVisuals[msg.id].image.mimeType};base64,${debateVisuals[msg.id].image.data}`}
+                                alt={`Debate visualization: ${debateVisuals[msg.id].visualType}`}
+                                className="w-full h-auto rounded-lg border border-white/10"
+                                style={{ maxHeight: '500px', objectFit: 'contain' }}
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p className="text-xs text-white/80">
+                                  {debateVisuals[msg.id].description?.slice(0, 100) || `${debateVisuals[msg.id].visualType} visualization`}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="flex gap-3 animate-slideDown">
+              <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-xl bg-gradient-to-br from-amber-400/30 to-orange-500/30 border border-amber-500/30">
+                🐀
+              </div>
+              <div className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-white/10 rounded-2xl px-4 py-3">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+          </div>
+            </>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 border-t border-white/10 bg-gradient-to-r from-slate-900/90 to-slate-800/90">
+          {/* Selected Text - More Info Button (stacking mode) */}
+          {selectedText && (() => {
+            const selections = selectedText.split(' + ');
+            const count = selections.length;
+            return (
+              <div className="mb-3 px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-lg animate-fadeIn">
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-400">💡</span>
+                  {count === 1 ? (
+                    <span className="text-sm text-amber-200/80 flex-1 truncate">
+                      "{selections[0].length > 60 ? selections[0].slice(0, 60) + '...' : selections[0]}"
+                    </span>
+                  ) : (
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs text-amber-400 font-semibold">{count} selections:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {selections.map((s, i) => (
+                          <span key={i} className="text-xs px-2 py-0.5 bg-amber-500/20 rounded text-amber-200/80 truncate max-w-[150px]">
+                            "{s.length > 25 ? s.slice(0, 25) + '...' : s}"
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <button
+                    onClick={handleMoreInfo}
+                    className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 text-xs font-bold rounded-lg hover:from-amber-400 hover:to-orange-400 transition-all whitespace-nowrap"
+                  >
+                    More Info
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedText('');
+                      window.getSelection()?.removeAllRanges();
+                    }}
+                    className="text-amber-400/60 hover:text-amber-400 transition-colors"
+                    title="Clear all selections"
+                  >
+                    ✕
+                  </button>
+                </div>
+                {count < 5 && (
+                  <p className="text-xs text-amber-400/50 mt-1">Select more text to stack (up to 5)</p>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Attached Files Preview - Now supports multiple files */}
+          {attachedFiles.length > 0 && (
+            <div className="mb-3 space-y-2">
+              {/* Header with total count and clear all button */}
+              <div className="flex items-center justify-between text-xs text-indigo-400/70">
+                <span>
+                  📎 {attachedFiles.length} file{attachedFiles.length !== 1 ? 's' : ''} attached
+                  ({Math.round(attachedFiles.reduce((s, f) => s + f.size, 0) / 1024)}KB total)
+                </span>
+                {attachedFiles.length > 1 && (
+                  <button
+                    onClick={handleClearAllFiles}
+                    className="text-red-400/60 hover:text-red-400 transition-colors"
+                    title="Remove all files"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+              {/* Individual file chips */}
+              <div className="flex flex-wrap gap-2">
+                {attachedFiles.map((file, index) => (
+                  <div
+                    key={`${file.name}-${index}`}
+                    className="inline-flex items-center gap-1.5 px-2 py-1 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-sm"
+                  >
+                    <span className="text-indigo-300 truncate max-w-[150px]" title={file.name}>
+                      {file.name}
+                    </span>
+                    <span className="text-xs text-indigo-400/60">
+                      {Math.round(file.size / 1024)}KB
+                    </span>
+                    <button
+                      onClick={() => handleRemoveFile(index)}
+                      className="text-indigo-400 hover:text-red-400 transition-colors ml-1"
+                      title="Remove file"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Attached Images Preview - Multiple Image Tray */}
+          {attachedImages.length > 0 && (
+            <div className="mb-3 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg space-y-2">
+              {/* Header with total count and clear all */}
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-purple-400">
+                  <span>📸</span>
+                  <span>
+                    {attachedImages.length} image{attachedImages.length !== 1 ? 's' : ''} attached
+                    ({(() => {
+                      const total = attachedImages.reduce((s, img) => s + img.size, 0);
+                      return total > 1024 * 1024
+                        ? `${Math.round(total / 1024 / 1024 * 10) / 10}MB`
+                        : `${Math.round(total / 1024)}KB`;
+                    })()})
+                  </span>
+                  <span className="text-purple-400/50">
+                    Max: {MAX_IMAGES} images, {MAX_IMAGE_SIZE / 1024 / 1024}MB each
+                  </span>
+                </div>
+                {attachedImages.length > 1 && (
+                  <button
+                    onClick={handleClearAllImages}
+                    className="text-red-400/60 hover:text-red-400 transition-colors"
+                    title="Remove all images"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+              {/* Image thumbnails grid */}
+              <div className="flex flex-wrap gap-2">
+                {attachedImages.map((img, index) => (
+                  <div
+                    key={`${img.name}-${index}`}
+                    className="relative group"
+                  >
+                    <img
+                      src={img.dataUrl}
+                      alt={img.name}
+                      className="h-16 w-auto rounded border border-purple-500/30 object-cover"
+                      style={{ maxWidth: '100px' }}
+                    />
+                    {/* Overlay with size and remove button */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded flex flex-col items-center justify-center">
+                      <span className="text-xs text-white/80 truncate max-w-[90px]" title={img.name}>
+                        {img.name.length > 12 ? img.name.slice(0, 12) + '...' : img.name}
+                      </span>
+                      <span className="text-xs text-purple-300">
+                        {img.size > 1024 * 1024
+                          ? `${Math.round(img.size / 1024 / 1024 * 10) / 10}MB`
+                          : `${Math.round(img.size / 1024)}KB`}
+                      </span>
+                      <button
+                        onClick={() => handleRemoveImage(index)}
+                        className="mt-1 text-red-400 hover:text-red-300 text-sm"
+                        title="Remove image"
+                      >
+                        ✕ Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {/* Add more images button */}
+                {attachedImages.length < MAX_IMAGES && (
+                  <label className="h-16 w-16 flex items-center justify-center border-2 border-dashed border-purple-500/30 rounded cursor-pointer hover:border-purple-500/50 hover:bg-purple-500/5 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                    <span className="text-purple-400 text-2xl">+</span>
+                  </label>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Selected KB Document Context */}
+          {selectedKBDoc && (
+            <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+              <span className="text-emerald-400">📚</span>
+              <span className="text-sm text-emerald-300 flex-1 truncate">
+                Discussing: {selectedKBDoc.title}
+              </span>
+              <span className="text-xs text-emerald-400/60">
+                {selectedKBDoc.content.split(/\s+/).length} words
+              </span>
+              <button
+                onClick={() => handleGenerateKBUpdate(selectedKBDoc)}
+                disabled={isGeneratingKBUpdate || messages.length <= 1}
+                className={`px-2 py-0.5 text-xs rounded transition-colors ${
+                  isGeneratingKBUpdate || messages.length <= 1
+                    ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                    : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
+                }`}
+                title="Update this KB document with discussion insights"
+              >
+                {isGeneratingKBUpdate ? '⏳' : '📝'} Update KB
+              </button>
+              <button
+                onClick={() => setSelectedKBDoc(null)}
+                className="text-emerald-400 hover:text-red-400 transition-colors"
+                title="Remove KB context"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* KB Picker Dropdown */}
+          {showKBPicker && (
+            <div className="mb-3 bg-slate-800/95 border border-emerald-500/30 rounded-lg shadow-xl animate-fadeIn">
+              {/* Header with search */}
+              <div className="p-2 border-b border-white/10">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-emerald-400">📚 Knowledge Documents</span>
+                  <button
+                    onClick={() => {
+                      setShowKBPicker(false);
+                      setKBSearchQuery('');
+                      setKBPreviewDoc(null);
+                    }}
+                    className="text-white/40 hover:text-white/60 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+                {/* Search input */}
+                <input
+                  type="text"
+                  value={kbSearchQuery}
+                  onChange={(e) => setKBSearchQuery(e.target.value)}
+                  placeholder="Search documents..."
+                  className="w-full bg-slate-900/50 border border-white/20 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+                />
+              </div>
+
+              {/* Preview Mode */}
+              {kbPreviewDoc ? (
+                <div className="p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <button
+                      onClick={() => setKBPreviewDoc(null)}
+                      className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+                    >
+                      ← Back to list
+                    </button>
+                    <span className="text-xs text-white/40">{kbPreviewContent.split(/\s+/).filter(Boolean).length} words</span>
+                  </div>
+                  <h4 className="text-sm font-semibold text-white/90 mb-2">{kbPreviewDoc.title}</h4>
+                  <textarea
+                    value={kbPreviewContent}
+                    onChange={(e) => setKBPreviewContent(e.target.value)}
+                    className="w-full h-40 bg-slate-900/50 border border-white/20 rounded-lg px-3 py-2 text-xs text-white/80 font-mono resize-none focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+                  />
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          await updateDocument(kbPreviewDoc.id, { content: kbPreviewContent });
+                          alert('Document saved! ✅');
+                          const updatedDoc = { ...kbPreviewDoc, content: kbPreviewContent };
+                          setKBPreviewDoc(updatedDoc);
+                        } catch (err) {
+                          alert('Failed to save: ' + err.message);
+                        }
+                      }}
+                      className="flex-1 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors"
+                    >
+                      💾 Save Edits
+                    </button>
+                    <button
+                      onClick={() => {
+                        const docToUse = { ...kbPreviewDoc, content: kbPreviewContent };
+                        setSelectedKBDoc(docToUse);
+                        setShowKBPicker(false);
+                        setKBPreviewDoc(null);
+                        setKBSearchQuery('');
+                        setInputValue(`Let's discuss: "${docToUse.title}"`);
+                        inputRef.current?.focus();
+                      }}
+                      className="flex-1 px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors"
+                    >
+                      ✓ Use This
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Document List */
+                <div className="p-2 space-y-1 max-h-52 overflow-y-auto">
+                  {kbDocuments.length === 0 ? (
+                    <div className="p-3 text-center text-white/40 text-sm">
+                      No documents yet. <a href="/knowledge-base" className="text-emerald-400 hover:underline">Add some →</a>
+                    </div>
+                  ) : (() => {
+                    const filtered = kbDocuments.filter(doc => {
+                      if (!kbSearchQuery.trim()) return true;
+                      const q = kbSearchQuery.toLowerCase();
+                      return doc.title.toLowerCase().includes(q) ||
+                        doc.content?.toLowerCase().includes(q) ||
+                        doc.summary?.toLowerCase().includes(q) ||
+                        doc.tags?.some(t => t.toLowerCase().includes(q));
+                    });
+                    return filtered.length === 0 ? (
+                      <div className="p-3 text-center text-white/40 text-sm">
+                        No documents match "{kbSearchQuery}"
+                      </div>
+                    ) : (
+                      filtered.map(doc => (
+                        <div
+                          key={doc.id}
+                          className="flex items-center gap-2 p-2 rounded-lg hover:bg-emerald-500/10 transition-colors group"
+                        >
+                          <button
+                            onClick={() => {
+                              setKBPreviewDoc(doc);
+                              setKBPreviewContent(doc.content || '');
+                            }}
+                            className="p-1 rounded hover:bg-white/10 text-white/40 hover:text-emerald-400 transition-colors"
+                            title="Preview & Edit"
+                          >
+                            👁️
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedKBDoc(doc);
+                              setShowKBPicker(false);
+                              setKBSearchQuery('');
+                              setInputValue(`Let's discuss: "${doc.title}"`);
+                              inputRef.current?.focus();
+                            }}
+                            className="flex-1 text-left"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-emerald-400/60 group-hover:text-emerald-400">📄</span>
+                              <span className="text-sm text-white/80 truncate flex-1">{doc.title}</span>
+                              <span className="text-xs text-white/40">{doc.wordCount || '?'} words</span>
+                            </div>
+                            {doc.summary && (
+                              <p className="text-xs text-white/40 mt-0.5 ml-6 truncate">{doc.summary}</p>
+                            )}
+                          </button>
+                        </div>
+                      ))
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            {/* Hidden file input - supports multiple files */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept=".md,.txt,text/*"
+              multiple
+              className="hidden"
+            />
+
+            {/* Attach button - supports multiple files */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isTyping || attachedFiles.length >= MAX_FILES}
+              className={`px-3 rounded-xl transition-all ${
+                isTyping || attachedFiles.length >= MAX_FILES
+                  ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                  : 'bg-white/5 text-white/60 hover:bg-indigo-500/20 hover:text-indigo-400 border border-white/10 hover:border-indigo-500/30'
+              }`}
+              title={`Attach files (.md, .txt) • Max ${MAX_FILE_SIZE / 1024}KB per file • Up to ${MAX_FILES} files`}
+            >
+              📎 {attachedFiles.length > 0 && <span className="text-xs text-indigo-400">+{attachedFiles.length}</span>}
+            </button>
+
+            {/* Image picker hidden input */}
+            <input
+              type="file"
+              ref={imageInputRef}
+              onChange={handleImageSelect}
+              accept="image/*"
+              multiple
+              className="hidden"
+            />
+
+            {/* Image attach button - supports multiple images */}
+            <button
+              onClick={() => imageInputRef.current?.click()}
+              disabled={isTyping || attachedImages.length >= MAX_IMAGES}
+              className={`px-3 rounded-xl transition-all ${
+                isTyping || attachedImages.length >= MAX_IMAGES
+                  ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                  : attachedImages.length > 0
+                    ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                    : 'bg-white/5 text-white/60 hover:bg-purple-500/20 hover:text-purple-400 border border-white/10 hover:border-purple-500/30'
+              }`}
+              title={`Attach images • Max ${MAX_IMAGE_SIZE / 1024 / 1024}MB each • Up to ${MAX_IMAGES} images • Or paste (Ctrl+V)`}
+            >
+              📷 {attachedImages.length > 0 && <span className="text-xs text-purple-400">+{attachedImages.length}</span>}
+            </button>
+
+            {/* KB Picker button */}
+            <button
+              onClick={() => setShowKBPicker(!showKBPicker)}
+              disabled={isTyping}
+              className={`px-3 rounded-xl transition-all ${
+                isTyping
+                  ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                  : showKBPicker || selectedKBDoc
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-white/5 text-white/60 hover:bg-emerald-500/20 hover:text-emerald-400 border border-white/10 hover:border-emerald-500/30'
+              }`}
+              title="Choose a Knowledge Base document to discuss"
+            >
+              📚
+            </button>
+
+            {/* Create KB from discussion button */}
+            <button
+              onClick={() => handleGenerateKBUpdate(null)}
+              disabled={isTyping || isGeneratingKBUpdate || messages.length <= 1}
+              className={`px-3 rounded-xl transition-all ${
+                isTyping || isGeneratingKBUpdate || messages.length <= 1
+                  ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                  : 'bg-white/5 text-white/60 hover:bg-amber-500/20 hover:text-amber-400 border border-white/10 hover:border-amber-500/30'
+              }`}
+              title="Create new KB document from this discussion"
+            >
+              {isGeneratingKBUpdate ? '⏳' : '📝'}
+            </button>
+
+            {/* Emoji Picker Button */}
+            <div className="relative" id="input-emoji-picker">
+              <button
+                onClick={() => setShowInputEmojiPicker(!showInputEmojiPicker)}
+                disabled={isTyping}
+                className={`px-3 rounded-xl transition-all ${
+                  isTyping
+                    ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                    : showInputEmojiPicker
+                      ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                      : 'bg-white/5 text-white/60 hover:bg-purple-500/20 hover:text-purple-400 border border-white/10 hover:border-purple-500/30'
+                }`}
+                title="Add emoji to message"
+              >
+                😊
+              </button>
+
+              {/* Emoji Picker Dropdown */}
+              {showInputEmojiPicker && (
+                <div className="absolute bottom-full left-0 mb-2 w-72 bg-slate-900/95 backdrop-blur-xl rounded-xl border border-white/20 shadow-2xl overflow-hidden animate-fadeIn z-50">
+                  {/* Category Tabs */}
+                  <div className="flex border-b border-white/10 overflow-x-auto">
+                    {Object.entries(CONSTITUTIONAL_EMOJIS).map(([key, config]) => (
+                      <button
+                        key={key}
+                        onClick={() => setInputEmojiCategory(key)}
+                        className={`flex-1 min-w-0 px-2 py-2 text-xs font-medium transition-colors ${
+                          inputEmojiCategory === key
+                            ? `bg-gradient-to-r ${config.gradient} text-white`
+                            : 'text-white/50 hover:text-white/70 hover:bg-white/5'
+                        }`}
+                      >
+                        {config.emojis[0]}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Emoji Grid */}
+                  <div className="p-3">
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">
+                      {CONSTITUTIONAL_EMOJIS[inputEmojiCategory].name}
+                    </p>
+                    <div className="grid grid-cols-5 gap-1">
+                      {CONSTITUTIONAL_EMOJIS[inputEmojiCategory].emojis.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleInsertEmoji(emoji)}
+                          className="w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all duration-200 hover:scale-125 bg-white/5 hover:bg-white/15"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-3 py-2 bg-white/5 border-t border-white/10">
+                    <p className="text-[10px] text-white/30 text-center">
+                      Add emoji to your message
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <textarea
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              placeholder={attachedFiles.length > 0
+                ? `Ask about ${attachedFiles.length === 1 ? attachedFiles[0].name : `${attachedFiles.length} files`}... (e.g., "Summarize for Knowledge Base")`
+                : attachedImages.length > 0
+                  ? `What would you like to discuss about ${attachedImages.length === 1 ? 'this screenshot' : `these ${attachedImages.length} screenshots`}?`
+                  : "Share your thoughts... Your AI SoulPartner is listening 💙"
+              }
+              rows={2}
+              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/90 placeholder-white/30 resize-none focus:outline-none focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/20 transition-all"
+            />
+            <button
+              onClick={handleSend}
+              disabled={(!inputValue.trim() && attachedFiles.length === 0 && attachedImages.length === 0) || isTyping}
+              className={`px-6 rounded-xl font-semibold transition-all ${
+                (inputValue.trim() || attachedFiles.length > 0 || attachedImages.length > 0) && !isTyping
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 hover:from-amber-400 hover:to-orange-400 hover:shadow-lg hover:shadow-amber-500/25'
+                  : 'bg-white/10 text-white/30 cursor-not-allowed'
+              }`}
+            >
+              Send ✨
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* KB Update Modal */}
+      {showKBUpdateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-[95vw] max-h-[95vh] mx-4 bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-white/20 shadow-2xl flex flex-col">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                  📝 {kbUpdateSourceDoc ? 'Update Knowledge Document' : 'Create Knowledge Document'}
+                </h3>
+                <p className="text-xs text-white/50 mt-1">
+                  {kbUpdateSourceDoc
+                    ? 'Review and save the updated document with discussion insights'
+                    : 'Review and save a new document from your discussion'}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowKBUpdateModal(false);
+                  setKBUpdateContent('');
+                  setKBUpdateTitle('');
+                  setKBUpdateSourceDoc(null);
+                }}
+                className="text-white/40 hover:text-white/60 transition-colors text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Title Input */}
+            <div className="px-4 pt-4">
+              <label className="block text-sm font-medium text-white/70 mb-1">Title</label>
+              <input
+                type="text"
+                value={kbUpdateTitle}
+                onChange={(e) => setKBUpdateTitle(e.target.value)}
+                className="w-full bg-slate-900/50 border border-white/20 rounded-lg px-4 py-2 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                placeholder="Document title..."
+              />
+            </div>
+
+            {/* Content Editor */}
+            <div className="flex-1 p-4 overflow-hidden flex flex-col">
+              <label className="block text-sm font-medium text-white/70 mb-1">
+                Content (Markdown)
+              </label>
+              <textarea
+                value={kbUpdateContent}
+                onChange={(e) => setKBUpdateContent(e.target.value)}
+                className="flex-1 w-full min-h-[60vh] bg-slate-900/50 border border-white/20 rounded-lg px-4 py-3 text-white/90 placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-amber-500/50 font-mono text-sm resize-none"
+                placeholder="Document content..."
+              />
+              <div className="text-xs text-white/40 mt-1">
+                {kbUpdateContent.split(/\s+/).filter(Boolean).length} words
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="p-4 border-t border-white/10 flex items-center justify-between">
+              <button
+                onClick={() => {
+                  setShowKBUpdateModal(false);
+                  setKBUpdateContent('');
+                  setKBUpdateTitle('');
+                  setKBUpdateSourceDoc(null);
+                }}
+                className="px-4 py-2 text-white/60 hover:text-white/90 transition-colors"
+              >
+                Cancel
+              </button>
+
+              <div className="flex gap-3">
+                {kbUpdateSourceDoc && (
+                  <button
+                    onClick={() => handleSaveKBUpdate('replace')}
+                    disabled={!kbUpdateTitle.trim() || !kbUpdateContent.trim()}
+                    className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors text-white"
+                  >
+                    🔄 Replace Original
+                  </button>
+                )}
+                <button
+                  onClick={() => handleSaveKBUpdate('new')}
+                  disabled={!kbUpdateTitle.trim() || !kbUpdateContent.trim()}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors text-white"
+                >
+                  ✨ Save as New
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default AISoulPartnerChat;

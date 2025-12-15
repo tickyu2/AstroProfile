@@ -13,8 +13,10 @@ import { calculateTenGods, getDayMaster, calculatePersonalityTraits, getTopTrait
 
 // Layout Components
 import ResultsHeader from './results/layout/ResultsHeader'
-import ProfileTitle from './results/layout/ProfileTitle'
 import CompatibilityCTA from './results/layout/CompatibilityCTA'
+
+// Tab Navigation
+import OverviewTab from './tabs/OverviewTab'
 
 // Panel Components
 import BirthDetailsPanel from './results/BirthDetailsPanel'
@@ -43,6 +45,12 @@ import { determineArchetypeFromFourPillars } from '../utils/archetypeMapper'
 import { generateSoulDNA, decodeSoulDNA } from '../utils/soulDNAEncoder'
 import SoulDNADisplay from './results/SoulDNADisplay'
 
+// 🌹 NEW! MBTI ROSE WINDOW - Notre-Dame Masterpiece
+import { MBTIRoseWindow } from './mbti'
+
+// ⭐ NEW! WESTERN ZODIAC 36-CUSP SYSTEM - Father Ticky's Model
+import { WesternZodiacSection } from './westernZodiac'
+
 export default function Results() {
     const { profileId } = useParams()
     const navigate = useNavigate()
@@ -60,6 +68,9 @@ export default function Results() {
     const [notesSaving, setNotesSaving] = useState(false)
     const [notesSaved, setNotesSaved] = useState(false)
     const notesRef = useRef(null)
+
+    // Tab navigation state
+    const [activeTab, setActiveTab] = useState('overview')
 
     const handleLogout = async () => {
         try {
@@ -273,164 +284,138 @@ export default function Results() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-            {/* Top Navigation */}
+            {/* Combined Header + Tabs - SESSION 5.3 OPTIMIZATION ✅ */}
             <ResultsHeader
                 currentUser={currentUser}
                 handleLogout={handleLogout}
                 handleRefresh={handleRefresh}
                 refreshing={refreshing}
                 profileId={profileId}
+                profile={profile}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
             />
 
-            {/* Main Content */}
-            <div className="max-w-6xl mx-auto px-4 py-8">
-                {/* Profile Header */}
-                <ProfileTitle profile={profile} />
-
-                {/* Panels Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    {/* Panel 1: Birth Details */}
-                    <BirthDetailsPanel
-                        profile={profile}
-                        age={age}
-                    />
-
-                    {/* Panel 2: Year Pillar (Chinese Zodiac) */}
-                    <YearPillarPanel
+            {/* Tab Content */}
+            <div className="min-h-screen">
+                {/* Overview Tab */}
+                {activeTab === 'overview' && (
+                    <OverviewTab
                         profile={profile}
                         chinese={chinese}
-                        zodiacProfile={zodiacProfile}
-                    />
-
-                    {/* Panel 3: Western Astrology */}
-                    <WesternAstrologyPanel
                         westZodiac={westZodiac}
-                    />
-
-                    {/* Panel 4: Planetary Ruler */}
-                    <PlanetaryRulerPanel
-                        dayInfo={dayInfo}
-                    />
-
-                    {/* Panel 5: Yin/Yang Balance */}
-                    <YinYangPanel
-                        profile={profile}
-                        yinYangData={yinYangData}
-                    />
-
-                    {/* Panel 6: The 7 Constitutional Battles */}
-                    <SevenBattlesPanel
-                        profile={profile}
-                        yinYang={yinYangData}
-                    />
-
-                    {/* Panel 7: Numerology */}
-                    <NumerologyPanel
                         numerology={numerology}
+                        fourPillars={fourPillars}
+                        archetype={archetype}
+                        onNavigateToTab={setActiveTab}
                     />
+                )}
 
-                    {/* Panel 8: MBTI Personality */}
-                    <MBTIPanel
-                        mbti={profile.mbti}
-                        profile={profile}
-                    />
+                {/* BaZi Tab - FULL SACRED SPACE */}
+                {activeTab === 'bazi' && (
+                    <div className="max-w-6xl mx-auto px-4 py-8">
+                        <div className="space-y-6">
+                            {/* BaZi Complete Panel */}
+                            {profile.birthDate && profile.birthTime && (
+                                <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 p-1 rounded-2xl">
+                                    <BaZiPanel
+                                        birthDate={new Date(profile.birthDate)}
+                                        birthTime={profile.birthTime}
+                                        locationData={profile.locationData}
+                                    />
+                                </div>
+                            )}
 
-                    {/* Panel 9: Big 5 Personality (OCEAN) */}
-                    <Big5Panel
-                        big5={profile.big5}
-                        profile={profile}
-                    />
-
-                    {/* Panel 10: Four Pillars - Old Version (Optional - can be removed later) */}
-                    {fourPillars && (
-                        <div className="lg:col-span-2">
-                            <FourPillarsPanel
+                            {/* Year Pillar (Chinese Zodiac) */}
+                            <YearPillarPanel
                                 profile={profile}
-                                fourPillars={{
-                                    year: fourPillars.pillars.year,
-                                    month: fourPillars.pillars.month,
-                                    day: fourPillars.pillars.day,
-                                    hour: fourPillars.pillars.hour,
-                                    elementBalance: fourPillars.elementalBalance?.elements || {},
-                                    yinYangBalance: {
-                                        yin: fourPillars.yinYangBalance?.yinPercentage || 0,
-                                        yang: fourPillars.yinYangBalance?.yangPercentage || 0
-                                    }
-                                }}
+                                chinese={chinese}
+                                zodiacProfile={zodiacProfile}
+                            />
+
+                            {/* Archetype Panel */}
+                            {archetype && (
+                                <ArchetypePanel
+                                    archetype={archetype}
+                                    profile={profile}
+                                />
+                            )}
+
+                            {/* Ten Gods Analysis */}
+                            <TenGodsPanel
+                                tenGods={tenGods}
+                                dayMaster={dayMaster}
+                                profile={profile}
+                                personalityTraits={personalityTraits}
+                                topTraits={topTraits}
+                            />
+
+                            {/* SoulDNA Display */}
+                            {soulDNA && (
+                                <SoulDNADisplay
+                                    soulDNA={soulDNA}
+                                    decodedDNA={decodedDNA}
+                                />
+                            )}
+
+                            {/* Yin/Yang Balance */}
+                            <YinYangPanel
+                                profile={profile}
+                                yinYangData={yinYangData}
+                            />
+
+                            {/* Seven Battles */}
+                            <SevenBattlesPanel
+                                profile={profile}
+                                yinYang={yinYangData}
                             />
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {/* 🔥 NEW! Panel 11: COMPLETE BAZI PANEL - FULL WIDTH! */}
-                    {profile.birthDate && profile.birthTime && (
-                        <div className="lg:col-span-2">
-                            <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 p-1 rounded-2xl">
-                                <BaZiPanel
-                                    birthDate={new Date(profile.birthDate)}
-                                    birthTime={profile.birthTime}
-                                    locationData={profile.locationData}
+                {/* MBTI Tab - ROSE WINDOW SACRED SPACE ✨ */}
+                {activeTab === 'mbti' && (
+                    <div className="w-full">
+                        <MBTIRoseWindow profile={profile} />
+                    </div>
+                )}
+
+                {/* Western Tab */}
+                {activeTab === 'western' && (
+                    <div className="max-w-6xl mx-auto px-4 py-8">
+                        <div className="space-y-6">
+                            {/* ⭐ NEW! Western Zodiac 36-Cusp System */}
+                            <WesternZodiacSection birthDate={profile.birthDate} userName={profile.displayName || profile.firstName} />
+
+                            {/* Existing Western Panels */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <BirthDetailsPanel
+                                    profile={profile}
+                                    age={age}
+                                />
+                                <WesternAstrologyPanel
+                                    westZodiac={westZodiac}
+                                />
+                                <PlanetaryRulerPanel
+                                    dayInfo={dayInfo}
                                 />
                             </div>
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {/* 🎭 NEW! Panel 12: PERSONALITY ARCHETYPE - FULL WIDTH! */}
-                    {archetype && (
-                        <div className="lg:col-span-2">
-                            <ArchetypePanel
-                                archetype={archetype}
-                                profile={profile}
-                            />
-                        </div>
-                    )}
-
-                    {/* 🧬 NEW! Panel 13: SOULDNA CODE - FULL WIDTH! */}
-                    {soulDNA && (
-                        <div className="lg:col-span-2">
-                            <SoulDNADisplay
-                                soulDNA={soulDNA}
-                                decodedDNA={decodedDNA}
-                            />
-                        </div>
-                    )}
-
-                    {/* 🔥 NEW! Panel 14: TEN GODS (十神) ANALYSIS - FULL WIDTH! */}
-                    <div className="lg:col-span-2">
-                        <TenGodsPanel
-                            tenGods={tenGods}
-                            dayMaster={dayMaster}
-                            profile={profile}
-                            personalityTraits={personalityTraits}
-                            topTraits={topTraits}
+                {/* Numerology Tab */}
+                {activeTab === 'numerology' && (
+                    <div className="max-w-6xl mx-auto px-4 py-8">
+                        <NumerologyPanel
+                            numerology={numerology}
                         />
                     </div>
+                )}
+            </div>
 
-                    {/* TEMPORARILY DISABLED - OLD PANEL WITH CALCULATION ERRORS
-                    Panel 12: Seasonal Strength Panel - FULL WIDTH!
-                    {fourPillarsForDebug && (
-                        <div className="lg:col-span-2">
-                            <SeasonalStrengthPanel
-                                fourPillars={fourPillarsForDebug}
-                                profile={profile}
-                            />
-                        </div>
-                    )}
-                    */}
-
-                    {/* TEMPORARILY DISABLED - OLD DEBUG PANEL
-                    Panel 13: Seasonal Debug Panel - FULL WIDTH! (Can be hidden in production)
-                    {fourPillarsForDebug && process.env.NODE_ENV === 'development' && (
-                        <div className="lg:col-span-2">
-                            <SeasonalDebugPanel
-                                fourPillars={fourPillarsForDebug}
-                                profile={profile}
-                            />
-                        </div>
-                    )}
-                    */}
-                </div>
-
-                {/* Notes Section */}
+            {/* Notes Section - Always Visible at Bottom */}
+            <div className="max-w-6xl mx-auto px-4 pb-8">
                 <NotesPanel
                     profile={profile}
                     notes={notes}

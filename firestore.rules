@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Profiles collection - users can only access their own profiles
+    match /profiles/{profileId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Knowledge Base collection - users can only access their own documents
+    match /knowledgeBase/{docId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Conversations collection - AI SoulPartner chat threads
+    match /conversations/{conversationId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+
+      // Constitutional Threading - threads subcollection
+      match /threads/{threadId} {
+        allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+        allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+
+        // Thread messages subcollection
+        match /messages/{messageId} {
+          allow read, write: if request.auth != null;
+        }
+      }
+    }
+
+    // Constitutional Profiles - Session Intelligence learned patterns
+    // Document ID is the userId, so users can only access their own profile
+    match /constitutionalProfiles/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false; // Prevent accidental deletion of learned patterns
+    }
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

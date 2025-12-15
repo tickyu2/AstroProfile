@@ -34,49 +34,18 @@ export function calculateAge(birthDate) {
 }
 
 // ============================================
-// CHINESE ZODIAC CALCULATION
+// CHINESE ZODIAC CALCULATION - UPDATED!
 // ============================================
+// NOW USES MATHEMATICAL CALCULATION (Grok's algorithm)
+// Accurate from 1600-2200+ with proper Lunar New Year boundaries
+import { getChineseZodiacLegacy } from './chineseZodiacMathematical'
+
 export function getChineseZodiac(birthDate) {
-    const birth = parseLocalDate(birthDate)
-    const year = birth.getFullYear()
-
-    // Chinese zodiac animals (12-year cycle starting from 1900 = Rat)
-    const animals = [
-        'Rat', 'Ox', 'Tiger', 'Rabbit', 'Dragon', 'Snake',
-        'Horse', 'Goat', 'Monkey', 'Rooster', 'Dog', 'Pig'
-    ]
-
-    // Elements (5-year cycle)
-    const elements = ['Metal', 'Water', 'Wood', 'Fire', 'Earth']
-
-    // Chinese New Year dates (approximate - Feb 4th for simplicity in Phase 1)
-    const month = birth.getMonth() + 1
-    const day = birth.getDate()
-
-    // If before Feb 4, use previous year
-    let chineseYear = year
-    if (month === 1 || (month === 2 && day < 4)) {
-        chineseYear--
-    }
-
-    // Calculate animal (1900 is Year of Rat, index 0)
-    const animalIndex = (chineseYear - 1900) % 12
-    const animal = animals[animalIndex]
-
-    // Calculate element (Metal starts at 0, 1)
-    const elementIndex = Math.floor(((chineseYear - 1900) % 10) / 2)
-    const element = elements[elementIndex]
-
-    // Determine Yin/Yang for animal (even years = Yang, odd = Yin in zodiac order)
-    const animalYinYang = animalIndex % 2 === 0 ? 'Yang' : 'Yin'
-
-    return {
-        animal,
-        element,
-        year: chineseYear,
-        animalYinYang,
-        fullSign: `${element} ${animal}`
-    }
+    const result = getChineseZodiacLegacy(birthDate);
+    console.log('🔍 [calculations.js getChineseZodiac] birthDate:', birthDate);
+    console.log('🔍 [calculations.js getChineseZodiac] result:', result);
+    console.log('🔍 [calculations.js getChineseZodiac] bornBeforeLiChun:', result.bornBeforeLiChun);
+    return result;
 }
 
 // ============================================

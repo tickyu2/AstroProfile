@@ -1,0 +1,1172 @@
+{
+  "version": "2.0",
+  "model": "Father Ticky's 6-6 Cusp System",
+  "totalPositions": 36,
+  "description": "12 signs × 3 divisions (Blend-Back, Pure, Blend-Forward). Each blend has the PRIMARY sign dominant with secondary influence.",
+  "positions": [
+    {
+      "id": "aries-blend-back",
+      "name": "Aries with Pisces Echo",
+      "archetype": "The Intuitive Warrior",
+      "emoji": "🔥🌊",
+      "sign": "Aries",
+      "influencedBy": "Pisces",
+      "type": "blend-back",
+      "dateRange": { "start": "03-21", "end": "03-26" },
+      "element": { "primary": "Fire", "secondary": "Water", "mix": "Steam Rising" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Mars", "Neptune"],
+      "characteristics": [
+        "Aries courage softened by Pisces intuition",
+        "Action guided by inner knowing",
+        "Compassionate warrior energy",
+        "Dreams fuel the fire",
+        "Sensitive yet assertive"
+      ],
+      "strengths": [
+        "Intuitive decision-making",
+        "Empathetic leadership",
+        "Creative courage",
+        "Can sense timing for action",
+        "Bridges spiritual and physical"
+      ],
+      "challenges": [
+        "May hesitate when intuition conflicts with impulse",
+        "Emotional sensitivity can feel like weakness",
+        "Dreams vs action internal conflict"
+      ]
+    },
+    {
+      "id": "aries-pure",
+      "name": "Pure Aries",
+      "archetype": "The Primal Warrior",
+      "emoji": "🔥⚔️",
+      "sign": "Aries",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "03-27", "end": "04-13" },
+      "element": { "primary": "Fire", "secondary": null, "mix": "Pure Fire" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Mars"],
+      "characteristics": [
+        "Undiluted Aries energy",
+        "Most aggressive and courageous",
+        "Pure pioneer spirit",
+        "Competitive to the core",
+        "Direct, honest, impulsive"
+      ],
+      "strengths": [
+        "Unstoppable courage",
+        "Natural leadership",
+        "Quick decision-making",
+        "High energy and enthusiasm",
+        "Pioneering innovation"
+      ],
+      "challenges": [
+        "Extreme impulsivity",
+        "Can be selfish/self-centered",
+        "Anger management issues",
+        "Lacks patience and tact"
+      ]
+    },
+    {
+      "id": "aries-blend-forward",
+      "name": "Aries with Taurus Pull",
+      "archetype": "The Grounded Pioneer",
+      "emoji": "🔥🌱",
+      "sign": "Aries",
+      "influencedBy": "Taurus",
+      "type": "blend-forward",
+      "dateRange": { "start": "04-14", "end": "04-19" },
+      "element": { "primary": "Fire", "secondary": "Earth", "mix": "Forge" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Mars", "Venus"],
+      "characteristics": [
+        "Aries drive anchored by Taurus stability",
+        "Action with endurance",
+        "Initiates AND finishes",
+        "Practical courage",
+        "Builds what they conquer"
+      ],
+      "strengths": [
+        "Determination with staying power",
+        "Can manifest visions materially",
+        "Physical courage + mental stability",
+        "Finishing power rare in Aries",
+        "Creates lasting value"
+      ],
+      "challenges": [
+        "Stubborn + impulsive = explosive",
+        "Can be materialistic in pursuit",
+        "Difficult to redirect once committed"
+      ]
+    },
+    {
+      "id": "taurus-blend-back",
+      "name": "Taurus with Aries Fire",
+      "archetype": "The Dynamic Builder",
+      "emoji": "🐂🔥",
+      "sign": "Taurus",
+      "influencedBy": "Aries",
+      "type": "blend-back",
+      "dateRange": { "start": "04-20", "end": "04-25" },
+      "element": { "primary": "Earth", "secondary": "Fire", "mix": "Volcanic Soil" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Venus", "Mars"],
+      "characteristics": [
+        "Taurus stability energized by Aries spark",
+        "Patient but can ignite when needed",
+        "Builds with passionate purpose",
+        "Earthy sensuality with fire",
+        "Steady yet dynamic"
+      ],
+      "strengths": [
+        "Combines patience with initiative",
+        "Can start AND sustain projects",
+        "Passionate about security",
+        "Physical vitality",
+        "Determined protector"
+      ],
+      "challenges": [
+        "Temper when pushed",
+        "Impatient with own natural pace",
+        "Fire-Earth internal friction"
+      ]
+    },
+    {
+      "id": "taurus-pure",
+      "name": "Pure Taurus",
+      "archetype": "The Sensual Builder",
+      "emoji": "🐂🌸",
+      "sign": "Taurus",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "04-26", "end": "05-14" },
+      "element": { "primary": "Earth", "secondary": null, "mix": "Pure Earth" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Venus"],
+      "characteristics": [
+        "Undiluted Earth energy",
+        "Most sensual and grounded",
+        "Deeply connected to physical world",
+        "Patient, reliable, steady",
+        "Builds slowly but permanently"
+      ],
+      "strengths": [
+        "Unshakeable stability",
+        "Practical wisdom",
+        "Incredible patience",
+        "Loyal and dependable",
+        "Financial acumen"
+      ],
+      "challenges": [
+        "Extreme stubbornness",
+        "Resistance to change",
+        "Can be lazy/complacent",
+        "Possessiveness"
+      ]
+    },
+    {
+      "id": "taurus-blend-forward",
+      "name": "Taurus with Gemini Breeze",
+      "archetype": "The Articulate Artisan",
+      "emoji": "🐂💨",
+      "sign": "Taurus",
+      "influencedBy": "Gemini",
+      "type": "blend-forward",
+      "dateRange": { "start": "05-15", "end": "05-20" },
+      "element": { "primary": "Earth", "secondary": "Air", "mix": "Dust Devil" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Venus", "Mercury"],
+      "characteristics": [
+        "Taurus groundedness with Gemini curiosity",
+        "Practical communicator",
+        "Earthy wit and charm",
+        "Reliable yet adaptable",
+        "Builds through conversation"
+      ],
+      "strengths": [
+        "Patient teacher",
+        "Practical intelligence",
+        "Persuasive communicator",
+        "Can make ideas tangible",
+        "Business-minded with people skills"
+      ],
+      "challenges": [
+        "Earth-Air friction (fixed vs changeable)",
+        "Can be calculating",
+        "Overthinks material concerns"
+      ]
+    },
+    {
+      "id": "gemini-blend-back",
+      "name": "Gemini with Taurus Roots",
+      "archetype": "The Grounded Communicator",
+      "emoji": "👯🌿",
+      "sign": "Gemini",
+      "influencedBy": "Taurus",
+      "type": "blend-back",
+      "dateRange": { "start": "05-21", "end": "05-26" },
+      "element": { "primary": "Air", "secondary": "Earth", "mix": "Mountain Air" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Mercury", "Venus"],
+      "characteristics": [
+        "Gemini versatility anchored by Taurus",
+        "Ideas with practical application",
+        "Curious but focused",
+        "Mental agility with follow-through",
+        "Communicates with substance"
+      ],
+      "strengths": [
+        "Combines breadth with depth",
+        "Ideas that manifest",
+        "Reliable versatility",
+        "Aesthetic communication",
+        "Can monetize ideas"
+      ],
+      "challenges": [
+        "Torn between exploring and settling",
+        "Practical concerns slow mental speed",
+        "May feel 'heavy' for a Gemini"
+      ]
+    },
+    {
+      "id": "gemini-pure",
+      "name": "Pure Gemini",
+      "archetype": "The Eternal Student",
+      "emoji": "👯📚",
+      "sign": "Gemini",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "05-27", "end": "06-14" },
+      "element": { "primary": "Air", "secondary": null, "mix": "Pure Air" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Mercury"],
+      "characteristics": [
+        "Undiluted Air energy",
+        "Most curious and versatile",
+        "Quick-witted and clever",
+        "Duality in everything (the Twins!)",
+        "Information gatherer"
+      ],
+      "strengths": [
+        "Brilliant communication",
+        "Fast learning ability",
+        "Adaptable to any situation",
+        "Entertaining and witty",
+        "Never boring"
+      ],
+      "challenges": [
+        "Superficiality",
+        "Scattered energy",
+        "Inconsistency",
+        "Difficulty with depth/commitment"
+      ]
+    },
+    {
+      "id": "gemini-blend-forward",
+      "name": "Gemini with Cancer Depth",
+      "archetype": "The Emotional Storyteller",
+      "emoji": "👯🌙",
+      "sign": "Gemini",
+      "influencedBy": "Cancer",
+      "type": "blend-forward",
+      "dateRange": { "start": "06-15", "end": "06-20" },
+      "element": { "primary": "Air", "secondary": "Water", "mix": "Mist" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Mercury", "Moon"],
+      "characteristics": [
+        "Gemini intellect with Cancer emotional depth",
+        "Articulate about feelings",
+        "Communicates from the heart",
+        "Nurturing through words",
+        "Family storyteller"
+      ],
+      "strengths": [
+        "Emotional intelligence + articulation",
+        "Empathetic communicator",
+        "Great counselor potential",
+        "Connects people emotionally",
+        "Persuasive through feeling"
+      ],
+      "challenges": [
+        "Air-Water conflict (detached vs emotional)",
+        "Mood swings affect communication",
+        "Overthinking emotional matters"
+      ]
+    },
+    {
+      "id": "cancer-blend-back",
+      "name": "Cancer with Gemini Wings",
+      "archetype": "The Curious Nurturer",
+      "emoji": "🦀💭",
+      "sign": "Cancer",
+      "influencedBy": "Gemini",
+      "type": "blend-back",
+      "dateRange": { "start": "06-21", "end": "06-26" },
+      "element": { "primary": "Water", "secondary": "Air", "mix": "Sea Spray" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Moon", "Mercury"],
+      "characteristics": [
+        "Cancer's emotional depth with Gemini curiosity",
+        "Nurtures through teaching",
+        "Emotionally intelligent communicator",
+        "Curious about family/roots",
+        "Adaptable caretaker"
+      ],
+      "strengths": [
+        "Can articulate emotions",
+        "Versatile in caregiving",
+        "Intellectually curious about feelings",
+        "Social nurturer",
+        "Bridges heart and mind"
+      ],
+      "challenges": [
+        "May intellectualize feelings too much",
+        "Scattered emotional focus",
+        "Torn between home and world"
+      ]
+    },
+    {
+      "id": "cancer-pure",
+      "name": "Pure Cancer",
+      "archetype": "The Divine Mother",
+      "emoji": "🦀🏡",
+      "sign": "Cancer",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "06-27", "end": "07-16" },
+      "element": { "primary": "Water", "secondary": null, "mix": "Pure Water" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Moon"],
+      "characteristics": [
+        "Undiluted Water energy",
+        "Most emotional and nurturing",
+        "Home and family focused",
+        "Deep intuition",
+        "Creates safe havens"
+      ],
+      "strengths": [
+        "Profound empathy",
+        "Nurturing instinct",
+        "Strong intuition",
+        "Loyal and devoted",
+        "Protective courage"
+      ],
+      "challenges": [
+        "Overly sensitive",
+        "Holds grudges indefinitely",
+        "Clingy and smothering",
+        "Mood swings from Moon cycles"
+      ]
+    },
+    {
+      "id": "cancer-blend-forward",
+      "name": "Cancer with Leo Warmth",
+      "archetype": "The Radiant Protector",
+      "emoji": "🦀👑",
+      "sign": "Cancer",
+      "influencedBy": "Leo",
+      "type": "blend-forward",
+      "dateRange": { "start": "07-17", "end": "07-22" },
+      "element": { "primary": "Water", "secondary": "Fire", "mix": "Hot Spring" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Moon", "Sun"],
+      "characteristics": [
+        "Cancer nurturing with Leo confidence",
+        "Warm and generous caretaker",
+        "Protective with flair",
+        "Dramatic emotional expression",
+        "Family pride"
+      ],
+      "strengths": [
+        "Combines caring with confidence",
+        "Magnetic warmth",
+        "Protective leadership",
+        "Generous and loyal",
+        "Inspires through caring"
+      ],
+      "challenges": [
+        "Water-Fire conflict (mood vs ego)",
+        "Emotionally demanding",
+        "Needs validation for nurturing"
+      ]
+    },
+    {
+      "id": "leo-blend-back",
+      "name": "Leo with Cancer Heart",
+      "archetype": "The Nurturing Sovereign",
+      "emoji": "🦁💙",
+      "sign": "Leo",
+      "influencedBy": "Cancer",
+      "type": "blend-back",
+      "dateRange": { "start": "07-23", "end": "07-28" },
+      "element": { "primary": "Fire", "secondary": "Water", "mix": "Steam Engine" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Sun", "Moon"],
+      "characteristics": [
+        "Leo confidence with Cancer sensitivity",
+        "Charisma with emotional depth",
+        "Leads with heart",
+        "Protective king/queen energy",
+        "Generous to inner circle"
+      ],
+      "strengths": [
+        "Leadership with empathy",
+        "Genuinely cares about subjects",
+        "Creative emotional expression",
+        "Loyal protector",
+        "Inspiring warmth"
+      ],
+      "challenges": [
+        "Pride + sensitivity = easily hurt ego",
+        "Dramatic emotional reactions",
+        "Needs constant reassurance"
+      ]
+    },
+    {
+      "id": "leo-pure",
+      "name": "Pure Leo",
+      "archetype": "The Radiant King/Queen",
+      "emoji": "🦁☀️",
+      "sign": "Leo",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "07-29", "end": "08-16" },
+      "element": { "primary": "Fire", "secondary": null, "mix": "Pure Fire" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Sun"],
+      "characteristics": [
+        "Undiluted Fire energy",
+        "Most confident and charismatic",
+        "Natural performer and leader",
+        "Creative self-expression",
+        "Loyal like a lion"
+      ],
+      "strengths": [
+        "Unshakeable confidence",
+        "Natural leadership presence",
+        "Generous and big-hearted",
+        "Creative and expressive",
+        "Inspires others"
+      ],
+      "challenges": [
+        "Excessive pride and ego",
+        "Needs constant admiration",
+        "Can be domineering",
+        "Can't handle criticism"
+      ]
+    },
+    {
+      "id": "leo-blend-forward",
+      "name": "Leo with Virgo Precision",
+      "archetype": "The Disciplined Performer",
+      "emoji": "🦁🎯",
+      "sign": "Leo",
+      "influencedBy": "Virgo",
+      "type": "blend-forward",
+      "dateRange": { "start": "08-17", "end": "08-22" },
+      "element": { "primary": "Fire", "secondary": "Earth", "mix": "Kiln" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Sun", "Mercury"],
+      "characteristics": [
+        "Leo charisma with Virgo attention to detail",
+        "Performs with precision",
+        "Creative perfectionist",
+        "Confident yet humble",
+        "Dignified work ethic"
+      ],
+      "strengths": [
+        "Flair with skill",
+        "Perfectionist performer",
+        "Humble confidence (rare!)",
+        "Analytical creativity",
+        "High standards in all things"
+      ],
+      "challenges": [
+        "Fire-Earth conflict (expression vs restraint)",
+        "Overly critical of performances",
+        "Perfectionism paralyzes creativity"
+      ]
+    },
+    {
+      "id": "virgo-blend-back",
+      "name": "Virgo with Leo Confidence",
+      "archetype": "The Confident Analyst",
+      "emoji": "🌾👑",
+      "sign": "Virgo",
+      "influencedBy": "Leo",
+      "type": "blend-back",
+      "dateRange": { "start": "08-23", "end": "08-28" },
+      "element": { "primary": "Earth", "secondary": "Fire", "mix": "Sunbaked Earth" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Mercury", "Sun"],
+      "characteristics": [
+        "Virgo precision with Leo self-assurance",
+        "Confident in analysis",
+        "Service with presence",
+        "Detailed yet expressive",
+        "Takes pride in craft"
+      ],
+      "strengths": [
+        "Presents analysis with confidence",
+        "Less self-critical than pure Virgo",
+        "Can lead through service",
+        "Dignified work",
+        "Creative problem-solving"
+      ],
+      "challenges": [
+        "Pride in perfectionism",
+        "Can be showy about humility",
+        "Fire-Earth friction"
+      ]
+    },
+    {
+      "id": "virgo-pure",
+      "name": "Pure Virgo",
+      "archetype": "The Sacred Perfectionist",
+      "emoji": "🌾🔍",
+      "sign": "Virgo",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "08-29", "end": "09-16" },
+      "element": { "primary": "Earth", "secondary": null, "mix": "Pure Earth" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Mercury"],
+      "characteristics": [
+        "Undiluted Earth energy",
+        "Most analytical and precise",
+        "Service-oriented and helpful",
+        "Perfectionist to the core",
+        "Practical intelligence"
+      ],
+      "strengths": [
+        "Exceptional attention to detail",
+        "Analytical brilliance",
+        "Practical problem-solving",
+        "Service to others",
+        "Organizational mastery"
+      ],
+      "challenges": [
+        "Excessive criticism (self + others)",
+        "Perfectionism paralysis",
+        "Anxiety and worry",
+        "Overly modest"
+      ]
+    },
+    {
+      "id": "virgo-blend-forward",
+      "name": "Virgo with Libra Grace",
+      "archetype": "The Elegant Analyst",
+      "emoji": "🌾⚖️",
+      "sign": "Virgo",
+      "influencedBy": "Libra",
+      "type": "blend-forward",
+      "dateRange": { "start": "09-17", "end": "09-22" },
+      "element": { "primary": "Earth", "secondary": "Air", "mix": "Garden" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Mercury", "Venus"],
+      "characteristics": [
+        "Virgo precision with Libra aesthetics",
+        "Analytical yet graceful",
+        "Service through beauty",
+        "Perfectionist diplomat",
+        "Creates elegant solutions"
+      ],
+      "strengths": [
+        "Analysis with artistry",
+        "Diplomatic problem-solving",
+        "Refined taste and style",
+        "Fair and thoughtful",
+        "Graceful improvement"
+      ],
+      "challenges": [
+        "Earth-Air friction (practical vs social)",
+        "Overthinks relationships",
+        "Perfectionism in partnerships"
+      ]
+    },
+    {
+      "id": "libra-blend-back",
+      "name": "Libra with Virgo Detail",
+      "archetype": "The Precise Diplomat",
+      "emoji": "⚖️🔍",
+      "sign": "Libra",
+      "influencedBy": "Virgo",
+      "type": "blend-back",
+      "dateRange": { "start": "09-23", "end": "09-28" },
+      "element": { "primary": "Air", "secondary": "Earth", "mix": "Balanced Ground" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Venus", "Mercury"],
+      "characteristics": [
+        "Libra harmony with Virgo discernment",
+        "Balanced yet analytical",
+        "Diplomatic with substance",
+        "Beauty through perfection",
+        "Practical relationships"
+      ],
+      "strengths": [
+        "Thoughtful decision-making",
+        "Analytical about fairness",
+        "Grounded aesthetics",
+        "Helpful mediator",
+        "Quality over quantity"
+      ],
+      "challenges": [
+        "Over-analyzes relationships",
+        "Critical about partners",
+        "Air-Earth friction"
+      ]
+    },
+    {
+      "id": "libra-pure",
+      "name": "Pure Libra",
+      "archetype": "The Divine Diplomat",
+      "emoji": "⚖️💕",
+      "sign": "Libra",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "09-29", "end": "10-16" },
+      "element": { "primary": "Air", "secondary": null, "mix": "Pure Air" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Venus"],
+      "characteristics": [
+        "Undiluted Air energy",
+        "Most diplomatic and charming",
+        "Relationship-focused",
+        "Beauty and harmony seeking",
+        "Romantic idealist"
+      ],
+      "strengths": [
+        "Exceptional diplomacy",
+        "Natural mediator",
+        "Aesthetic brilliance",
+        "Romantic and charming",
+        "Creates harmony"
+      ],
+      "challenges": [
+        "Extreme indecisiveness",
+        "People-pleasing to a fault",
+        "Avoids conflict",
+        "Co-dependent tendencies"
+      ]
+    },
+    {
+      "id": "libra-blend-forward",
+      "name": "Libra with Scorpio Depth",
+      "archetype": "The Magnetic Harmonizer",
+      "emoji": "⚖️🦂",
+      "sign": "Libra",
+      "influencedBy": "Scorpio",
+      "type": "blend-forward",
+      "dateRange": { "start": "10-17", "end": "10-22" },
+      "element": { "primary": "Air", "secondary": "Water", "mix": "Storm Clouds" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Venus", "Pluto"],
+      "characteristics": [
+        "Libra charm with Scorpio intensity",
+        "Diplomatic yet penetrating",
+        "Beautiful darkness",
+        "Deep relationship focus",
+        "Magnetic presence"
+      ],
+      "strengths": [
+        "Powerful charm",
+        "Deep emotional intelligence",
+        "Strategic relationship building",
+        "Transforms through harmony",
+        "Penetrating insight"
+      ],
+      "challenges": [
+        "Air-Water conflict (social vs deep)",
+        "Can manipulate through charm",
+        "Jealousy + diplomacy conflict"
+      ]
+    },
+    {
+      "id": "scorpio-blend-back",
+      "name": "Scorpio with Libra Charm",
+      "archetype": "The Charming Transformer",
+      "emoji": "🦂⚖️",
+      "sign": "Scorpio",
+      "influencedBy": "Libra",
+      "type": "blend-back",
+      "dateRange": { "start": "10-23", "end": "10-28" },
+      "element": { "primary": "Water", "secondary": "Air", "mix": "Tempest" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Pluto", "Venus"],
+      "characteristics": [
+        "Scorpio depth with Libra grace",
+        "Intense yet sociable",
+        "Transforms through relationships",
+        "Diplomatic intensity",
+        "Aesthetic depth"
+      ],
+      "strengths": [
+        "Approachable intensity",
+        "Can navigate social depths",
+        "Charming investigator",
+        "Beautiful transformation",
+        "Strategic partnerships"
+      ],
+      "challenges": [
+        "Water-Air friction (deep vs social)",
+        "Uses charm manipulatively",
+        "Torn between depth and diplomacy"
+      ]
+    },
+    {
+      "id": "scorpio-pure",
+      "name": "Pure Scorpio",
+      "archetype": "The Phoenix Transformer",
+      "emoji": "🦂🔥",
+      "sign": "Scorpio",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "10-29", "end": "11-15" },
+      "element": { "primary": "Water", "secondary": null, "mix": "Deep Ocean" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Pluto"],
+      "characteristics": [
+        "Undiluted Water energy (deepest ocean!)",
+        "Most intense and passionate",
+        "Transformational power",
+        "Penetrating insight",
+        "Loyal to death"
+      ],
+      "strengths": [
+        "Profound emotional depth",
+        "Transformational power",
+        "Intense focus and determination",
+        "Psychic/intuitive abilities",
+        "Can rise from ashes (Phoenix!)"
+      ],
+      "challenges": [
+        "Extreme jealousy",
+        "Vengeful and unforgiving",
+        "Trust issues",
+        "Manipulative tendencies"
+      ]
+    },
+    {
+      "id": "scorpio-blend-forward",
+      "name": "Scorpio with Sagittarius Vision",
+      "archetype": "The Philosophical Transformer",
+      "emoji": "🦂🏹",
+      "sign": "Scorpio",
+      "influencedBy": "Sagittarius",
+      "type": "blend-forward",
+      "dateRange": { "start": "11-16", "end": "11-21" },
+      "element": { "primary": "Water", "secondary": "Fire", "mix": "Hot Spring" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Pluto", "Jupiter"],
+      "characteristics": [
+        "Scorpio depth with Sagittarius breadth",
+        "Intense philosopher",
+        "Transforms through truth-seeking",
+        "Passionate wisdom",
+        "Adventurous depth"
+      ],
+      "strengths": [
+        "Combines depth with vision",
+        "Transformational teaching",
+        "Honest to the point of brutal",
+        "Generous emotional depth",
+        "Philosophical intensity"
+      ],
+      "challenges": [
+        "Water-Fire conflict (deep vs expansive)",
+        "Brutally honest (can hurt others)",
+        "Intense preaching"
+      ]
+    },
+    {
+      "id": "sagittarius-blend-back",
+      "name": "Sagittarius with Scorpio Depth",
+      "archetype": "The Deep Adventurer",
+      "emoji": "🏹🦂",
+      "sign": "Sagittarius",
+      "influencedBy": "Scorpio",
+      "type": "blend-back",
+      "dateRange": { "start": "11-22", "end": "11-27" },
+      "element": { "primary": "Fire", "secondary": "Water", "mix": "Geyser" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Jupiter", "Pluto"],
+      "characteristics": [
+        "Sagittarius optimism with Scorpio intensity",
+        "Adventurous yet deep",
+        "Explores the profound",
+        "Philosophical transformation",
+        "Truth-seeker in shadows"
+      ],
+      "strengths": [
+        "Adventures into deep topics",
+        "Transforms through exploration",
+        "Passionate about truth",
+        "Intense optimism",
+        "Meaningful travel"
+      ],
+      "challenges": [
+        "Fire-Water friction (light vs dark)",
+        "Obsessive about beliefs",
+        "Can be preachy about transformation"
+      ]
+    },
+    {
+      "id": "sagittarius-pure",
+      "name": "Pure Sagittarius",
+      "archetype": "The Joyful Philosopher",
+      "emoji": "🏹✨",
+      "sign": "Sagittarius",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "11-28", "end": "12-15" },
+      "element": { "primary": "Fire", "secondary": null, "mix": "Pure Fire" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Jupiter"],
+      "characteristics": [
+        "Undiluted Fire energy",
+        "Most optimistic and adventurous",
+        "Truth-seeker and philosopher",
+        "Freedom-loving wanderer",
+        "Eternal student of life"
+      ],
+      "strengths": [
+        "Boundless optimism",
+        "Philosophical wisdom",
+        "Adventurous spirit",
+        "Honest and direct",
+        "Inspiring teacher"
+      ],
+      "challenges": [
+        "Excessive bluntness (hurts others)",
+        "Commitment-phobic",
+        "Over-promises, under-delivers",
+        "Reckless risk-taking"
+      ]
+    },
+    {
+      "id": "sagittarius-blend-forward",
+      "name": "Sagittarius with Capricorn Structure",
+      "archetype": "The Visionary Builder",
+      "emoji": "🏹🏔️",
+      "sign": "Sagittarius",
+      "influencedBy": "Capricorn",
+      "type": "blend-forward",
+      "dateRange": { "start": "12-16", "end": "12-21" },
+      "element": { "primary": "Fire", "secondary": "Earth", "mix": "Forge" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Jupiter", "Saturn"],
+      "characteristics": [
+        "Sagittarius vision with Capricorn discipline",
+        "Philosophical ambition",
+        "Adventures with purpose",
+        "Manifests wisdom into reality",
+        "Builds legacy"
+      ],
+      "strengths": [
+        "Vision with execution",
+        "Wise strategic planning",
+        "Patient yet optimistic",
+        "Leadership through wisdom",
+        "Generational thinking"
+      ],
+      "challenges": [
+        "Fire-Earth conflict (freedom vs responsibility)",
+        "Can be overly serious about fun",
+        "Restricts own expansion"
+      ]
+    },
+    {
+      "id": "capricorn-blend-back",
+      "name": "Capricorn with Sagittarius Spirit",
+      "archetype": "The Optimistic Achiever",
+      "emoji": "🏔️🏹",
+      "sign": "Capricorn",
+      "influencedBy": "Sagittarius",
+      "type": "blend-back",
+      "dateRange": { "start": "12-22", "end": "12-27" },
+      "element": { "primary": "Earth", "secondary": "Fire", "mix": "Volcanic Mountain" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Saturn", "Jupiter"],
+      "characteristics": [
+        "Capricorn ambition with Sagittarius optimism",
+        "Disciplined yet hopeful",
+        "Climbs with vision",
+        "Structured adventure",
+        "Wise and expansive"
+      ],
+      "strengths": [
+        "Ambitious with positive outlook",
+        "Disciplined freedom",
+        "Leadership with philosophy",
+        "Can inspire while achieving",
+        "Strategic vision"
+      ],
+      "challenges": [
+        "Earth-Fire friction (cautious vs bold)",
+        "Wants adventure but fears risk",
+        "Torn between duty and freedom"
+      ]
+    },
+    {
+      "id": "capricorn-pure",
+      "name": "Pure Capricorn",
+      "archetype": "The Mountain Climber",
+      "emoji": "🏔️👑",
+      "sign": "Capricorn",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "12-28", "end": "01-13" },
+      "element": { "primary": "Earth", "secondary": null, "mix": "Pure Earth" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Saturn"],
+      "characteristics": [
+        "Undiluted Earth energy",
+        "Most ambitious and disciplined",
+        "Patient strategist",
+        "Work-focused and responsible",
+        "Builds for generations"
+      ],
+      "strengths": [
+        "Unmatched discipline",
+        "Strategic long-term planning",
+        "Ambitious achievement",
+        "Responsible and reliable",
+        "Builds lasting legacy"
+      ],
+      "challenges": [
+        "Workaholic tendencies",
+        "Emotionally distant/cold",
+        "Overly serious (no fun)",
+        "Ruthlessly ambitious"
+      ]
+    },
+    {
+      "id": "capricorn-blend-forward",
+      "name": "Capricorn with Aquarius Innovation",
+      "archetype": "The Revolutionary Architect",
+      "emoji": "🏔️⚡",
+      "sign": "Capricorn",
+      "influencedBy": "Aquarius",
+      "type": "blend-forward",
+      "dateRange": { "start": "01-14", "end": "01-19" },
+      "element": { "primary": "Earth", "secondary": "Air", "mix": "Mountain Wind" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Saturn", "Uranus"],
+      "characteristics": [
+        "Capricorn structure with Aquarius innovation",
+        "Builds the future",
+        "Traditional revolutionary",
+        "Systematic rebel",
+        "Ambitious for humanity"
+      ],
+      "strengths": [
+        "Structure with innovation",
+        "Revolutionary with staying power",
+        "Humanitarian ambition",
+        "Can build new systems",
+        "Lasting social change"
+      ],
+      "challenges": [
+        "Earth-Air conflict (conservative vs radical)",
+        "Cold revolutionary",
+        "Rigid about change (paradox!)"
+      ]
+    },
+    {
+      "id": "aquarius-blend-back",
+      "name": "Aquarius with Capricorn Foundation",
+      "archetype": "The Grounded Visionary",
+      "emoji": "🏺🏔️",
+      "sign": "Aquarius",
+      "influencedBy": "Capricorn",
+      "type": "blend-back",
+      "dateRange": { "start": "01-20", "end": "01-25" },
+      "element": { "primary": "Air", "secondary": "Earth", "mix": "High Altitude" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Uranus", "Saturn"],
+      "characteristics": [
+        "Aquarius innovation with Capricorn practicality",
+        "Visionary with follow-through",
+        "Revolutionary builder",
+        "Ideas that manifest",
+        "Structured freedom"
+      ],
+      "strengths": [
+        "Can execute visions",
+        "Practical idealism",
+        "Builds revolutionary systems",
+        "Disciplined innovation",
+        "Lasting change"
+      ],
+      "challenges": [
+        "Air-Earth friction (freedom vs structure)",
+        "Wants change but fears instability",
+        "Conservative rebel"
+      ]
+    },
+    {
+      "id": "aquarius-pure",
+      "name": "Pure Aquarius",
+      "archetype": "The Revolutionary Genius",
+      "emoji": "🏺⚡",
+      "sign": "Aquarius",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "01-26", "end": "02-12" },
+      "element": { "primary": "Air", "secondary": null, "mix": "Pure Air" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Uranus"],
+      "characteristics": [
+        "Undiluted Air energy",
+        "Most innovative and unconventional",
+        "Humanitarian idealist",
+        "Genius intellect",
+        "Rebel with a cause"
+      ],
+      "strengths": [
+        "Innovative genius",
+        "Humanitarian vision",
+        "Independent thinking",
+        "Future-oriented",
+        "Revolutionary spirit"
+      ],
+      "challenges": [
+        "Emotionally detached/cold",
+        "Contrary for the sake of it",
+        "Can be alienating",
+        "Too idealistic"
+      ]
+    },
+    {
+      "id": "aquarius-blend-forward",
+      "name": "Aquarius with Pisces Compassion",
+      "archetype": "The Compassionate Innovator",
+      "emoji": "🏺🐟",
+      "sign": "Aquarius",
+      "influencedBy": "Pisces",
+      "type": "blend-forward",
+      "dateRange": { "start": "02-13", "end": "02-18" },
+      "element": { "primary": "Air", "secondary": "Water", "mix": "Cloud" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Uranus", "Neptune"],
+      "characteristics": [
+        "Aquarius innovation with Pisces empathy",
+        "Humanitarian with heart",
+        "Visionary dreamer",
+        "Detached compassion",
+        "Spiritual revolutionary"
+      ],
+      "strengths": [
+        "Vision with compassion",
+        "Innovative spiritual insights",
+        "Universal empathy",
+        "Progressive compassion",
+        "Transcendent thinking"
+      ],
+      "challenges": [
+        "Air-Water conflict (detached vs emotional)",
+        "Too idealistic + too sensitive",
+        "Difficulty grounding visions"
+      ]
+    },
+    {
+      "id": "pisces-blend-back",
+      "name": "Pisces with Aquarius Vision",
+      "archetype": "The Visionary Mystic",
+      "emoji": "🐟⚡",
+      "sign": "Pisces",
+      "influencedBy": "Aquarius",
+      "type": "blend-back",
+      "dateRange": { "start": "02-19", "end": "02-24" },
+      "element": { "primary": "Water", "secondary": "Air", "mix": "Morning Mist" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Neptune", "Uranus"],
+      "characteristics": [
+        "Pisces intuition with Aquarius innovation",
+        "Dreamy yet progressive",
+        "Spiritual humanitarian",
+        "Compassionate genius",
+        "Universal consciousness"
+      ],
+      "strengths": [
+        "Intuitive innovation",
+        "Compassion with vision",
+        "Dreams the future",
+        "Spiritual revolutionary",
+        "Artistic genius"
+      ],
+      "challenges": [
+        "Water-Air friction (feeling vs thinking)",
+        "Scattered spiritual focus",
+        "Too detached from emotions"
+      ]
+    },
+    {
+      "id": "pisces-pure",
+      "name": "Pure Pisces",
+      "archetype": "The Mystic Dreamer",
+      "emoji": "🐟💫",
+      "sign": "Pisces",
+      "influencedBy": null,
+      "type": "pure",
+      "dateRange": { "start": "02-25", "end": "03-14" },
+      "element": { "primary": "Water", "secondary": null, "mix": "Pure Water" },
+      "blend": { "dominant": 100, "influence": 0 },
+      "rulers": ["Neptune"],
+      "characteristics": [
+        "Undiluted Water energy (deepest ocean consciousness)",
+        "Most sensitive and intuitive",
+        "Boundary-less empathy",
+        "Artistic and musical genius",
+        "Dreamy and otherworldly"
+      ],
+      "strengths": [
+        "Profound intuition",
+        "Universal compassion",
+        "Artistic brilliance",
+        "Spiritual depth",
+        "Psychic sensitivity"
+      ],
+      "challenges": [
+        "Extreme escapism",
+        "Overly sensitive to harsh reality",
+        "Boundary issues",
+        "Difficulty with practical matters"
+      ]
+    },
+    {
+      "id": "pisces-blend-forward",
+      "name": "Pisces with Aries Spark",
+      "archetype": "The Courageous Dreamer",
+      "emoji": "🐟🔥",
+      "sign": "Pisces",
+      "influencedBy": "Aries",
+      "type": "blend-forward",
+      "dateRange": { "start": "03-15", "end": "03-20" },
+      "element": { "primary": "Water", "secondary": "Fire", "mix": "Steam" },
+      "blend": { "dominant": 70, "influence": 30 },
+      "rulers": ["Neptune", "Mars"],
+      "characteristics": [
+        "Pisces sensitivity with Aries courage",
+        "Compassionate warrior",
+        "Dreams into action",
+        "Intuitive boldness",
+        "Spiritual fighter"
+      ],
+      "strengths": [
+        "Acts on intuition",
+        "Courageous compassion",
+        "Manifests dreams",
+        "Protective of vulnerable",
+        "Pioneering spirituality"
+      ],
+      "challenges": [
+        "Water-Fire conflict (sensitive vs aggressive)",
+        "Impulsive compassion",
+        "Burns out helping others"
+      ]
+    }
+  ]
+}

@@ -6,8 +6,14 @@
 // Purpose: Show two people how they constitutionally complete each other
 
 import React, { useState, useMemo } from 'react'
-import { calculateCompatibility, getWhatYouGive } from '../../utils/compatibilityCalculations'
-import { generateMetaphor } from '../../utils/metaphorGenerator'
+import { calculateCompatibility, getWhatYouGive } from '../utils/compatibilityCalculations'
+import { generateMetaphor } from '../utils/metaphorGenerator'
+
+// Helper to extract first name from full name
+const getFirstName = (fullName) => {
+  if (!fullName) return 'Person';
+  return fullName.split(' ')[0] || fullName;
+}
 
 export default function CompatibilityAnalysisPanel({ profileA, profileB }) {
   const [expandedSection, setExpandedSection] = useState(null)
@@ -16,6 +22,10 @@ export default function CompatibilityAnalysisPanel({ profileA, profileB }) {
   const compatibility = useMemo(() => {
     return calculateCompatibility(profileA, profileB)
   }, [profileA, profileB])
+  
+  // Extract first names for cleaner display
+  const firstNameA = getFirstName(compatibility.profileA.name);
+  const firstNameB = getFirstName(compatibility.profileB.name);
   
   // Generate metaphor
   const metaphor = useMemo(() => {
@@ -37,17 +47,8 @@ export default function CompatibilityAnalysisPanel({ profileA, profileB }) {
   
   return (
     <div className="bg-slate-900/50 rounded-xl p-6 space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">
-          Constitutional SoulPartner Analysis
-        </h2>
-        <p className="text-white/60 text-sm">
-          Mathematical analysis of how you complete each other
-        </p>
-      </div>
       
-      {/* Overall Score Bar */}
+      {/* Overall Score Bar - starts immediately, no header */}
       <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl p-6 border-2" 
            style={{ borderColor: compatibility.rating.color }}>
         <div className="text-center mb-4">
@@ -81,7 +82,7 @@ export default function CompatibilityAnalysisPanel({ profileA, profileB }) {
         {/* Person A Profile */}
         <div className="bg-slate-800/50 rounded-xl p-4 border border-blue-500/30">
           <h3 className="text-lg font-bold text-blue-300 mb-3 text-center">
-            {compatibility.profileA.name}
+            {firstNameA}
           </h3>
           
           {/* What You Have */}
@@ -177,7 +178,7 @@ export default function CompatibilityAnalysisPanel({ profileA, profileB }) {
         {/* Person B Profile */}
         <div className="bg-slate-800/50 rounded-xl p-4 border border-pink-500/30">
           <h3 className="text-lg font-bold text-pink-300 mb-3 text-center">
-            {compatibility.profileB.name}
+            {firstNameB}
           </h3>
           
           {/* What You Have */}

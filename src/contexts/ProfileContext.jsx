@@ -201,6 +201,14 @@ export function ProfileProvider({ children }) {
 
         // Optional Fields
         mbti: formData.mbti || null,
+        big5: formData.big5_provided ? {
+          openness: formData.big5_openness || 50,
+          conscientiousness: formData.big5_conscientiousness || 50,
+          extraversion: formData.big5_extraversion || 50,
+          agreeableness: formData.big5_agreeableness || 50,
+          neuroticism: formData.big5_neuroticism || 50,
+          provided: true
+        } : null,
         enneagram: null,
         bloodType: null,
 
@@ -278,11 +286,48 @@ export function ProfileProvider({ children }) {
       setError(null)
 
       const profileRef = doc(db, 'profiles', profileId)
+      const currentProfile = profiles.find((p) => p.id === profileId)
+
+      // Transform flat location fields to nested structure (matching createProfile format)
+      let locationUpdate = {}
+      if (updates.birthLocation || updates.birthLat || updates.birthLng || updates.birthPrecision) {
+        const birthLocation = updates.birthLocation || currentProfile?.location?.fullAddress || ''
+        const birthLat = updates.birthLat || currentProfile?.location?.coordinates?.lat || 0
+        const birthLng = updates.birthLng || currentProfile?.location?.coordinates?.lng || 0
+        const birthPrecision = updates.birthPrecision || currentProfile?.location?.locationType || 'city'
+
+        locationUpdate = {
+          location: {
+            fullAddress: birthLocation,
+            placeId: null,
+            city: parseCityFromAddress(birthLocation),
+            state: parseStateFromAddress(birthLocation),
+            country: parseCountryFromAddress(birthLocation),
+            countryCode: null,
+            coordinates: {
+              lat: parseFloat(birthLat) || 0,
+              lng: parseFloat(birthLng) || 0
+            },
+            locationType: birthPrecision,
+            hospitalName: birthPrecision === 'hospital' ? parseHospitalName(birthLocation) : null,
+            hospitalAddress: birthPrecision === 'hospital' ? birthLocation : null,
+            precision: getPrecisionLabel(birthPrecision),
+            distanceFromCityCenter: null
+          }
+        }
+
+        // Remove flat fields since we've nested them
+        delete updates.birthLocation
+        delete updates.birthLat
+        delete updates.birthLng
+        delete updates.birthPrecision
+
+        console.log('📍 [ProfileContext] Location update transformed:', locationUpdate)
+      }
 
       // If birth data changed, recalculate everything
       let recalculatedData = {}
       if (updates.birthDate || updates.firstName || updates.lastName || updates.gender || updates.birthTime) {
-        const currentProfile = profiles.find((p) => p.id === profileId)
         const birthDate = updates.birthDate || currentProfile.birthDate
         const firstName = updates.firstName || currentProfile.firstName
         const lastName = updates.lastName || currentProfile.lastName
@@ -321,6 +366,7 @@ export function ProfileProvider({ children }) {
 
       await updateDoc(profileRef, {
         ...updates,
+        ...locationUpdate,
         ...recalculatedData,
         updatedAt: serverTimestamp()
       })
@@ -398,6 +444,23 @@ export function ProfileProvider({ children }) {
     }
   }
 
+  // Update AI SoulPartner notes for a profile
+  const updateAISoulPartnerNotes = async (profileId, aiNotes) => {
+    try {
+      setError(null)
+      const profileRef = doc(db, 'profiles', profileId)
+      await updateDoc(profileRef, {
+        aiSoulPartner: aiNotes,
+        updatedAt: serverTimestamp()
+      })
+      console.log('📝 AI SoulPartner notes updated for profile:', profileId)
+    } catch (err) {
+      console.error('Error updating AI notes:', err)
+      setError(err.message)
+      throw err
+    }
+  }
+
   const value = {
     profiles,
     loading,
@@ -407,7 +470,8 @@ export function ProfileProvider({ children }) {
     archiveProfile,
     deleteProfile,
     markProfileViewed,
-    toggleFavorite
+    toggleFavorite,
+    updateAISoulPartnerNotes
   }
 
   return (

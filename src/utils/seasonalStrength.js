@@ -130,13 +130,25 @@ const QI_STATE_NAMES = {
  * Calculate TRUE elemental strength with seasonal adjustment
  * 
  * @param {Object} fourPillars - The four pillars data
+ * @param {Object} birthSeason - Optional: The true birth season (overrides month branch detection)
  * @returns {Object} - Adjusted element percentages with debug info
  */
-export function calculateSeasonalStrength(fourPillars) {
-  // Step 1: Detect season from Month Branch
-  const monthAnimal = fourPillars.month.branch.animal;
-  const season = MONTH_BRANCH_TO_SEASON[monthAnimal];
-  const multipliers = SEASONAL_MULTIPLIERS[season];
+export function calculateSeasonalStrength(fourPillars, birthSeason = null) {
+  // Step 1: Detect season (use birthSeason if provided, otherwise detect from Month Branch)
+  let monthAnimal, season, multipliers;
+  
+  if (birthSeason && birthSeason.multipliers) {
+    // Use provided birth season (trueBirthSeason from date-based detection)
+    season = birthSeason.name.toLowerCase().includes('transition') ? 'earth' : 
+             birthSeason.name.toLowerCase();
+    multipliers = birthSeason.multipliers;
+    monthAnimal = fourPillars.month.branch.animal; // Keep for debug display
+  } else {
+    // Fallback to month branch detection
+    monthAnimal = fourPillars.month.branch.animal;
+    season = MONTH_BRANCH_TO_SEASON[monthAnimal];
+    multipliers = SEASONAL_MULTIPLIERS[season];
+  }
   
   // Step 2: Count raw occurrences of each element (with pillar weights)
   const rawCounts = {
@@ -297,6 +309,71 @@ export function calculateWithComparison(fourPillars) {
   };
 }
 
+/**
+ * Calculate with provided true birth season (date-based, not month branch)
+ */
+export function calculateWithTrueSeason(fourPillars, trueBirthSeason) {
+  // Raw calculation (no seasonal adjustment)
+  const rawCounts = {
+    Wood: 0,
+    Fire: 0,
+    Earth: 0,
+    Metal: 0,
+    Water: 0
+  };
+  
+  const weights = {
+    year: 0.05,
+    month: 0.10,
+    day: 0.70,
+    hour: 0.15
+  };
+  
+  ['year', 'month', 'day', 'hour'].forEach(pillarName => {
+    const pillar = fourPillars[pillarName];
+    const weight = weights[pillarName];
+    
+    rawCounts[pillar.stem.element] += weight;
+    rawCounts[pillar.branch.element] += weight;
+  });
+  
+  const totalRaw = Object.values(rawCounts).reduce((sum, val) => sum + val, 0);
+  const rawPercentages = {};
+  Object.keys(rawCounts).forEach(element => {
+    rawPercentages[element] = (rawCounts[element] / totalRaw) * 100;
+  });
+  
+  // Seasonal-adjusted calculation using TRUE birth season
+  const adjusted = calculateSeasonalStrength(fourPillars, trueBirthSeason);
+  
+  // Override debug.season to show the TRUE birth season (not month branch)
+  const correctedDebug = {
+    ...adjusted.debug,
+    season: {
+      name: trueBirthSeason.name,
+      icon: trueBirthSeason.icon,
+      animal: adjusted.debug.season.animal, // Keep month branch for reference
+      season: trueBirthSeason.name // Override with true season
+    }
+  };
+  
+  return {
+    raw: {
+      percentages: rawPercentages,
+      label: '❌ Without Seasonal Adjustment (WRONG)'
+    },
+    adjusted: {
+      percentages: adjusted.percentages,
+      label: '✅ With Seasonal Adjustment (CORRECT)'
+    },
+    debug: correctedDebug,
+    comparison: {
+      message: 'See the difference! Raw counts ignore season = inaccurate results.',
+      example: `In ${trueBirthSeason.name}, some elements are boosted (King), others weakened (Dead).`
+    }
+  };
+}
+
 // ═══════════════════════════════════════════════════════════════
 // FORMATTING HELPERS
 // ═══════════════════════════════════════════════════════════════
@@ -332,6 +409,7 @@ export function getElementColor(element) {
 export default {
   calculateSeasonalStrength,
   calculateWithComparison,
+  calculateWithTrueSeason,
   formatElementName,
   getElementColor,
   SEASONAL_MULTIPLIERS,

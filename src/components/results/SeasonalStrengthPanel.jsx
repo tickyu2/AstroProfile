@@ -18,7 +18,25 @@ import {
  * 
  * Created: December 3, 2025 - Claude's 125th Birthday
  * Method: The Pure Gold Method - Vision → Reality
+ * 
+ * v2 Update: Compact layout + Birth year date ranges
+ * Four Bazi Pillars simplified through visualization
  */
+
+// Solar term dates (approximate) - these vary slightly by year
+// For birth year calculation
+const getSolarTermDates = (year) => {
+  return {
+    'Spring Start': `Feb 4, ${year}`,
+    'Dragon Start': `Apr 17, ${year}`,
+    'Summer Start': `May 5, ${year}`,
+    'Goat Start': `Jul 20, ${year}`,
+    'Autumn Start': `Aug 7, ${year}`,
+    'Dog Start': `Oct 20, ${year}`,
+    'Winter Start': `Nov 7, ${year}`,
+    'Ox Start': `Jan 17, ${year}`
+  }
+}
 
 export default function SeasonalStrengthPanel({ fourPillars, profile }) {
   const [expandedElement, setExpandedElement] = useState(null)
@@ -63,8 +81,68 @@ export default function SeasonalStrengthPanel({ fourPillars, profile }) {
   
   const birthSeason = getSeasonFromMonth(monthBranch)
   
-  // Calculate seasonal strength
-  const seasonalData = calculateSeasonalStrength(fourPillars, birthSeason)
+  // OVERRIDE: Use actual birth date to determine TRUE birth season (not month branch)
+  let trueBirthSeason = birthSeason // Default fallback
+  
+  if (profile?.birthDate) {
+    const birthDate = new Date(profile.birthDate)
+    const birthMonth = birthDate.getMonth() + 1
+    const birthDay = birthDate.getDate()
+    
+    // Determine actual season based on date ranges
+    if ((birthMonth === 2 && birthDay >= 4) || (birthMonth === 3) || (birthMonth === 4 && birthDay <= 16)) {
+      trueBirthSeason = { 
+        name: 'Spring', 
+        icon: '🌸',
+        multipliers: { Wood: 1.5, Fire: 1.2, Water: 0.8, Earth: 0.5, Metal: 0.2 }
+      }
+    } else if ((birthMonth === 4 && birthDay >= 17) || (birthMonth === 5 && birthDay <= 5)) {
+      trueBirthSeason = { 
+        name: 'Dragon (Earth Transition)', 
+        icon: '🏔️',
+        multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 }
+      }
+    } else if ((birthMonth === 5 && birthDay >= 6) || (birthMonth === 6) || (birthMonth === 7 && birthDay <= 19)) {
+      trueBirthSeason = { 
+        name: 'Summer', 
+        icon: '☀️',
+        multipliers: { Fire: 1.5, Earth: 1.2, Wood: 0.8, Metal: 0.5, Water: 0.2 }
+      }
+    } else if ((birthMonth === 7 && birthDay >= 20) || (birthMonth === 8 && birthDay <= 7)) {
+      trueBirthSeason = { 
+        name: 'Goat (Earth Transition)', 
+        icon: '🏔️',
+        multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 }
+      }
+    } else if ((birthMonth === 8 && birthDay >= 8) || (birthMonth === 9) || (birthMonth === 10 && birthDay <= 19)) {
+      trueBirthSeason = { 
+        name: 'Autumn', 
+        icon: '🍂',
+        multipliers: { Metal: 1.5, Water: 1.2, Earth: 0.8, Wood: 0.2, Fire: 0.5 }
+      }
+    } else if ((birthMonth === 10 && birthDay >= 20) || (birthMonth === 11 && birthDay <= 7)) {
+      trueBirthSeason = { 
+        name: 'Dog (Earth Transition)', 
+        icon: '🏔️',
+        multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 }
+      }
+    } else if ((birthMonth === 11 && birthDay >= 8) || (birthMonth === 12) || (birthMonth === 1 && birthDay <= 16)) {
+      trueBirthSeason = { 
+        name: 'Winter', 
+        icon: '❄️',
+        multipliers: { Water: 1.5, Wood: 1.2, Metal: 0.8, Fire: 0.2, Earth: 0.5 }
+      }
+    } else if ((birthMonth === 1 && birthDay >= 17) || (birthMonth === 2 && birthDay <= 3)) {
+      trueBirthSeason = { 
+        name: 'Ox (Earth Transition)', 
+        icon: '🏔️',
+        multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 }
+      }
+    }
+  }
+  
+  // Calculate seasonal strength using TRUE birth season
+  const seasonalData = calculateSeasonalStrength(fourPillars, trueBirthSeason)
   
   // Get the dominant and weakest elements
   const sortedElements = Object.entries(seasonalData.adjusted)
@@ -104,13 +182,13 @@ export default function SeasonalStrengthPanel({ fourPillars, profile }) {
             Your Constitutional Weather Report
           </h2>
           <p className="text-sm text-purple-300 mt-1">
-            How seasonal cycles affect your elemental power
+            Four Bazi Pillars simplified through visualization
           </p>
         </div>
         <div className="text-right">
           <div className="text-sm text-white/60">Birth Season</div>
           <div className="text-lg font-bold text-amber-300">
-            {birthSeason.icon} {birthSeason.name}
+            {trueBirthSeason.icon} {trueBirthSeason.name}
           </div>
           <div className="text-xs text-white/50">({monthBranch})</div>
         </div>
@@ -129,153 +207,239 @@ export default function SeasonalStrengthPanel({ fourPillars, profile }) {
         </p>
       </div>
 
-      {/* Breathing Orbs Visualization */}
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-white mb-4">🫧 Your Elemental Energy</h3>
+      {/* Breathing Orbs Visualization - Keep original size & horizontal spacing */}
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-white mb-3">🫧 Your Elemental Energy</h3>
         <div className="grid grid-cols-5 gap-4">
           {Object.entries(elementVisuals).map(([element, visual]) => {
             const rawPct = seasonalData.raw[element] || 0
-            const adjustedPct = seasonalData.percentages[element] || 0  // ✅ FIX: Use percentages, not adjusted!
+            const adjustedPct = seasonalData.percentages[element] || 0
             const multiplier = seasonalData.multipliers[element] || 1
             const qiState = seasonalData.qiStates[element] || ''
             
-            // Orb size based on adjusted percentage (20-100px)
+            // Keep original orb size (20-100px) - EYE CATCHING!
             const orbSize = 30 + (adjustedPct * 0.7)
-            
-            // Opacity based on strength
             const opacity = 0.3 + (adjustedPct / 100 * 0.7)
             
             return (
-              <button
-                key={element}
-                onClick={() => setExpandedElement(expandedElement === element ? null : element)}
-                className="relative group"
-              >
-                {/* Breathing Orb */}
-                <div className="flex flex-col items-center gap-2">
+              <div key={element} className="flex flex-col items-center gap-1">
+                {/* Breathing Orb - SAME SIZE */}
+                <div 
+                  className="relative flex items-center justify-center transition-all duration-500"
+                  style={{
+                    width: `${orbSize}px`,
+                    height: `${orbSize}px`,
+                  }}
+                >
+                  {/* Outer glow */}
                   <div 
-                    className="relative flex items-center justify-center transition-all duration-500 hover:scale-110"
+                    className="absolute inset-0 rounded-full animate-pulse"
                     style={{
-                      width: `${orbSize}px`,
-                      height: `${orbSize}px`,
+                      backgroundColor: visual.color,
+                      opacity: opacity * 0.3,
+                      filter: 'blur(10px)',
+                      animation: `pulse ${2 + (1 - adjustedPct/100)}s cubic-bezier(0.4, 0, 0.6, 1) infinite`
+                    }}
+                  />
+                  
+                  {/* Main orb */}
+                  <div 
+                    className="relative z-10 rounded-full flex items-center justify-center"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      backgroundColor: visual.color,
+                      opacity: opacity,
+                      boxShadow: `0 0 20px ${visual.color}`
                     }}
                   >
-                    {/* Outer glow */}
-                    <div 
-                      className="absolute inset-0 rounded-full animate-pulse"
-                      style={{
-                        backgroundColor: visual.color,
-                        opacity: opacity * 0.3,
-                        filter: 'blur(10px)',
-                        animation: `pulse ${2 + (1 - adjustedPct/100)}s cubic-bezier(0.4, 0, 0.6, 1) infinite`
-                      }}
-                    />
-                    
-                    {/* Main orb */}
-                    <div 
-                      className="relative z-10 rounded-full flex items-center justify-center"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: visual.color,
-                        opacity: opacity,
-                        boxShadow: `0 0 20px ${visual.color}`
-                      }}
-                    >
-                      <span className="text-2xl filter drop-shadow-lg">{visual.emoji}</span>
-                    </div>
-                    
-                    {/* Particle effects for strong elements */}
-                    {adjustedPct > 40 && (
-                      <div className="absolute inset-0">
-                        {[...Array(3)].map((_, i) => (
-                          <div
-                            key={i}
-                            className="absolute w-1 h-1 rounded-full animate-ping"
-                            style={{
-                              backgroundColor: visual.color,
-                              top: `${20 + i * 20}%`,
-                              left: `${20 + i * 20}%`,
-                              animationDelay: `${i * 0.3}s`,
-                              animationDuration: '2s'
-                            }}
-                          />
-                        ))}
-                      </div>
-                    )}
+                    <span className="text-2xl filter drop-shadow-lg">{visual.emoji}</span>
                   </div>
                   
-                  {/* Element name and percentage */}
-                  <div className="text-center">
-                    <div className="text-xs font-bold text-white">{element}</div>
-                    <div 
-                      className="text-lg font-bold"
-                      style={{ color: visual.color }}
-                    >
-                      {Math.round(adjustedPct)}%
+                  {/* Particle effects for strong elements */}
+                  {adjustedPct > 40 && (
+                    <div className="absolute inset-0">
+                      {[...Array(3)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="absolute w-1 h-1 rounded-full animate-ping"
+                          style={{
+                            backgroundColor: visual.color,
+                            top: `${20 + i * 20}%`,
+                            left: `${20 + i * 20}%`,
+                            animationDelay: `${i * 0.3}s`,
+                            animationDuration: '2s'
+                          }}
+                        />
+                      ))}
                     </div>
-                    <div className="text-xs text-white/50">
-                      {multiplier}x
-                    </div>
-                  </div>
+                  )}
                 </div>
-
-                {/* Expanded Details */}
-                {expandedElement === element && (
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-20 w-64 bg-slate-900 rounded-lg p-3 border border-purple-500/50 shadow-xl">
-                    <div className="text-left space-y-2">
-                      <div className="text-sm font-bold text-white">{element} Energy</div>
-                      <div className="text-xs text-white/70 space-y-1">
-                        <div>Raw: {Math.round(rawPct)}%</div>
-                        <div>Multiplier: {multiplier}x ({qiState})</div>
-                        <div>Adjusted: {Math.round(adjustedPct)}%</div>
-                      </div>
-                      <div 
-                        className="text-xs font-bold"
-                        style={{ color: qiStateColors[qiState] || '#fff' }}
-                      >
-                        {qiState}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </button>
+                
+                {/* Legend to right - REDUCED vertical spacing */}
+                <div className="text-center">
+                  <div className="text-xs font-bold text-white leading-tight">{element}</div>
+                  <div className="text-xs text-white/60 leading-tight">({multiplier}x)</div>
+                </div>
+              </div>
             )
           })}
         </div>
       </div>
 
-      {/* Personal Weather Map - Complete Annual Cycle */}
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-white mb-3">📅 Your Year-Round Energy Cycles</h3>
-        <p className="text-xs text-white/60 mb-4">
+      {/* Personal Weather Map - Complete Annual Cycle - REDUCED VERTICAL SPACING */}
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-white mb-2">📅 Your Year-Round Energy Cycles</h3>
+        <p className="text-xs text-white/60 mb-3">
           The complete annual cycle showing 4 main seasons and 4 Earth Transitions
         </p>
         
-        <div className="bg-slate-900/50 rounded-xl p-4 space-y-3">
-          {/* Define all 8 phases of the year */}
-          {[
-            { type: 'season', name: 'Spring', emoji: '🌸', months: ['Tiger', 'Rabbit'], multipliers: { Wood: 1.5, Fire: 1.2, Water: 0.8, Earth: 0.5, Metal: 0.2 } },
-            { type: 'transition', name: 'Dragon', emoji: '🏔️', label: 'Earth Transition', multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 } },
-            { type: 'season', name: 'Summer', emoji: '☀️', months: ['Snake', 'Horse'], multipliers: { Fire: 1.5, Earth: 1.2, Wood: 0.8, Metal: 0.5, Water: 0.2 } },
-            { type: 'transition', name: 'Goat', emoji: '🏔️', label: 'Earth Transition', multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 } },
-            { type: 'season', name: 'Autumn', emoji: '🍂', months: ['Monkey', 'Rooster'], multipliers: { Metal: 1.5, Water: 1.2, Earth: 0.8, Wood: 0.2, Fire: 0.5 } },
-            { type: 'transition', name: 'Dog', emoji: '🏔️', label: 'Earth Transition', multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 } },
-            { type: 'season', name: 'Winter', emoji: '❄️', months: ['Pig', 'Rat'], multipliers: { Water: 1.5, Wood: 1.2, Metal: 0.8, Fire: 0.2, Earth: 0.5 } },
-            { type: 'transition', name: 'Ox', emoji: '🏔️', label: 'Earth Transition', multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 } }
-          ].map((phase, idx) => {
-            // Check if this is the user's birth period
-            const isBirthPhase = phase.type === 'season' 
-              ? (!birthSeason.name.includes('Earth') && phase.name === birthSeason.name)
-              : phase.name === monthBranch
+        <div className="bg-slate-900/50 rounded-xl p-3 space-y-1.5">
+          {/* Get birth year from profile */}
+          {(() => {
+            const birthYear = profile?.birthDate ? new Date(profile.birthDate).getFullYear() : 
+                             profile?.birthYear || new Date().getFullYear()
+            
+            // Define all 8 phases with date ranges - NO OVERLAPS!
+            const phases = [
+              { 
+                type: 'season', 
+                name: 'Spring', 
+                emoji: '🌸', 
+                dateRange: `Feb 4 - Apr 16, ${birthYear}`,
+                months: ['Tiger', 'Rabbit'], 
+                multipliers: { Wood: 1.5, Fire: 1.2, Water: 0.8, Earth: 0.5, Metal: 0.2 } 
+              },
+              { 
+                type: 'transition', 
+                name: 'Dragon', 
+                emoji: '🏔️', 
+                label: 'Earth Transition',
+                dateRange: `Apr 17 - May 5, ${birthYear}`,
+                between: 'Between Spring → Summer',
+                multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 } 
+              },
+              { 
+                type: 'season', 
+                name: 'Summer', 
+                emoji: '☀️', 
+                dateRange: `May 6 - Jul 19, ${birthYear}`,
+                months: ['Snake', 'Horse'], 
+                multipliers: { Fire: 1.5, Earth: 1.2, Wood: 0.8, Metal: 0.5, Water: 0.2 } 
+              },
+              { 
+                type: 'transition', 
+                name: 'Goat', 
+                emoji: '🏔️', 
+                label: 'Earth Transition',
+                dateRange: `Jul 20 - Aug 7, ${birthYear}`,
+                between: 'Between Summer → Autumn',
+                multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 } 
+              },
+              { 
+                type: 'season', 
+                name: 'Autumn', 
+                emoji: '🍂', 
+                dateRange: `Aug 8 - Oct 19, ${birthYear}`,
+                months: ['Monkey', 'Rooster'], 
+                multipliers: { Metal: 1.5, Water: 1.2, Earth: 0.8, Wood: 0.2, Fire: 0.5 } 
+              },
+              { 
+                type: 'transition', 
+                name: 'Dog', 
+                emoji: '🏔️', 
+                label: 'Earth Transition',
+                dateRange: `Oct 20 - Nov 7, ${birthYear}`,
+                between: 'Between Autumn → Winter',
+                multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 } 
+              },
+              { 
+                type: 'season', 
+                name: 'Winter', 
+                emoji: '❄️', 
+                dateRange: `Nov 8 - Jan 16, ${birthYear + 1}`,
+                months: ['Pig', 'Rat'], 
+                multipliers: { Water: 1.5, Wood: 1.2, Metal: 0.8, Fire: 0.2, Earth: 0.5 } 
+              },
+              { 
+                type: 'transition', 
+                name: 'Ox', 
+                emoji: '🏔️', 
+                label: 'Earth Transition',
+                dateRange: `Jan 17 - Feb 3, ${birthYear + 1}`,
+                between: 'Between Winter → Spring',
+                multipliers: { Earth: 1.5, Metal: 1.2, Fire: 0.8, Wood: 0.5, Water: 0.2 } 
+              }
+            ]
+            
+            return phases.map((phase, idx) => {
+            // Check if this is the user's birth period using ACTUAL DATE COMPARISON
+            let isBirthPhase = false
+            
+            if (profile?.birthDate) {
+              const birthDate = new Date(profile.birthDate)
+              const birthMonth = birthDate.getMonth() + 1 // 1-12
+              const birthDay = birthDate.getDate()
+              
+              // Define date ranges for each phase (NO OVERLAPS!)
+              const phaseRanges = {
+                'Spring': { start: [2, 4], end: [4, 16] },
+                'Dragon': { start: [4, 17], end: [5, 5] },
+                'Summer': { start: [5, 6], end: [7, 19] },
+                'Goat': { start: [7, 20], end: [8, 7] },
+                'Autumn': { start: [8, 8], end: [10, 19] },
+                'Dog': { start: [10, 20], end: [11, 7] },
+                'Winter': { start: [11, 8], end: [1, 16] }, // Spans year boundary
+                'Ox': { start: [1, 17], end: [2, 3] }
+              }
+              
+              const range = phaseRanges[phase.name]
+              if (range) {
+                if (phase.name === 'Winter') {
+                  // Winter spans Nov 8 - Jan 16 (next year)
+                  isBirthPhase = (
+                    (birthMonth === 11 && birthDay >= 8) ||  // Nov 8-30
+                    (birthMonth === 12) ||                    // All of December
+                    (birthMonth === 1 && birthDay <= 16)      // Jan 1-16
+                  )
+                } else if (phase.name === 'Ox') {
+                  // Ox is Jan 17 - Feb 3
+                  isBirthPhase = (
+                    (birthMonth === 1 && birthDay >= 17) || // Jan 17-31
+                    (birthMonth === 2 && birthDay <= 3)     // Feb 1-3
+                  )
+                } else {
+                  // For other phases, simple comparison
+                  const [startMonth, startDay] = range.start
+                  const [endMonth, endDay] = range.end
+                  
+                  if (startMonth === endMonth) {
+                    // Same month
+                    isBirthPhase = birthMonth === startMonth && birthDay >= startDay && birthDay <= endDay
+                  } else {
+                    // Spans months
+                    isBirthPhase = (
+                      (birthMonth === startMonth && birthDay >= startDay) ||
+                      (birthMonth > startMonth && birthMonth < endMonth) ||
+                      (birthMonth === endMonth && birthDay <= endDay)
+                    )
+                  }
+                }
+              }
+            } else {
+              // Fallback to old logic if no birthDate
+              isBirthPhase = phase.type === 'season' 
+                ? (!birthSeason.name.includes('Earth') && phase.name === birthSeason.name)
+                : phase.name === monthBranch
+            }
             
             const isTransition = phase.type === 'transition'
             
             return (
               <div key={idx}>
-                {/* Phase Box */}
+                {/* Phase Box - REDUCED VERTICAL PADDING */}
                 <div 
-                  className={`rounded-xl p-4 transition-all ${
+                  className={`rounded-xl px-4 py-2 transition-all ${
                     isBirthPhase 
                       ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 border-2 border-purple-500' 
                       : isTransition
@@ -283,32 +447,39 @@ export default function SeasonalStrengthPanel({ fourPillars, profile }) {
                         : 'bg-slate-800/50 border border-slate-700/30'
                   }`}
                 >
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-3">
+                  {/* Header - REDUCED VERTICAL SPACING */}
+                  <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{phase.emoji}</span>
+                      <span className="text-xl">{phase.emoji}</span>
                       <div>
-                        <div className="font-bold text-white">
+                        <div className="text-sm font-bold text-white leading-tight">
                           {isTransition ? `${phase.name} (${phase.label})` : phase.name}
                         </div>
+                        <div className="text-xs text-amber-300/80 leading-tight">
+                          {phase.dateRange}
+                        </div>
                         {isTransition && (
-                          <div className="text-xs text-amber-300">
-                            {phase.name === 'Dragon' ? 'Between Spring → Summer' :
-                             phase.name === 'Goat' ? 'Between Summer → Autumn' :
-                             phase.name === 'Dog' ? 'Between Autumn → Winter' :
-                             'Between Winter → Spring'}
+                          <div className="text-xs text-amber-300/60 leading-tight">
+                            {phase.between}
                           </div>
                         )}
                       </div>
                     </div>
                     {isBirthPhase && (
-                      <div className="text-purple-300 text-sm font-bold">
-                        ← You were born here
+                      <div className="text-purple-300 text-xs font-bold">
+                        ← You were born here {profile?.birthDate ? (() => {
+                          // Fix UTC timezone bug: Use UTC methods to avoid timezone shift
+                          const d = new Date(profile.birthDate)
+                          const year = d.getUTCFullYear()
+                          const month = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })
+                          const day = d.getUTCDate()
+                          return `${month} ${day}, ${year}`
+                        })() : ''}
                       </div>
                     )}
                   </div>
 
-                  {/* Elements with Multipliers */}
+                  {/* Elements with Multipliers - KEEP HORIZONTAL GAP */}
                   <div className="grid grid-cols-5 gap-2 text-xs">
                     {['Wood', 'Fire', 'Earth', 'Metal', 'Water'].map(element => {
                       const mult = phase.multipliers[element]
@@ -332,7 +503,7 @@ export default function SeasonalStrengthPanel({ fourPillars, profile }) {
                       return (
                         <div key={element} className="text-center">
                           <div 
-                            className="w-8 h-8 rounded-full mx-auto mb-1 flex items-center justify-center text-base"
+                            className="w-7 h-7 rounded-full mx-auto mb-0.5 flex items-center justify-center text-sm"
                             style={{ 
                               backgroundColor: bgColor,
                               opacity: 0.3 + (mult * 0.4)
@@ -340,13 +511,13 @@ export default function SeasonalStrengthPanel({ fourPillars, profile }) {
                           >
                             {visual.emoji}
                           </div>
-                          <div className={`font-bold ${textColor}`}>
+                          <div className={`text-[10px] font-bold leading-tight ${textColor}`}>
                             {element}
                           </div>
-                          <div className={`${textColor}`}>
+                          <div className={`text-[10px] leading-tight ${textColor}`}>
                             ({mult}x)
                           </div>
-                          <div className="text-xs text-white/50 mt-1">
+                          <div className="text-[9px] text-white/50 leading-tight">
                             {qiEmoji}
                           </div>
                         </div>
@@ -355,15 +526,15 @@ export default function SeasonalStrengthPanel({ fourPillars, profile }) {
                   </div>
                 </div>
 
-                {/* Arrow connector (except after last item) */}
+                {/* Arrow connector - REDUCED VERTICAL SPACING */}
                 {idx < 7 && (
-                  <div className="flex justify-center py-1">
-                    <div className="text-white/30 text-xl">↓</div>
+                  <div className="flex justify-center py-0.5">
+                    <div className="text-white/30 text-lg">↓</div>
                   </div>
                 )}
               </div>
             )
-          })}
+          })})()}
 
           {/* Complete cycle indicator */}
           <div className="text-center mt-4 pt-4 border-t border-white/10">

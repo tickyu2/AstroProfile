@@ -72,13 +72,18 @@ export default function InputForm() {
 
     // Handle LocationPicker changes
     const handleLocationChange = (locationData) => {
-        setFormData(prev => ({
-            ...prev,
-            birthLocation: locationData.formatted,
-            birthLat: locationData.lat,
-            birthLng: locationData.lng,
-            birthPrecision: locationData.precision
-        }))
+        console.log('🌍 handleLocationChange called with:', locationData)
+        setFormData(prev => {
+            const updated = {
+                ...prev,
+                birthLocation: locationData.formatted,
+                birthLat: locationData.lat,
+                birthLng: locationData.lng,
+                birthPrecision: locationData.precision
+            }
+            console.log('📝 Updated formData:', updated)
+            return updated
+        })
     }
 
     const handleSubmit = async (e) => {

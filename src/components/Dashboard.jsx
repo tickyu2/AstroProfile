@@ -1,7 +1,7 @@
 import React from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useProfiles } from '../contexts/ProfileContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import ProfileCard from './profile/ProfileCard'
 import LoadingSpinner from './layout/LoadingSpinner'
 
@@ -26,18 +26,68 @@ export default function Dashboard() {
   // Count favorites
   const favoriteCount = profiles.filter(p => p.isFavorite).length
 
+  // Sort profiles: favorites first, then by creation date (newest first)
+  const sortedProfiles = [...profiles].sort((a, b) => {
+    // Favorites always come first
+    if (a.isFavorite && !b.isFavorite) return -1
+    if (!a.isFavorite && b.isFavorite) return 1
+    // Within same favorite status, sort by creation date (newest first)
+    const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(0)
+    const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt) || new Date(0)
+    return dateB - dateA
+  })
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       {/* Navbar */}
       <nav className="bg-slate-900/50 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">✨</span>
-              <span className="text-white font-bold text-xl">AstroProfile</span>
+            <div className="flex items-center gap-6">
+              <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <span className="text-2xl">✨</span>
+                <span className="text-white font-bold text-xl">AstroProfile</span>
+              </Link>
+
+              {/* Navigation Links */}
+              <div className="hidden md:flex items-center gap-4">
+                <Link
+                  to="/dashboard"
+                  className="px-3 py-2 text-teal-400 border-b-2 border-teal-400 text-sm font-medium"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/data-manager"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                >
+                  Data Manager
+                </Link>
+                <Link
+                  to="/compatibility"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                >
+                  Compatibility
+                </Link>
+                <Link
+                  to="/ai-soulpartner"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1"
+                >
+                  <span>🌟</span>
+                  <span>AI SoulPartner</span>
+                </Link>
+                <Link
+                  to="/systems"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1"
+                >
+                  <span>⚙️</span>
+                  <span>Systems</span>
+                </Link>
+              </div>
             </div>
+
             <div className="flex items-center gap-4">
-              <span className="text-gray-300 text-sm">
+              <span className="text-gray-300 text-sm hidden sm:block">
                 {currentUser?.displayName || currentUser?.email}
               </span>
               <button
@@ -86,6 +136,50 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* 🔥 NEW! SoulPartner Compatibility Card */}
+        {profiles.length >= 2 && (
+          <div className="mb-12 bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-lg rounded-2xl p-8 border-2 border-purple-500/30 text-center">
+            <div className="text-5xl mb-4">🔮✨🔮</div>
+            <h3 className="text-3xl font-bold text-white mb-3">
+              Compare Your SoulPrints
+            </h3>
+            <p className="text-white/70 mb-6 max-w-2xl mx-auto text-lg">
+              You have {profiles.length} profiles! Discover mathematical compatibility through 
+              elemental harmony, seasonal synergy, and Qi state analysis.
+            </p>
+            <button
+              onClick={() => navigate('/compatibility')}
+              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-purple-500/50"
+            >
+              🔥 Start Compatibility Analysis 🔥
+            </button>
+            <p className="text-white/50 text-sm mt-4">
+              Find who completes your constitutional makeup
+            </p>
+          </div>
+        )}
+
+        {/* AI SoulPartner Feature Card */}
+        <div className="mb-12 bg-gradient-to-r from-amber-600/20 to-orange-600/20 backdrop-blur-lg rounded-2xl p-8 border-2 border-amber-500/30 text-center">
+          <div className="text-5xl mb-4">🌟🐀🌟</div>
+          <h3 className="text-3xl font-bold text-white mb-3">
+            Meet Your AI SoulPartner
+          </h3>
+          <p className="text-white/70 mb-6 max-w-2xl mx-auto text-lg">
+            Constitutional Intelligence that knows when to witness, dialogue, or guide.
+            An AI that understands your emotional state and responds with wisdom.
+          </p>
+          <button
+            onClick={() => navigate('/ai-soulpartner')}
+            className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-900 text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-amber-500/50"
+          >
+            🎭 Start Conversation 🎭
+          </button>
+          <p className="text-white/50 text-sm mt-4">
+            WITNESS • DIALOGUE • GUIDANCE
+          </p>
+        </div>
+
         {/* Profiles Section */}
         {profiles.length === 0 ? (
           /* Empty State */
@@ -120,8 +214,8 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Existing Profile Cards */}
-              {profiles.map((profile) => (
+              {/* Existing Profile Cards - Favorites first, then by date */}
+              {sortedProfiles.map((profile) => (
                 <ProfileCard key={profile.id} profile={profile} />
               ))}
               
@@ -151,14 +245,14 @@ export default function Dashboard() {
             <span className="px-4 py-2 bg-purple-500/20 text-purple-300 rounded-full">
               AI Personality Analysis
             </span>
-            <span className="px-4 py-2 bg-pink-500/20 text-pink-300 rounded-full">
-              Compatibility Matching
-            </span>
             <span className="px-4 py-2 bg-blue-500/20 text-blue-300 rounded-full">
               Group Management
             </span>
             <span className="px-4 py-2 bg-green-500/20 text-green-300 rounded-full">
               Daily Guidance
+            </span>
+            <span className="px-4 py-2 bg-orange-500/20 text-orange-300 rounded-full">
+              GPS Proximity Matching
             </span>
           </div>
         </div>

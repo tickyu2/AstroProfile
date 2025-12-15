@@ -189,6 +189,10 @@ export default function LocationPicker({
   // HANDLE MANUAL COORDINATES
   // ==========================================================================
   const handleManualCoordsSubmit = () => {
+    console.log('🔘 Apply Coordinates clicked!')
+    console.log('📍 manualLat:', manualLat)
+    console.log('📍 manualLng:', manualLng)
+    
     const lat = parseFloat(manualLat)
     const lng = parseFloat(manualLng)
 
@@ -216,7 +220,9 @@ export default function LocationPicker({
       precision: 'exact'
     }
     
+    console.log('✅ Calling onChange with:', locationData)
     onChange?.(locationData)
+    console.log('📤 onChange called successfully')
   }
 
   // ==========================================================================
