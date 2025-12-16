@@ -17,7 +17,6 @@ import {
   collection,
   query,
   where,
-  orderBy,
   onSnapshot,
   addDoc,
   updateDoc,
@@ -62,10 +61,12 @@ export function ConversationsProvider({ children }) {
   const { currentUser } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
+  const [activeProfileId, setActiveProfileId] = useState(null); // Per-profile conversations
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Real-time listener for conversations
+  // Re-run when profileId changes to load different profile's conversations
   useEffect(() => {
     if (!currentUser) {
       setConversations([]);
@@ -74,23 +75,62 @@ export function ConversationsProvider({ children }) {
       return;
     }
 
-    // Simple query without orderBy (no index required)
-    // Sorting done client-side for index-free operation
+    // Wait for profileId before loading conversations
+    // This ensures per-profile conversation isolation
+    if (!activeProfileId) {
+      setConversations([]);
+      setActiveConversationId(null);
+      setLoading(true); // Keep loading until profile is set
+      return;
+    }
+
+    // Reset active conversation when switching profiles
+    setActiveConversationId(null);
+
+    // Query all user's conversations (single where = no index needed)
+    // Filter by profileId client-side to avoid composite index requirement
     const q = query(
       collection(db, 'conversations'),
       where('userId', '==', currentUser.uid)
     );
 
+    let migrationAttempted = false;
+
     const unsubscribe = onSnapshot(
       q,
-      (snapshot) => {
-        const convs = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
+      async (snapshot) => {
+        // Get all conversations for this user
+        const allConvs = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
           // Convert Firestore timestamps to ISO strings
-          createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
-          updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
+          createdAt: docSnap.data().createdAt?.toDate?.()?.toISOString() || docSnap.data().createdAt,
+          updatedAt: docSnap.data().updatedAt?.toDate?.()?.toISOString() || docSnap.data().updatedAt
         }));
+
+        // Check for legacy conversations (no profileId) - migrate them first
+        const legacyConvs = allConvs.filter(c => !c.profileId);
+        if (legacyConvs.length > 0 && !migrationAttempted) {
+          migrationAttempted = true;
+          console.log('🔄 Found', legacyConvs.length, 'legacy conversations, migrating...');
+
+          // Migrate legacy conversations to current profile
+          for (const conv of legacyConvs) {
+            try {
+              await updateDoc(doc(db, 'conversations', conv.id), {
+                profileId: activeProfileId
+              });
+            } catch (err) {
+              console.error('Migration error for', conv.id, err);
+            }
+          }
+          console.log('✅ Migration complete!');
+          // onSnapshot will fire again with updated data
+          return;
+        }
+
+        // Filter to only conversations for active profile
+        const convs = allConvs.filter(c => c.profileId === activeProfileId);
 
         // Sort client-side by updatedAt descending (most recent first)
         convs.sort((a, b) => {
@@ -99,11 +139,11 @@ export function ConversationsProvider({ children }) {
           return dateB - dateA;
         });
 
-        console.log('💬 Conversations loaded:', convs.length);
+        console.log('💬 Conversations loaded:', convs.length, 'for profile:', activeProfileId);
         setConversations(convs);
 
         // Set active conversation to most recent if not set
-        if (!activeConversationId && convs.length > 0) {
+        if (convs.length > 0) {
           setActiveConversationId(convs[0].id);
         }
 
@@ -117,7 +157,7 @@ export function ConversationsProvider({ children }) {
     );
 
     return unsubscribe;
-  }, [currentUser]);
+  }, [currentUser, activeProfileId]);
 
   // Get active conversation
   const activeConversation = conversations.find(c => c.id === activeConversationId) || conversations[0];
@@ -125,13 +165,14 @@ export function ConversationsProvider({ children }) {
 
   // Create new conversation
   const createConversation = useCallback(async (title = 'New Conversation') => {
-    if (!currentUser) return null;
+    if (!currentUser || !activeProfileId) return null;
 
     try {
       setError(null);
 
       const conversation = {
         userId: currentUser.uid,
+        profileId: activeProfileId, // Per-profile isolation
         title,
         messages: [DEFAULT_MESSAGE],
         createdAt: serverTimestamp(),
@@ -150,7 +191,7 @@ export function ConversationsProvider({ children }) {
       setError(err.message);
       throw err;
     }
-  }, [currentUser]);
+  }, [currentUser, activeProfileId]);
 
   // Update conversation messages
   const updateMessages = useCallback(async (newMessages) => {
@@ -307,17 +348,18 @@ export function ConversationsProvider({ children }) {
     }
   }, [activeConversationId, messages, updateMessages]);
 
-  // Create initial conversation if none exist
+  // Create initial conversation if none exist for this profile
   useEffect(() => {
-    if (!loading && currentUser && conversations.length === 0) {
+    if (!loading && currentUser && activeProfileId && conversations.length === 0) {
       createConversation();
     }
-  }, [loading, currentUser, conversations.length, createConversation]);
+  }, [loading, currentUser, activeProfileId, conversations.length, createConversation]);
 
   const value = {
     conversations,
     activeConversation,
     activeConversationId,
+    activeProfileId,
     messages,
     loading,
     error,
@@ -329,6 +371,7 @@ export function ConversationsProvider({ children }) {
     clearConversation,
     switchConversation,
     setActiveConversationId,
+    setActiveProfileId, // Allow pages to set which profile conversations to load
     toggleMessageReaction
   };
 

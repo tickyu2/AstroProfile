@@ -17,12 +17,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfiles } from '../contexts/ProfileContext';
+import { useConversations } from '../contexts/ConversationsContext';
 import { AISoulPartnerChat, SoulPartnerNotes, AIIdentityPanel } from '../components/aiSoulPartner';
 import DEFAULT_AI_IDENTITY from '../data/aiSoulPartnerIdentity';
 
 export default function AISoulPartnerPage() {
   const { currentUser, logout } = useAuth();
   const { profiles, loading, updateAISoulPartnerNotes } = useProfiles();
+  const { setActiveProfileId } = useConversations();
 
   // Selected profile state - default to first profile or 'self' type
   const [selectedProfileId, setSelectedProfileId] = useState(null);
@@ -41,6 +43,15 @@ export default function AISoulPartnerPage() {
       setSelectedProfileId(selfProfile?.id || profiles[0]?.id);
     }
   }, [profiles, selectedProfileId]);
+
+  // Sync selected profile to ConversationsContext for per-profile chat isolation
+  // When profile changes, conversations reload for that specific profile's threads
+  useEffect(() => {
+    if (selectedProfileId) {
+      console.log('🔄 Switching conversations to profile:', selectedProfileId);
+      setActiveProfileId(selectedProfileId);
+    }
+  }, [selectedProfileId, setActiveProfileId]);
 
   const selectedProfile = profiles.find(p => p.id === selectedProfileId) || profiles[0] || {};
 
