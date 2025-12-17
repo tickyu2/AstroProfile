@@ -23,6 +23,14 @@ import {
   calculateYinYang,
   calculateNumerology
 } from '../utils/calculations'
+import {
+  calculateSovereignChartWithFallback,
+  mergeWithSovereignData
+} from '../services/sovereignChartService'
+import {
+  getBaziPillarsWithPrecision,
+  checkSolarTermBoundary
+} from '../services/sovereignSolarTermService'
 
 const ProfileContext = createContext({})
 
@@ -84,7 +92,8 @@ export function ProfileProvider({ children }) {
   }
 
   // Helper: Calculate Chinese zodiac with year range
-  const getEnhancedChineseZodiac = (birthDateStr) => {
+  // Now supports optional sovereign precision from astronomical Solar Term calculation
+  const getEnhancedChineseZodiac = (birthDateStr, sovereignBazi = null) => {
     // FIX: Parse date string directly to avoid UTC timezone conversion
     // birthDateStr format: "2010-11-28"
     const [year, month, day] = birthDateStr.split('-').map(Number)
@@ -92,12 +101,32 @@ export function ProfileProvider({ children }) {
     const monthNum = month
     const dayNum = day
 
-    // Determine if before or after Chinese New Year (simplified: Feb 4)
-    const beforeCNY = monthNum === 1 || (monthNum === 2 && dayNum < 4)
-    const chineseYear = beforeCNY ? westernYear - 1 : westernYear
-
     // Get basic zodiac data
     const basicZodiac = getChineseZodiac(birthDateStr)
+
+    // Use sovereign precision if available, otherwise fall back to simplified Feb 4
+    let beforeLiChun
+    let chineseYear
+    let liChunInfo = null
+    let calculationType = 'simplified'
+
+    if (sovereignBazi?.baziYear) {
+      // 🌟 Sovereign Precision: Exact Li Chun moment from astronomical calculation
+      beforeLiChun = sovereignBazi.baziYear.bornBeforeLiChun
+      chineseYear = sovereignBazi.baziYear.baziYear
+      liChunInfo = sovereignBazi.baziYear.liChun
+      calculationType = 'sovereign'
+      console.log('🌟 [getEnhancedChineseZodiac] Using SOVEREIGN precision:', {
+        liChun: liChunInfo?.isoString,
+        bornBefore: beforeLiChun,
+        baziYear: chineseYear
+      })
+    } else {
+      // Fallback: Simplified Feb 4 check
+      beforeLiChun = monthNum === 1 || (monthNum === 2 && dayNum < 4)
+      chineseYear = beforeLiChun ? westernYear - 1 : westernYear
+      console.log('📅 [getEnhancedChineseZodiac] Using simplified Feb 4 fallback')
+    }
 
     // Calculate year range
     const cnyDate = getChineseNewYearDate(westernYear)
@@ -108,14 +137,14 @@ export function ProfileProvider({ children }) {
     let yearRange
     let explanation
 
-    if (beforeCNY) {
-      // Born before CNY - belongs to previous Chinese year
+    if (beforeLiChun) {
+      // Born before Li Chun - belongs to previous Chinese year
       yearRange = `${prevCnyDate} - ${cnyDate}`
-      explanation = `Born before Chinese New Year ${westernYear}, belongs to the ${chineseYear} ${basicZodiac.element} ${basicZodiac.animal} year`
+      explanation = `Born before 立春 (Li Chun)${liChunInfo ? ` on ${liChunInfo.isoString.slice(0, 10)}` : ''}, belongs to the ${chineseYear} ${basicZodiac.element} ${basicZodiac.animal} year`
     } else {
-      // Born after CNY - belongs to current Chinese year
+      // Born after Li Chun - belongs to current Chinese year
       yearRange = `${cnyDate} - ${nextCnyDate}`
-      explanation = `Born after Chinese New Year ${westernYear}, belongs to the ${chineseYear} ${basicZodiac.element} ${basicZodiac.animal} year`
+      explanation = `Born after 立春 (Li Chun)${liChunInfo ? ` on ${liChunInfo.isoString.slice(0, 10)}` : ''}, belongs to the ${chineseYear} ${basicZodiac.element} ${basicZodiac.animal} year`
     }
 
     return {
@@ -127,7 +156,15 @@ export function ProfileProvider({ children }) {
       element: basicZodiac.element,
       fullSign: basicZodiac.fullSign,
       animalYinYang: basicZodiac.animalYinYang,
-      explanation
+      explanation,
+      // Sovereign precision data
+      sovereignBazi: sovereignBazi ? {
+        calculationType,
+        liChun: liChunInfo,
+        baziYear: sovereignBazi.baziYear,
+        baziMonth: sovereignBazi.baziMonth,
+        precision: '~1 second'
+      } : null
     }
   }
 
@@ -139,7 +176,6 @@ export function ProfileProvider({ children }) {
       // Run all calculations
       const age = calculateAge(formData.birthDate)
       const chinese = getChineseZodiac(formData.birthDate)
-      const enhancedChinese = getEnhancedChineseZodiac(formData.birthDate)
       const western = getWesternZodiac(formData.birthDate)
       const dayOfWeek = getDayOfWeek(formData.birthDate)
       // Enhanced Yin/Yang calculation with all factors
@@ -149,6 +185,35 @@ export function ProfileProvider({ children }) {
         formData.lastName,
         formData.birthDate
       )
+
+      // 🌟 Sovereign Astronomical Calculation - Real Sun/Moon/Rising
+      const sovereignData = await calculateSovereignChartWithFallback({
+        birthDate: formData.birthDate,
+        birthTime: formData.birthTime,
+        latitude: formData.birthLat,
+        longitude: formData.birthLng,
+        timezone: formData.timezone
+      })
+
+      // 🎯 Sovereign BaZi Precision - Exact Solar Term boundaries
+      let sovereignBazi = null
+      try {
+        const [year, month, day] = formData.birthDate.split('-').map(Number)
+        const [hour, minute] = (formData.birthTime || '12:00').split(':').map(Number)
+        sovereignBazi = await getBaziPillarsWithPrecision({
+          year, month, day, hour, minute,
+          timezone: 0 // UTC - timezone conversion handled server-side
+        })
+        console.log('🎯 [createProfile] Sovereign BaZi precision:', sovereignBazi)
+      } catch (baziError) {
+        console.warn('⚠️ [createProfile] Sovereign BaZi failed, using fallback:', baziError.message)
+      }
+
+      // Enhanced Chinese zodiac with sovereign precision
+      const enhancedChinese = getEnhancedChineseZodiac(formData.birthDate, sovereignBazi)
+
+      // Merge sovereign data with simple calculation
+      const enhancedWestern = mergeWithSovereignData(western, sovereignData)
 
       // Build profile document following GENESIS schema
       const profileData = {
@@ -238,7 +303,7 @@ export function ProfileProvider({ children }) {
           age,
           chinese,
           western: {
-            ...western,
+            ...enhancedWestern,
             dateRange: getZodiacDateRange(western.sign),
             rulingPlanet: getRulingPlanet(western.sign)
           },
@@ -325,23 +390,58 @@ export function ProfileProvider({ children }) {
         console.log('📍 [ProfileContext] Location update transformed:', locationUpdate)
       }
 
-      // If birth data changed, recalculate everything
+      // If birth data changed OR sovereign data is missing, recalculate everything
+      const needsSovereignCalculation = !currentProfile?.calculations?.western?.sovereignCalculation
+      console.log('🌟 [ProfileContext] Sovereign check:', { needsSovereignCalculation, hasSovereign: !!currentProfile?.calculations?.western?.sovereignCalculation })
       let recalculatedData = {}
-      if (updates.birthDate || updates.firstName || updates.lastName || updates.gender || updates.birthTime) {
+      if (updates.birthDate || updates.firstName || updates.lastName || updates.gender || updates.birthTime || updates.birthLat || updates.birthLng || needsSovereignCalculation) {
+        console.log('🌟 [ProfileContext] Triggering recalculation with sovereign...')
         const birthDate = updates.birthDate || currentProfile.birthDate
         const firstName = updates.firstName || currentProfile.firstName
         const lastName = updates.lastName || currentProfile.lastName
         const gender = updates.gender || currentProfile.gender
         const birthTime = updates.birthTime || currentProfile.birthTime
+        // Get location from updates or current profile
+        const birthLat = updates.birthLat || currentProfile?.location?.coordinates?.lat || 0
+        const birthLng = updates.birthLng || currentProfile?.location?.coordinates?.lng || 0
+        const timezone = updates.timezone || currentProfile?.timezone || 'UTC'
 
         const age = calculateAge(birthDate)
         const chinese = getChineseZodiac(birthDate)
-        const enhancedChinese = getEnhancedChineseZodiac(birthDate)
         const western = getWesternZodiac(birthDate)
         const dayOfWeek = getDayOfWeek(birthDate)
         // Enhanced Yin/Yang with all factors
         const yinYang = calculateYinYang(chinese, western, gender, dayOfWeek, birthTime)
         const numerology = calculateNumerology(firstName, lastName, birthDate)
+
+        // 🌟 Sovereign Astronomical Calculation - Real Sun/Moon/Rising
+        const sovereignData = await calculateSovereignChartWithFallback({
+          birthDate,
+          birthTime,
+          latitude: birthLat,
+          longitude: birthLng,
+          timezone
+        })
+
+        // 🎯 Sovereign BaZi Precision - Exact Solar Term boundaries
+        let sovereignBazi = null
+        try {
+          const [year, month, day] = birthDate.split('-').map(Number)
+          const [hour, minute] = (birthTime || '12:00').split(':').map(Number)
+          sovereignBazi = await getBaziPillarsWithPrecision({
+            year, month, day, hour, minute,
+            timezone: 0
+          })
+          console.log('🎯 [updateProfile] Sovereign BaZi precision:', sovereignBazi)
+        } catch (baziError) {
+          console.warn('⚠️ [updateProfile] Sovereign BaZi failed, using fallback:', baziError.message)
+        }
+
+        // Enhanced Chinese zodiac with sovereign precision
+        const enhancedChinese = getEnhancedChineseZodiac(birthDate, sovereignBazi)
+
+        // Merge sovereign data with simple calculation
+        const enhancedWestern = mergeWithSovereignData(western, sovereignData)
 
         recalculatedData = {
           displayName: `${firstName} ${lastName}`,
@@ -350,7 +450,7 @@ export function ProfileProvider({ children }) {
             age,
             chinese,
             western: {
-              ...western,
+              ...enhancedWestern,
               dateRange: getZodiacDateRange(western.sign),
               rulingPlanet: getRulingPlanet(western.sign)
             },
