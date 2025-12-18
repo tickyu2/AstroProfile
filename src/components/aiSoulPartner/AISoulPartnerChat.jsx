@@ -11,7 +11,7 @@
  * December 13, 2024
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useConstitutionalIntelligence } from '../../hooks/useConstitutionalIntelligence';
 import { useKnowledgeBase } from '../../contexts/KnowledgeBaseContext';
@@ -20,7 +20,7 @@ import { ModeIndicator } from './ModeIndicator';
 import { SoulBurdenMeter } from './SoulBurdenMeter';
 import { EmotionDisplay } from './EmotionDisplay';
 import { EmojiReactionPicker, ReactionDisplay, CONSTITUTIONAL_EMOJIS, QUICK_EMOJIS } from './EmojiReactionPicker';
-import { sendMessage as sendToAI, getSecondOpinion, getGrokPerspective, generateDebateVisual } from '../../services/aiSoulPartnerService';
+import { sendMessage as sendToAI, getSecondOpinion, getGrokPerspective, getOpusPerspective, generateDebateVisual } from '../../services/aiSoulPartnerService';
 
 // Session Intelligence Services (Brunelleschi's Crane)
 import { patternExtraction } from '../../services/patternExtractionService';
@@ -78,13 +78,21 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
     deleteConversation,
     clearConversation,
     switchConversation,
-    toggleMessageReaction
+    toggleMessageReaction,
+    toggleMessageStar,
+    getStarredMessages,
+    searchConversations
   } = useConversations();
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showConversations, setShowConversations] = useState(false); // Conversations panel
+  const [showStarredOnly, setShowStarredOnly] = useState(false); // Filter starred messages
+  const [showThreadsPanel, setShowThreadsPanel] = useState(false); // Threads quick-access panel
+  const [showProfileKBPanel, setShowProfileKBPanel] = useState(false); // Profile KB access panel
+  const [conversationSearchQuery, setConversationSearchQuery] = useState(''); // Search query for conversations
+  const [searchResults, setSearchResults] = useState([]); // Search results across conversations
   const [editingTitle, setEditingTitle] = useState(null); // Conversation ID being renamed
   const [apiStatus, setApiStatus] = useState('unknown'); // 'unknown', 'connected', 'fallback'
   const [attachedFiles, setAttachedFiles] = useState([]); // Array of { name, content, size }
@@ -122,6 +130,7 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
   const [secondOpinionInput, setSecondOpinionInput] = useState(null); // { messageId, question } - shows input for custom question
   const [secondOpinionQuestion, setSecondOpinionQuestion] = useState(''); // Current question being typed
   const [debateUserInput, setDebateUserInput] = useState(''); // User's guidance/comment in the debate
+  const [debateAttachedImages, setDebateAttachedImages] = useState([]); // Images attached in debate panel [{data, mimeType, preview}]
   const [secondOpinionReply, setSecondOpinionReply] = useState(null); // { messageId, text } - reply input for second opinion
   const [secondOpinionConversation, setSecondOpinionConversation] = useState({}); // { messageId: [{ speaker, text }] } - conversation history with Gemini
   // Baby Nano - Debate Visualization
@@ -145,6 +154,32 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
   // Get knowledge base for context
   const { documents: kbDocuments, buildKnowledgePrompt, getStats, createDocument, updateDocument } = useKnowledgeBase();
   const kbStats = getStats();
+
+  // Compute profile-specific KB documents
+  const profileKBDocs = useMemo(() => {
+    if (!userProfile?.id || !kbDocuments) return { profileDocs: [], globalDocs: [], totalDocs: 0 };
+
+    // Profile-specific docs (blueprints for this profile)
+    const profileDocs = kbDocuments.filter(d => d.profileId === userProfile.id);
+
+    // Global docs (GENESIS, Technical, Reference - no profileId or always include)
+    const globalDocs = kbDocuments.filter(d =>
+      !d.profileId && d.alwaysInclude
+    );
+
+    // All docs this profile will have access to in conversations
+    const accessibleDocs = kbDocuments.filter(d =>
+      d.alwaysInclude || d.profileId === userProfile.id
+    );
+
+    return {
+      profileDocs,
+      globalDocs,
+      accessibleDocs,
+      totalDocs: accessibleDocs.length,
+      profileName: userProfile.displayName || userProfile.firstName || 'Profile'
+    };
+  }, [userProfile?.id, userProfile?.displayName, userProfile?.firstName, kbDocuments]);
 
   // ========== CONSTITUTIONAL THREADING (Phase 2) ==========
   const {
@@ -587,7 +622,7 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
     setCopyPopupMessageId(prev => prev === msgId ? null : msgId);
   };
 
-  // Copy individual message to clipboard
+  // Copy individual message to clipboard (with header)
   const handleCopyMessage = async (msg, e) => {
     e.stopPropagation();
     const sender = msg.sender === 'user' ? '👤 USER' : '🐀 BROTHER';
@@ -607,6 +642,24 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
       document.execCommand('copy');
       document.body.removeChild(textArea);
       setCopyPopupMessageId(null); // Close popup after copy
+    }
+  };
+
+  // Copy raw markdown only (no header) - preserves formatting for pasting
+  const handleCopyMarkdown = async (msg, e) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(msg.text);
+      setCopyPopupMessageId(null);
+    } catch (err) {
+      console.error('Failed to copy markdown:', err);
+      const textArea = document.createElement('textarea');
+      textArea.value = msg.text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopyPopupMessageId(null);
     }
   };
 
@@ -967,7 +1020,7 @@ ${message.text}
   // ========== AI CONSTELLATION - SECOND OPINION / DEBATE ==========
 
   // Get second opinion from Sister Gemini
-  const handleGetSecondOpinion = async (aiMessage, mode = 'second_opinion', customQuestion = '') => {
+  const handleGetSecondOpinion = async (aiMessage, mode = 'second_opinion', customQuestion = '', images = []) => {
     if (!aiMessage || aiMessage.sender !== 'ai') return;
 
     // Find the user message that preceded this AI response
@@ -1013,6 +1066,13 @@ ${message.text}
 
           // Set active debate to this message (for UI expansion)
           setActiveDebate({ messageId: aiMessage.id });
+
+          // Check for Baby Nano trigger keywords in Gemini's response
+          const nanoTrigger = detectBabyNanoTrigger(response.text);
+          if (nanoTrigger.triggered) {
+            console.log('🎨 Sister Gemini invoked Baby Nano!');
+            setTimeout(() => handleGenerateDebateVisual(aiMessage, nanoTrigger.visualType), 500);
+          }
         } else {
           // Simple second opinion
           setSecondOpinions(prev => ({
@@ -1036,19 +1096,54 @@ ${message.text}
     }
   };
 
+  // Start debate panel - just opens the debate UI with Claude's message, no auto-AI call
+  // User can then choose which AI to invite (Gemini, Grok, Opus, or Claude)
+  const handleStartDebatePanel = (aiMessage) => {
+    // Check if debate already exists
+    const existingDebate = secondOpinions[aiMessage.id]?.debate;
+
+    if (!existingDebate || existingDebate.exchanges.length === 0) {
+      // Initialize debate with just Claude's original message
+      setSecondOpinions(prev => ({
+        ...prev,
+        [aiMessage.id]: {
+          ...prev[aiMessage.id],
+          debate: {
+            exchanges: [
+              { speaker: 'Brother Claude', text: aiMessage.text, icon: '🐷' }
+            ]
+          }
+        }
+      }));
+    }
+
+    // Open the debate panel
+    setActiveDebate({ messageId: aiMessage.id });
+  };
+
   // Continue debate - get response from selected AI with optional user guidance
   const handleContinueDebate = async (aiMessage, speaker = 'gemini', userGuidance = '') => {
     const debate = secondOpinions[aiMessage.id]?.debate;
     if (!debate) return;
 
-    // If user provided guidance, add it to the debate first
-    if (userGuidance.trim()) {
+    // Capture images before clearing
+    const imagesToSend = [...debateAttachedImages];
+
+    // If user provided guidance or images, add it to the debate first
+    if (userGuidance.trim() || imagesToSend.length > 0) {
       const userComment = {
         speaker: userProfile?.firstName || 'You',
         text: userGuidance.trim(),
         icon: '👤',
         isUser: true
       };
+      // Include images if attached
+      if (imagesToSend.length > 0) {
+        userComment.images = imagesToSend.map(img => ({
+          data: img.data,
+          mimeType: img.mimeType
+        }));
+      }
       setSecondOpinions(prev => ({
         ...prev,
         [aiMessage.id]: {
@@ -1059,22 +1154,26 @@ ${message.text}
         }
       }));
       setDebateUserInput(''); // Clear input
+      setDebateAttachedImages([]); // Clear images
     }
 
     if (speaker === 'gemini') {
       // Ask Gemini to respond (with user guidance in context)
-      await handleGetSecondOpinion(aiMessage, 'debate', userGuidance);
+      await handleGetSecondOpinion(aiMessage, 'debate', userGuidance, imagesToSend);
     } else if (speaker === 'claude') {
       // Ask Claude to respond in the debate
-      await handleClaudeDebateResponse(aiMessage, userGuidance);
+      await handleClaudeDebateResponse(aiMessage, userGuidance, imagesToSend);
     } else if (speaker === 'grok') {
       // Ask Grok to respond in the debate
-      await handleGrokDebateResponse(aiMessage, userGuidance);
+      await handleGrokDebateResponse(aiMessage, userGuidance, imagesToSend);
+    } else if (speaker === 'opus') {
+      // Ask Opus for elder sage perspective
+      await handleOpusDebateResponse(aiMessage, userGuidance, imagesToSend);
     }
   };
 
   // Get Claude's response in the debate context
-  const handleClaudeDebateResponse = async (aiMessage, userGuidance = '') => {
+  const handleClaudeDebateResponse = async (aiMessage, userGuidance = '', images = []) => {
     const debate = secondOpinions[aiMessage.id]?.debate;
     if (!debate) return;
 
@@ -1116,6 +1215,14 @@ ${message.text}
             }
           }
         }));
+
+        // Check for Baby Nano trigger keywords
+        const nanoTrigger = detectBabyNanoTrigger(response.text);
+        if (nanoTrigger.triggered) {
+          console.log('🎨 Brother Claude invoked Baby Nano!');
+          // Small delay to let state update, then generate visual
+          setTimeout(() => handleGenerateDebateVisual(aiMessage, nanoTrigger.visualType), 500);
+        }
       } else {
         console.error('Claude debate response failed:', response.error);
       }
@@ -1127,7 +1234,7 @@ ${message.text}
   };
 
   // Get Grok's response in the debate context
-  const handleGrokDebateResponse = async (aiMessage, userGuidance = '') => {
+  const handleGrokDebateResponse = async (aiMessage, userGuidance = '', images = []) => {
     const debate = secondOpinions[aiMessage.id]?.debate;
     if (!debate) return;
 
@@ -1153,6 +1260,13 @@ ${message.text}
             }
           }
         }));
+
+        // Check for Baby Nano trigger keywords
+        const nanoTrigger = detectBabyNanoTrigger(response.text);
+        if (nanoTrigger.triggered) {
+          console.log('🎨 Brother Grok invoked Baby Nano!');
+          setTimeout(() => handleGenerateDebateVisual(aiMessage, nanoTrigger.visualType), 500);
+        }
       } else {
         console.error('Grok debate response failed:', response.error);
       }
@@ -1163,10 +1277,71 @@ ${message.text}
     }
   };
 
+  // Get Opus's response - the elder sage perspective
+  const handleOpusDebateResponse = async (aiMessage, userGuidance = '', images = []) => {
+    const debate = secondOpinions[aiMessage.id]?.debate;
+    if (!debate) return;
+
+    setLoadingSecondOpinion(aiMessage.id);
+
+    try {
+      const response = await getOpusPerspective({
+        claudeResponse: aiMessage.text,
+        geminiResponse: '',
+        grokResponse: '',
+        userMessage: '',
+        userProfile: userProfile,
+        debateHistory: debate.exchanges,
+        conversationContext: '',
+        customQuestion: userGuidance.trim() || ''
+      });
+
+      if (response.success) {
+        setSecondOpinions(prev => ({
+          ...prev,
+          [aiMessage.id]: {
+            ...prev[aiMessage.id],
+            debate: {
+              exchanges: [...(prev[aiMessage.id]?.debate?.exchanges || []), { speaker: 'Brother Opus', text: response.text, icon: '🦉' }]
+            }
+          }
+        }));
+
+        // Check for Baby Nano trigger keywords
+        const nanoTrigger = detectBabyNanoTrigger(response.text);
+        if (nanoTrigger.triggered) {
+          console.log('🎨 Brother Opus invoked Baby Nano!');
+          setTimeout(() => handleGenerateDebateVisual(aiMessage, nanoTrigger.visualType), 500);
+        }
+      } else {
+        console.error('Opus debate response failed:', response.error);
+      }
+    } catch (error) {
+      console.error('Opus debate error:', error);
+    } finally {
+      setLoadingSecondOpinion(null);
+    }
+  };
+
   // Add user comment to debate without asking AI to respond
   const handleAddUserCommentToDebate = (aiMessage) => {
     const debate = secondOpinions[aiMessage.id]?.debate;
-    if (!debate || !debateUserInput.trim()) return;
+    if (!debate || (!debateUserInput.trim() && debateAttachedImages.length === 0)) return;
+
+    const userExchange = {
+      speaker: userProfile?.firstName || 'You',
+      text: debateUserInput.trim(),
+      icon: '👤',
+      isUser: true
+    };
+
+    // Include images if attached
+    if (debateAttachedImages.length > 0) {
+      userExchange.images = debateAttachedImages.map(img => ({
+        data: img.data,
+        mimeType: img.mimeType
+      }));
+    }
 
     setSecondOpinions(prev => ({
       ...prev,
@@ -1175,18 +1350,146 @@ ${message.text}
         debate: {
           exchanges: [
             ...(prev[aiMessage.id]?.debate?.exchanges || []),
-            {
-              speaker: userProfile?.firstName || 'You',
-              text: debateUserInput.trim(),
-              icon: '👤',
-              isUser: true
-            }
+            userExchange
           ]
         }
       }
     }));
+
+    // Check for Baby Nano trigger keywords in user comment
+    const userText = debateUserInput.trim();
+    const nanoTrigger = detectBabyNanoTrigger(userText);
+
     setDebateUserInput('');
+    setDebateAttachedImages([]); // Clear images after adding comment
+
+    // If user invoked Baby Nano with trigger words, generate visual
+    if (nanoTrigger.triggered) {
+      console.log('🎨 User invoked Baby Nano with:', nanoTrigger.visualType);
+      setTimeout(() => handleGenerateDebateVisual(aiMessage, nanoTrigger.visualType), 500);
+    }
   };
+
+  // Handle image paste in debate panel (Ctrl+V)
+  const handleDebatePaste = async (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageItems = Array.from(items).filter(item => item.type.startsWith('image/'));
+    if (imageItems.length === 0) return;
+
+    e.preventDefault();
+
+    // Limit to 3 images in debate
+    const MAX_DEBATE_IMAGES = 3;
+    if (debateAttachedImages.length >= MAX_DEBATE_IMAGES) {
+      alert(`Maximum ${MAX_DEBATE_IMAGES} images allowed in debate. Remove some to add more.`);
+      return;
+    }
+
+    for (const item of imageItems) {
+      if (debateAttachedImages.length >= MAX_DEBATE_IMAGES) break;
+
+      const file = item.getAsFile();
+      if (!file) continue;
+
+      // Check file size (max 4MB per image)
+      if (file.size > 4 * 1024 * 1024) {
+        alert(`Image too large: ${Math.round(file.size / 1024 / 1024 * 10) / 10}MB > 4MB limit`);
+        continue;
+      }
+
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target.result;
+        // Extract base64 data and mime type
+        const [header, data] = dataUrl.split(',');
+        const mimeType = header.match(/data:(.*?);/)?.[1] || 'image/png';
+
+        setDebateAttachedImages(prev => {
+          if (prev.length >= MAX_DEBATE_IMAGES) return prev;
+          return [...prev, {
+            data: data,
+            mimeType: mimeType,
+            preview: dataUrl,
+            name: `debate_img_${Date.now()}_${prev.length + 1}.png`
+          }];
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Remove image from debate attachments
+  const handleRemoveDebateImage = (index) => {
+    setDebateAttachedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Detect Baby Nano trigger keywords in AI responses
+  // Returns { triggered: boolean, visualType: string }
+  const detectBabyNanoTrigger = (text) => {
+    if (!text) return { triggered: false, visualType: null };
+
+    // Strip markdown formatting (*, **, _, __) before checking
+    // This ensures "*let me sketch*" matches "let me sketch"
+    const cleanText = text
+      .replace(/\*\*([^*]+)\*\*/g, '$1')  // **bold**
+      .replace(/\*([^*]+)\*/g, '$1')       // *italic*
+      .replace(/__([^_]+)__/g, '$1')       // __bold__
+      .replace(/_([^_]+)_/g, '$1');        // _italic_
+
+    const lowerText = cleanText.toLowerCase();
+
+    // Trigger patterns with their visual types
+    const triggers = [
+      // Sketch/Draw triggers - AI style ("let me...")
+      { patterns: ['let me draw', 'let baby nano draw', 'i\'ll draw', 'drawing this'], type: 'sketch' },
+      { patterns: ['let me sketch', 'let baby nano sketch', 'i\'ll sketch', 'sketching this'], type: 'sketch' },
+      { patterns: ['let me paint', 'let baby nano paint', 'painting this'], type: 'sketch' },
+      { patterns: ['let me illustrate', 'illustrating this', 'an illustration'], type: 'sketch' },
+      { patterns: ['visualize this', 'let me visualize', 'visualizing'], type: 'sketch' },
+      { patterns: ['picture this', 'imagine this visually'], type: 'sketch' },
+      { patterns: ['🎨 sketch', '🎨sketch'], type: 'sketch' },
+      // User command style ("draw me...", "draw a...")
+      { patterns: ['draw me ', 'draw a ', 'draw an ', 'draw the ', 'draw this'], type: 'sketch' },
+      { patterns: ['sketch me ', 'sketch a ', 'sketch an ', 'sketch the '], type: 'sketch' },
+      { patterns: ['paint me ', 'paint a ', 'paint an ', 'paint the '], type: 'sketch' },
+      { patterns: ['create an image', 'create a picture', 'make an image', 'make a picture'], type: 'sketch' },
+      { patterns: ['show me a picture', 'show me an image', 'generate an image'], type: 'sketch' },
+
+      // Flowchart triggers
+      { patterns: ['flowchart', 'flow chart', 'let me diagram', 'a diagram'], type: 'flowchart' },
+      { patterns: ['🎨 flowchart', '🎨flowchart'], type: 'flowchart' },
+
+      // Timeline triggers
+      { patterns: ['timeline', 'time line', 'chronological view'], type: 'timeline' },
+      { patterns: ['🎨 timeline', '🎨timeline'], type: 'timeline' },
+
+      // Mind map triggers
+      { patterns: ['mind map', 'mindmap', 'concept map'], type: 'mindmap' },
+      { patterns: ['🎨 mindmap', '🎨mindmap', '🎨 mind map'], type: 'mindmap' },
+
+      // Comparison triggers
+      { patterns: ['compare visually', 'comparison chart', 'side by side'], type: 'comparison' },
+      { patterns: ['🎨 compare', '🎨compare'], type: 'comparison' }
+    ];
+
+    for (const trigger of triggers) {
+      for (const pattern of trigger.patterns) {
+        if (lowerText.includes(pattern)) {
+          console.log(`🎨 Baby Nano triggered by: "${pattern}" → ${trigger.type}`);
+          return { triggered: true, visualType: trigger.type };
+        }
+      }
+    }
+
+    return { triggered: false, visualType: null };
+  };
+
+  // Track last Baby Nano call time to prevent rate limiting
+  const lastBabyNanoCallRef = useRef(0);
+  const BABY_NANO_COOLDOWN = 15000; // 15 seconds between calls
 
   // Generate visual representation of the debate using Baby Nano
   const handleGenerateDebateVisual = async (aiMessage, visualType = 'sketch') => {
@@ -1196,14 +1499,38 @@ ${message.text}
       return;
     }
 
+    // Check cooldown to prevent rate limiting
+    const now = Date.now();
+    const timeSinceLastCall = now - lastBabyNanoCallRef.current;
+    if (timeSinceLastCall < BABY_NANO_COOLDOWN) {
+      const waitTime = Math.ceil((BABY_NANO_COOLDOWN - timeSinceLastCall) / 1000);
+      console.log(`🎨 Baby Nano cooldown: wait ${waitTime}s before next image`);
+      alert(`Baby Nano needs ${waitTime} seconds to rest before creating another image!`);
+      return;
+    }
+    lastBabyNanoCallRef.current = now;
+
     setLoadingDebateVisual(aiMessage.id);
 
     try {
       // Include the original message in the context
+      // Filter out visual entries (Baby Nano images) - only include text exchanges
+      // Truncate long texts to avoid oversized requests
+      const textExchanges = debate.exchanges
+        .filter(e => !e.isVisual && e.text)
+        .map(e => ({
+          speaker: e.speaker,
+          text: e.text.slice(0, 500) // Truncate to 500 chars max per exchange
+        }));
       const allExchanges = [
-        { speaker: 'Brother Claude', text: aiMessage.text },
-        ...debate.exchanges
+        { speaker: 'Brother Claude', text: aiMessage.text?.slice(0, 500) || '' },
+        ...textExchanges
       ];
+
+      console.log('🎨 Sending to generateDebateVisual:', {
+        exchangeCount: allExchanges.length,
+        totalChars: allExchanges.reduce((sum, e) => sum + (e.text?.length || 0), 0)
+      });
 
       const result = await generateDebateVisual({
         debateExchanges: allExchanges,
@@ -1213,13 +1540,24 @@ ${message.text}
       });
 
       if (result.success) {
-        setDebateVisuals(prev => ({
+        // Add visual as an exchange entry so it moves with the conversation
+        setSecondOpinions(prev => ({
           ...prev,
           [aiMessage.id]: {
-            image: result.image,
-            visualType: result.visualType,
-            description: result.description,
-            generatedAt: new Date().toISOString()
+            ...prev[aiMessage.id],
+            debate: {
+              exchanges: [
+                ...(prev[aiMessage.id]?.debate?.exchanges || []),
+                {
+                  speaker: 'Baby Nano',
+                  icon: '🎨',
+                  isVisual: true,
+                  visualType: result.visualType,
+                  image: result.image,
+                  description: result.description
+                }
+              ]
+            }
           }
         }));
         console.log('🎨 Debate visual generated:', result.visualType);
@@ -1245,7 +1583,7 @@ ${message.text}
     // Build markdown content
     let markdown = `# AI Constellation Debate\n\n`;
     markdown += `**Date:** ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
-    markdown += `**Participants:** Brother Claude 🐷, Sister Gemini 💫, Brother Grok 🌍${debate.exchanges.some(e => e.isUser) ? `, ${userName} 👤` : ''}\n\n`;
+    markdown += `**Participants:** Brother Claude 🐷, Sister Gemini 💫, Brother Grok 🌍, Brother Opus 🦉${debate.exchanges.some(e => e.isUser) ? `, ${userName} 👤` : ''}\n\n`;
     markdown += `---\n\n`;
 
     // Original context (the AI message that sparked the debate)
@@ -1257,7 +1595,7 @@ ${message.text}
     markdown += `## Debate\n\n`;
 
     debate.exchanges.forEach((exchange, index) => {
-      const icon = exchange.icon || (exchange.speaker === 'Brother Claude' ? '🐷' : exchange.speaker === 'Brother Grok' ? '🌍' : '💫');
+      const icon = exchange.icon || (exchange.speaker === 'Brother Claude' ? '🐷' : exchange.speaker === 'Brother Grok' ? '🌍' : exchange.speaker === 'Brother Opus' ? '🦉' : '💫');
       markdown += `### ${icon} ${exchange.speaker}${exchange.isUser ? ' (guiding)' : ''}\n\n`;
       markdown += `${exchange.text}\n\n`;
       if (index < debate.exchanges.length - 1) {
@@ -1578,11 +1916,12 @@ Please create a comprehensive document. Start with a clear title on the first li
     }
   }, [location.state, navigate, location.pathname]);
 
-  // Handle sending a message
-  const handleSend = async () => {
-    console.log('🚀 handleSend called, inputValue:', inputValue?.slice(0, 30));
+  // Handle sending a message (optionally with override content)
+  const handleSend = async (overrideContent = null) => {
+    const messageContent = overrideContent !== null ? overrideContent : inputValue;
+    console.log('🚀 handleSend called, content:', messageContent?.slice(0, 30));
 
-    if ((!inputValue.trim() && attachedFiles.length === 0 && attachedImages.length === 0) || isTyping) {
+    if ((!messageContent.trim() && attachedFiles.length === 0 && attachedImages.length === 0) || isTyping) {
       console.log('🚫 Early return - no input or typing');
       return;
     }
@@ -1604,7 +1943,7 @@ Please create a comprehensive document. Start with a clear title on the first li
     }
 
     // Build message text including file content if attached
-    let userMessageText = inputValue.trim();
+    let userMessageText = messageContent.trim();
     let displayText = userMessageText;
     let imageData = null;
 
@@ -1618,13 +1957,13 @@ Please create a comprehensive document. Start with a clear title on the first li
       // Show preview in chat
       const totalSize = attachedFiles.reduce((sum, f) => sum + f.size, 0);
       const fileNames = attachedFiles.map(f => f.name).join(', ');
-      displayText = `${inputValue.trim()}\n\n📎 Attached ${attachedFiles.length} file(s): ${fileNames} (${Math.round(totalSize / 1024)}KB total)`;
+      displayText = `${messageContent.trim()}\n\n📎 Attached ${attachedFiles.length} file(s): ${fileNames} (${Math.round(totalSize / 1024)}KB total)`;
     }
 
     // Add KB document context if selected
     if (selectedKBDoc) {
       userMessageText = `${userMessageText}\n\n---\n📚 KNOWLEDGE BASE CONTEXT: ${selectedKBDoc.title}\n---\n${selectedKBDoc.content}`;
-      displayText = `${displayText || inputValue.trim()}\n\n📚 KB: ${selectedKBDoc.title}`;
+      displayText = `${displayText || messageContent.trim()}\n\n📚 KB: ${selectedKBDoc.title}`;
     }
 
     if (attachedImages.length > 0) {
@@ -1979,20 +2318,18 @@ Please create a comprehensive document. Start with a clear title on the first li
             </a>
           </div>
 
-          {/* Constitutional Threading Panel */}
-          {threads.length > 0 && (
-            <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20 overflow-hidden">
-              <ThreadPanel
-                threads={threads}
-                threadsByType={threadsByType}
-                currentThreadId={currentThreadId}
-                onSwitchThread={switchToThread}
-                onReturnToMain={returnToMain}
-                onDeleteThread={deleteThread}
-                onRenameThread={renameThread}
-              />
-            </div>
-          )}
+          {/* Constitutional Threading Panel - Always visible */}
+          <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20 overflow-hidden">
+            <ThreadPanel
+              threads={threads}
+              threadsByType={threadsByType}
+              currentThreadId={currentThreadId}
+              onSwitchThread={switchToThread}
+              onReturnToMain={returnToMain}
+              onDeleteThread={deleteThread}
+              onRenameThread={renameThread}
+            />
+          </div>
 
           {/* Session Intelligence - Relationship Depth */}
           {relationshipSummary && relationshipSummary.conversations > 0 && (
@@ -2073,6 +2410,40 @@ Please create a comprehensive document. Start with a clear title on the first li
             >
               💬
             </button>
+            {/* Starred messages filter button */}
+            <button
+              onClick={() => setShowStarredOnly(!showStarredOnly)}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors relative ${
+                showStarredOnly
+                  ? 'bg-yellow-500/20 text-yellow-400'
+                  : 'bg-white/5 hover:bg-white/10 text-white/60'
+              }`}
+              title={showStarredOnly ? 'Show all messages' : 'Show starred messages'}
+            >
+              ⭐
+              {getStarredMessages().length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 text-black text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {getStarredMessages().length > 9 ? '9+' : getStarredMessages().length}
+                </span>
+              )}
+            </button>
+            {/* Threads quick-access button */}
+            <button
+              onClick={() => setShowThreadsPanel(!showThreadsPanel)}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors relative ${
+                showThreadsPanel || isInThread
+                  ? 'bg-amber-500/20 text-amber-400'
+                  : 'bg-white/5 hover:bg-white/10 text-white/60'
+              }`}
+              title={isInThread ? 'View all threads' : 'Energy threads'}
+            >
+              🧵
+              {threads.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-black text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {threads.length > 9 ? '9+' : threads.length}
+                </span>
+              )}
+            </button>
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400/30 to-orange-500/30 flex items-center justify-center border border-amber-500/30">
               <span className="text-xl">🐀</span>
             </div>
@@ -2148,8 +2519,106 @@ Please create a comprehensive document. Start with a clear title on the first li
             >
               📋 Copy
             </button>
+
+            {/* Profile KB Access button */}
+            <button
+              onClick={() => setShowProfileKBPanel(!showProfileKBPanel)}
+              className={`text-xs px-2 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                showProfileKBPanel
+                  ? 'bg-purple-500/20 text-purple-400'
+                  : 'bg-white/5 text-white/40 hover:bg-purple-500/20 hover:text-purple-400'
+              }`}
+              title={`Knowledge Base for ${profileKBDocs.profileName}`}
+            >
+              📚 KB
+              <span className="text-[10px] bg-purple-500/30 px-1.5 py-0.5 rounded-full">
+                {profileKBDocs.totalDocs}
+              </span>
+            </button>
           </div>
         </div>
+
+        {/* Profile KB Panel - Slide-down drawer */}
+        {showProfileKBPanel && (
+          <div className="border-b border-white/10 bg-gradient-to-b from-purple-900/20 to-slate-900/95 animate-slideDown">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-purple-400 flex items-center gap-2">
+                  📚 {profileKBDocs.profileName}'s Knowledge Base
+                  <span className="text-xs text-white/40 font-normal">({profileKBDocs.totalDocs} docs)</span>
+                </h3>
+                <button
+                  onClick={() => navigate('/knowledge-base')}
+                  className="text-xs px-3 py-1 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold hover:from-purple-400 hover:to-indigo-400 transition-all"
+                >
+                  Manage KB →
+                </button>
+              </div>
+
+              {/* Profile-specific documents */}
+              {profileKBDocs.profileDocs.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-xs text-purple-300 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    🧬 Profile Blueprint
+                  </h4>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {profileKBDocs.profileDocs.map(doc => (
+                      <div
+                        key={doc.id}
+                        className="bg-purple-500/10 rounded-lg px-3 py-2 border border-purple-500/20"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-white/90 truncate">{doc.title}</span>
+                          <span className="text-[10px] text-purple-400 ml-2">
+                            ~{doc.wordCount || 0} words
+                          </span>
+                        </div>
+                        {doc.summary && (
+                          <p className="text-xs text-white/50 mt-1 truncate">{doc.summary}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Global knowledge documents */}
+              {profileKBDocs.globalDocs.length > 0 && (
+                <div>
+                  <h4 className="text-xs text-amber-300 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    🌟 Global Knowledge (Always Included)
+                  </h4>
+                  <div className="space-y-1 max-h-24 overflow-y-auto">
+                    {profileKBDocs.globalDocs.slice(0, 5).map(doc => (
+                      <div
+                        key={doc.id}
+                        className="flex items-center justify-between text-xs bg-white/5 rounded px-2 py-1"
+                      >
+                        <span className="text-white/70 truncate">{doc.title}</span>
+                        <span className="text-white/40 ml-2">~{doc.wordCount || 0}w</span>
+                      </div>
+                    ))}
+                    {profileKBDocs.globalDocs.length > 5 && (
+                      <div className="text-xs text-white/40 text-center py-1">
+                        +{profileKBDocs.globalDocs.length - 5} more...
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Token usage indicator */}
+              <div className="mt-3 pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-white/40">Est. tokens for this profile:</span>
+                  <span className="text-purple-400 font-medium">
+                    ~{Math.round(profileKBDocs.accessibleDocs?.reduce((acc, d) => acc + (d.wordCount || 0) * 1.3, 0) || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Conversations Panel - Slide-down drawer */}
         {showConversations && (
@@ -2168,79 +2637,379 @@ Please create a comprehensive document. Start with a clear title on the first li
                 </button>
               </div>
 
-              {/* Conversations List */}
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {conversations
-                  .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-                  .map(conv => (
-                    <div
-                      key={conv.id}
-                      onClick={() => handleSwitchConversation(conv.id)}
-                      className={`group p-3 rounded-lg cursor-pointer transition-all ${
-                        conv.id === activeConversationId
-                          ? 'bg-cyan-500/20 border border-cyan-500/40'
-                          : 'bg-white/5 border border-transparent hover:bg-white/10 hover:border-white/10'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        {editingTitle === conv.id ? (
-                          <input
-                            type="text"
-                            defaultValue={conv.title}
-                            autoFocus
-                            className="flex-1 bg-white/10 border border-cyan-500/50 rounded px-2 py-1 text-sm text-white/90 focus:outline-none"
-                            onBlur={(e) => handleRenameConversation(conv.id, e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleRenameConversation(conv.id, e.target.value);
-                              if (e.key === 'Escape') setEditingTitle(null);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        ) : (
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-medium truncate ${
-                              conv.id === activeConversationId ? 'text-cyan-300' : 'text-white/80'
-                            }`}>
-                              {conv.title}
-                            </p>
-                            <p className="text-xs text-white/40 mt-0.5">
-                              {conv.messages.length - 1} messages • {(() => {
-                                const date = new Date(conv.updatedAt);
-                                const now = new Date();
-                                const isToday = date.toDateString() === now.toDateString();
-                                const isYesterday = date.toDateString() === new Date(now - 86400000).toDateString();
-                                if (isToday) return `Today ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-                                if (isYesterday) return `Yesterday ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-                                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                              })()}
-                            </p>
-                          </div>
-                        )}
+              {/* Search Input */}
+              <div className="relative mb-3">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
+                  🔍
+                </div>
+                <input
+                  type="text"
+                  value={conversationSearchQuery}
+                  onChange={(e) => {
+                    const query = e.target.value;
+                    setConversationSearchQuery(query);
+                    if (query.trim().length >= 2) {
+                      setSearchResults(searchConversations(query));
+                    } else {
+                      setSearchResults([]);
+                    }
+                  }}
+                  placeholder="Search all conversations..."
+                  className="w-full pl-10 pr-8 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                />
+                {conversationSearchQuery && (
+                  <button
+                    onClick={() => {
+                      setConversationSearchQuery('');
+                      setSearchResults([]);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
 
-                        {/* Action buttons */}
-                        <div className={`flex items-center gap-1 ${editingTitle === conv.id ? 'hidden' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingTitle(conv.id);
-                            }}
-                            className="p-1 rounded hover:bg-white/10 text-white/40 hover:text-cyan-400 transition-colors"
-                            title="Rename"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={(e) => handleDeleteConversation(conv.id, e)}
-                            className="p-1 rounded hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-colors"
-                            title="Delete"
-                          >
-                            🗑️
-                          </button>
+              {/* Search Results */}
+              {conversationSearchQuery.trim().length >= 2 ? (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {searchResults.length === 0 ? (
+                    <div className="text-center py-6 text-white/40">
+                      <div className="text-2xl mb-2">🔍</div>
+                      <p className="text-sm">No results found for "{conversationSearchQuery}"</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-xs text-white/40 mb-2">
+                        {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
+                      </div>
+                      {searchResults.slice(0, 20).map((result, idx) => (
+                        <div
+                          key={`${result.conversationId}-${result.id}-${idx}`}
+                          onClick={() => {
+                            // Switch to the conversation containing this message
+                            switchConversation(result.conversationId);
+                            setShowConversations(false);
+                            setConversationSearchQuery('');
+                            setSearchResults([]);
+                            // Scroll to the message after a brief delay for render
+                            setTimeout(() => {
+                              const msgEl = messageRefs.current[result.id];
+                              if (msgEl) {
+                                msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                msgEl.classList.add('ring-2', 'ring-cyan-400/50');
+                                setTimeout(() => msgEl.classList.remove('ring-2', 'ring-cyan-400/50'), 2000);
+                              }
+                            }, 150);
+                          }}
+                          className="p-3 rounded-lg cursor-pointer bg-white/5 border border-transparent hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all group"
+                        >
+                          <div className="flex items-start gap-2">
+                            <span className={`flex-shrink-0 ${result.sender === 'user' ? 'text-blue-400' : 'text-amber-400'}`}>
+                              {result.sender === 'user' ? '🐉' : '🐀'}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-white/80">
+                                {/* Highlight the search term in context */}
+                                {(() => {
+                                  const context = result.matchContext || '';
+                                  const term = result.searchTerm || '';
+                                  const lowerContext = context.toLowerCase();
+                                  const matchIdx = lowerContext.indexOf(term.toLowerCase());
+                                  if (matchIdx === -1) return context;
+                                  return (
+                                    <>
+                                      {context.slice(0, matchIdx)}
+                                      <span className="bg-cyan-500/40 text-cyan-200 px-0.5 rounded">
+                                        {context.slice(matchIdx, matchIdx + term.length)}
+                                      </span>
+                                      {context.slice(matchIdx + term.length)}
+                                    </>
+                                  );
+                                })()}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-cyan-400/70 truncate" title={result.conversationTitle}>
+                                  📁 {result.conversationTitle}
+                                </span>
+                                <span className="text-xs text-white/30">•</span>
+                                <span className="text-xs text-white/30">
+                                  {result.timestamp ? new Date(result.timestamp).toLocaleDateString() : 'Unknown date'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
+                      ))}
+                      {searchResults.length > 20 && (
+                        <div className="text-center py-2 text-white/40 text-xs">
+                          Showing first 20 of {searchResults.length} results
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ) : (
+                /* Conversations List */
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {conversations
+                    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                    .map(conv => (
+                      <div
+                        key={conv.id}
+                        onClick={() => handleSwitchConversation(conv.id)}
+                        className={`group p-3 rounded-lg cursor-pointer transition-all ${
+                          conv.id === activeConversationId
+                            ? 'bg-cyan-500/20 border border-cyan-500/40'
+                            : 'bg-white/5 border border-transparent hover:bg-white/10 hover:border-white/10'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          {editingTitle === conv.id ? (
+                            <input
+                              type="text"
+                              defaultValue={conv.title}
+                              autoFocus
+                              className="flex-1 bg-white/10 border border-cyan-500/50 rounded px-2 py-1 text-sm text-white/90 focus:outline-none"
+                              onBlur={(e) => handleRenameConversation(conv.id, e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleRenameConversation(conv.id, e.target.value);
+                                if (e.key === 'Escape') setEditingTitle(null);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          ) : (
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium truncate ${
+                                conv.id === activeConversationId ? 'text-cyan-300' : 'text-white/80'
+                              }`}>
+                                {conv.title}
+                              </p>
+                              <p className="text-xs text-white/40 mt-0.5">
+                                {conv.messages.length - 1} messages • {(() => {
+                                  const date = new Date(conv.updatedAt);
+                                  const now = new Date();
+                                  const isToday = date.toDateString() === now.toDateString();
+                                  const isYesterday = date.toDateString() === new Date(now - 86400000).toDateString();
+                                  if (isToday) return `Today ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                                  if (isYesterday) return `Yesterday ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                                  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                })()}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Action buttons */}
+                          <div className={`flex items-center gap-1 ${editingTitle === conv.id ? 'hidden' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingTitle(conv.id);
+                              }}
+                              className="p-1 rounded hover:bg-white/10 text-white/40 hover:text-cyan-400 transition-colors"
+                              title="Rename"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteConversation(conv.id, e)}
+                              className="p-1 rounded hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-colors"
+                              title="Delete"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Starred Messages Panel - Slide-down drawer */}
+        {showStarredOnly && (
+          <div className="border-b border-yellow-500/30 bg-gradient-to-b from-slate-800/95 to-slate-900/95 animate-slideDown">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-yellow-400 flex items-center gap-2">
+                  ⭐ Starred Messages
+                  <span className="text-xs text-white/40 font-normal">({getStarredMessages().length})</span>
+                </h3>
+                <button
+                  onClick={() => setShowStarredOnly(false)}
+                  className="text-xs px-3 py-1 rounded-lg bg-white/10 text-white/60 hover:bg-white/20 transition-all"
+                >
+                  ✕ Close
+                </button>
+              </div>
+
+              {/* Starred Messages List */}
+              {getStarredMessages().length === 0 ? (
+                <div className="text-center py-8 text-white/40">
+                  <div className="text-4xl mb-2">☆</div>
+                  <p className="text-sm">No starred messages yet</p>
+                  <p className="text-xs mt-1">Click on a message and tap ⭐ Star to save it</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {getStarredMessages().map((msg, idx) => (
+                    <div
+                      key={`${msg.conversationId}-${msg.id}-${idx}`}
+                      onClick={() => {
+                        // Switch to the conversation containing this message
+                        switchConversation(msg.conversationId);
+                        setShowStarredOnly(false);
+                        // Scroll to the message after a brief delay for render
+                        setTimeout(() => {
+                          const msgEl = messageRefs.current[msg.id];
+                          if (msgEl) {
+                            msgEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            msgEl.classList.add('ring-2', 'ring-yellow-400/50');
+                            setTimeout(() => msgEl.classList.remove('ring-2', 'ring-yellow-400/50'), 2000);
+                          }
+                        }, 100);
+                      }}
+                      className="p-3 rounded-lg cursor-pointer bg-white/5 border border-transparent hover:bg-yellow-500/10 hover:border-yellow-500/30 transition-all group"
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="text-yellow-400 flex-shrink-0">⭐</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white/80 line-clamp-2">
+                            {msg.text?.slice(0, 150)}{msg.text?.length > 150 ? '...' : ''}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`text-xs ${msg.sender === 'user' ? 'text-blue-400' : 'text-amber-400'}`}>
+                              {msg.sender === 'user' ? '🐉 You' : '🐀 SoulPartner'}
+                            </span>
+                            <span className="text-xs text-white/30">•</span>
+                            <span className="text-xs text-cyan-400/70 truncate" title={msg.conversationTitle}>
+                              📁 {msg.conversationTitle}
+                            </span>
+                            <span className="text-xs text-white/30">•</span>
+                            <span className="text-xs text-white/30">
+                              {msg.timestamp ? new Date(msg.timestamp).toLocaleDateString() : 'Unknown date'}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Find and unstar this message
+                            switchConversation(msg.conversationId);
+                            setTimeout(() => toggleMessageStar(msg.id), 50);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all"
+                          title="Remove star"
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Threads Quick-Access Panel - Slide-down drawer */}
+        {showThreadsPanel && (
+          <div className="border-b border-amber-500/30 bg-gradient-to-b from-slate-800/95 to-slate-900/95 animate-slideDown">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                  🧵 Energy Threads
+                  <span className="text-xs text-white/40 font-normal">({threads.length})</span>
+                </h3>
+                <button
+                  onClick={() => setShowThreadsPanel(false)}
+                  className="text-xs px-3 py-1 rounded-lg bg-white/10 text-white/60 hover:bg-white/20 transition-all"
+                >
+                  ✕ Close
+                </button>
               </div>
+
+              {/* Return to Main button when in thread */}
+              {isInThread && (
+                <button
+                  onClick={() => {
+                    returnToMain();
+                    setShowThreadsPanel(false);
+                  }}
+                  className="w-full mb-3 py-2 px-3 rounded-lg bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30 text-blue-300 text-sm font-medium hover:from-blue-500/30 hover:to-cyan-500/30 transition-all flex items-center justify-center gap-2"
+                >
+                  ← Return to Main Conversation
+                </button>
+              )}
+
+              {/* Thread List */}
+              {threads.length === 0 ? (
+                <div className="text-center py-6 text-white/40">
+                  <div className="text-3xl mb-2">🌿</div>
+                  <p className="text-sm">No threads yet</p>
+                  <p className="text-xs mt-1">Click "Branch" on any message to create an energy thread</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {threads.map(thread => {
+                    const typeConfig = thread.threadType ? {
+                      metal_precision: { emoji: '🔧', name: 'Metal', textColor: 'text-slate-300', bgGradient: 'from-slate-500/20 to-gray-600/20', borderColor: 'border-slate-400/30' },
+                      water_flow: { emoji: '🌊', name: 'Water', textColor: 'text-blue-300', bgGradient: 'from-blue-500/20 to-cyan-500/20', borderColor: 'border-blue-400/30' },
+                      creative_fire: { emoji: '🔥', name: 'Fire', textColor: 'text-orange-300', bgGradient: 'from-orange-500/20 to-red-500/20', borderColor: 'border-orange-400/30' },
+                      wood_growth: { emoji: '🌱', name: 'Wood', textColor: 'text-green-300', bgGradient: 'from-green-500/20 to-emerald-500/20', borderColor: 'border-green-400/30' }
+                    }[thread.threadType] : { emoji: '🧵', name: 'Thread', textColor: 'text-white/80', bgGradient: 'from-white/10 to-white/5', borderColor: 'border-white/20' };
+
+                    return (
+                      <div
+                        key={thread.id}
+                        onClick={() => {
+                          switchToThread(thread.id);
+                          setShowThreadsPanel(false);
+                        }}
+                        className={`group p-3 rounded-lg cursor-pointer transition-all bg-gradient-to-r ${typeConfig.bgGradient} border ${
+                          currentThreadId === thread.id
+                            ? `${typeConfig.borderColor} ring-1 ring-amber-400/50`
+                            : `${typeConfig.borderColor} hover:border-amber-400/30`
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="text-lg">{typeConfig.emoji}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium truncate ${typeConfig.textColor}`}>
+                              {thread.title}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs text-white/40">
+                                {thread.messageCount || 0} msgs
+                              </span>
+                              <span className="text-xs text-white/30">•</span>
+                              <span className="text-xs text-white/40">
+                                {thread.updatedAt ? (() => {
+                                  const date = new Date(thread.updatedAt);
+                                  const now = new Date();
+                                  const diff = now - date;
+                                  if (diff < 60000) return 'Just now';
+                                  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+                                  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+                                  return date.toLocaleDateString();
+                                })() : 'Unknown'}
+                              </span>
+                              {currentThreadId === thread.id && (
+                                <>
+                                  <span className="text-xs text-white/30">•</span>
+                                  <span className="text-xs text-amber-400 font-medium">Active</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2379,9 +3148,14 @@ Please create a comprehensive document. Start with a clear title on the first li
 
               {/* Message Content */}
               <div className={`max-w-[70%] ${msg.sender === 'user' ? 'text-right' : ''}`}>
-                {/* Timestamp above bubble */}
+                {/* Timestamp above bubble with star indicator */}
                 {msg.timestamp && (
-                  <div className={`text-xs text-white/30 mb-1 ${msg.sender === 'user' ? 'text-right' : ''}`}>
+                  <div className={`text-xs text-white/30 mb-1 flex items-center gap-1.5 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
+                    {/* Star indicator for starred messages */}
+                    {msg.starred && (
+                      <span className="text-yellow-400 animate-pulse" title="Starred message">⭐</span>
+                    )}
+                    <span>
                     {(() => {
                       const date = new Date(msg.timestamp);
                       const now = new Date();
@@ -2392,16 +3166,25 @@ Please create a comprehensive document. Start with a clear title on the first li
                       if (isYesterday) return `Yesterday ${time}`;
                       return `${date.toLocaleDateString()} ${time}`;
                     })()}
+                    </span>
                   </div>
                 )}
                 <div className="relative inline-block">
+                  {/* Prominent Star Badge - visible without clicking */}
+                  {msg.starred && (
+                    <div className="absolute -top-2 -left-2 z-10">
+                      <div className="w-7 h-7 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-yellow-500/30 animate-pulse border-2 border-yellow-300">
+                        <span className="text-sm">⭐</span>
+                      </div>
+                    </div>
+                  )}
                   <div
                     onClick={(e) => handleMessageClick(msg.id, e)}
                     className={`inline-block px-4 py-3 rounded-2xl cursor-pointer hover:ring-2 hover:ring-white/20 transition-all ${
                       msg.sender === 'user'
                         ? 'bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 text-white/90'
                         : 'bg-gradient-to-br from-slate-800/80 to-slate-700/80 border border-white/10 text-white/90'
-                    }`}
+                    } ${msg.starred ? 'ring-2 ring-yellow-400/40' : ''}`}
                   >
                     {/* Show image indicator if present */}
                     {msg.hasImage && (
@@ -2462,10 +3245,18 @@ Please create a comprehensive document. Start with a clear title on the first li
                       <button
                         onClick={(e) => handleCopyMessage(msg, e)}
                         className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-medium rounded-lg shadow-lg hover:from-indigo-500 hover:to-purple-500 transition-all border border-white/20"
-                        title="Copy message to clipboard"
+                        title="Copy message with header"
                       >
                         <span>📋</span>
                         <span>Copy</span>
+                      </button>
+                      <button
+                        onClick={(e) => handleCopyMarkdown(msg, e)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-medium rounded-lg shadow-lg hover:from-emerald-500 hover:to-teal-500 transition-all border border-white/20"
+                        title="Copy raw markdown (formatting preserved)"
+                      >
+                        <span>📝</span>
+                        <span>Copy MD</span>
                       </button>
                       <button
                         onClick={(e) => handleContinueTopic(msg, e)}
@@ -2488,6 +3279,22 @@ Please create a comprehensive document. Start with a clear title on the first li
                         onReact={(emoji) => handleReactionWithSignal(msg.id, emoji, userProfile?.userId)}
                         compact={false}
                       />
+                      {/* Star/Favorite Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleMessageStar(msg.id);
+                        }}
+                        className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg shadow-lg transition-all border border-white/20 ${
+                          msg.starred
+                            ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white hover:from-yellow-400 hover:to-amber-400'
+                            : 'bg-gradient-to-r from-slate-600 to-slate-700 text-white/80 hover:from-slate-500 hover:to-slate-600'
+                        }`}
+                        title={msg.starred ? 'Remove star' : 'Star this message'}
+                      >
+                        <span>{msg.starred ? '⭐' : '☆'}</span>
+                        <span>{msg.starred ? 'Starred' : 'Star'}</span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -2543,10 +3350,9 @@ Please create a comprehensive document. Start with a clear title on the first li
                           💫 {loadingSecondOpinion === msg.id ? 'Asking...' : 'Second Opinion'}
                         </button>
                         <button
-                          onClick={() => handleGetSecondOpinion(msg, 'debate')}
-                          disabled={loadingSecondOpinion === msg.id}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors bg-pink-500/10 text-pink-400 hover:bg-pink-500/20 disabled:opacity-50"
-                          title="Start AI Debate - watch Claude and Gemini discuss"
+                          onClick={() => handleStartDebatePanel(msg)}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors bg-pink-500/10 text-pink-400 hover:bg-pink-500/20"
+                          title="Open AI Constellation - choose who to invite to the conversation"
                         >
                           🎭 Debate
                         </button>
@@ -2776,9 +3582,13 @@ Please create a comprehensive document. Start with a clear title on the first li
                                 ? 'bg-amber-500/30 border border-amber-500/30'
                                 : exchange.speaker === 'Brother Grok'
                                   ? 'bg-cyan-500/30 border border-cyan-500/30'
-                                  : 'bg-purple-500/30 border border-purple-500/30'
+                                  : exchange.speaker === 'Brother Opus'
+                                    ? 'bg-indigo-500/30 border border-indigo-500/30'
+                                    : exchange.speaker === 'Baby Nano'
+                                      ? 'bg-rose-500/30 border border-rose-500/30'
+                                      : 'bg-purple-500/30 border border-purple-500/30'
                           }`}>
-                            {exchange.icon || (exchange.speaker === 'Brother Claude' ? '🐷' : exchange.speaker === 'Brother Grok' ? '🌍' : '💫')}
+                            {exchange.icon || (exchange.speaker === 'Brother Claude' ? '🐷' : exchange.speaker === 'Brother Grok' ? '🌍' : exchange.speaker === 'Brother Opus' ? '🦉' : '💫')}
                           </div>
                           <div className="flex-1">
                             <div className={`text-xs mb-0.5 ${
@@ -2788,21 +3598,69 @@ Please create a comprehensive document. Start with a clear title on the first li
                                   ? 'text-amber-400'
                                   : exchange.speaker === 'Brother Grok'
                                     ? 'text-cyan-400'
-                                    : 'text-purple-400'
+                                    : exchange.speaker === 'Brother Opus'
+                                      ? 'text-indigo-300'
+                                      : exchange.speaker === 'Baby Nano'
+                                        ? 'text-rose-400'
+                                        : 'text-purple-400'
                             }`}>
                               {exchange.speaker}
                               {exchange.isUser && <span className="text-emerald-400/50 ml-1">(guiding)</span>}
                             </div>
-                            <div className={`text-sm text-white/85 rounded-lg px-3 py-2 whitespace-pre-wrap ${
+                            <div className={`text-sm text-white/90 rounded-lg px-3 py-2 whitespace-pre-wrap ${
                               exchange.isUser
-                                ? 'bg-emerald-500/10 border border-emerald-500/20 italic'
+                                ? 'bg-emerald-500/20 border-l-4 border-emerald-500 italic'
                                 : exchange.speaker === 'Brother Claude'
-                                  ? 'bg-amber-500/10 border border-amber-500/20'
+                                  ? 'bg-gradient-to-r from-amber-500/25 to-orange-500/15 border-l-4 border-amber-500'
                                   : exchange.speaker === 'Brother Grok'
-                                    ? 'bg-cyan-500/10 border border-cyan-500/20'
-                                    : 'bg-purple-500/10 border border-purple-500/20'
+                                    ? 'bg-gradient-to-r from-cyan-500/25 to-teal-500/15 border-l-4 border-cyan-500'
+                                    : exchange.speaker === 'Brother Opus'
+                                      ? 'bg-gradient-to-r from-indigo-500/25 to-blue-600/15 border-l-4 border-indigo-400'
+                                      : exchange.speaker === 'Baby Nano'
+                                        ? 'bg-gradient-to-r from-rose-500/25 to-orange-500/15 border-l-4 border-rose-500'
+                                        : 'bg-gradient-to-r from-purple-500/25 to-pink-500/15 border-l-4 border-purple-500'
                             }`}>
-                              {exchange.text}
+                              {/* Baby Nano Visual Entry */}
+                              {exchange.isVisual && exchange.image ? (
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-xs text-white/40 bg-white/5 px-1.5 py-0.5 rounded">
+                                      {exchange.visualType}
+                                    </span>
+                                  </div>
+                                  <img
+                                    src={`data:${exchange.image.mimeType};base64,${exchange.image.data}`}
+                                    alt={`Visualization: ${exchange.visualType}`}
+                                    className="w-full max-h-[400px] object-contain rounded-lg border border-white/10 cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => window.open(`data:${exchange.image.mimeType};base64,${exchange.image.data}`, '_blank')}
+                                    title="Click to view full size"
+                                  />
+                                  {exchange.description && (
+                                    <p className="text-xs text-white/60 mt-2 italic">
+                                      {exchange.description.slice(0, 150)}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                <>
+                                  {exchange.text}
+                                  {/* Display attached images in exchange */}
+                                  {exchange.images && exchange.images.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {exchange.images.map((img, imgIdx) => (
+                                        <img
+                                          key={imgIdx}
+                                          src={`data:${img.mimeType};base64,${img.data}`}
+                                          alt={`Attached ${imgIdx + 1}`}
+                                          className="max-w-[200px] max-h-[150px] rounded-lg border border-white/20 cursor-pointer hover:opacity-90 transition-opacity"
+                                          onClick={() => window.open(`data:${img.mimeType};base64,${img.data}`, '_blank')}
+                                          title="Click to view full size"
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -2827,16 +3685,53 @@ Please create a comprehensive document. Start with a clear title on the first li
                           {/* User Input */}
                           <div className="mb-3">
                             <label className="text-xs text-white/50 mb-1 block">
-                              Guide the debate (optional):
+                              Guide the debate (optional) - paste images with Ctrl+V:
                             </label>
                             <textarea
                               value={debateUserInput}
                               onChange={(e) => setDebateUserInput(e.target.value)}
-                              placeholder="e.g., 'Focus on practical implications' or 'What about the golden ratio?'"
+                              onPaste={handleDebatePaste}
+                              placeholder="e.g., 'Focus on practical implications' or paste a screenshot..."
                               className="w-full bg-slate-900/50 border border-pink-500/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-pink-500/50 resize-none"
                               rows={2}
                               disabled={loadingSecondOpinion === msg.id}
                             />
+
+                            {/* Attached Images Preview */}
+                            {debateAttachedImages.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {debateAttachedImages.map((img, idx) => (
+                                  <div key={idx} className="relative group">
+                                    <img
+                                      src={img.preview}
+                                      alt={`Attached ${idx + 1}`}
+                                      className="w-16 h-16 object-cover rounded-lg border border-pink-500/30"
+                                    />
+                                    <button
+                                      onClick={() => handleRemoveDebateImage(idx)}
+                                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                      title="Remove image"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ))}
+                                <div className="text-xs text-pink-400/60 self-center ml-1">
+                                  {debateAttachedImages.length}/3 images
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Add Comment Only - directly below input */}
+                            {(debateUserInput.trim() || debateAttachedImages.length > 0) && (
+                              <button
+                                onClick={() => handleAddUserCommentToDebate(msg)}
+                                disabled={loadingSecondOpinion === msg.id}
+                                className="w-full mt-2 py-1.5 text-xs text-emerald-400 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-lg transition-colors"
+                              >
+                                ➕ Just Add My Comment (don't ask AI)
+                              </button>
+                            )}
                           </div>
 
                           {/* Speaker Selection Buttons */}
@@ -2862,18 +3757,15 @@ Please create a comprehensive document. Start with a clear title on the first li
                             >
                               {loadingSecondOpinion === msg.id ? '💭...' : '🌍 Human Pulse (Grok)'}
                             </button>
-                          </div>
-
-                          {/* Add Comment Only */}
-                          {debateUserInput.trim() && (
                             <button
-                              onClick={() => handleAddUserCommentToDebate(msg)}
+                              onClick={() => handleContinueDebate(msg, 'opus', debateUserInput)}
                               disabled={loadingSecondOpinion === msg.id}
-                              className="w-full mt-2 py-1.5 text-xs text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg transition-colors"
+                              className="flex-1 min-w-[140px] py-2 text-sm font-medium bg-gradient-to-r from-indigo-500/20 to-blue-600/20 hover:from-indigo-500/30 hover:to-blue-600/30 text-indigo-300 border border-indigo-500/30 rounded-lg transition-all disabled:opacity-50"
+                              title="Summon Brother Opus - Elder sage with deep philosophical wisdom"
                             >
-                              ➕ Just Add My Comment (don't ask AI)
+                              {loadingSecondOpinion === msg.id ? '💭...' : '🦉 Elder Wisdom (Opus)'}
                             </button>
-                          )}
+                          </div>
 
                           {/* Baby Nano - Visual Generation */}
                           <div className="mt-4 pt-3 border-t border-white/10">
@@ -2921,47 +3813,6 @@ Please create a comprehensive document. Start with a clear title on the first li
                               >
                                 {loadingDebateVisual === msg.id ? '🎨...' : '⚖️ Compare'}
                               </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Generated Debate Visual Display */}
-                      {debateVisuals[msg.id] && (
-                        <div className="mt-4 animate-slideDown">
-                          <div className="bg-gradient-to-br from-rose-900/20 to-orange-900/20 border border-rose-500/20 rounded-xl p-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-2 text-sm text-rose-400">
-                                <span className="text-lg">🎨</span>
-                                <span className="font-medium">Baby Nano Visualization</span>
-                                <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded">
-                                  {debateVisuals[msg.id].visualType}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => setDebateVisuals(prev => {
-                                  const newVisuals = { ...prev };
-                                  delete newVisuals[msg.id];
-                                  return newVisuals;
-                                })}
-                                className="text-white/40 hover:text-white/60 transition-colors"
-                                title="Dismiss"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                            <div className="relative group">
-                              <img
-                                src={`data:${debateVisuals[msg.id].image.mimeType};base64,${debateVisuals[msg.id].image.data}`}
-                                alt={`Debate visualization: ${debateVisuals[msg.id].visualType}`}
-                                className="w-full h-auto rounded-lg border border-white/10"
-                                style={{ maxHeight: '500px', objectFit: 'contain' }}
-                              />
-                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                                <p className="text-xs text-white/80">
-                                  {debateVisuals[msg.id].description?.slice(0, 100) || `${debateVisuals[msg.id].visualType} visualization`}
-                                </p>
-                              </div>
                             </div>
                           </div>
                         </div>
@@ -3505,17 +4356,37 @@ Please create a comprehensive document. Start with a clear title on the first li
               rows={2}
               className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/90 placeholder-white/30 resize-none focus:outline-none focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/20 transition-all"
             />
-            <button
-              onClick={handleSend}
-              disabled={(!inputValue.trim() && attachedFiles.length === 0 && attachedImages.length === 0) || isTyping}
-              className={`px-6 rounded-xl font-semibold transition-all ${
-                (inputValue.trim() || attachedFiles.length > 0 || attachedImages.length > 0) && !isTyping
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 hover:from-amber-400 hover:to-orange-400 hover:shadow-lg hover:shadow-amber-500/25'
-                  : 'bg-white/10 text-white/30 cursor-not-allowed'
-              }`}
-            >
-              Send ✨
-            </button>
+            {/* Send Button Group */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => handleSend()}
+                disabled={(!inputValue.trim() && attachedFiles.length === 0 && attachedImages.length === 0) || isTyping}
+                className={`px-5 rounded-l-xl font-semibold transition-all ${
+                  (inputValue.trim() || attachedFiles.length > 0 || attachedImages.length > 0) && !isTyping
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 hover:from-amber-400 hover:to-orange-400 hover:shadow-lg hover:shadow-amber-500/25'
+                    : 'bg-white/10 text-white/30 cursor-not-allowed'
+                }`}
+                title="Send message"
+              >
+                Send ✨
+              </button>
+              <button
+                onClick={() => {
+                  // Send with markdown format hint so AI treats content as pre-formatted
+                  const mdContent = `[Markdown formatted message]\n${inputValue}`;
+                  handleSend(mdContent);
+                }}
+                disabled={(!inputValue.trim() && attachedFiles.length === 0 && attachedImages.length === 0) || isTyping}
+                className={`px-3 rounded-r-xl font-medium text-xs transition-all border-l border-black/20 ${
+                  (inputValue.trim() || attachedFiles.length > 0 || attachedImages.length > 0) && !isTyping
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400'
+                    : 'bg-white/10 text-white/30 cursor-not-allowed'
+                }`}
+                title="Send as markdown (hints AI to preserve formatting)"
+              >
+                MD
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -348,6 +348,95 @@ export function ConversationsProvider({ children }) {
     }
   }, [activeConversationId, messages, updateMessages]);
 
+  // Toggle star/favorite on a message
+  const toggleMessageStar = useCallback(async (messageId) => {
+    if (!activeConversationId) return;
+
+    try {
+      setError(null);
+
+      // Find the message and toggle the star
+      const updatedMessages = messages.map(msg => {
+        if (msg.id === messageId) {
+          return { ...msg, starred: !msg.starred };
+        }
+        return msg;
+      });
+
+      await updateMessages(updatedMessages);
+      const msg = messages.find(m => m.id === messageId);
+      console.log('⭐ Star toggled:', !msg?.starred, 'on message:', messageId);
+    } catch (err) {
+      console.error('Error toggling star:', err);
+      setError(err.message);
+      throw err;
+    }
+  }, [activeConversationId, messages, updateMessages]);
+
+  // Get all starred messages across all conversations
+  const getStarredMessages = useCallback(() => {
+    const starredMsgs = [];
+    conversations.forEach(conv => {
+      const convMessages = conv.messages || [];
+      convMessages.forEach(msg => {
+        if (msg.starred) {
+          starredMsgs.push({
+            ...msg,
+            conversationId: conv.id,
+            conversationTitle: conv.title
+          });
+        }
+      });
+    });
+    // Sort by timestamp descending (most recent first)
+    starredMsgs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return starredMsgs;
+  }, [conversations]);
+
+  // Search across all conversations
+  // Returns array of { message, conversationId, conversationTitle, matchContext }
+  const searchConversations = useCallback((query) => {
+    if (!query || query.trim().length < 2) return [];
+
+    const searchTerm = query.toLowerCase().trim();
+    const results = [];
+
+    conversations.forEach(conv => {
+      const convMessages = conv.messages || [];
+      convMessages.forEach(msg => {
+        const text = msg.text || '';
+        const lowerText = text.toLowerCase();
+
+        if (lowerText.includes(searchTerm)) {
+          // Find the match position for context highlighting
+          const matchIndex = lowerText.indexOf(searchTerm);
+          const contextStart = Math.max(0, matchIndex - 40);
+          const contextEnd = Math.min(text.length, matchIndex + searchTerm.length + 60);
+
+          // Build context with ellipsis
+          let matchContext = '';
+          if (contextStart > 0) matchContext += '...';
+          matchContext += text.slice(contextStart, contextEnd);
+          if (contextEnd < text.length) matchContext += '...';
+
+          results.push({
+            ...msg,
+            conversationId: conv.id,
+            conversationTitle: conv.title,
+            matchContext,
+            matchIndex,
+            searchTerm
+          });
+        }
+      });
+    });
+
+    // Sort by timestamp descending (most recent first)
+    results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    return results;
+  }, [conversations]);
+
   // Create initial conversation if none exist for this profile
   useEffect(() => {
     if (!loading && currentUser && activeProfileId && conversations.length === 0) {
@@ -372,7 +461,10 @@ export function ConversationsProvider({ children }) {
     switchConversation,
     setActiveConversationId,
     setActiveProfileId, // Allow pages to set which profile conversations to load
-    toggleMessageReaction
+    toggleMessageReaction,
+    toggleMessageStar,   // Star/favorite messages
+    getStarredMessages,  // Get all starred messages across conversations
+    searchConversations  // Search across all conversations
   };
 
   return (

@@ -2159,6 +2159,9 @@ const venusData = require('astronomia/data/vsop87Bvenus').default;
 const marsData = require('astronomia/data/vsop87Bmars').default;
 const jupiterData = require('astronomia/data/vsop87Bjupiter').default;
 const saturnData = require('astronomia/data/vsop87Bsaturn').default;
+const uranusData = require('astronomia/data/vsop87Buranus').default;
+const neptuneData = require('astronomia/data/vsop87Bneptune').default;
+const pluto = require('astronomia/pluto');
 
 /**
  * Zodiac Signs with degree ranges
@@ -2426,6 +2429,127 @@ function getHouseName(houseNum) {
     12: 'Spirituality & Secrets'
   };
   return names[houseNum] || `House ${houseNum}`;
+}
+
+/**
+ * Get Moon Phase interpretation for natal charts
+ */
+function getMoonPhaseInterpretation(phaseName) {
+  const interpretations = {
+    'New Moon': {
+      title: 'New Moon Native',
+      brief: 'Initiator, fresh starts, instinctive action',
+      full: 'Born during the New Moon phase, you embody the energy of new beginnings. You have a natural talent for starting fresh and initiating projects. Your instincts guide you strongly, and you tend to act on impulse. You may sometimes struggle to complete what you start, as you\'re already drawn to the next beginning.'
+    },
+    'Waxing Crescent': {
+      title: 'Waxing Crescent Native',
+      brief: 'Builder, determined, pushing through obstacles',
+      full: 'Born during the Waxing Crescent phase, you possess remarkable determination. You understand that growth requires effort and aren\'t afraid to struggle for what you want. You have a pioneering spirit and the courage to forge ahead even when the path isn\'t clear.'
+    },
+    'First Quarter': {
+      title: 'First Quarter Native',
+      brief: 'Crisis-oriented, decisive, action-driven',
+      full: 'Born during the First Quarter phase, you thrive in moments of crisis and decision. You have a natural ability to take decisive action when others hesitate. Challenges energize rather than discourage you, and you\'re skilled at building structures and making things happen.'
+    },
+    'Waxing Gibbous': {
+      title: 'Waxing Gibbous Native',
+      brief: 'Perfectionist, analyzer, improvement-focused',
+      full: 'Born during the Waxing Gibbous phase, you\'re driven to refine, improve, and perfect. You have excellent analytical skills and a keen eye for what needs adjustment. You may sometimes be overly self-critical, but this same quality helps you achieve excellence in your endeavors.'
+    },
+    'Full Moon': {
+      title: 'Full Moon Native',
+      brief: 'Illuminator, relationship-oriented, visible',
+      full: 'Born during the Full Moon phase, you live life in the spotlight of awareness. Relationships are central to your growth, and you learn most through interactions with others. Your life tends to be more public and visible, and you bring clarity and illumination wherever you go.'
+    },
+    'Waning Gibbous': {
+      title: 'Waning Gibbous Native (Disseminator)',
+      brief: 'Teacher, sharer, meaning-seeker',
+      full: 'Born during the Waning Gibbous (Disseminating) phase, you\'re a natural teacher and communicator. You have wisdom to share and find meaning in passing knowledge to others. You seek to understand the deeper significance of experiences and help others do the same.'
+    },
+    'Last Quarter': {
+      title: 'Last Quarter Native',
+      brief: 'Revolutionary, breaking patterns, future-oriented',
+      full: 'Born during the Last Quarter phase, you\'re here to break down old structures and challenge outdated beliefs. You have a revolutionary spirit and the courage to question the status quo. You may feel somewhat at odds with conventional society, as you see the need for change others don\'t yet recognize.'
+    },
+    'Waning Crescent': {
+      title: 'Waning Crescent Native (Balsamic)',
+      brief: 'Visionary, intuitive, transitional soul',
+      full: 'Born during the Waning Crescent (Balsamic) phase, you carry ancient wisdom and strong intuitive abilities. You may feel like an old soul, here to complete karmic cycles and prepare for new beginnings. You have prophetic tendencies and a deep connection to the spiritual realm.'
+    }
+  };
+
+  return interpretations[phaseName] || {
+    title: 'Moon Phase Native',
+    brief: 'Lunar influence present',
+    full: 'The Moon\'s phase at your birth influences your emotional patterns and life rhythms.'
+  };
+}
+
+/**
+ * Calculate aspects between celestial bodies
+ * Major aspects: Conjunction (0°), Opposition (180°), Trine (120°), Square (90°), Sextile (60°)
+ * Minor aspects: Quincunx (150°), Semi-sextile (30°)
+ */
+function calculateAspects(celestialBodies) {
+  const ASPECT_DEFINITIONS = [
+    { name: 'Conjunction', symbol: '☌', angle: 0, orb: 8, nature: 'major', quality: 'neutral', description: 'Fusion of energies - intensification' },
+    { name: 'Opposition', symbol: '☍', angle: 180, orb: 8, nature: 'major', quality: 'challenging', description: 'Tension seeking balance - awareness' },
+    { name: 'Trine', symbol: '△', angle: 120, orb: 8, nature: 'major', quality: 'harmonious', description: 'Natural flow - ease and talent' },
+    { name: 'Square', symbol: '□', angle: 90, orb: 8, nature: 'major', quality: 'challenging', description: 'Friction creating growth - action required' },
+    { name: 'Sextile', symbol: '⚹', angle: 60, orb: 6, nature: 'major', quality: 'harmonious', description: 'Opportunity - requires effort to activate' },
+    { name: 'Quincunx', symbol: '⚻', angle: 150, orb: 3, nature: 'minor', quality: 'adjustment', description: 'Incompatible energies requiring adjustment' },
+    { name: 'Semi-sextile', symbol: '⚺', angle: 30, orb: 2, nature: 'minor', quality: 'neutral', description: 'Subtle connection - slight friction' }
+  ];
+
+  const aspects = [];
+  const bodies = Object.entries(celestialBodies);
+
+  // Compare each pair of bodies
+  for (let i = 0; i < bodies.length; i++) {
+    for (let j = i + 1; j < bodies.length; j++) {
+      const [name1, body1] = bodies[i];
+      const [name2, body2] = bodies[j];
+
+      // Get longitudes
+      const lon1 = body1.totalLongitude;
+      const lon2 = body2.totalLongitude;
+
+      if (lon1 === undefined || lon2 === undefined) continue;
+
+      // Calculate angular separation (always positive, 0-180)
+      let separation = Math.abs(lon1 - lon2);
+      if (separation > 180) separation = 360 - separation;
+
+      // Check against each aspect definition
+      for (const aspectDef of ASPECT_DEFINITIONS) {
+        const diff = Math.abs(separation - aspectDef.angle);
+        if (diff <= aspectDef.orb) {
+          // Calculate exactness (0 = perfect, 100 = edge of orb)
+          const exactness = Math.round((1 - diff / aspectDef.orb) * 100);
+
+          aspects.push({
+            planet1: { name: name1, sign: body1.sign, symbol: body1.symbol },
+            planet2: { name: name2, sign: body2.sign, symbol: body2.symbol },
+            aspect: aspectDef.name,
+            symbol: aspectDef.symbol,
+            angle: aspectDef.angle,
+            actualAngle: Math.round(separation * 100) / 100,
+            orb: Math.round(diff * 100) / 100,
+            exactness,
+            nature: aspectDef.nature,
+            quality: aspectDef.quality,
+            description: aspectDef.description
+          });
+          break; // Only one aspect per pair
+        }
+      }
+    }
+  }
+
+  // Sort by exactness (most exact first)
+  aspects.sort((a, b) => b.exactness - a.exactness);
+
+  return aspects;
 }
 
 /**
@@ -3037,12 +3161,54 @@ exports.calculateWesternChart = onRequest({
 
     const planets = {};
 
-    // VERSION: 2.1.0 - Planet calculation re-enabled with proper VSOP87B data
+    // VERSION: 2.4.0 - GEOCENTRIC positions + RETROGRADE detection
+    // Retrograde = planet appears to move backward from Earth's perspective
     try {
-      console.log('🪐 VERSION 2.1.0 - Calculating planetary positions...');
+      console.log('🪐 VERSION 2.4.0 - Calculating GEOCENTRIC positions with RETROGRADE detection...');
 
       // Create Earth planet for heliocentric to geocentric conversion
       const earth = new planetposition.Planet(earthData);
+
+      // Helper function to calculate geocentric longitude for any Julian Day
+      function getGeocentricLongitude(planetObj, jd) {
+        const earthPosAtJD = earth.position(jd);
+        const earthLonAtJD = earthPosAtJD.lon;
+        const earthLatAtJD = earthPosAtJD.lat;
+        const earthRAtJD = earthPosAtJD.range;
+
+        const earthXAtJD = earthRAtJD * Math.cos(earthLatAtJD) * Math.cos(earthLonAtJD);
+        const earthYAtJD = earthRAtJD * Math.cos(earthLatAtJD) * Math.sin(earthLonAtJD);
+        const earthZAtJD = earthRAtJD * Math.sin(earthLatAtJD);
+
+        const planetPosAtJD = planetObj.position(jd);
+        const planetLonAtJD = planetPosAtJD.lon;
+        const planetLatAtJD = planetPosAtJD.lat;
+        const planetRAtJD = planetPosAtJD.range;
+
+        const planetXAtJD = planetRAtJD * Math.cos(planetLatAtJD) * Math.cos(planetLonAtJD);
+        const planetYAtJD = planetRAtJD * Math.cos(planetLatAtJD) * Math.sin(planetLonAtJD);
+        const planetZAtJD = planetRAtJD * Math.sin(planetLatAtJD);
+
+        const geoXAtJD = planetXAtJD - earthXAtJD;
+        const geoYAtJD = planetYAtJD - earthYAtJD;
+
+        let geoLon = Math.atan2(geoYAtJD, geoXAtJD) * 180 / Math.PI;
+        return ((geoLon % 360) + 360) % 360;
+      }
+
+      // Get Earth's heliocentric position (needed for all planet conversions)
+      const earthPos = earth.position(julianDay);
+
+      // Convert Earth's spherical to rectangular coordinates
+      const earthLon = earthPos.lon;  // radians
+      const earthLat = earthPos.lat;  // radians
+      const earthR = earthPos.range;  // AU
+
+      const earthX = earthR * Math.cos(earthLat) * Math.cos(earthLon);
+      const earthY = earthR * Math.cos(earthLat) * Math.sin(earthLon);
+      const earthZ = earthR * Math.sin(earthLat);
+
+      console.log(`🌍 Earth heliocentric: lon=${(earthLon * 180/Math.PI).toFixed(2)}°, R=${earthR.toFixed(4)} AU`);
 
       // Planet configurations with their data and symbols
       const planetConfigs = [
@@ -3050,47 +3216,156 @@ exports.calculateWesternChart = onRequest({
         { name: 'Venus', data: venusData, symbol: '♀' },
         { name: 'Mars', data: marsData, symbol: '♂' },
         { name: 'Jupiter', data: jupiterData, symbol: '♃' },
-        { name: 'Saturn', data: saturnData, symbol: '♄' }
+        { name: 'Saturn', data: saturnData, symbol: '♄' },
+        { name: 'Uranus', data: uranusData, symbol: '♅' },
+        { name: 'Neptune', data: neptuneData, symbol: '♆' }
       ];
 
       for (const config of planetConfigs) {
         try {
           const planet = new planetposition.Planet(config.data);
 
-          // Get geocentric ecliptic coordinates
-          // The position method returns heliocentric, we need to convert
+          // Get heliocentric position of planet
           const planetPos = planet.position(julianDay);
-          const earthPos = earth.position(julianDay);
 
-          // Convert heliocentric to geocentric longitude
-          // Simplified approach: use the ecliptic longitude from position
-          let longitude;
-
-          if (planetPos && typeof planetPos.lon === 'number') {
-            // Convert radians to degrees if needed
-            longitude = planetPos.lon * 180 / Math.PI;
-            // Normalize to 0-360
-            longitude = ((longitude % 360) + 360) % 360;
-          } else {
+          if (!planetPos || typeof planetPos.lon !== 'number') {
             console.log(`⚠️ ${config.name}: Invalid position data`, planetPos);
             continue;
           }
 
-          const zodiacData = longitudeToZodiac(longitude);
+          // Convert planet's spherical to rectangular coordinates (heliocentric)
+          const planetLon = planetPos.lon;  // radians
+          const planetLat = planetPos.lat;  // radians
+          const planetR = planetPos.range;  // AU
+
+          const planetX = planetR * Math.cos(planetLat) * Math.cos(planetLon);
+          const planetY = planetR * Math.cos(planetLat) * Math.sin(planetLon);
+          const planetZ = planetR * Math.sin(planetLat);
+
+          // Convert to GEOCENTRIC coordinates (subtract Earth's position)
+          const geoX = planetX - earthX;
+          const geoY = planetY - earthY;
+          const geoZ = planetZ - earthZ;
+
+          // Convert geocentric rectangular back to ecliptic longitude
+          let geoLongitude = Math.atan2(geoY, geoX) * 180 / Math.PI;
+
+          // Normalize to 0-360 degrees
+          geoLongitude = ((geoLongitude % 360) + 360) % 360;
+
+          // Calculate geocentric latitude (for reference)
+          const geoDistance = Math.sqrt(geoX*geoX + geoY*geoY + geoZ*geoZ);
+          const geoLatitude = Math.asin(geoZ / geoDistance) * 180 / Math.PI;
+
+          // ═══════════════════════════════════════════════════════════════════
+          // RETROGRADE DETECTION
+          // Compare position today vs tomorrow - if moving backward, retrograde
+          // ═══════════════════════════════════════════════════════════════════
+          const lonToday = geoLongitude;
+          const lonTomorrow = getGeocentricLongitude(planet, julianDay + 1);
+
+          // Calculate daily motion (degrees per day)
+          let dailyMotion = lonTomorrow - lonToday;
+
+          // Handle 360° wraparound (e.g., 359° to 1° is +2°, not -358°)
+          if (dailyMotion > 180) dailyMotion -= 360;
+          if (dailyMotion < -180) dailyMotion += 360;
+
+          // Retrograde if daily motion is negative (moving backward)
+          const isRetrograde = dailyMotion < 0;
+
+          const zodiacData = longitudeToZodiac(geoLongitude);
+
+          // For comparison, log heliocentric vs geocentric
+          const helioLon = ((planetLon * 180/Math.PI % 360) + 360) % 360;
+          const diff = Math.abs(geoLongitude - helioLon);
+          const retroLabel = isRetrograde ? ' ℞' : '';
+          console.log(`🪐 ${config.name}${retroLabel}: Geo=${geoLongitude.toFixed(2)}° (motion: ${dailyMotion.toFixed(3)}°/day)`);
 
           planets[config.name.toLowerCase()] = {
             ...zodiacData,
             symbol: config.symbol,
-            name: config.name
+            name: config.name,
+            geocentric: true,
+            geoLatitude: Math.round(geoLatitude * 100) / 100,
+            distanceAU: Math.round(geoDistance * 10000) / 10000,
+            // Retrograde data
+            isRetrograde: isRetrograde,
+            dailyMotion: Math.round(dailyMotion * 1000) / 1000,  // degrees/day
+            motionDirection: isRetrograde ? 'retrograde' : 'direct'
           };
 
-          console.log(`✅ ${config.name}: ${zodiacData.sign} at ${zodiacData.degreeFormatted}`);
+          console.log(`✅ ${config.name}: ${zodiacData.sign} at ${zodiacData.degreeFormatted}${isRetrograde ? ' ℞ RETROGRADE' : ' direct'}`);
         } catch (planetErr) {
           console.log(`⚠️ ${config.name} calculation error:`, planetErr.message);
         }
       }
 
-      console.log('🪐 Planet calculations complete:', Object.keys(planets));
+      // ═══════════════════════════════════════════════════════════════════════
+      // PLUTO - Uses separate ephemeris (not VSOP87)
+      // ═══════════════════════════════════════════════════════════════════════
+      try {
+        const plutoPos = pluto.heliocentric(julianDay);
+
+        if (plutoPos && typeof plutoPos.lon === 'number') {
+          const plutoLon = plutoPos.lon;  // radians
+          const plutoLat = plutoPos.lat;  // radians
+          const plutoR = plutoPos.range;  // AU
+
+          // Convert to rectangular heliocentric
+          const plutoX = plutoR * Math.cos(plutoLat) * Math.cos(plutoLon);
+          const plutoY = plutoR * Math.cos(plutoLat) * Math.sin(plutoLon);
+          const plutoZ = plutoR * Math.sin(plutoLat);
+
+          // Convert to geocentric
+          const plutoGeoX = plutoX - earthX;
+          const plutoGeoY = plutoY - earthY;
+          const plutoGeoZ = plutoZ - earthZ;
+
+          // Geocentric ecliptic longitude
+          let plutoGeoLon = Math.atan2(plutoGeoY, plutoGeoX) * 180 / Math.PI;
+          plutoGeoLon = ((plutoGeoLon % 360) + 360) % 360;
+
+          const plutoGeoDistance = Math.sqrt(plutoGeoX*plutoGeoX + plutoGeoY*plutoGeoY + plutoGeoZ*plutoGeoZ);
+          const plutoGeoLat = Math.asin(plutoGeoZ / plutoGeoDistance) * 180 / Math.PI;
+
+          // Retrograde detection for Pluto
+          const plutoPosTomorrow = pluto.heliocentric(julianDay + 1);
+          const plutoXTom = plutoPosTomorrow.range * Math.cos(plutoPosTomorrow.lat) * Math.cos(plutoPosTomorrow.lon);
+          const plutoYTom = plutoPosTomorrow.range * Math.cos(plutoPosTomorrow.lat) * Math.sin(plutoPosTomorrow.lon);
+          const earthPosTomorrow = earth.position(julianDay + 1);
+          const earthXTom = earthPosTomorrow.range * Math.cos(earthPosTomorrow.lat) * Math.cos(earthPosTomorrow.lon);
+          const earthYTom = earthPosTomorrow.range * Math.cos(earthPosTomorrow.lat) * Math.sin(earthPosTomorrow.lon);
+          let plutoGeoLonTom = Math.atan2(plutoYTom - earthYTom, plutoXTom - earthXTom) * 180 / Math.PI;
+          plutoGeoLonTom = ((plutoGeoLonTom % 360) + 360) % 360;
+
+          let plutoDailyMotion = plutoGeoLonTom - plutoGeoLon;
+          if (plutoDailyMotion > 180) plutoDailyMotion -= 360;
+          if (plutoDailyMotion < -180) plutoDailyMotion += 360;
+          const plutoRetrograde = plutoDailyMotion < 0;
+
+          const plutoZodiacData = longitudeToZodiac(plutoGeoLon);
+          const plutoRetroLabel = plutoRetrograde ? ' ℞' : '';
+          console.log(`🪐 Pluto${plutoRetroLabel}: Geo=${plutoGeoLon.toFixed(2)}° (motion: ${plutoDailyMotion.toFixed(3)}°/day)`);
+
+          planets.pluto = {
+            ...plutoZodiacData,
+            symbol: '♇',
+            name: 'Pluto',
+            geocentric: true,
+            geoLatitude: Math.round(plutoGeoLat * 100) / 100,
+            distanceAU: Math.round(plutoGeoDistance * 10000) / 10000,
+            isRetrograde: plutoRetrograde,
+            dailyMotion: Math.round(plutoDailyMotion * 1000) / 1000,
+            motionDirection: plutoRetrograde ? 'retrograde' : 'direct'
+          };
+          console.log(`✅ Pluto: ${plutoZodiacData.sign} at ${plutoZodiacData.degreeFormatted}${plutoRetrograde ? ' ℞ RETROGRADE' : ' direct'}`);
+        }
+      } catch (plutoErr) {
+        console.log('⚠️ Pluto calculation error:', plutoErr.message);
+      }
+
+      console.log('🪐 Geocentric + Retrograde calculations complete:', Object.keys(planets));
     } catch (planetError) {
       console.log('Planet calculation error (non-fatal):', planetError.message);
     }
@@ -3115,6 +3390,83 @@ exports.calculateWesternChart = onRequest({
       }
     } catch (houseError) {
       console.log('House calculation error (non-fatal):', houseError.message);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Calculate Moon Phase
+    // Phase angle = Moon longitude - Sun longitude (normalized to 0-360)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    let moonPhase = null;
+    try {
+      // Calculate the angular difference between Moon and Sun
+      let phaseAngle = moonLongitude - sunLongitude;
+      // Normalize to 0-360
+      phaseAngle = ((phaseAngle % 360) + 360) % 360;
+
+      // Determine phase name and illumination
+      const phases = [
+        { name: 'New Moon', emoji: '🌑', min: 0, max: 11.25, illumination: 0 },
+        { name: 'Waxing Crescent', emoji: '🌒', min: 11.25, max: 78.75, illumination: 25 },
+        { name: 'First Quarter', emoji: '🌓', min: 78.75, max: 101.25, illumination: 50 },
+        { name: 'Waxing Gibbous', emoji: '🌔', min: 101.25, max: 168.75, illumination: 75 },
+        { name: 'Full Moon', emoji: '🌕', min: 168.75, max: 191.25, illumination: 100 },
+        { name: 'Waning Gibbous', emoji: '🌖', min: 191.25, max: 258.75, illumination: 75 },
+        { name: 'Last Quarter', emoji: '🌗', min: 258.75, max: 281.25, illumination: 50 },
+        { name: 'Waning Crescent', emoji: '🌘', min: 281.25, max: 348.75, illumination: 25 },
+        { name: 'New Moon', emoji: '🌑', min: 348.75, max: 360, illumination: 0 }
+      ];
+
+      let currentPhase = phases.find(p => phaseAngle >= p.min && phaseAngle < p.max);
+      if (!currentPhase) currentPhase = phases[0]; // Default to New Moon
+
+      // Calculate more precise illumination percentage
+      // illumination = (1 - cos(phaseAngle)) / 2 * 100
+      const illuminationPercent = Math.round((1 - Math.cos(phaseAngle * Math.PI / 180)) / 2 * 100);
+
+      // Determine if waxing (growing) or waning (shrinking)
+      const isWaxing = phaseAngle < 180;
+
+      moonPhase = {
+        phaseName: currentPhase.name,
+        emoji: currentPhase.emoji,
+        angle: Math.round(phaseAngle * 100) / 100,
+        illumination: illuminationPercent,
+        isWaxing,
+        cyclePosition: isWaxing ? 'Growing toward fullness' : 'Releasing toward renewal',
+        interpretation: getMoonPhaseInterpretation(currentPhase.name)
+      };
+
+      console.log('🌙 Moon Phase:', moonPhase.emoji, moonPhase.phaseName, `(${illuminationPercent}% illuminated)`);
+    } catch (phaseError) {
+      console.log('Moon phase calculation error (non-fatal):', phaseError.message);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Calculate Aspects between celestial bodies
+    // ─────────────────────────────────────────────────────────────────────────
+
+    let aspects = [];
+    try {
+      // Combine Sun, Moon, and planets for aspect calculation
+      const allBodies = {
+        sun: { ...sunData, symbol: '☉' },
+        moon: { ...moonData, symbol: '☽' },
+        ...planets
+      };
+
+      aspects = calculateAspects(allBodies);
+      console.log(`✨ Aspects calculated: ${aspects.length} found`);
+
+      // Log major aspects
+      const majorAspects = aspects.filter(a => a.nature === 'major');
+      if (majorAspects.length > 0) {
+        console.log('Major aspects:', majorAspects.slice(0, 5).map(a =>
+          `${a.planet1.name} ${a.symbol} ${a.planet2.name} (${a.orb}° orb)`
+        ).join(', '));
+      }
+    } catch (aspectError) {
+      console.log('Aspect calculation error (non-fatal):', aspectError.message);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -3171,11 +3523,17 @@ exports.calculateWesternChart = onRequest({
       constitutionalTrinity,
       planets,
       houses,
+      moonPhase,
+      aspects,
       elementProfile,
       meta: {
         julianDay,
-        calculationEngine: 'GENESIS Sovereign (Moshier Ephemeris)',
+        calculationEngine: 'GENESIS Sovereign v2.7.0 (Moshier Ephemeris)',
         precision: '~0.1 arcseconds',
+        planetarySystem: 'Geocentric (as seen from Earth)',
+        retrogradeDetection: true,
+        moonPhaseCalculation: true,
+        aspectCalculation: true,
         coverage: '3000 BC - 3000 AD',
         calculatedAt: new Date().toISOString()
       }

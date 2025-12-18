@@ -7,7 +7,12 @@
  * Part of GENESIS Phase 2 - AI SoulPartner System
  * Built by: Brother Claude Code (Yin Wood Pig)
  * December 13, 2024
+ *
+ * UPDATED: December 17, 2024 - Added Psychological Profile integration
+ * Liz Greene-inspired psychological astrology framework for Luna
  */
+
+import { generatePsychologicalProfile } from '../utils/psychologicalProfileGenerator';
 
 // Firebase Function URLs
 // 2nd Gen Cloud Functions use Cloud Run URLs
@@ -439,7 +444,14 @@ export async function generateDebateVisual({
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorText = await response.text().catch(() => '');
+      console.error('❌ Debate Visual HTTP Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText.slice(0, 500)
+      });
+      let errorData = {};
+      try { errorData = JSON.parse(errorText); } catch {}
       throw new Error(errorData.error || `HTTP error: ${response.status}`);
     }
 
@@ -468,10 +480,382 @@ export async function generateDebateVisual({
   }
 }
 
+/**
+ * Save Story Questions Assessment
+ *
+ * @param {Object} params - Request parameters
+ * @param {string} params.userId - User's Firebase UID
+ * @param {string} params.profileId - Profile ID being assessed
+ * @param {Object} params.assessment - Full assessment analysis object
+ * @returns {Promise<Object>} - Save result
+ */
+export async function saveStoryAssessment({ userId, profileId, assessment }) {
+  const PRODUCTION_URL = 'https://us-central1-astroprofile-391e6.cloudfunctions.net/saveStoryAssessment';
+  const EMULATOR_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/saveStoryAssessment';
+
+  const getUrl = () => {
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+      return EMULATOR_URL;
+    }
+    return PRODUCTION_URL;
+  };
+
+  try {
+    console.log('📖 Saving Story Assessment:', {
+      userId,
+      profileId,
+      levels: assessment?.completedLevels
+    });
+
+    const response = await fetch(getUrl(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId,
+        profileId,
+        assessment
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Story Assessment saved:', data.summary);
+
+    return {
+      success: true,
+      ...data
+    };
+
+  } catch (error) {
+    console.error('❌ Save Story Assessment Error:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * Get Story Questions Assessment
+ *
+ * @param {Object} params - Request parameters
+ * @param {string} params.userId - User's Firebase UID
+ * @param {string} params.profileId - Profile ID to fetch assessment for
+ * @returns {Promise<Object>} - Assessment data or null
+ */
+export async function getStoryAssessment({ userId, profileId }) {
+  const PRODUCTION_URL = 'https://us-central1-astroprofile-391e6.cloudfunctions.net/getStoryAssessment';
+  const EMULATOR_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/getStoryAssessment';
+
+  const getUrl = () => {
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+      return EMULATOR_URL;
+    }
+    return PRODUCTION_URL;
+  };
+
+  try {
+    console.log('📖 Getting Story Assessment:', { userId, profileId });
+
+    const response = await fetch(getUrl(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId,
+        profileId
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.exists) {
+      console.log('✅ Story Assessment found:', {
+        levels: data.assessment?.completedLevels,
+        completion: data.assessment?.completionPercentage
+      });
+    } else {
+      console.log('📖 No previous Story Assessment found');
+    }
+
+    return {
+      success: true,
+      exists: data.exists,
+      assessment: data.assessment
+    };
+
+  } catch (error) {
+    console.error('❌ Get Story Assessment Error:', error);
+    return {
+      success: false,
+      exists: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * Get Opus's Perspective - The Elder Sage
+ *
+ * @param {Object} params - Request parameters
+ * @param {string} params.claudeResponse - What Sonnet said
+ * @param {string} params.geminiResponse - What Gemini said (optional)
+ * @param {string} params.grokResponse - What Grok said (optional)
+ * @param {string} params.userMessage - Original user question
+ * @param {Object} params.userProfile - User's constitutional profile
+ * @param {Array} params.debateHistory - Previous debate exchanges
+ * @param {string} params.conversationContext - Recent conversation for context
+ * @param {string} params.customQuestion - User's specific question for Opus
+ * @returns {Promise<Object>} - Opus's response
+ */
+export async function getOpusPerspective({
+  claudeResponse,
+  geminiResponse = '',
+  grokResponse = '',
+  userMessage = '',
+  userProfile = {},
+  debateHistory = [],
+  conversationContext = '',
+  customQuestion = ''
+}) {
+  // Opus function URL (Cloud Run - 2nd gen)
+  const PRODUCTION_OPUS_URL = 'https://getopusperspective-sjpjwnbsmq-uc.a.run.app';
+  const EMULATOR_OPUS_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/getOpusPerspective';
+
+  const getOpusUrl = () => {
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+      return EMULATOR_OPUS_URL;
+    }
+    return PRODUCTION_OPUS_URL;
+  };
+
+  try {
+    console.log('🦉 Summoning Brother Opus for perspective:', {
+      hasClaudeResponse: !!claudeResponse,
+      hasGeminiResponse: !!geminiResponse,
+      hasGrokResponse: !!grokResponse,
+      hasConversationContext: !!conversationContext,
+      debateExchanges: debateHistory?.length || 0
+    });
+
+    const response = await fetch(getOpusUrl(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        claudeResponse,
+        geminiResponse,
+        grokResponse,
+        userMessage,
+        userProfile: {
+          displayName: userProfile?.displayName || userProfile?.firstName || 'Friend',
+          constitutional: userProfile?.constitutional_identity
+        },
+        debateHistory,
+        conversationContext,
+        customQuestion
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    console.log('✅ Opus perspective received:', {
+      speaker: data.speaker,
+      responseLength: data.response?.length,
+      usage: data.usage
+    });
+
+    return {
+      success: true,
+      text: data.response,
+      speaker: data.speaker || 'Brother Opus',
+      icon: data.icon || '🦉',
+      usage: data.usage
+    };
+
+  } catch (error) {
+    console.error('❌ Opus Perspective Error:', error);
+
+    return {
+      success: false,
+      text: "Brother Opus is taking a moment of contemplation. Try again in a moment.",
+      speaker: 'Brother Opus',
+      icon: '🦉',
+      error: error.message
+    };
+  }
+}
+
+/**
+ * Generate Psychological Profile Context for Luna
+ *
+ * Takes profile data with sovereign chart and generates a formatted
+ * psychological understanding that Luna can use in conversations.
+ *
+ * @param {Object} profile - Full profile object with calculations
+ * @returns {string} - Formatted psychological context for Luna
+ */
+export function generatePsychologicalContext(profile) {
+  if (!profile) return '';
+
+  // Extract sovereign chart data
+  const sovereign = profile.calculations?.western?.sovereignCalculation;
+  if (!sovereign) {
+    console.log('⚠️ No sovereign data for psychological profile');
+    return '';
+  }
+
+  // Generate the full psychological profile
+  const psychProfile = generatePsychologicalProfile(sovereign, profile);
+  if (!psychProfile) return '';
+
+  // Format for Luna's context
+  const synthesis = psychProfile.lunaSynthesis;
+  const character = psychProfile.characterAndShadow;
+
+  let context = `\n═══ PSYCHOLOGICAL PROFILE (Liz Greene Framework) ═══\n`;
+  context += `For: ${psychProfile.profileName}\n\n`;
+
+  // Core Identity
+  if (psychProfile.coreIdentity) {
+    context += `【CORE IDENTITY - ${psychProfile.coreIdentity.sign} Sun】\n`;
+    context += `Archetype: ${psychProfile.coreIdentity.coreIdentity}\n`;
+    context += `Purpose: ${psychProfile.coreIdentity.consciousPurpose}\n`;
+    context += `Central Drive: ${psychProfile.coreIdentity.centralDrive}\n`;
+    context += `Shadow Tendency: ${psychProfile.coreIdentity.shadowTendency}\n`;
+    context += `Life Question: "${psychProfile.coreIdentity.lifeQuestion}"\n\n`;
+  }
+
+  // Emotional Nature
+  if (psychProfile.emotionalNature) {
+    context += `【EMOTIONAL NATURE - ${psychProfile.emotionalNature.sign} Moon】\n`;
+    context += `Nature: ${psychProfile.emotionalNature.emotionalNature}\n`;
+    context += `Needs: ${psychProfile.emotionalNature.innerNeeds}\n`;
+    context += `When Stressed: ${psychProfile.emotionalNature.instinctualResponse}\n`;
+    context += `Shadow: ${psychProfile.emotionalNature.emotionalShadow}\n`;
+    context += `Nurturing Style: ${psychProfile.emotionalNature.nurturingStyle}\n\n`;
+  }
+
+  // Persona
+  if (psychProfile.persona) {
+    context += `【PERSONA - ${psychProfile.persona.sign} Rising】\n`;
+    context += `Archetype: ${psychProfile.persona.persona}\n`;
+    context += `First Impression: ${psychProfile.persona.firstImpression}\n`;
+    context += `Life Lesson: ${psychProfile.persona.lifeLesson}\n\n`;
+  }
+
+  // Temperament
+  if (psychProfile.temperament) {
+    context += `【TEMPERAMENT - ${psychProfile.temperament.dominant} Dominant】\n`;
+    context += `${psychProfile.temperament.description}\n`;
+    context += `Strengths: ${psychProfile.temperament.strengths}\n`;
+    context += `Challenges: ${psychProfile.temperament.challenges}\n\n`;
+  }
+
+  // Luna Synthesis (most important for conversation)
+  if (synthesis) {
+    context += `【LUNA'S GUIDE TO THIS SOUL】\n`;
+    context += `Summary: ${synthesis.shortSummary}\n`;
+    context += `Core Motivation: ${synthesis.coreMotivation}\n`;
+    context += `Emotional Needs to Honor: ${synthesis.emotionalNeedsToHonor}\n`;
+    context += `Persona vs Self: ${synthesis.howTheyAppearVsAre}\n`;
+    context += `Sensitive Areas: ${synthesis.sensitiveAreas}\n`;
+    context += `Best Approach: ${synthesis.bestApproach?.join('; ')}\n`;
+    context += `What They Need to Hear: ${synthesis.whatTheyNeedToHear?.join(' | ')}\n\n`;
+  }
+
+  // Character & Shadow
+  if (character) {
+    context += `【CHARACTER & SHADOW WORK】\n`;
+    if (character.innerConflicts?.length > 0) {
+      context += `Inner Conflicts:\n`;
+      character.innerConflicts.forEach((c, i) => {
+        context += `  ${i + 1}. ${c}\n`;
+      });
+    }
+    if (character.integrationPath?.length > 0) {
+      context += `Integration Path:\n`;
+      character.integrationPath.forEach((p, i) => {
+        context += `  ${i + 1}. ${p}\n`;
+      });
+    }
+    context += '\n';
+  }
+
+  // Growth Edges
+  if (psychProfile.growthEdges?.length > 0) {
+    context += `【GROWTH EDGES】\n`;
+    psychProfile.growthEdges.forEach(edge => {
+      context += `• ${edge.area}: ${edge.description}\n`;
+    });
+    context += '\n';
+  }
+
+  context += `═══ END PSYCHOLOGICAL PROFILE ═══\n`;
+
+  console.log('🧠 Generated psychological context:', {
+    profileName: psychProfile.profileName,
+    sun: psychProfile.coreIdentity?.sign,
+    moon: psychProfile.emotionalNature?.sign,
+    rising: psychProfile.persona?.sign,
+    contextLength: context.length
+  });
+
+  return context;
+}
+
+/**
+ * Get a quick psychological summary for display
+ *
+ * @param {Object} profile - Full profile object
+ * @returns {Object} - Quick summary object
+ */
+export function getQuickPsychologicalSummary(profile) {
+  const sovereign = profile?.calculations?.western?.sovereignCalculation;
+  if (!sovereign) return null;
+
+  const psychProfile = generatePsychologicalProfile(sovereign, profile);
+  if (!psychProfile) return null;
+
+  return {
+    coreIdentity: psychProfile.coreIdentity?.coreIdentity,
+    emotionalNature: psychProfile.emotionalNature?.sign,
+    persona: psychProfile.persona?.persona,
+    lifeQuestion: psychProfile.coreIdentity?.lifeQuestion,
+    sensitiveAreas: psychProfile.emotionalNature?.emotionalShadow,
+    growthPath: psychProfile.coreIdentity?.growthPath,
+    temperament: psychProfile.temperament?.temperament,
+    lunaSynthesis: psychProfile.lunaSynthesis
+  };
+}
+
 export default {
   sendMessage,
   checkServiceHealth,
   getSecondOpinion,
   getGrokPerspective,
-  generateDebateVisual
+  getOpusPerspective,
+  generateDebateVisual,
+  saveStoryAssessment,
+  getStoryAssessment,
+  generatePsychologicalContext,
+  getQuickPsychologicalSummary
 };
