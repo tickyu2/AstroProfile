@@ -142,6 +142,100 @@ const SERVICE_CATEGORIES = {
         color: 'from-sky-400 to-blue-600'
       }
     ]
+  },
+  research: {
+    title: 'Research & Competitors',
+    icon: '🔬',
+    services: [
+      // AI Companions with Memory
+      {
+        name: 'Replika',
+        url: 'https://replika.ai',
+        description: 'AI companion with emotional intelligence - learns from patterns',
+        icon: '💜',
+        color: 'from-purple-500 to-violet-600'
+      },
+      {
+        name: 'Nomi',
+        url: 'https://nomi.ai',
+        description: 'Persistent memory, emotional nuance - feels like ongoing relationship',
+        icon: '💚',
+        color: 'from-green-500 to-emerald-600'
+      },
+      {
+        name: 'Kin',
+        url: 'https://mykin.ai',
+        description: 'Local-first private AI - data stays on device',
+        icon: '🔒',
+        color: 'from-teal-500 to-cyan-600'
+      },
+      {
+        name: 'Formii',
+        url: 'https://formii.ai',
+        description: 'Memory-powered companion with relationship stages & love languages',
+        icon: '💕',
+        color: 'from-pink-500 to-rose-600'
+      },
+      // AI Astrology Apps
+      {
+        name: 'Co-Star',
+        url: 'https://costarastrology.com',
+        description: 'Western astrology with NASA data - popular UI patterns',
+        icon: '⭐',
+        color: 'from-slate-500 to-gray-700'
+      },
+      {
+        name: 'Melooha',
+        url: 'https://www.melooha.com',
+        description: 'AI Vedic astrology platform - hyper-personalized',
+        icon: '🌙',
+        color: 'from-indigo-500 to-purple-600'
+      },
+      {
+        name: 'AstroSure',
+        url: 'https://astrosure.ai',
+        description: 'AI + Vedic kundli with ancient text references',
+        icon: '📿',
+        color: 'from-orange-500 to-amber-600'
+      },
+      {
+        name: 'Lunar AI',
+        url: 'https://apps.apple.com/us/app/lunar-ai-astrology-advices/id6503080840',
+        description: 'Chat-based astrology advice with birth chart analysis',
+        icon: '🌜',
+        color: 'from-blue-500 to-indigo-600'
+      },
+      // BaZi / Four Pillars
+      {
+        name: 'Four Pillars Software',
+        url: 'https://fourpillars.net',
+        description: 'Professional BaZi software since 1999 - 20 languages',
+        icon: '🏛️',
+        color: 'from-red-500 to-orange-600'
+      },
+      {
+        name: 'Master Tsai',
+        url: 'https://www.mastertsai.com',
+        description: 'AI BaZi model for ChatGPT - Chinese Five Element calculator',
+        icon: '🧙',
+        color: 'from-amber-500 to-yellow-600'
+      },
+      {
+        name: 'BaZi Calculator',
+        url: 'https://bazi-calculator.com',
+        description: 'Free online calculator with stem/branch interactions',
+        icon: '🧮',
+        color: 'from-emerald-500 to-green-600'
+      },
+      // Dating / Compatibility
+      {
+        name: 'MetYet',
+        url: 'https://play.google.com/store/apps/details?id=com.metyet.app',
+        description: 'Astrology-based dating app - compatibility matching',
+        icon: '💘',
+        color: 'from-rose-500 to-pink-600'
+      }
+    ]
   }
 };
 
@@ -157,6 +251,27 @@ const AI_TOOLS = [
 
 // Development timeline entries
 const DEVELOPMENT_TIMELINE = [
+  {
+    date: '2024-12-16',
+    title: 'Market Research & Competitor Analysis',
+    description: 'Analyzed AI companion market (Replika, Nomi, Kin), astrology apps (Co-Star, Melooha), and BaZi tools. Identified GENESIS unique positioning: Constitutional AI with SoulDNA synthesis (Chinese+Western+BaZi+MBTI), Soul Eclipse detection, and Dream Tickler education vision.',
+    tags: ['Research', 'Strategy', 'Competitors'],
+    claudeCode: true
+  },
+  {
+    date: '2024-12-16',
+    title: 'SoulPartner Handbook (KB3) Integration',
+    description: 'Embedded complete SoulPartner Operational Handbook into Cloud Function. Triple KB Architecture: KB1 (User data), KB2 (Session Intelligence), KB3 (Handbook). Includes Soul Eclipse detection, 12 Commandments, Soul-Fishing techniques.',
+    tags: ['AI', 'SoulPartner', 'KB3'],
+    claudeCode: true
+  },
+  {
+    date: '2024-12-16',
+    title: 'Per-Profile Data Isolation',
+    description: 'Fixed data architecture to store SoulPartner relationship metrics per-profile instead of per-user. Each family member now has isolated SoulPartner KB at profiles/{profileId}/companion/.',
+    tags: ['Architecture', 'Firebase', 'Profiles'],
+    claudeCode: true
+  },
   {
     date: '2024-12-15',
     title: 'TimezoneDB Historical Accuracy',

@@ -1121,6 +1121,48 @@ ${message.text}
     setActiveDebate({ messageId: aiMessage.id });
   };
 
+  // Quick ask AI - get response immediately without opening panel
+  // Response appears inline below the message
+  const handleQuickAskAI = async (aiMessage, speaker) => {
+    // Initialize debate state if it doesn't exist (to store the response)
+    let debate = secondOpinions[aiMessage.id]?.debate;
+
+    if (!debate || debate.exchanges.length === 0) {
+      // Initialize debate with just Luna's original message
+      const newDebate = {
+        exchanges: [
+          { speaker: 'Luna', text: aiMessage.text, icon: '🌙' }
+        ]
+      };
+
+      setSecondOpinions(prev => ({
+        ...prev,
+        [aiMessage.id]: {
+          ...prev[aiMessage.id],
+          debate: newDebate
+        }
+      }));
+
+      debate = newDebate;
+    }
+
+    // DON'T open the debate panel - get the response immediately
+    // The debate panel will show only if they click "Debate" button
+    // But we still need to set activeDebate for the response to show inline
+    setActiveDebate({ messageId: aiMessage.id });
+
+    // Call the appropriate AI immediately
+    if (speaker === 'gemini') {
+      await handleGetSecondOpinion(aiMessage, 'debate', '', []);
+    } else if (speaker === 'claude') {
+      await handleClaudeDebateResponse(aiMessage, '', []);
+    } else if (speaker === 'grok') {
+      await handleGrokDebateResponse(aiMessage, '', []);
+    } else if (speaker === 'opus') {
+      await handleOpusDebateResponse(aiMessage, '', []);
+    }
+  };
+
   // Continue debate - get response from selected AI with optional user guidance
   const handleContinueDebate = async (aiMessage, speaker = 'gemini', userGuidance = '') => {
     const debate = secondOpinions[aiMessage.id]?.debate;
@@ -3334,28 +3376,52 @@ Please create a comprehensive document. Start with a clear title on the first li
                       </button>
                     )}
 
-                    {/* AI Constellation - Second Opinion button (only on AI messages) */}
+                    {/* AI Constellation - Quick AI Buttons (only on AI messages) */}
                     {msg.sender === 'ai' && msg.id !== 0 && (
                       <>
                         <button
-                          onClick={() => handleToggleSecondOpinionInput(msg.id)}
-                          disabled={loadingSecondOpinion === msg.id}
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors disabled:opacity-50 ${
-                            secondOpinionInput === msg.id
-                              ? 'bg-purple-500/30 text-purple-300'
-                              : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
-                          }`}
-                          title="Ask Sister Gemini for her perspective"
-                        >
-                          💫 {loadingSecondOpinion === msg.id ? 'Asking...' : 'Second Opinion'}
-                        </button>
-                        <button
                           onClick={() => handleStartDebatePanel(msg)}
                           className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors bg-pink-500/10 text-pink-400 hover:bg-pink-500/20"
-                          title="Open AI Constellation - choose who to invite to the conversation"
+                          title="Open AI Constellation with full debate panel"
                         >
                           🎭 Debate
                         </button>
+
+                        {/* Quick AI Access - Named Buttons */}
+                        <div className="flex items-center gap-1 ml-1 pl-1 border-l border-white/10">
+                          <button
+                            onClick={() => handleQuickAskAI(msg, 'claude')}
+                            disabled={loadingSecondOpinion === msg.id}
+                            className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-500/10 hover:bg-amber-500/30 text-amber-400 transition-colors disabled:opacity-50"
+                            title="Ask Claude Sonnet for perspective"
+                          >
+                            {loadingSecondOpinion === msg.id ? '...' : 'Sonnet'}
+                          </button>
+                          <button
+                            onClick={() => handleQuickAskAI(msg, 'gemini')}
+                            disabled={loadingSecondOpinion === msg.id}
+                            className="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-500/10 hover:bg-purple-500/30 text-purple-400 transition-colors disabled:opacity-50"
+                            title="Ask Gemini 3 Pro (Thinking Mode)"
+                          >
+                            {loadingSecondOpinion === msg.id ? '...' : 'Gemini'}
+                          </button>
+                          <button
+                            onClick={() => handleQuickAskAI(msg, 'grok')}
+                            disabled={loadingSecondOpinion === msg.id}
+                            className="px-2 py-0.5 text-xs font-medium rounded-full bg-cyan-500/10 hover:bg-cyan-500/30 text-cyan-400 transition-colors disabled:opacity-50"
+                            title="Ask Grok for human pulse perspective"
+                          >
+                            {loadingSecondOpinion === msg.id ? '...' : 'Grok'}
+                          </button>
+                          <button
+                            onClick={() => handleQuickAskAI(msg, 'opus')}
+                            disabled={loadingSecondOpinion === msg.id}
+                            className="px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 hover:bg-indigo-500/30 text-indigo-300 transition-colors disabled:opacity-50"
+                            title="Ask Claude Opus for elder wisdom"
+                          >
+                            {loadingSecondOpinion === msg.id ? '...' : 'Opus'}
+                          </button>
+                        </div>
                       </>
                     )}
                   </div>

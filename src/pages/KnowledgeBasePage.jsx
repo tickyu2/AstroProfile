@@ -30,6 +30,7 @@ export default function KnowledgeBasePage() {
     createDocument,
     updateDocument,
     deleteDocument,
+    deleteAllProfileSummaries,
     getStats
   } = useKnowledgeBase();
 
@@ -159,6 +160,24 @@ export default function KnowledgeBasePage() {
   const handleCancel = () => {
     setIsCreating(false);
     setEditingDoc(null);
+  };
+
+  // Mass delete all profile summaries
+  const handleMassDeleteProfileSummaries = async () => {
+    const profileSummaryCount = documents.filter(d => d.category === 'profile_summary').length;
+    if (profileSummaryCount === 0) {
+      alert('No Profile Summary documents to delete.');
+      return;
+    }
+    if (window.confirm(`⚠️ MASS DELETE\n\nThis will delete ALL ${profileSummaryCount} Profile Summary documents.\n\nAre you sure?`)) {
+      try {
+        const result = await deleteAllProfileSummaries();
+        alert(`✅ Deleted ${result.deleted} Profile Summary documents.`);
+      } catch (err) {
+        console.error('Error in mass delete:', err);
+        alert('Error deleting documents: ' + err.message);
+      }
+    }
   };
 
   // Chat about a KB document - navigate to AI SoulPartner with context
@@ -320,6 +339,16 @@ export default function KnowledgeBasePage() {
                 />
               </label>
             </div>
+
+            {/* Mass Delete Button */}
+            {documents.filter(d => d.category === 'profile_summary').length > 2 && (
+              <button
+                onClick={handleMassDeleteProfileSummaries}
+                className="w-full mt-2 px-4 py-2 bg-red-900/50 hover:bg-red-800 border border-red-500/30 rounded-lg text-sm font-medium text-red-300 transition-colors"
+              >
+                🗑️ Delete All Profile Summaries ({documents.filter(d => d.category === 'profile_summary').length})
+              </button>
+            )}
 
             {/* Token Usage Note */}
             <div className="mt-4 p-3 bg-slate-800/30 rounded-lg border border-white/5">

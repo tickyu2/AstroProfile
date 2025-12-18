@@ -19,7 +19,7 @@
  * December 14, 2024
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   collection,
   query,
@@ -30,6 +30,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDocs,
   serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -41,7 +42,8 @@ import { getCompatibilityRankings } from '../utils/mbti/mbtiCompatibilityMatrix'
 import { calculateCompatibility, getCompatibilityLevel as getWesternLevel } from '../utils/westernZodiac/westernZodiacCompatibility';
 import { getCuspById, getAllCusps as getAllCuspsList } from '../utils/westernZodiac/cuspCalculator';
 import { personalizationEngine } from '../utils/personalizationEngine';
-import { generatePsychologicalProfile } from '../utils/psychologicalProfileGenerator';
+import { generatePsychologicalProfile, generateCompletePsychologicalProfile } from '../utils/psychologicalProfileGenerator';
+import { calculateWithComparison, SEASONAL_MULTIPLIERS, QI_STATE_NAMES } from '../utils/seasonalStrength';
 
 const KnowledgeBaseContext = createContext({});
 
@@ -98,6 +100,10 @@ export function KnowledgeBaseProvider({ children }) {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Mutex: Track which profiles are currently being synced to prevent duplicates
+  // Using useRef for synchronous access (useState is async and won't work for rapid-fire calls)
+  const syncingProfilesRef = useRef(new Set());
 
   // Real-time listener for knowledge base documents
   useEffect(() => {
@@ -293,85 +299,247 @@ ${doc.content}
     return prompt;
   };
 
-  // Sync profile to KB - creates or updates profile summary document
-  // Handles duplicates by keeping only the most recent one
+  // Sync profile to KB - CLEAN APPROACH: Delete all old docs for this profile, create fresh ones
+  // This ensures no duplicates and proper tag format on all documents
+  // Uses mutex to prevent concurrent syncs for the same profile
   const syncProfileToKB = async (profile) => {
     if (!currentUser || !profile?.id) return null;
 
+    // MUTEX CHECK: If this profile is already being synced, skip
+    // Using ref for synchronous check (useState is async and won't block rapid-fire calls)
+    if (syncingProfilesRef.current.has(profile.id)) {
+      console.log('⚠️ Sync already in progress for profile:', profile.id, '- SKIPPING');
+      return null;
+    }
+
+    // ACQUIRE MUTEX: Mark this profile as being synced (synchronous)
+    syncingProfilesRef.current.add(profile.id);
+
     try {
       setError(null);
+      const timestamp = new Date().toLocaleString();
 
-      // Build the constitutional summary content
-      const content = buildProfileSummaryContent(profile);
-      const title = `${profile.displayName || profile.firstName || 'Profile'} - Constitutional Blueprint`;
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('🧬 syncProfileToKB STARTED for:', profile.displayName || profile.firstName);
+      console.log('   Profile ID:', profile.id);
+      console.log('   MUTEX ACQUIRED');
+      console.log('═══════════════════════════════════════════════════════════');
 
-      // Find ALL existing KB docs for this profile (handles duplicates)
-      const existingDocs = documents.filter(d =>
-        d.category === 'profile_summary' &&
-        d.profileId === profile.id
+      // STEP 1: Delete ALL existing profile documents for this profile
+      // Query Firestore DIRECTLY to avoid stale React state issues
+      // (React state may not have updated yet from previous saves)
+      const existingDocsQuery = query(
+        collection(db, 'knowledgeBase'),
+        where('userId', '==', currentUser.uid),
+        where('category', '==', 'profile_summary'),
+        where('profileId', '==', profile.id)
       );
 
-      if (existingDocs.length > 0) {
-        // Sort by updatedAt descending to keep the most recent
-        const sortedDocs = [...existingDocs].sort((a, b) => {
-          const dateA = a.updatedAt ? new Date(a.updatedAt) : new Date(0);
-          const dateB = b.updatedAt ? new Date(b.updatedAt) : new Date(0);
-          return dateB - dateA;
-        });
+      const existingSnapshot = await getDocs(existingDocsQuery);
+      const existingProfileDocs = existingSnapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      }));
 
-        // Keep the first (most recent), delete the rest
-        const [keepDoc, ...duplicates] = sortedDocs;
+      console.log('🔍 Direct Firestore query found', existingProfileDocs.length, 'existing docs for profile:', profile.id);
 
-        // Delete duplicates if any exist
-        if (duplicates.length > 0) {
-          console.log('🧹 Found', duplicates.length, 'duplicate KB docs for profile', profile.id, '- cleaning up...');
-          for (const dupDoc of duplicates) {
-            try {
-              await deleteDocument(dupDoc.id);
-              console.log('🗑️ Deleted duplicate KB doc:', dupDoc.id);
-            } catch (err) {
-              console.error('Error deleting duplicate:', dupDoc.id, err);
-            }
+      if (existingProfileDocs.length > 0) {
+        console.log('🗑️ Deleting', existingProfileDocs.length, 'existing docs...');
+        for (const existingDoc of existingProfileDocs) {
+          try {
+            await deleteDocument(existingDoc.id);
+            console.log('   ✓ Deleted:', existingDoc.title);
+          } catch (err) {
+            console.error('   ✗ Error deleting:', existingDoc.id, err);
           }
         }
-
-        // Update the kept document
-        await updateDocument(keepDoc.id, {
-          title,
-          content,
-          summary: `Constitutional identity for ${profile.displayName || profile.firstName}`,
-          profileId: profile.id
-        });
-        console.log('🧬 Profile KB updated:', profile.id, '(kept doc:', keepDoc.id, ')');
-        return keepDoc.id;
-      } else {
-        // Create new
-        const newDoc = await createDocument({
-          title,
-          category: 'profile_summary',
-          content,
-          summary: `Constitutional identity for ${profile.displayName || profile.firstName}`,
-          alwaysInclude: true,  // Always include profile summaries
-          priority: 10,  // High priority
-          tags: ['auto-generated', 'profile', profile.id],
-          profileId: profile.id  // Custom field to track which profile
-        });
-        console.log('🧬 Profile KB created:', profile.id);
-        return newDoc.id;
       }
+
+      // STEP 2: Create fresh Constitutional Blueprint
+      const content = buildProfileSummaryContent(profile);
+      const title = `${profile.displayName || profile.firstName || 'Profile'} - Constitutional Blueprint`;
+      const constitutionalDocTag = `constitutional-blueprint-${profile.id}`;
+
+      const newConstitutionalDoc = await createDocument({
+        title,
+        category: 'profile_summary',
+        content,
+        summary: `Constitutional identity for ${profile.displayName || profile.firstName}`,
+        alwaysInclude: true,
+        priority: 10,
+        tags: [timestamp, 'auto-generated', 'constitutional-blueprint', constitutionalDocTag, profile.id],
+        profileId: profile.id
+      });
+      console.log('✅ Constitutional Blueprint created:', newConstitutionalDoc?.id);
+
+      // STEP 3: Create fresh Psychological Profile
+      await syncPsychologicalProfileToKB(profile, timestamp);
+
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('✅ syncProfileToKB COMPLETE for:', profile.displayName || profile.firstName);
+      console.log('   MUTEX RELEASED');
+      console.log('═══════════════════════════════════════════════════════════');
+
+      return newConstitutionalDoc?.id;
     } catch (err) {
       console.error('Error syncing profile to KB:', err);
       setError(err.message);
       return null;
+    } finally {
+      // RELEASE MUTEX: Always release, even on error (synchronous)
+      syncingProfilesRef.current.delete(profile.id);
     }
+  };
+
+  // Sync psychological profile (Liz Greene depth psychology) to KB as separate document
+  // Called from syncProfileToKB after old docs are deleted - just create fresh
+  const syncPsychologicalProfileToKB = async (profile, timestamp) => {
+    if (!currentUser || !profile?.id) return null;
+
+    try {
+      // Build the profile data structure expected by generateCompletePsychologicalProfile
+      const profileData = buildProfileDataForPsychEngine(profile);
+
+      if (!profileData) {
+        console.log('⚠️ Insufficient data for psychological profile generation');
+        console.log('   Profile:', profile.displayName);
+        console.log('   Has sovereignCalc:', !!profile.calculations?.western?.sovereignCalculation);
+        return null;
+      }
+
+      // Generate the complete psychological profile (Liz Greene + Tripartite Soul)
+      const psychologicalProfile = generateCompletePsychologicalProfile(profileData);
+
+      if (!psychologicalProfile) {
+        console.log('⚠️ Psychological profile generation returned null');
+        return null;
+      }
+
+      const psychTitle = `${profile.displayName || profile.firstName || 'Profile'} - Psychological Profile (Liz Greene)`;
+      const psychDocTag = `psych-profile-${profile.id}`;
+      const ts = timestamp || new Date().toLocaleString();
+
+      // Create fresh psychological profile (old docs already deleted by parent)
+      const newPsychDoc = await createDocument({
+        title: psychTitle,
+        category: 'profile_summary',
+        content: psychologicalProfile,
+        summary: `Liz Greene depth psychology profile for ${profile.displayName || profile.firstName}`,
+        alwaysInclude: true,
+        priority: 99,  // Highest priority - this is THE psychological foundation
+        tags: [ts, 'auto-generated', 'psychological-profile', 'liz-greene', psychDocTag, profile.id],
+        profileId: profile.id
+      });
+      console.log('✅ Psychological Profile created:', newPsychDoc?.id);
+      return newPsychDoc?.id;
+    } catch (err) {
+      console.error('Error syncing psychological profile to KB:', err);
+      return null;
+    }
+  };
+
+  // Build profile data structure for the psychological engine
+  // Extracts planets, aspects, and constitutional data from profile
+  const buildProfileDataForPsychEngine = (profile) => {
+    const name = profile.displayName || profile.firstName || 'Unknown';
+    const western = profile.calculations?.western;
+    const sovereignData = western?.sovereignCalculation;
+    const chinese = profile.chineseZodiac || profile.calculations?.chinese;
+
+    // Need at minimum: Sun and Moon signs from sovereign calculation
+    // Note: sun/moon are at sovereignData.sun/moon, NOT inside sovereignData.planets
+    if (!sovereignData?.sun || !sovereignData?.moon) {
+      console.log('⚠️ No sovereign calculation data available for psychological engine');
+      console.log('   sovereignData:', sovereignData ? Object.keys(sovereignData) : 'null');
+      return null;
+    }
+
+    // Build complete planets object for psychological engine
+    // The API returns sun/moon/rising separately from other planets
+    // We need to combine them into a single planets object
+    const completePlanets = {
+      sun: sovereignData.sun,
+      moon: sovereignData.moon,
+      ascendant: sovereignData.rising,  // API calls it 'rising', engine expects 'ascendant'
+      ...(sovereignData.planets || {})   // mercury, venus, mars, jupiter, saturn, uranus, neptune, pluto
+    };
+
+    // Normalize aspects from API format to engine format
+    // API returns: { planet1: { name: 'mercury' }, planet2: { name: 'saturn' }, aspect: 'Square', orb: 0.67 }
+    // Engine expects: { p1: 'Mercury', p2: 'Saturn', type: 'square', orb: 0.67 }
+    const rawAspects = sovereignData.aspects || profile.aspects || [];
+
+    // Helper to capitalize planet names (sun -> Sun, mercury -> Mercury)
+    const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+
+    const normalizedAspects = rawAspects.map(a => {
+      // Extract planet names, handling both object format (API) and string format (manual)
+      const p1Raw = typeof a.planet1 === 'object' ? a.planet1?.name : (a.planet1 || a.p1 || '');
+      const p2Raw = typeof a.planet2 === 'object' ? a.planet2?.name : (a.planet2 || a.p2 || '');
+
+      return {
+        p1: capitalize(p1Raw),  // 'mercury' -> 'Mercury'
+        p2: capitalize(p2Raw),  // 'saturn' -> 'Saturn'
+        // Normalize aspect type to lowercase
+        type: (a.aspect || a.type || '').toLowerCase(),
+        orb: parseFloat(a.orb) || 0,
+        nature: a.quality || a.nature || 'neutral',
+        exactness: a.exactness
+      };
+    });
+
+    console.log('🧠 Building psych engine data:', {
+      sun: completePlanets.sun?.sign,
+      moon: completePlanets.moon?.sign,
+      ascendant: completePlanets.ascendant?.sign,
+      planetCount: Object.keys(completePlanets).length,
+      aspectCount: normalizedAspects.length,
+      sampleAspect: normalizedAspects[0] ? `${normalizedAspects[0].p1}-${normalizedAspects[0].p2} ${normalizedAspects[0].type}` : 'none'
+    });
+
+    // Build the profile structure expected by generateCompletePsychologicalProfile
+    return {
+      displayName: name,
+      birthDate: profile.birthDate,
+      birthTime: profile.birthTime,
+
+      // Complete planets including sun, moon, ascendant, and all other planets
+      planets: completePlanets,
+
+      // Normalized aspects for psychological engine
+      aspects: normalizedAspects,
+
+      // Constitutional identity for integration
+      constitutional_identity: {
+        chinese: {
+          dayMaster: chinese?.dayMaster || profile.dayMaster,
+          animal: chinese?.fullSign || `${chinese?.element || ''} ${chinese?.animal || ''}`.trim()
+        },
+        western: {
+          sun: sovereignData.sun,
+          moon: sovereignData.moon,
+          ascendant: sovereignData.rising
+        }
+      }
+    };
   };
 
   // Cleanup duplicate profile documents across all profiles
   // Call this to fix existing duplicates
+  // Queries Firestore directly to avoid stale state issues
   const cleanupDuplicateProfileDocs = async () => {
     if (!currentUser) return { cleaned: 0, profiles: [] };
 
-    const profileDocs = documents.filter(d => d.category === 'profile_summary' && d.profileId);
+    // Query Firestore directly to get fresh data
+    const profileDocsQuery = query(
+      collection(db, 'knowledgeBase'),
+      where('userId', '==', currentUser.uid),
+      where('category', '==', 'profile_summary')
+    );
+    const snapshot = await getDocs(profileDocsQuery);
+    const profileDocs = snapshot.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(d => d.profileId);
 
     // Group by profileId
     const byProfile = {};
@@ -410,6 +578,42 @@ ${doc.content}
 
     console.log(`🧹 Cleanup complete: removed ${totalCleaned} duplicate docs`);
     return { cleaned: totalCleaned, profiles: cleanedProfiles };
+  };
+
+  // Mass delete ALL profile summary documents
+  // Use this to clean up when things go wrong
+  const deleteAllProfileSummaries = async () => {
+    if (!currentUser) return { deleted: 0 };
+
+    try {
+      // Query Firestore directly for ALL profile summary documents
+      const profileDocsQuery = query(
+        collection(db, 'knowledgeBase'),
+        where('userId', '==', currentUser.uid),
+        where('category', '==', 'profile_summary')
+      );
+      const snapshot = await getDocs(profileDocsQuery);
+
+      console.log('🗑️ Mass delete: Found', snapshot.docs.length, 'profile summary documents');
+
+      let deleted = 0;
+      for (const docSnapshot of snapshot.docs) {
+        try {
+          await deleteDoc(doc(db, 'knowledgeBase', docSnapshot.id));
+          deleted++;
+          console.log('   ✓ Deleted:', docSnapshot.data().title);
+        } catch (err) {
+          console.error('   ✗ Error deleting:', docSnapshot.id, err);
+        }
+      }
+
+      console.log(`🗑️ Mass delete complete: removed ${deleted} documents`);
+      return { deleted };
+    } catch (err) {
+      console.error('Error in mass delete:', err);
+      setError(err.message);
+      return { deleted: 0, error: err.message };
+    }
   };
 
   // Build profile summary content from profile data
@@ -484,12 +688,14 @@ ${doc.content}
 
       if (fourPillars) {
         // Day Master - THE core identity
+        // Note: dayMaster.stem contains the actual properties (element, polarity, name, chinese)
         if (fourPillars.dayMaster) {
           const dm = fourPillars.dayMaster;
+          const stem = dm.stem || dm; // stem contains the actual data
           lines.push('');
-          lines.push(`### Day Master (Core Self): ${dm.chinese || ''} ${dm.name || dm.element || 'Unknown'}`);
-          lines.push(`- Element: ${dm.element || 'Unknown'}`);
-          lines.push(`- Polarity: ${dm.polarity || dm.yinYang || 'Unknown'}`);
+          lines.push(`### Day Master (Core Self): ${stem.chinese || ''} ${stem.name || stem.element || 'Unknown'}`);
+          lines.push(`- Element: ${stem.element || 'Unknown'}`);
+          lines.push(`- Polarity: ${stem.polarity || stem.yinYang || 'Unknown'}`);
           if (dm.description) {
             lines.push(`- Nature: ${dm.description}`);
           }
@@ -576,6 +782,111 @@ ${doc.content}
           lines.push(`- Yang: ${yy.yangPercentage || yy.yang || 0}%`);
           lines.push('');
         }
+
+        // ═══════════════════════════════════════════════════════════════
+        // SEASONAL STRENGTH ANALYSIS (五行旺衰)
+        // Day Master strength changes dramatically based on birth season!
+        // ═══════════════════════════════════════════════════════════════
+        try {
+          const seasonalComparison = calculateWithComparison(fourPillars.pillars || fourPillars);
+          const dayMasterElement = fourPillars.dayMaster?.stem?.element;
+          const birthSeason = seasonalComparison.debug?.season?.season;
+
+          if (seasonalComparison && dayMasterElement && birthSeason) {
+            lines.push('### Seasonal Strength Analysis (五行旺衰)');
+            lines.push('*How your elements change with birth season - crucial for accurate BaZi!*');
+            lines.push('');
+
+            // Birth Season
+            const seasonName = seasonalComparison.debug?.season?.name || birthSeason;
+            lines.push(`**Birth Season:** ${seasonName}`);
+            lines.push('');
+
+            // Day Master Qi State - THE KEY INSIGHT
+            const multipliers = SEASONAL_MULTIPLIERS[birthSeason] || {};
+            const dayMasterMultiplier = multipliers[dayMasterElement] || 1.0;
+            const qiState = QI_STATE_NAMES[dayMasterMultiplier] || 'Unknown';
+
+            // Generate metaphor based on element + season
+            const dayMasterMetaphors = {
+              Fire: {
+                winter: 'a flickering candle in the snow - needs constant fuel and protection',
+                summer: 'a roaring bonfire - naturally powerful and radiant',
+                spring: 'a warming hearth - fed by abundant wood, growing stronger',
+                autumn: 'a controlled forge fire - metal conducts heat away',
+                earth: 'a campfire - steady and reliable'
+              },
+              Water: {
+                summer: 'a shallow puddle evaporating in the sun - easily depleted',
+                winter: 'a mighty frozen river - vast and powerful in its domain',
+                autumn: 'a flowing stream fed by metal condensation - gaining strength',
+                spring: 'a nurturing rain - gives life to wood, becoming tired',
+                earth: 'a steady well - contained but reliable'
+              },
+              Wood: {
+                autumn: 'a tree being chopped - metal cuts relentlessly',
+                spring: 'a forest in full bloom - unstoppable growth',
+                winter: 'a seedling being watered - nurtured and growing',
+                summer: 'an exhausted parent tree - gave everything to feed fire',
+                earth: 'a planted garden - rooted but challenged'
+              },
+              Metal: {
+                spring: 'a dull blade against a dense forest - powerless to cut',
+                autumn: 'a gleaming sword at peak sharpness - supreme power',
+                summer: 'a melting ingot in the forge - fire overcomes',
+                winter: 'a resting tool - created water, now recuperating',
+                earth: 'an ore being refined - supported and strengthened'
+              },
+              Earth: {
+                spring: 'soil covered by roots - wood dominates the ground',
+                earth: 'a mountain at center - supreme stability',
+                summer: 'volcanic ash enriching the land - fire strengthens',
+                autumn: 'a tired mother - gave birth to metal, exhausted',
+                winter: 'eroding riverbank - water washes away'
+              }
+            };
+
+            const metaphor = dayMasterMetaphors[dayMasterElement]?.[birthSeason] ||
+                            'expressing uniquely in this season';
+
+            lines.push(`**Day Master Qi State:** ${dayMasterElement} in ${seasonName.replace(/[🌸☀️🍂❄️🌍]/g, '').trim()}`);
+            lines.push(`- State: ${qiState}`);
+            lines.push(`- Multiplier: ${dayMasterMultiplier}x`);
+            lines.push(`- Metaphor: *Like ${metaphor}*`);
+            lines.push('');
+
+            // Before vs After Seasonal Adjustment
+            const rawPct = seasonalComparison.raw?.percentages || {};
+            const adjustedPct = seasonalComparison.adjusted?.percentages || {};
+
+            lines.push('**Elemental Balance - BEFORE Seasonal Adjustment (Raw):**');
+            const rawSorted = Object.entries(rawPct)
+              .sort((a, b) => b[1] - a[1])
+              .map(([elem, pct]) => `${elem}: ${pct.toFixed(1)}%`);
+            lines.push(`- ${rawSorted.join(', ')}`);
+            lines.push('');
+
+            lines.push('**Elemental Balance - AFTER Seasonal Adjustment (True Strength):**');
+            const adjSorted = Object.entries(adjustedPct)
+              .sort((a, b) => b[1] - a[1])
+              .map(([elem, pct]) => `${elem}: ${pct.toFixed(1)}%`);
+            lines.push(`- ${adjSorted.join(', ')}`);
+            lines.push('');
+
+            // Element Qi States
+            lines.push('**All Elements Qi States this Season:**');
+            Object.entries(multipliers)
+              .sort((a, b) => b[1] - a[1])
+              .forEach(([elem, mult]) => {
+                const state = QI_STATE_NAMES[mult] || '';
+                const emoji = elem === dayMasterElement ? ' ⭐ (You)' : '';
+                lines.push(`- ${elem}: ${state}${emoji}`);
+              });
+            lines.push('');
+          }
+        } catch (seasonalError) {
+          console.error('Error calculating seasonal strength for KB:', seasonalError);
+        }
       }
 
       // Ten Gods (if calculated)
@@ -600,6 +911,159 @@ ${doc.content}
       lines.push(`- **Sun Sign:** ${western.sign}${western.element ? ` (${western.element})` : ''}`);
       if (western.modality) {
         lines.push(`- **Modality:** ${western.modality}`);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SOVEREIGN ASTRONOMICAL DATA - Complete planetary positions & aspects
+    // This is the FACTUAL astronomical foundation for all interpretations
+    // ═══════════════════════════════════════════════════════════════════════
+    const sovereignDataForAstro = western?.sovereignCalculation;
+    if (sovereignDataForAstro) {
+      lines.push('');
+      lines.push('## Sovereign Astronomical Data');
+      lines.push('*Real planetary positions calculated using VSOP87 theory (Moshier Ephemeris)*');
+      lines.push('');
+
+      // Constitutional Trinity (Sun, Moon, Rising)
+      lines.push('### Constitutional Trinity');
+
+      if (sovereignDataForAstro.sun) {
+        const sun = sovereignDataForAstro.sun;
+        const retrograde = sun.retrograde ? ' ℞' : '';
+        lines.push(`- **Sun:** ${sun.sign} ${sun.degreeInSign?.toFixed(2) || ''}°${retrograde} (House ${sun.house || '?'})`);
+      }
+
+      if (sovereignDataForAstro.moon) {
+        const moon = sovereignDataForAstro.moon;
+        const retrograde = moon.retrograde ? ' ℞' : '';
+        lines.push(`- **Moon:** ${moon.sign} ${moon.degreeInSign?.toFixed(2) || ''}°${retrograde} (House ${moon.house || '?'})`);
+        if (moon.phase) {
+          lines.push(`- **Moon Phase:** ${moon.phase}`);
+        }
+      }
+
+      if (sovereignDataForAstro.rising) {
+        const rising = sovereignDataForAstro.rising;
+        lines.push(`- **Ascendant (Rising):** ${rising.sign} ${rising.degreeInSign?.toFixed(2) || ''}°`);
+      }
+
+      // All Planetary Positions with Retrograde Status
+      const planets = sovereignDataForAstro.planets;
+      if (planets && Object.keys(planets).length > 0) {
+        lines.push('');
+        lines.push('### Planetary Positions');
+        lines.push('');
+
+        // Define planet order for consistent display
+        const planetOrder = ['mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto'];
+
+        // Track retrogrades for summary
+        const retrogradeList = [];
+
+        planetOrder.forEach(planetName => {
+          const planet = planets[planetName];
+          if (planet) {
+            const retrograde = planet.retrograde ? ' ℞' : '';
+            if (planet.retrograde) {
+              retrogradeList.push(planetName.charAt(0).toUpperCase() + planetName.slice(1));
+            }
+            const displayName = planetName.charAt(0).toUpperCase() + planetName.slice(1);
+            const degree = planet.degreeInSign?.toFixed(2) || planet.degree?.toFixed(2) || '';
+            const house = planet.house ? ` (House ${planet.house})` : '';
+            lines.push(`- **${displayName}:** ${planet.sign} ${degree}°${retrograde}${house}`);
+          }
+        });
+
+        // Retrograde Summary (prominently displayed)
+        if (retrogradeList.length > 0) {
+          lines.push('');
+          lines.push('### Retrograde Planets ℞');
+          lines.push(`**${retrogradeList.length} planets retrograde at birth:** ${retrogradeList.join(', ')}`);
+          lines.push('');
+          lines.push('*Retrograde planets indicate areas of life requiring inner development, past-life themes, or unconventional expression of that planetary energy.*');
+        } else {
+          lines.push('');
+          lines.push('### Retrograde Planets');
+          lines.push('*No planets retrograde at birth - direct forward momentum in all planetary expressions.*');
+        }
+      }
+
+      // House Cusps
+      if (sovereignDataForAstro.houses && sovereignDataForAstro.houses.length > 0) {
+        lines.push('');
+        lines.push('### House Cusps (Placidus)');
+        lines.push('');
+
+        const houseDescriptions = [
+          'Self & Identity',
+          'Money & Values',
+          'Communication & Siblings',
+          'Home & Family',
+          'Creativity & Romance',
+          'Health & Service',
+          'Partnerships & Marriage',
+          'Transformation & Shared Resources',
+          'Philosophy & Higher Learning',
+          'Career & Public Image',
+          'Friends & Aspirations',
+          'Unconscious & Karma'
+        ];
+
+        sovereignDataForAstro.houses.forEach((house, index) => {
+          if (house && house.sign) {
+            const houseNum = index + 1;
+            const description = houseDescriptions[index] || '';
+            const degree = house.degreeInSign?.toFixed(1) || '';
+            lines.push(`- **House ${houseNum} (${description}):** ${house.sign} ${degree}°`);
+          }
+        });
+      }
+
+      // Aspects
+      const aspects = sovereignDataForAstro.aspects;
+      if (aspects && aspects.length > 0) {
+        lines.push('');
+        lines.push('### Major Aspects');
+        lines.push('');
+
+        // Group aspects by type
+        const conjunctions = aspects.filter(a => a.aspect?.toLowerCase() === 'conjunction');
+        const trines = aspects.filter(a => a.aspect?.toLowerCase() === 'trine');
+        const sextiles = aspects.filter(a => a.aspect?.toLowerCase() === 'sextile');
+        const squares = aspects.filter(a => a.aspect?.toLowerCase() === 'square');
+        const oppositions = aspects.filter(a => a.aspect?.toLowerCase() === 'opposition');
+
+        const formatAspect = (a) => {
+          const p1 = typeof a.planet1 === 'object' ? a.planet1?.name : a.planet1;
+          const p2 = typeof a.planet2 === 'object' ? a.planet2?.name : a.planet2;
+          const orb = a.orb?.toFixed(1) || '';
+          return `${p1}-${p2} (${orb}° orb)`;
+        };
+
+        if (conjunctions.length > 0) {
+          lines.push(`**Conjunctions (☌):** ${conjunctions.map(formatAspect).join('; ')}`);
+        }
+        if (trines.length > 0) {
+          lines.push(`**Trines (△ - Harmonious):** ${trines.map(formatAspect).join('; ')}`);
+        }
+        if (sextiles.length > 0) {
+          lines.push(`**Sextiles (✱ - Opportunities):** ${sextiles.map(formatAspect).join('; ')}`);
+        }
+        if (squares.length > 0) {
+          lines.push(`**Squares (□ - Tension/Growth):** ${squares.map(formatAspect).join('; ')}`);
+        }
+        if (oppositions.length > 0) {
+          lines.push(`**Oppositions (☍ - Polarities):** ${oppositions.map(formatAspect).join('; ')}`);
+        }
+      }
+
+      // Element Balance from Western Chart
+      if (sovereignDataForAstro.elementBalance) {
+        const elements = sovereignDataForAstro.elementBalance;
+        lines.push('');
+        lines.push('### Western Element Balance');
+        lines.push(`- Fire: ${elements.fire || 0} | Earth: ${elements.earth || 0} | Air: ${elements.air || 0} | Water: ${elements.water || 0}`);
       }
     }
 
@@ -1030,7 +1494,8 @@ ${doc.content}
 
     lines.push('');
     lines.push('---');
-    lines.push('*Auto-generated from profile data with real-time BaZi calculation. Updated when profile changes.*');
+    lines.push('*Auto-generated from profile data with real-time BaZi calculation.*');
+    lines.push(`*Generated: ${new Date().toLocaleString()}*`);
 
     return lines.join('\n');
   };
@@ -1067,7 +1532,8 @@ ${doc.content}
     buildKnowledgePrompt,
     getStats,
     syncProfileToKB,  // Auto-sync profile data to KB
-    cleanupDuplicateProfileDocs  // Remove duplicate profile blueprints
+    cleanupDuplicateProfileDocs,  // Remove duplicate profile blueprints
+    deleteAllProfileSummaries  // Mass delete all profile summaries (nuclear option)
   };
 
   return (

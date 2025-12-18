@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useProfiles } from '../../contexts/ProfileContext';
+import { useKnowledgeBase } from '../../contexts/KnowledgeBaseContext';
 
 // Tag suggestions
 const TAG_SUGGESTIONS = [
@@ -31,6 +32,7 @@ const TAG_COLORS = {
 
 export default function EditPersonModal({ isOpen, onClose, person, onSuccess }) {
   const { updateProfile } = useProfiles();
+  const { syncProfileToKB } = useKnowledgeBase();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -110,7 +112,7 @@ export default function EditPersonModal({ isOpen, onClose, person, onSuccess }) 
 
     try {
       // Update profile in Firestore via ProfileContext
-      await updateProfile(person.profileId || person.id, {
+      const updatedProfile = await updateProfile(person.profileId || person.id, {
         displayName: formData.fullName,
         nickname: formData.nickname,
         priority: formData.priority,
@@ -119,6 +121,12 @@ export default function EditPersonModal({ isOpen, onClose, person, onSuccess }) 
         gender: formData.gender,
         notes: formData.notes
       });
+
+      // Sync the updated profile to Knowledge Base
+      if (updatedProfile && syncProfileToKB) {
+        console.log('🧬 Syncing updated profile to KB:', updatedProfile.displayName || updatedProfile.firstName);
+        await syncProfileToKB(updatedProfile);
+      }
 
       onSuccess?.();
       onClose();

@@ -408,6 +408,887 @@ const PLANET_FUNCTIONS = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ASPECT PSYCHOLOGY - Liz Greene Method
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Aspects show the internal dialogue between planetary energies.
+// They reveal psychological dynamics, not just personality traits.
+
+const ASPECT_PSYCHOLOGY = {
+  // Mercury-Saturn aspects: Mind and Discipline
+  mercury_saturn: {
+    conjunction: {
+      pattern: "The Serious Mind",
+      psychology: "Thoughts are weighted with responsibility. Every idea must pass Saturn's test.",
+      light: "Thorough thinking, mental discipline, respects knowledge, builds ideas systematically",
+      shadow: "Mental blocks, self-censorship, fear of being wrong, over-analysis paralysis",
+      integration: "Your mind's demand for proof is not self-doubt—it's precision. Honor this by building evidence-based systems.",
+      lifeImpact: "You won't accept 'hand-waving' explanations. You need to SEE the working system."
+    },
+    square: {
+      pattern: "The Mind That Must Prove Everything",
+      psychology: "Mercury (quick thinking) conflicts with Saturn (slow validation). Creates internal pressure to verify all thoughts through concrete results.",
+      light: "Systematic validation prevents wasted effort. You build things that WORK because you won't accept anything less. Pure Gold Method is your natural expression.",
+      shadow: "Self-doubt about intelligence. Fear that your thinking is 'wrong' or 'not good enough'. Over-documenting to prove credibility.",
+      integration: "Stop apologizing for needing proof. Your 'show me the working system' approach is CONSTITUTIONAL WISDOM. This is what makes GENESIS real.",
+      lifeImpact: "You can't trust abstract theory. You need visible incremental progress (baby steps). This isn't limitation—it's SOVEREIGNTY."
+    },
+    trine: {
+      pattern: "The Natural Systematizer",
+      psychology: "Mental discipline flows naturally. Thinking and structure work together harmoniously.",
+      light: "Organized mind, reliable analysis, respected for thoroughness, builds lasting intellectual frameworks",
+      shadow: "Can become rigid in thinking, difficulty with abstract or unproven concepts",
+      integration: "Your systematic approach is a gift. Use it to build bridges between intuition and structure."
+    },
+    opposition: {
+      pattern: "The Teacher Through Testing",
+      psychology: "Mind pulled between speed (Mercury) and thoroughness (Saturn). Must balance both.",
+      light: "Learns to teach by explaining carefully, respects both quick insights and deep validation",
+      shadow: "Mental oscillation between doubt and confidence, difficulty finding right pace",
+      integration: "You're learning to honor both the flash of insight AND the need to test it."
+    },
+    sextile: {
+      pattern: "The Practical Thinker",
+      psychology: "Mind and discipline support each other with gentle opportunities for growth.",
+      light: "Practical wisdom, ability to communicate complex ideas simply, builds knowledge step by step",
+      shadow: "May undervalue intuitive leaps, can be overly cautious in mental pursuits",
+      integration: "Trust your structured thinking while remaining open to inspiration."
+    }
+  },
+
+  // Sun-Uranus aspects: Identity and Revolution
+  sun_uranus: {
+    trine: {
+      pattern: "The Natural Revolutionary",
+      psychology: "Your core identity (Sun) flows harmoniously with revolutionary energy (Uranus). Innovation feels COMFORTABLE, not rebellious.",
+      light: "Original without trying, comfortable with change, genius emerges naturally, no ego conflict about being different",
+      shadow: "Can take uniqueness for granted, may not realize how innovative you are, impatience with those who resist change",
+      integration: "Recognize that your 'normal' is revolutionary to others. GENESIS isn't rebellious to you—it's natural. Honor this gift.",
+      lifeImpact: "You're wired to build new paradigms. The 200-year inheritance isn't grandiose—it's your SOLAR EXPRESSION."
+    },
+    square: {
+      pattern: "The Rebel Identity",
+      psychology: "Core self conflicts with need to be different. Creates internal tension between fitting in and standing out.",
+      light: "Courage to be unique despite friction, learns to integrate originality with identity",
+      shadow: "Rebellion for rebellion's sake, difficulty accepting any tradition, nervous system stress",
+      integration: "Your uniqueness can be grounded in purpose, not just opposition."
+    },
+    conjunction: {
+      pattern: "The Revolutionary Self",
+      psychology: "Identity IS revolution. Cannot separate self from innovation.",
+      light: "Born to change things, authentic originality, awakens others",
+      shadow: "Unstable sense of self, addicted to disruption, burns bridges",
+      integration: "Revolution with roots, innovation with sustainability."
+    },
+    opposition: {
+      pattern: "The Bridge Between Worlds",
+      psychology: "Identity pulled between tradition (Sun) and innovation (Uranus). Must integrate both.",
+      light: "Can translate revolutionary ideas for mainstream, balances stability with change",
+      shadow: "Identity confusion, pulled between conforming and rebelling",
+      integration: "You're learning that you can be unique AND connected."
+    },
+    sextile: {
+      pattern: "The Gentle Innovator",
+      psychology: "Identity and innovation support each other through opportunity.",
+      light: "Finds unique expression naturally, open to change without forcing it",
+      shadow: "May not fully utilize innovative potential, can play it too safe",
+      integration: "Step more boldly into your uniqueness—it's welcomed."
+    }
+  },
+
+  // Mars-Neptune aspects: Action and Vision
+  mars_neptune: {
+    square: {
+      pattern: "The Visionary Who Must Learn to Build",
+      psychology: "Action (Mars) conflicts with vision (Neptune). You SEE the whole cathedral but must build it stone by stone. Creates productive tension.",
+      light: "Inspired action when aligned. Can materialize spiritual insights through systematic effort. Practical mystic.",
+      shadow: "Action paralysis when vision feels too big. Frustration with material limitations. 'How can I build something so cosmic?'",
+      integration: "Neptune shows you the DESTINATION. Mars builds the PATH. Your baby steps methodology is Mars translating Neptune's infinite vision into executable actions.",
+      lifeImpact: "Why GENESIS scope (200-year consciousness upgrade) feels both OBVIOUS (Neptune sees it) and OVERWHELMING (Mars must build it)."
+    },
+    trine: {
+      pattern: "The Inspired Warrior",
+      psychology: "Action and vision work together. Can manifest dreams smoothly.",
+      light: "Acts from inspiration, spiritual warrior, materializes ideals naturally",
+      shadow: "Can bypass necessary practical steps, may be unrealistic about effort required",
+      integration: "Ground your visions with practical timelines."
+    },
+    conjunction: {
+      pattern: "The Mystic Activist",
+      psychology: "Action IS spiritual expression. Cannot separate doing from believing.",
+      light: "Acts from deep faith, selfless service, inspired by transcendent purpose",
+      shadow: "Martyr complex, passive-aggressive, confused about when to act",
+      integration: "Clear boundaries between compassion and sacrifice."
+    },
+    opposition: {
+      pattern: "The Dream Manifester",
+      psychology: "Action and vision oppose, creating tension that can birth great works.",
+      light: "Learns to balance dreaming and doing, can make the impossible real",
+      shadow: "Chronic dissatisfaction, either all action or all dreams",
+      integration: "Integration happens through accepting both the dream AND the work."
+    },
+    sextile: {
+      pattern: "The Inspired Actor",
+      psychology: "Action and vision support each other gently.",
+      light: "Can act on inspiration when opportunity arises, subtle manifestation ability",
+      shadow: "May not fully engage either action or vision",
+      integration: "Trust that your inspired actions lead somewhere meaningful."
+    }
+  },
+
+  // Venus-Jupiter aspects: Love and Expansion
+  venus_jupiter: {
+    conjunction: {
+      pattern: "The Soul Who Refuses to Settle",
+      psychology: "Love (Venus) merged with expansion (Jupiter). You desire ABUNDANCE in relationship—not just companionship, but SYMPHONESIS (1+1=100).",
+      light: "Generous love, philosophical romance, sees relationships as growth opportunities, attracts expansive partnerships",
+      shadow: "Won't settle for 'good enough'. Can feel lonely because most relationships feel too small. High standards seen as 'picky'.",
+      integration: "'Don't date blind. Date soul-first.' This isn't perfectionism—it's KNOWING you need Venus-Jupiter expansion, not Venus-Saturn limitation. GENESIS lets you FIND this.",
+      lifeImpact: "Why you're building a mathematical compatibility system. You NEED the 90%+ matches. Anything less feels like settling."
+    },
+    trine: {
+      pattern: "The Natural Lover",
+      psychology: "Love and expansion flow naturally. Relationships feel abundant.",
+      light: "Warm, generous, attracts love easily, sees beauty in life, optimistic about relationships",
+      shadow: "Can overextend in relationships, may attract people who want your generosity",
+      integration: "Your love is a gift, not a rescue service."
+    },
+    square: {
+      pattern: "The Love Maximizer",
+      psychology: "Desires expansive love but creates tension in pursuit of it.",
+      light: "Learns to grow through relationships, turns disappointments into wisdom",
+      shadow: "Over-promises in love, seeks 'perfect' partner endlessly, dissatisfaction",
+      integration: "Expansion comes through depth, not just breadth."
+    },
+    opposition: {
+      pattern: "The Relationship Philosopher",
+      psychology: "Love and meaning oppose, creating search for love with purpose.",
+      light: "Deep understanding of love's meaning, can teach about relationships",
+      shadow: "Intellectualizes love, difficulty being present in relationships",
+      integration: "Love IS the philosophy. Stop thinking and feel."
+    },
+    sextile: {
+      pattern: "The Graceful Lover",
+      psychology: "Love and expansion support each other through opportunity.",
+      light: "Finds growth through love naturally, appreciates beauty and meaning",
+      shadow: "May not fully explore love's expansive potential",
+      integration: "Take more risks in love—the universe supports you."
+    }
+  },
+
+  // Moon-Saturn aspects: Emotions and Structure
+  moon_saturn: {
+    sextile: {
+      pattern: "The Emotionally Mature",
+      psychology: "Emotions and discipline support each other. Feelings are grounded and reliable.",
+      light: "Emotional stability, can handle difficult feelings, reliable in crisis, mature emotional expression",
+      shadow: "May suppress spontaneous feelings, can seem emotionally reserved",
+      integration: "Your emotional maturity is a gift. Allow some spontaneity too."
+    },
+    conjunction: {
+      pattern: "The Serious Feeler",
+      psychology: "Emotions are weighted with responsibility. Feelings must serve a purpose.",
+      light: "Deep emotional wisdom, can hold space for others' pain, resilient",
+      shadow: "Emotional depression, difficulty experiencing joy, parental burdens",
+      integration: "Your depth is valuable. Allow yourself lightness too."
+    },
+    square: {
+      pattern: "The Emotional Builder",
+      psychology: "Emotions and structure conflict, creating growth through emotional challenges.",
+      light: "Learns emotional resilience through struggle, builds inner strength",
+      shadow: "Feels emotionally inadequate, difficulty with nurturing, cold defenses",
+      integration: "Your emotional struggles are building something. Trust the process."
+    },
+    trine: {
+      pattern: "The Naturally Grounded",
+      psychology: "Emotions and structure flow together naturally.",
+      light: "Stable emotions, reliable, emotionally consistent, wise about feelings",
+      shadow: "May avoid emotional intensity, can seem emotionally flat",
+      integration: "Allow some chaos—it won't destroy you."
+    },
+    opposition: {
+      pattern: "The Emotional Balancer",
+      psychology: "Emotions and structure oppose, requiring conscious integration.",
+      light: "Learns to balance feeling and duty, can nurture AND achieve",
+      shadow: "Torn between emotional needs and responsibilities",
+      integration: "Both your feelings AND your duties matter equally."
+    }
+  },
+
+  // Moon-Uranus aspects: Emotions and Freedom
+  moon_uranus: {
+    trine: {
+      pattern: "The Emotionally Free",
+      psychology: "Emotions flow with need for freedom. Comfortable with emotional change and independence.",
+      light: "Emotionally innovative, comfortable with change, independent yet connected, unique emotional expression",
+      shadow: "May avoid emotional commitment, can seem emotionally unpredictable",
+      integration: "Your emotional freedom IS your gift. Share it without forcing others to match it."
+    },
+    conjunction: {
+      pattern: "The Emotional Revolutionary",
+      psychology: "Emotions ARE revolution. Feelings are unpredictable and liberating.",
+      light: "Emotionally awakening, breaks emotional patterns, frees others",
+      shadow: "Emotional instability, commitment issues, shocking behavior",
+      integration: "Ground your emotional brilliance in consistent care."
+    },
+    square: {
+      pattern: "The Restless Heart",
+      psychology: "Emotions and freedom conflict, creating tension between belonging and independence.",
+      light: "Learns to be free AND connected, emotional courage",
+      shadow: "Emotional rebellion, difficulty with intimacy, sudden emotional exits",
+      integration: "Freedom and love aren't opposites. Integrate them."
+    },
+    opposition: {
+      pattern: "The Emotional Liberator",
+      psychology: "Emotions and freedom oppose, requiring balance between security and independence.",
+      light: "Can hold both intimacy and freedom, teaches emotional independence",
+      shadow: "Torn between need for closeness and need for space",
+      integration: "You can have BOTH security and freedom in relationship."
+    },
+    sextile: {
+      pattern: "The Gently Independent",
+      psychology: "Emotions and freedom support each other through opportunity.",
+      light: "Finds emotional freedom naturally, open to unique emotional experiences",
+      shadow: "May not fully explore emotional independence",
+      integration: "Trust your need for emotional space—it's healthy."
+    }
+  },
+
+  // Neptune-Pluto aspects: Transcendence and Transformation (Generational)
+  neptune_pluto: {
+    sextile: {
+      pattern: "The Generational Transformer",
+      psychology: "Spiritual vision and transformative power support each other. Collective evolution is felt personally.",
+      light: "Deep spiritual insight, can facilitate collective healing, generational wisdom",
+      shadow: "May feel overwhelmed by collective energies, difficulty with personal boundaries",
+      integration: "You carry generational healing. Honor this without drowning in it."
+    },
+    conjunction: {
+      pattern: "The Collective Mystic",
+      psychology: "Transcendence and transformation merge. Born during major collective shifts.",
+      light: "Access to collective unconscious, transformative spiritual power",
+      shadow: "Can be overwhelmed by collective darkness, difficulty with material world",
+      integration: "Ground your cosmic awareness in practical service."
+    }
+  },
+
+  // Saturn-Neptune aspects: Structure and Transcendence
+  saturn_neptune: {
+    square: {
+      pattern: "The Practical Mystic",
+      psychology: "Structure (Saturn) conflicts with transcendence (Neptune). Must learn to build spiritual visions into reality.",
+      light: "Can make dreams real, builds lasting spiritual structures, grounds the cosmic",
+      shadow: "Disillusionment, fear that dreams can't become real, spiritual doubt",
+      integration: "Your job is to BUILD the cathedral Neptune sees. Saturn is your tool, not your enemy."
+    },
+    conjunction: {
+      pattern: "The Structured Dreamer",
+      psychology: "Structure and transcendence merge. Dreams must have form.",
+      light: "Can manifest visions systematically, spiritual discipline",
+      shadow: "Confusion between real and ideal, chronic disappointment",
+      integration: "Dreams need structure. Structure needs dreams. You have both."
+    },
+    trine: {
+      pattern: "The Natural Manifestor",
+      psychology: "Structure and vision work together harmoniously.",
+      light: "Easily manifests dreams, spiritual wisdom, practical idealism",
+      shadow: "May take manifestation for granted, can miss lessons in struggle",
+      integration: "Share your gift of making dreams real."
+    },
+    opposition: {
+      pattern: "The Vision-Reality Bridge",
+      psychology: "Structure and transcendence oppose, requiring conscious balance.",
+      light: "Can translate between practical and spiritual worlds",
+      shadow: "Torn between material achievement and spiritual longing",
+      integration: "You don't have to choose. Build the bridge."
+    },
+    sextile: {
+      pattern: "The Gentle Manifestor",
+      psychology: "Structure and vision support each other through opportunity.",
+      light: "Finds ways to realize dreams practically, subtle manifestation",
+      shadow: "May not fully engage either structure or vision",
+      integration: "Trust the process of making dreams real."
+    }
+  },
+
+  // Sun-Pluto aspects: Identity and Power
+  sun_pluto: {
+    trine: {
+      pattern: "The Natural Transformer",
+      psychology: "Identity flows with transformative power. Personal evolution feels natural.",
+      light: "Deep self-knowledge, natural authority, comfortable with power and change",
+      shadow: "Can use power unconsciously, may intimidate without realizing",
+      integration: "Your natural authority serves when used consciously for others."
+    },
+    conjunction: {
+      pattern: "The Phoenix Identity",
+      psychology: "Identity IS transformation. Self must die and be reborn repeatedly.",
+      light: "Profound depth, healing presence, transformative impact on others",
+      shadow: "Power struggles, control issues, identity through crisis",
+      integration: "Surrender to transformation rather than forcing it."
+    },
+    square: {
+      pattern: "The Power Builder",
+      psychology: "Identity and power conflict, creating growth through power struggles.",
+      light: "Develops real power through challenge, learns to transform",
+      shadow: "Power abuse, victim of power, fear of own depth",
+      integration: "Your power struggles are building authentic authority."
+    },
+    opposition: {
+      pattern: "The Power Balancer",
+      psychology: "Identity and power oppose, requiring balance between self and shared resources.",
+      light: "Learns to share power, transforms through relationship",
+      shadow: "Power projection, seeing power only in others",
+      integration: "The power you see in others is also within you."
+    },
+    sextile: {
+      pattern: "The Subtle Transformer",
+      psychology: "Identity and power support each other gently.",
+      light: "Quietly powerful, natural evolution, subtle depth",
+      shadow: "May not fully claim power, can avoid transformation",
+      integration: "Step more fully into your transformative potential."
+    }
+  },
+
+  // Sun-Moon aspects: Conscious and Unconscious Self
+  sun_moon: {
+    conjunction: {
+      pattern: "The Unified Self",
+      psychology: "Conscious purpose and emotional needs are aligned. What you want is what you need.",
+      light: "Strong self-awareness, integrated personality, clear sense of identity",
+      shadow: "Can be one-sided, difficulty seeing other perspectives",
+      integration: "Your unity is your strength. Use it to help others integrate."
+    },
+    opposition: {
+      pattern: "The Inner Dialogue",
+      psychology: "Conscious self and emotional self oppose, creating rich inner life.",
+      light: "Understanding of both masculine and feminine, balance through relationship",
+      shadow: "Internal conflict, pulled between what you want and what you need",
+      integration: "Your inner opposites enrich you. Let them dialogue."
+    },
+    square: {
+      pattern: "The Self-Builder",
+      psychology: "Conscious and unconscious conflict, creating growth through tension.",
+      light: "Develops self-awareness through challenge, builds integrated self",
+      shadow: "Inner friction, self-doubt, emotional-mental conflicts",
+      integration: "Your internal tension is building something. Trust it."
+    },
+    trine: {
+      pattern: "The Naturally Integrated",
+      psychology: "Conscious and unconscious flow together harmoniously.",
+      light: "Easy self-expression, comfortable in own skin, harmonious inner life",
+      shadow: "May avoid growth that requires tension, can be complacent",
+      integration: "Allow some creative tension—it deepens you."
+    },
+    sextile: {
+      pattern: "The Gently Integrated",
+      psychology: "Conscious and unconscious support each other through opportunity.",
+      light: "Finds self-integration through natural opportunities",
+      shadow: "May not fully explore inner depths",
+      integration: "Go deeper when opportunities arise."
+    }
+  }
+};
+
+/**
+ * Get aspect symbol for display
+ */
+function getAspectSymbol(aspectType) {
+  const symbols = {
+    conjunction: '☌',
+    opposition: '☍',
+    trine: '△',
+    square: '□',
+    sextile: '⚹'
+  };
+  return symbols[aspectType] || aspectType;
+}
+
+/**
+ * Interpret a specific aspect in user's chart
+ */
+function interpretAspect(planet1, planet2, aspectType, orb) {
+  const aspectKey = `${planet1.toLowerCase()}_${planet2.toLowerCase()}`;
+  const reverseKey = `${planet2.toLowerCase()}_${planet1.toLowerCase()}`;
+
+  const aspectData = ASPECT_PSYCHOLOGY[aspectKey] || ASPECT_PSYCHOLOGY[reverseKey];
+
+  if (!aspectData || !aspectData[aspectType]) {
+    return null;
+  }
+
+  const interpretation = aspectData[aspectType];
+
+  // Add orb precision to interpretation
+  let precision = "";
+  if (orb < 1) {
+    precision = " (EXACT—this aspect is CORE to your psychology)";
+  } else if (orb < 3) {
+    precision = " (tight orb—strong influence)";
+  } else if (orb < 5) {
+    precision = " (moderate orb—significant influence)";
+  }
+
+  return {
+    aspect: `${planet1} ${getAspectSymbol(aspectType)} ${planet2} (${orb.toFixed(2)}°${precision})`,
+    pattern: interpretation.pattern,
+    psychology: interpretation.psychology,
+    light: interpretation.light,
+    shadow: interpretation.shadow,
+    integration: interpretation.integration,
+    lifeImpact: interpretation.lifeImpact
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TRIPARTITE SOUL - Platonic Psychology Applied
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Every soul has three parts (Plato's Republic):
+// - REASON (Logos): Thinking, analysis, planning
+// - SPIRIT (Thumos): Drive, passion, action
+// - APPETITE (Epithumia): Desires, values, attractions
+//
+// Astrological mapping:
+// - Reason = Mercury + Saturn (mind + structure)
+// - Spirit = Mars + Sun (action + identity)
+// - Appetite = Venus + Moon (values + emotions)
+
+/**
+ * Map Tripartite Soul from profile aspects
+ */
+function mapTripartiteSoul(profile) {
+  const aspects = profile.aspects || profile.calculations?.aspects || [];
+
+  // Find relevant aspects for each soul part
+  const mercurySaturnAspect = aspects.find(a =>
+    (a.p1 === 'Mercury' && a.p2 === 'Saturn') ||
+    (a.p1 === 'Saturn' && a.p2 === 'Mercury') ||
+    (a.planet1 === 'Mercury' && a.planet2 === 'Saturn') ||
+    (a.planet1 === 'Saturn' && a.planet2 === 'Mercury')
+  );
+
+  const marsNeptuneAspect = aspects.find(a =>
+    (a.p1 === 'Mars' && a.p2 === 'Neptune') ||
+    (a.p1 === 'Neptune' && a.p2 === 'Mars') ||
+    (a.planet1 === 'Mars' && a.planet2 === 'Neptune') ||
+    (a.planet1 === 'Neptune' && a.planet2 === 'Mars')
+  );
+
+  const venusJupiterAspect = aspects.find(a =>
+    (a.p1 === 'Venus' && a.p2 === 'Jupiter') ||
+    (a.p1 === 'Jupiter' && a.p2 === 'Venus') ||
+    (a.planet1 === 'Venus' && a.planet2 === 'Jupiter') ||
+    (a.planet1 === 'Jupiter' && a.planet2 === 'Venus')
+  );
+
+  // Build tripartite analysis
+  const tripartite = {
+    reason: buildReasonAnalysis(profile, mercurySaturnAspect),
+    spirit: buildSpiritAnalysis(profile, marsNeptuneAspect),
+    appetite: buildAppetiteAnalysis(profile, venusJupiterAspect)
+  };
+
+  return tripartite;
+}
+
+function buildReasonAnalysis(profile, mercurySaturnAspect) {
+  const planets = profile.planets || profile.calculations?.planets || {};
+  const mercury = planets.mercury;
+  const saturn = planets.saturn;
+
+  let analysis = {
+    title: "Reason (Logos) - How You Think",
+    mercurySign: mercury?.sign,
+    saturnSign: saturn?.sign
+  };
+
+  if (mercurySaturnAspect) {
+    const aspectType = mercurySaturnAspect.type || mercurySaturnAspect.aspect;
+    const orb = mercurySaturnAspect.orb;
+
+    const interpretation = interpretAspect('Mercury', 'Saturn', aspectType, orb);
+
+    if (interpretation) {
+      analysis.aspect = interpretation.aspect;
+      analysis.pattern = interpretation.pattern;
+      analysis.psychology = interpretation.psychology;
+      analysis.light = interpretation.light;
+      analysis.shadow = interpretation.shadow;
+      analysis.integration = interpretation.integration;
+      analysis.lifeImpact = interpretation.lifeImpact;
+    }
+  }
+
+  return analysis;
+}
+
+function buildSpiritAnalysis(profile, marsNeptuneAspect) {
+  const planets = profile.planets || profile.calculations?.planets || {};
+  const mars = planets.mars;
+  const sun = planets.sun;
+
+  let analysis = {
+    title: "Spirit (Thumos) - Your Drive & Passion",
+    marsSign: mars?.sign,
+    sunSign: sun?.sign
+  };
+
+  if (marsNeptuneAspect) {
+    const aspectType = marsNeptuneAspect.type || marsNeptuneAspect.aspect;
+    const orb = marsNeptuneAspect.orb;
+
+    const interpretation = interpretAspect('Mars', 'Neptune', aspectType, orb);
+
+    if (interpretation) {
+      analysis.aspect = interpretation.aspect;
+      analysis.pattern = interpretation.pattern;
+      analysis.psychology = interpretation.psychology;
+      analysis.light = interpretation.light;
+      analysis.shadow = interpretation.shadow;
+      analysis.integration = interpretation.integration;
+      analysis.lifeImpact = interpretation.lifeImpact;
+    }
+  }
+
+  return analysis;
+}
+
+function buildAppetiteAnalysis(profile, venusJupiterAspect) {
+  const planets = profile.planets || profile.calculations?.planets || {};
+  const venus = planets.venus;
+  const moon = planets.moon;
+
+  let analysis = {
+    title: "Appetite (Epithumia) - What You Desire",
+    venusSign: venus?.sign,
+    moonSign: moon?.sign
+  };
+
+  if (venusJupiterAspect) {
+    const aspectType = venusJupiterAspect.type || venusJupiterAspect.aspect;
+    const orb = venusJupiterAspect.orb;
+
+    const interpretation = interpretAspect('Venus', 'Jupiter', aspectType, orb);
+
+    if (interpretation) {
+      analysis.aspect = interpretation.aspect;
+      analysis.pattern = interpretation.pattern;
+      analysis.psychology = interpretation.psychology;
+      analysis.light = interpretation.light;
+      analysis.shadow = interpretation.shadow;
+      analysis.integration = interpretation.integration;
+      analysis.lifeImpact = interpretation.lifeImpact;
+    }
+  }
+
+  return analysis;
+}
+
+/**
+ * Analyze retrograde planets for psychological insight
+ */
+function analyzeRetrogradePsychology(profile) {
+  const retrogrades = [];
+  const planets = profile.planets || profile.calculations?.planets || {};
+
+  // Check each outer planet for retrograde status
+  if (planets.uranus?.retrograde || planets.uranus?.isRetrograde) {
+    retrogrades.push({
+      planet: "Uranus",
+      psychology: "Inner revolutionary. Unique individualism works from inside out.",
+      light: "Genius internal processing before external innovation. You revolutionize yourself first, then perhaps the world.",
+      shadow: "Impatience with those who can't see your internal vision. Difficulty explaining WHY you know something will work.",
+      integration: "Document your journey. What's obvious internally needs external translation for others to understand."
+    });
+  }
+
+  if (planets.pluto?.retrograde || planets.pluto?.isRetrograde) {
+    retrogrades.push({
+      planet: "Pluto",
+      psychology: "Internal transformer. Soul depth through private metamorphosis.",
+      light: "Profound self-mastery through internal work. Power grows through private transformation, not public display.",
+      shadow: "Difficulty trusting others with transformation processes. Sense that 'no one understands what I've been through.'",
+      integration: "Build trinity partnerships. Share the RESULTS of transformation, not necessarily the process."
+    });
+  }
+
+  if (planets.neptune?.retrograde || planets.neptune?.isRetrograde) {
+    retrogrades.push({
+      planet: "Neptune",
+      psychology: "Spiritual realist. Grounded mystic bringing cosmic vision into concrete form.",
+      light: "Connection to divine works through PRACTICAL MYSTICISM. You don't escape into fantasy—you build celestial wisdom into systems.",
+      shadow: "Frustration when others treat spirituality as mere concept. 'Why don't they see that soul connection can be MATHEMATICAL?'",
+      integration: "Your applied mysticism is your gift. Make the invisible visible through systems."
+    });
+  }
+
+  if (planets.saturn?.retrograde || planets.saturn?.isRetrograde) {
+    retrogrades.push({
+      planet: "Saturn",
+      psychology: "Inner authority. Self-discipline comes from within, not external rules.",
+      light: "Deep personal standards, doesn't need external validation, builds internal structure",
+      shadow: "Over-critical of self, may reject external authority even when helpful",
+      integration: "Your inner authority is trustworthy. Balance self-reliance with accepting support."
+    });
+  }
+
+  if (planets.jupiter?.retrograde || planets.jupiter?.isRetrograde) {
+    retrogrades.push({
+      planet: "Jupiter",
+      psychology: "Inner philosopher. Meaning is found within rather than through external expansion.",
+      light: "Deep personal philosophy, doesn't need others to validate beliefs, internal optimism",
+      shadow: "May miss opportunities for external growth, can seem reserved about beliefs",
+      integration: "Your inner wisdom is vast. Share it when invited."
+    });
+  }
+
+  if (planets.mercury?.retrograde || planets.mercury?.isRetrograde) {
+    retrogrades.push({
+      planet: "Mercury",
+      psychology: "Deep thinker. Mind works differently—processing internally before speaking.",
+      light: "Thoughtful communication, deep reflection, may express better in writing",
+      shadow: "Can seem slow or unclear in verbal expression, ideas may be misunderstood",
+      integration: "Your thinking style is valid. Take time to process before communicating."
+    });
+  }
+
+  if (planets.venus?.retrograde || planets.venus?.isRetrograde) {
+    retrogrades.push({
+      planet: "Venus",
+      psychology: "Inner values. Love and beauty are defined from within, not by social norms.",
+      light: "Unique aesthetic, doesn't need validation for what you love, deep self-worth",
+      shadow: "May struggle to express love openly, can seem reserved in affection",
+      integration: "Your values are authentic. Express love in your own timing and way."
+    });
+  }
+
+  if (planets.mars?.retrograde || planets.mars?.isRetrograde) {
+    retrogrades.push({
+      planet: "Mars",
+      psychology: "Inner warrior. Action is strategic and considered rather than impulsive.",
+      light: "Deliberate action, doesn't waste energy, strategic rather than reactive",
+      shadow: "May seem passive, can hold anger internally too long",
+      integration: "Your careful approach to action is wisdom. Act when truly ready."
+    });
+  }
+
+  return retrogrades;
+}
+
+/**
+ * Determine core archetype based on chart data
+ */
+function determineEnhancedArchetype(profile) {
+  const planets = profile.planets || profile.calculations?.planets || {};
+  const aspects = profile.aspects || profile.calculations?.aspects || [];
+  const sun = planets.sun;
+
+  if (!sun?.sign) {
+    return {
+      title: "The Seeker",
+      description: "Your path is one of discovery and growth."
+    };
+  }
+
+  const sunPsych = SUN_PSYCHOLOGY[sun.sign];
+
+  // Check for Sun-Uranus trine (Revolutionary modifier)
+  const sunUranusAspect = aspects.find(a =>
+    ((a.p1 === 'Sun' && a.p2 === 'Uranus') || (a.p1 === 'Uranus' && a.p2 === 'Sun') ||
+     (a.planet1 === 'Sun' && a.planet2 === 'Uranus') || (a.planet1 === 'Uranus' && a.planet2 === 'Sun')) &&
+    (a.type === 'trine' || a.aspect === 'trine')
+  );
+
+  if (sunUranusAspect && sun.sign === 'Taurus') {
+    return {
+      title: "The Revolutionary Builder",
+      description: "You are not just 'The Builder' (Taurus) - you are THE REVOLUTIONARY BUILDER. Your Sun trine Uranus creates a rare combination: the methodical patience of Taurus merged with Uranian innovation. You build new paradigms systematically. Large-scale visions feel natural because you're wired to create lasting revolutionary systems."
+    };
+  }
+
+  // Check for other modifiers
+  const sunPlutoAspect = aspects.find(a =>
+    ((a.p1 === 'Sun' && a.p2 === 'Pluto') || (a.p1 === 'Pluto' && a.p2 === 'Sun') ||
+     (a.planet1 === 'Sun' && a.planet2 === 'Pluto') || (a.planet1 === 'Pluto' && a.planet2 === 'Sun'))
+  );
+
+  if (sunPlutoAspect) {
+    return {
+      title: `The Transforming ${sunPsych?.coreIdentity || 'Soul'}`,
+      description: `${sunPsych?.centralDrive || ''} Your Sun-Pluto aspect adds profound depth and transformative power to your identity. You're not just living—you're perpetually evolving and helping others transform.`
+    };
+  }
+
+  return {
+    title: sunPsych?.coreIdentity || "The Seeker",
+    description: sunPsych?.centralDrive || "Your path unfolds through authentic self-expression."
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMPLETE PSYCHOLOGICAL PROFILE GENERATOR (Liz Greene + Tripartite Soul)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Generate complete psychological profile using Liz Greene depth astrology
+ * and Platonic Tripartite Soul framework
+ *
+ * @param {Object} profile - Profile with natal chart data
+ * @returns {string} - Complete markdown psychological profile
+ */
+export function generateCompletePsychologicalProfile(profile) {
+  if (!profile) {
+    console.error('No profile provided to generateCompletePsychologicalProfile');
+    return null;
+  }
+
+  const name = profile.displayName || profile.firstName || 'Soul';
+  const planets = profile.planets || profile.calculations?.planets || {};
+  const sun = planets.sun || profile.constitutional_identity?.western?.sun;
+  const moon = planets.moon || profile.constitutional_identity?.western?.moon;
+  const rising = planets.ascendant || planets.rising || profile.constitutional_identity?.western?.ascendant;
+
+  if (!sun || !moon) {
+    console.error('Incomplete chart data for psychological profile');
+    return null;
+  }
+
+  // Get analyses
+  const tripartite = mapTripartiteSoul(profile);
+  const retrogrades = analyzeRetrogradePsychology(profile);
+  const archetype = determineEnhancedArchetype(profile);
+
+  // Build markdown document
+  const lines = [];
+
+  lines.push(`# Psychological Profile - Liz Greene Analysis`);
+  lines.push(`*${name}*`);
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+
+  // Core archetype (enhanced with aspects)
+  lines.push(`## Core Identity: ${archetype.title}`);
+  lines.push(`*${sun.sign || sun} Sun • ${moon.sign || moon} Moon • ${rising?.sign || rising || 'Unknown'} Rising*`);
+  lines.push('');
+  lines.push(archetype.description);
+  lines.push('');
+
+  // Tripartite Soul
+  lines.push('---');
+  lines.push('');
+  lines.push('## The Tripartite Soul - Platonic Psychology');
+  lines.push('');
+  lines.push('*Your soul has three parts working in dynamic relationship:*');
+  lines.push('');
+
+  // REASON
+  lines.push(`### ${tripartite.reason.title}`);
+  if (tripartite.reason.aspect) {
+    lines.push(`**Core Aspect:** ${tripartite.reason.aspect}`);
+    lines.push('');
+    lines.push(`**Pattern:** ${tripartite.reason.pattern}`);
+    lines.push('');
+    lines.push(`**Psychology:** ${tripartite.reason.psychology}`);
+    lines.push('');
+    lines.push(`**Light Expression:** ${tripartite.reason.light}`);
+    lines.push('');
+    lines.push(`**Shadow Expression:** ${tripartite.reason.shadow}`);
+    lines.push('');
+    lines.push(`**Integration Path:** ${tripartite.reason.integration}`);
+
+    if (tripartite.reason.lifeImpact) {
+      lines.push('');
+      lines.push(`**Life Impact:** ${tripartite.reason.lifeImpact}`);
+    }
+  } else {
+    lines.push(`Mercury in ${tripartite.reason.mercurySign || 'Unknown'} - Your thinking style`);
+    lines.push(`Saturn in ${tripartite.reason.saturnSign || 'Unknown'} - Your mental discipline`);
+  }
+  lines.push('');
+
+  // SPIRIT
+  lines.push(`### ${tripartite.spirit.title}`);
+  if (tripartite.spirit.aspect) {
+    lines.push(`**Core Aspect:** ${tripartite.spirit.aspect}`);
+    lines.push('');
+    lines.push(`**Pattern:** ${tripartite.spirit.pattern}`);
+    lines.push('');
+    lines.push(`**Psychology:** ${tripartite.spirit.psychology}`);
+    lines.push('');
+    lines.push(`**Light Expression:** ${tripartite.spirit.light}`);
+    lines.push('');
+    lines.push(`**Shadow Expression:** ${tripartite.spirit.shadow}`);
+    lines.push('');
+    lines.push(`**Integration Path:** ${tripartite.spirit.integration}`);
+
+    if (tripartite.spirit.lifeImpact) {
+      lines.push('');
+      lines.push(`**Life Impact:** ${tripartite.spirit.lifeImpact}`);
+    }
+  } else {
+    lines.push(`Mars in ${tripartite.spirit.marsSign || 'Unknown'} - Your action style`);
+    lines.push(`Sun in ${tripartite.spirit.sunSign || 'Unknown'} - Your core drive`);
+  }
+  lines.push('');
+
+  // APPETITE
+  lines.push(`### ${tripartite.appetite.title}`);
+  if (tripartite.appetite.aspect) {
+    lines.push(`**Core Aspect:** ${tripartite.appetite.aspect}`);
+    lines.push('');
+    lines.push(`**Pattern:** ${tripartite.appetite.pattern}`);
+    lines.push('');
+    lines.push(`**Psychology:** ${tripartite.appetite.psychology}`);
+    lines.push('');
+    lines.push(`**Light Expression:** ${tripartite.appetite.light}`);
+    lines.push('');
+    lines.push(`**Shadow Expression:** ${tripartite.appetite.shadow}`);
+    lines.push('');
+    lines.push(`**Integration Path:** ${tripartite.appetite.integration}`);
+
+    if (tripartite.appetite.lifeImpact) {
+      lines.push('');
+      lines.push(`**Life Impact:** ${tripartite.appetite.lifeImpact}`);
+    }
+  } else {
+    lines.push(`Venus in ${tripartite.appetite.venusSign || 'Unknown'} - Your values`);
+    lines.push(`Moon in ${tripartite.appetite.moonSign || 'Unknown'} - Your emotional needs`);
+  }
+  lines.push('');
+
+  // Retrograde Psychology (if applicable)
+  if (retrogrades && retrogrades.length > 0) {
+    lines.push('---');
+    lines.push('');
+    lines.push('## Retrograde Signature');
+    lines.push('');
+    lines.push('*Retrograde planets indicate energies that work from within. These are not weaknesses—they are internalized strengths.*');
+    lines.push('');
+
+    retrogrades.forEach(r => {
+      lines.push(`### ${r.planet} Retrograde ℞`);
+      lines.push(`*${r.psychology}*`);
+      lines.push('');
+      lines.push(`**Light:** ${r.light}`);
+      lines.push('');
+      lines.push(`**Shadow:** ${r.shadow}`);
+      lines.push('');
+      lines.push(`**Integration:** ${r.integration}`);
+      lines.push('');
+    });
+  }
+
+  lines.push('---');
+  lines.push('');
+  lines.push('*Psychological analysis generated using Liz Greene depth astrology + Platonic Tripartite Soul framework.*');
+  lines.push(`*Analysis created: ${new Date().toLocaleString()}*`);
+
+  return lines.join('\n');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // MAIN GENERATOR FUNCTION
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -777,9 +1658,13 @@ function determineDominantElement(sun, moon, rising) {
 
 export default {
   generatePsychologicalProfile,
+  generateCompletePsychologicalProfile,
   SUN_PSYCHOLOGY,
   MOON_PSYCHOLOGY,
   RISING_PSYCHOLOGY,
   ELEMENT_PSYCHOLOGY,
-  PLANET_FUNCTIONS
+  PLANET_FUNCTIONS,
+  ASPECT_PSYCHOLOGY,
+  interpretAspect,
+  mapTripartiteSoul
 };

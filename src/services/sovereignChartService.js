@@ -96,6 +96,8 @@ export async function calculateSovereignChart({
       rising: trinity.rising,
       planets: data.planets,
       houses: data.houses,  // Placidus house cusps
+      moonPhase: data.moonPhase,  // Moon phase at birth
+      aspects: data.aspects,  // Planetary aspects
       elementBalance: data.elementProfile ? {
         dominant: data.elementProfile.dominant,
         secondary: data.elementProfile.secondary,
@@ -198,8 +200,10 @@ export function mergeWithSovereignData(simpleWestern, sovereignData) {
       sun: sovereignData.sun,
       moon: sovereignData.moon,
       rising: sovereignData.rising,
-      planets: sovereignData.planets,  // Mercury, Venus, Mars, Jupiter, Saturn
+      planets: sovereignData.planets,  // All 8 planets
       houses: sovereignData.houses,    // Placidus house cusps (12 houses)
+      moonPhase: sovereignData.moonPhase,  // Moon phase at birth
+      aspects: sovereignData.aspects,  // Planetary aspects
       elementBalance: sovereignData.elementBalance,
       julianDay: sovereignData.julianDay,
       calculatedAt: sovereignData.calculatedAt,

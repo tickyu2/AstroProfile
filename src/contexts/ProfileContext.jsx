@@ -390,9 +390,16 @@ export function ProfileProvider({ children }) {
         console.log('📍 [ProfileContext] Location update transformed:', locationUpdate)
       }
 
-      // If birth data changed OR sovereign data is missing, recalculate everything
-      const needsSovereignCalculation = !currentProfile?.calculations?.western?.sovereignCalculation
-      console.log('🌟 [ProfileContext] Sovereign check:', { needsSovereignCalculation, hasSovereign: !!currentProfile?.calculations?.western?.sovereignCalculation })
+      // If birth data changed OR sovereign data is missing/incomplete, recalculate everything
+      // Must check for COMPLETE sovereign data (sun AND moon present), not just object existence
+      const sovereignCalc = currentProfile?.calculations?.western?.sovereignCalculation
+      const needsSovereignCalculation = !sovereignCalc?.sun || !sovereignCalc?.moon
+      console.log('🌟 [ProfileContext] Sovereign check:', {
+        needsSovereignCalculation,
+        hasSovereignObj: !!sovereignCalc,
+        hasSun: !!sovereignCalc?.sun,
+        hasMoon: !!sovereignCalc?.moon
+      })
       let recalculatedData = {}
       if (updates.birthDate || updates.firstName || updates.lastName || updates.gender || updates.birthTime || updates.birthLat || updates.birthLng || needsSovereignCalculation) {
         console.log('🌟 [ProfileContext] Triggering recalculation with sovereign...')
@@ -470,6 +477,19 @@ export function ProfileProvider({ children }) {
         ...recalculatedData,
         updatedAt: serverTimestamp()
       })
+
+      // Return the complete updated profile for KB sync
+      // Merge current profile with updates for immediate use
+      const updatedProfile = {
+        ...currentProfile,
+        ...updates,
+        ...locationUpdate,
+        ...recalculatedData,
+        id: profileId,
+        updatedAt: new Date()
+      }
+      console.log('✅ [ProfileContext] Profile updated, returning for KB sync:', updatedProfile.displayName || updatedProfile.firstName)
+      return updatedProfile
     } catch (err) {
       setError(err.message)
       throw err
@@ -561,6 +581,101 @@ export function ProfileProvider({ children }) {
     }
   }
 
+  // Recalculate sovereign astronomical data for a profile
+  // Used when API has been updated with new features (e.g., retrograde detection)
+  const recalculateSovereignData = async (profileId) => {
+    try {
+      setError(null)
+      const profile = profiles.find((p) => p.id === profileId)
+      if (!profile) {
+        throw new Error('Profile not found')
+      }
+
+      console.log('🔄 [recalculateSovereignData] Starting recalculation for:', profile.displayName)
+
+      const birthDate = profile.birthDate
+      const birthTime = profile.birthTime || '12:00'
+      const birthLat = profile.location?.coordinates?.lat || 0
+      const birthLng = profile.location?.coordinates?.lng || 0
+      const timezone = profile.timezone || 'UTC'
+      const firstName = profile.firstName
+      const lastName = profile.lastName
+      const gender = profile.gender
+
+      // Recalculate all data
+      const age = calculateAge(birthDate)
+      const chinese = getChineseZodiac(birthDate)
+      const western = getWesternZodiac(birthDate)
+      const dayOfWeek = getDayOfWeek(birthDate)
+      const yinYang = calculateYinYang(chinese, western, gender, dayOfWeek, birthTime)
+      const numerology = calculateNumerology(firstName, lastName, birthDate)
+
+      // 🌟 Sovereign Astronomical Calculation - Real Sun/Moon/Rising
+      console.log('🌟 [recalculateSovereignData] Fetching fresh sovereign data...')
+      const sovereignData = await calculateSovereignChartWithFallback({
+        birthDate,
+        birthTime,
+        latitude: birthLat,
+        longitude: birthLng,
+        timezone
+      })
+      console.log('✅ [recalculateSovereignData] Sovereign data received:', {
+        hasSun: !!sovereignData?.sun,
+        hasPlanets: !!sovereignData?.planets,
+        hasRetrograde: sovereignData?.planets?.mars?.isRetrograde !== undefined
+      })
+
+      // 🎯 Sovereign BaZi Precision - Exact Solar Term boundaries
+      let sovereignBazi = null
+      try {
+        const [year, month, day] = birthDate.split('-').map(Number)
+        const [hour, minute] = (birthTime || '12:00').split(':').map(Number)
+        sovereignBazi = await getBaziPillarsWithPrecision({
+          year, month, day, hour, minute,
+          timezone: 0
+        })
+        console.log('🎯 [recalculateSovereignData] Sovereign BaZi precision:', sovereignBazi)
+      } catch (baziError) {
+        console.warn('⚠️ [recalculateSovereignData] Sovereign BaZi failed:', baziError.message)
+      }
+
+      // Enhanced Chinese zodiac with sovereign precision
+      const enhancedChinese = getEnhancedChineseZodiac(birthDate, sovereignBazi)
+
+      // Merge sovereign data with simple calculation
+      const enhancedWestern = mergeWithSovereignData(western, sovereignData)
+
+      // Update Firestore
+      const profileRef = doc(db, 'profiles', profileId)
+      await updateDoc(profileRef, {
+        chineseZodiac: enhancedChinese,
+        calculations: {
+          age,
+          chinese,
+          western: {
+            ...enhancedWestern,
+            dateRange: getZodiacDateRange(western.sign),
+            rulingPlanet: getRulingPlanet(western.sign)
+          },
+          dayOfWeek,
+          yinYang: {
+            ...yinYang,
+            interpretation: getYinYangInterpretation(yinYang)
+          },
+          numerology
+        },
+        updatedAt: serverTimestamp()
+      })
+
+      console.log('✅ [recalculateSovereignData] Profile updated successfully!')
+      return { success: true, profileId }
+    } catch (err) {
+      console.error('❌ [recalculateSovereignData] Error:', err)
+      setError(err.message)
+      throw err
+    }
+  }
+
   const value = {
     profiles,
     loading,
@@ -571,7 +686,8 @@ export function ProfileProvider({ children }) {
     deleteProfile,
     markProfileViewed,
     toggleFavorite,
-    updateAISoulPartnerNotes
+    updateAISoulPartnerNotes,
+    recalculateSovereignData
   }
 
   return (

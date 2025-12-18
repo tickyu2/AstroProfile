@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useProfiles } from '../contexts/ProfileContext'
+import { useKnowledgeBase } from '../contexts/KnowledgeBaseContext'
 import { motion } from 'framer-motion'
 import MapboxLocationPicker from './MapboxLocationPicker'
 import { getHistoricalTimezone, formatTimezoneDisplay } from '../services/timezoneService'
@@ -24,6 +25,7 @@ export default function DiamondProfileForm() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { profiles, createProfile, updateProfile } = useProfiles()
+  const { syncProfileToKB } = useKnowledgeBase()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -332,8 +334,13 @@ export default function DiamondProfileForm() {
       console.log('🎯 Submitting profile with data:', profileData)
       
       if (isEditMode) {
-        await updateProfile(editProfileId, profileData)
+        const updatedProfile = await updateProfile(editProfileId, profileData)
         console.log('✅ Profile updated')
+        // Sync the updated profile to Knowledge Base
+        if (updatedProfile && syncProfileToKB) {
+          console.log('🧬 Syncing updated profile to KB:', updatedProfile.displayName || updatedProfile.firstName)
+          await syncProfileToKB(updatedProfile)
+        }
         navigate(`/results/${editProfileId}`)
       } else {
         const newProfile = await createProfile(profileData)

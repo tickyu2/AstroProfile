@@ -13,13 +13,18 @@
  * December 13, 2024
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfiles } from '../contexts/ProfileContext';
 import { useConversations } from '../contexts/ConversationsContext';
-import { AISoulPartnerChat, SoulPartnerNotes, AIIdentityPanel } from '../components/aiSoulPartner';
+// NOTE: KB sync is now handled in InputForm, DiamondProfileForm, and EditPersonModal
+// when profiles are saved. Auto-sync here was causing duplicate documents.
+// import { useKnowledgeBase } from '../contexts/KnowledgeBaseContext';
+import { AISoulPartnerChat, SoulPartnerNotes, AIIdentityPanel, StoryQuestionsAssessment, SoulPartnerKBViewer } from '../components/aiSoulPartner';
 import DEFAULT_AI_IDENTITY from '../data/aiSoulPartnerIdentity';
+import { saveStoryAssessment, getStoryAssessment } from '../services/aiSoulPartnerService';
+import { useSoulPartner } from '../hooks/useSoulPartner';
 
 export default function AISoulPartnerPage() {
   const { currentUser, logout } = useAuth();
@@ -28,9 +33,29 @@ export default function AISoulPartnerPage() {
 
   // Selected profile state - default to first profile or 'self' type
   const [selectedProfileId, setSelectedProfileId] = useState(null);
+
+  // Find selected profile early for SoulPartner generation
+  const selectedProfile = profiles.find(p => p.id === selectedProfileId) || profiles[0] || {};
+
+  // SoulPartner hook - manages the user's personalized AI companion
+  // Pass the selected profile so SoulPartner can be generated from user's SoulDNA
+  const {
+    soulPartner,
+    soulPartnerKB,
+    getIdentityForAPI,
+    needsNaming,
+    nameSoulPartner,
+    connectionStrength
+  } = useSoulPartner(selectedProfile);
   // Notes panel visibility and active tab
   const [showNotesPanel, setShowNotesPanel] = useState(false);
-  const [activeTab, setActiveTab] = useState('user'); // 'user' or 'ai'
+  const [activeTab, setActiveTab] = useState('user'); // 'user', 'ai', or 'companion'
+  // Story Questions Assessment state
+  const [showStoryQuestions, setShowStoryQuestions] = useState(false);
+  const [storyProgress, setStoryProgress] = useState(null);
+  const [storyAssessmentPending, setStoryAssessmentPending] = useState(null);
+  // Reference to chat component for sending messages
+  const chatRef = useRef(null);
 
   // Find the selected profile or default
   useEffect(() => {
@@ -52,8 +77,6 @@ export default function AISoulPartnerPage() {
       setActiveProfileId(selectedProfileId);
     }
   }, [selectedProfileId, setActiveProfileId]);
-
-  const selectedProfile = profiles.find(p => p.id === selectedProfileId) || profiles[0] || {};
 
   // Build comprehensive constitutional profile for the intelligence engine
   const constitutionalProfile = {
@@ -123,7 +146,11 @@ export default function AISoulPartnerPage() {
     },
 
     // AI SoulPartner notes (what Claude has learned about this person)
-    aiSoulPartner: selectedProfile.aiSoulPartner || null
+    aiSoulPartner: selectedProfile.aiSoulPartner || null,
+
+    // Custom AI SoulPartner identity (Luna, etc.)
+    // This makes the AI speak AS the user's personalized companion
+    aiIdentity: getIdentityForAPI() || null
   };
 
   // Handle updating AI notes
@@ -180,6 +207,80 @@ export default function AISoulPartnerPage() {
 
   const selectedInfo = getProfileDisplayInfo(selectedProfile);
 
+  // Load saved Story Questions progress when profile changes
+  useEffect(() => {
+    const loadStoryProgress = async () => {
+      if (!currentUser?.uid || !selectedProfileId) return;
+
+      try {
+        const result = await getStoryAssessment({
+          userId: currentUser.uid,
+          profileId: selectedProfileId
+        });
+
+        if (result.exists && result.assessment) {
+          setStoryProgress({
+            responses: result.assessment.responses,
+            currentLevel: result.assessment.completedLevels + 1
+          });
+        } else {
+          setStoryProgress(null);
+        }
+      } catch (error) {
+        console.error('Failed to load Story progress:', error);
+      }
+    };
+
+    loadStoryProgress();
+  }, [currentUser?.uid, selectedProfileId]);
+
+  // Handle Story Questions completion
+  const handleStoryComplete = useCallback(async (analysis) => {
+    console.log('📖 Story Questions completed:', analysis);
+
+    // Save to Firebase
+    if (currentUser?.uid && selectedProfileId) {
+      await saveStoryAssessment({
+        userId: currentUser.uid,
+        profileId: selectedProfileId,
+        assessment: analysis
+      });
+    }
+
+    // Store for potential chat discussion
+    setStoryAssessmentPending(analysis);
+  }, [currentUser?.uid, selectedProfileId]);
+
+  // Handle sending Story results to chat
+  const handleStorySendToChat = useCallback((message, analysis) => {
+    setShowStoryQuestions(false);
+    setStoryAssessmentPending(null);
+
+    // The chat component will handle this via its own message sending
+    // For now, we'll inject the message through a custom event or prop
+    if (chatRef.current?.sendSystemMessage) {
+      chatRef.current.sendSystemMessage(message);
+    } else {
+      // Fallback: store the message to be picked up by chat
+      console.log('📖 Story results ready to discuss:', message);
+    }
+  }, []);
+
+  // Handle Story Questions progress save (for resuming later)
+  const handleStoryProgressSave = useCallback((progress) => {
+    setStoryProgress(progress);
+    // Progress is saved to Firestore on completion
+    console.log('📖 Story progress saved locally:', progress?.responses?.length || 0, 'levels');
+  }, []);
+
+  // Get constitutional data for Story analysis alignment
+  const constitutionalDataForStory = {
+    dominantElement: selectedProfile.calculations?.fourPillars?.elementalBalance?.dominant ||
+                     selectedProfile.chineseZodiac?.element,
+    yinYangDominant: selectedProfile.calculations?.yinYang?.dominant ||
+                     (selectedProfile.calculations?.yinYang?.yangPercentage > 50 ? 'Yang' : 'Yin')
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       {/* Navigation Header */}
@@ -201,6 +302,17 @@ export default function AISoulPartnerPage() {
 
           {/* Profile Selector */}
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowStoryQuestions(true)}
+              className="px-3 py-1.5 bg-amber-600/80 hover:bg-amber-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+            >
+              📖 Story Questions
+              {storyProgress?.responses?.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded text-xs">
+                  {storyProgress.responses.length}/8
+                </span>
+              )}
+            </button>
             <Link
               to="/knowledge-base"
               className="px-3 py-1.5 bg-indigo-600/80 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors"
@@ -296,42 +408,85 @@ export default function AISoulPartnerPage() {
             <div className="flex border-b border-white/10">
               <button
                 onClick={() => setActiveTab('user')}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                className={`flex-1 px-3 py-3 text-xs font-medium transition-colors ${
                   activeTab === 'user'
                     ? 'text-amber-400 border-b-2 border-amber-400 bg-amber-500/10'
                     : 'text-white/50 hover:text-white/70'
                 }`}
               >
-                👤 {selectedProfile?.firstName || 'User'}'s Notes
+                👤 Your Notes
+              </button>
+              <button
+                onClick={() => setActiveTab('companion')}
+                className={`flex-1 px-3 py-3 text-xs font-medium transition-colors ${
+                  activeTab === 'companion'
+                    ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-500/10'
+                    : 'text-white/50 hover:text-white/70'
+                }`}
+              >
+                {soulPartner?.name || 'Companion'}'s KB
               </button>
               <button
                 onClick={() => setActiveTab('ai')}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                className={`flex-1 px-3 py-3 text-xs font-medium transition-colors ${
                   activeTab === 'ai'
                     ? 'text-indigo-400 border-b-2 border-indigo-400 bg-indigo-500/10'
                     : 'text-white/50 hover:text-white/70'
                 }`}
               >
-                🤖 AI Identity
+                GENESIS
               </button>
             </div>
 
             {/* Panel Content */}
             <div className="flex-1 overflow-y-auto p-4">
-              {activeTab === 'user' ? (
+              {activeTab === 'user' && (
                 <SoulPartnerNotes
                   profile={selectedProfile}
                   onUpdateNotes={handleUpdateNotes}
                 />
-              ) : (
+              )}
+              {activeTab === 'companion' && (
+                <SoulPartnerKBViewer
+                  soulPartner={soulPartner}
+                  soulPartnerKB={soulPartnerKB}
+                />
+              )}
+              {activeTab === 'ai' && (
                 <AIIdentityPanel
-                  aiIdentity={DEFAULT_AI_IDENTITY}
+                  aiIdentity={soulPartner || DEFAULT_AI_IDENTITY}
                 />
               )}
             </div>
           </div>
         )}
       </main>
+
+      {/* Story Questions Modal */}
+      {showStoryQuestions && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm overflow-y-auto">
+          <div className="min-h-screen py-8 px-4">
+            {/* Close button */}
+            <button
+              onClick={() => setShowStoryQuestions(false)}
+              className="fixed top-4 right-4 z-50 p-2 bg-slate-800/80 hover:bg-slate-700 rounded-full text-white/60 hover:text-white transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Assessment Component */}
+            <StoryQuestionsAssessment
+              onComplete={handleStoryComplete}
+              onSendToChat={handleStorySendToChat}
+              constitutionalData={constitutionalDataForStory}
+              savedProgress={storyProgress}
+              onSaveProgress={handleStoryProgressSave}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

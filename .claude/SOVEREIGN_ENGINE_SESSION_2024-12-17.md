@@ -273,13 +273,348 @@ getBaziMonthWithPrecision(year, month, day, hour, minute)
 
 ---
 
+## Step 5: Geocentric Planet Positions
+
+**Added: December 17, 2024 (Session 3)**
+
+### The Problem
+Previous version (v2.1.0) calculated **heliocentric** planetary positions (relative to the Sun). Astrology requires **geocentric** positions (as seen from Earth). The difference can be several degrees.
+
+### The Solution
+Convert heliocentric to geocentric using rectangular coordinate transformation:
+
+1. Convert planet's heliocentric spherical (lon, lat, R) → rectangular (X, Y, Z)
+2. Convert Earth's heliocentric spherical → rectangular
+3. Geocentric = Planet - Earth (vector subtraction)
+4. Convert back to ecliptic longitude
+
+### Algorithm (v2.3.0)
+```javascript
+// Heliocentric to rectangular
+const planetX = R * cos(lat) * cos(lon);
+const planetY = R * cos(lat) * sin(lon);
+const planetZ = R * sin(lat);
+
+// Geocentric = Planet - Earth
+const geoX = planetX - earthX;
+const geoY = planetY - earthY;
+const geoZ = planetZ - earthZ;
+
+// Back to ecliptic longitude
+const geoLongitude = atan2(geoY, geoX);
+```
+
+### Verification (December 17, 2024)
+
+| Planet | Geocentric | Reference | Status |
+|--------|------------|-----------|--------|
+| Sun | Sag 26°3' | Sag 26° | ✅ |
+| Moon | Cancer 23°28' | Cancer 23° | ✅ |
+| Mercury | Sag 6°37' | Sag 6° | ✅ |
+| Venus | Aqua 11°43' | Aqua 11° | ✅ |
+| Mars | Leo 5°25' | Leo 5° | ✅ |
+| Jupiter | Gemini 14°58' | Gemini 15° | ✅ |
+| Saturn | Pisces 13°35' | Pisces 13° | ✅ |
+
+### Enhanced Response Data
+Each planet now includes:
+- `geocentric: true` - Confirms geocentric calculation
+- `geoLatitude` - Ecliptic latitude in degrees
+- `distanceAU` - Distance from Earth in AU
+
+### Meta Update
+```json
+{
+  "calculationEngine": "GENESIS Sovereign v2.3.0 (Moshier Ephemeris)",
+  "planetarySystem": "Geocentric (as seen from Earth)"
+}
+```
+
+---
+
+## Step 6: Retrograde Detection
+
+**Added: December 17, 2024 (Session 3)**
+
+### The Problem
+Retrograde motion (when a planet appears to move backward from Earth's perspective) is crucial for astrological interpretation, but wasn't being calculated.
+
+### The Solution
+Compare geocentric longitude today vs tomorrow. If daily motion is negative, the planet is retrograde.
+
+### Algorithm (v2.4.0)
+```javascript
+// Calculate geocentric longitude at JD and JD+1
+const lonToday = getGeocentricLongitude(planet, julianDay);
+const lonTomorrow = getGeocentricLongitude(planet, julianDay + 1);
+
+// Daily motion (handle 360° wraparound)
+let dailyMotion = lonTomorrow - lonToday;
+if (dailyMotion > 180) dailyMotion -= 360;
+if (dailyMotion < -180) dailyMotion += 360;
+
+// Retrograde if negative motion
+const isRetrograde = dailyMotion < 0;
+```
+
+### Verification (December 17, 2024)
+
+| Planet | Daily Motion | Status | Verified |
+|--------|--------------|--------|----------|
+| Mercury | +0.327°/day | Direct | ✅ |
+| Venus | +1.128°/day | Direct | ✅ |
+| Mars | -0.152°/day | ℞ Retrograde | ✅ |
+| Jupiter | -0.131°/day | ℞ Retrograde | ✅ |
+| Saturn | +0.055°/day | Direct | ✅ |
+
+Mars went retrograde Dec 6, 2024 - correctly detected!
+
+### Enhanced Response Data
+Each planet now includes:
+- `isRetrograde: true/false` - Retrograde status
+- `dailyMotion: -0.152` - Degrees per day (negative = retrograde)
+- `motionDirection: "retrograde" | "direct"` - Human-readable status
+
+### UI Updates
+- Retrograde planets shown with red background
+- ℞ symbol added to planet name
+- "Retrograde" label displayed below degree
+
+### Meta Update
+```json
+{
+  "calculationEngine": "GENESIS Sovereign v2.4.0 (Moshier Ephemeris)",
+  "retrogradeDetection": true
+}
+```
+
+---
+
+## Step 7: Recalculate Chart Button
+
+**Added: December 17, 2024 (Session 4)**
+
+### The Problem
+When the Sovereign API is updated with new features (like retrograde detection), existing profiles don't automatically get the new data. Users need a way to refresh their chart data.
+
+### The Solution
+Added a "Recalculate" button to the Western Zodiac panel that fetches fresh data from the Sovereign API and updates the profile in Firestore.
+
+### Files Modified
+
+**ProfileContext.jsx:**
+- Added `recalculateSovereignData(profileId)` function
+- Fetches fresh sovereign astronomical data
+- Recalculates all astrological data
+- Updates Firestore with new calculations
+- Exported in context value
+
+**WesternAstrologyPanel.jsx:**
+- Added `profileId` prop
+- Added `isRecalculating` state
+- Added `handleRecalculate()` handler
+- Added cyan "Recalculate" button next to Sovereign badge
+- Button shows "Calculating..." during API call
+
+**Results.jsx:**
+- Passes `profileId` prop to WesternAstrologyPanel
+
+### UI Features
+- Cyan button with hover effect
+- Disabled state during recalculation
+- Tooltip: "Refresh chart with latest astronomical calculations"
+- Automatic UI refresh via Firestore real-time listener
+
+---
+
+## Step 8: Retrograde Interpretations
+
+**Added: December 17, 2024 (Session 4)**
+
+### The Problem
+Retrograde planets were being detected and displayed, but users had no context for what natal retrograde means for them personally.
+
+### The Solution
+Added interpretive text for each retrograde planet that appears when viewing a chart with retrograde planets.
+
+### Interpretations Added
+
+| Planet | Title | Brief |
+|--------|-------|-------|
+| Mercury ℞ | Mercury Retrograde Native | Deep thinker, internal processor |
+| Venus ℞ | Venus Retrograde Native | Unconventional heart, private values |
+| Mars ℞ | Mars Retrograde Native | Strategic action, internalized drive |
+| Jupiter ℞ | Jupiter Retrograde Native | Inner philosopher, personal faith |
+| Saturn ℞ | Saturn Retrograde Native | Self-imposed standards, questions authority |
+
+### UI Features
+- "Natal Retrograde Insights" section appears only when chart has retrograde planets
+- Red gradient background with ℞ symbol
+- Each retrograde planet shows:
+  - Planet symbol and title
+  - Brief keyword summary (amber)
+  - Full interpretation paragraph
+
+### Files Modified
+- `src/components/results/WesternAstrologyPanel.jsx`
+  - Added `retrogradeInterpretations` data object
+  - Added conditional UI section for retrograde insights
+
+---
+
+## Step 9: Moon Phase Calculation
+
+**Added: December 17, 2024 (Session 5)**
+
+### The Feature
+Calculate the exact Moon phase at birth, providing both astronomical data and astrological interpretation.
+
+### Phase Calculation
+- Phase angle = Moon longitude - Sun longitude (normalized 0-360°)
+- 8 Moon phases with precise boundaries
+- Illumination percentage using cosine formula
+- Waxing/Waning cycle position
+
+### Moon Phases & Interpretations
+
+| Phase | Angle Range | Interpretation |
+|-------|-------------|----------------|
+| New Moon 🌑 | 0° - 11.25° | Initiator, fresh starts |
+| Waxing Crescent 🌒 | 11.25° - 78.75° | Builder, determined |
+| First Quarter 🌓 | 78.75° - 101.25° | Crisis-oriented, decisive |
+| Waxing Gibbous 🌔 | 101.25° - 168.75° | Perfectionist, analyzer |
+| Full Moon 🌕 | 168.75° - 191.25° | Illuminator, relationship-oriented |
+| Waning Gibbous 🌖 | 191.25° - 258.75° | Teacher, meaning-seeker |
+| Last Quarter 🌗 | 258.75° - 281.25° | Revolutionary, pattern-breaker |
+| Waning Crescent 🌘 | 281.25° - 348.75° | Visionary, intuitive |
+
+### API Response Structure
+```json
+{
+  "moonPhase": {
+    "phaseName": "Waning Gibbous",
+    "emoji": "🌖",
+    "angle": 207.42,
+    "illumination": 94,
+    "isWaxing": false,
+    "cyclePosition": "Releasing toward renewal",
+    "interpretation": { "title", "brief", "full" }
+  }
+}
+```
+
+---
+
+## Step 10: Outer Planets (Uranus, Neptune, Pluto)
+
+**Added: December 17, 2024 (Session 5)**
+
+### The Feature
+Extended planetary calculations to include the modern "outer planets":
+- **Uranus** - Using VSOP87B ephemeris
+- **Neptune** - Using VSOP87B ephemeris
+- **Pluto** - Using specialized Pluto ephemeris (not VSOP87)
+
+### Implementation
+- Uranus/Neptune: Same VSOP87B pipeline as inner planets
+- Pluto: Separate `astronomia/pluto` module with heliocentric() function
+- All converted to geocentric coordinates
+- All include retrograde detection
+
+### Version Update
+v2.6.0 - Full 8-planet calculation (Mercury through Pluto)
+
+### Verification (December 17, 2024)
+
+| Planet | Position | Reference | Status |
+|--------|----------|-----------|--------|
+| Uranus | Taurus 24°3' ℞ | Taurus ~24° | ✅ |
+| Neptune | Pisces 27°10' | Pisces ~27° | ✅ |
+| Pluto | Aquarius 0°18' | Aquarius ~0° | ✅ |
+
+---
+
+## Step 11: Aspect Calculations
+
+**Added: December 17, 2024 (Session 5)**
+
+### The Feature
+Calculate angular relationships (aspects) between all celestial bodies:
+- Sun, Moon, and all 8 planets
+- Major and minor aspects with orbs
+- Quality classification (harmonious, challenging, neutral)
+
+### Aspect Definitions
+
+| Aspect | Symbol | Angle | Orb | Quality |
+|--------|--------|-------|-----|---------|
+| Conjunction | ☌ | 0° | 8° | Neutral |
+| Opposition | ☍ | 180° | 8° | Challenging |
+| Trine | △ | 120° | 8° | Harmonious |
+| Square | □ | 90° | 8° | Challenging |
+| Sextile | ⚹ | 60° | 6° | Harmonious |
+| Quincunx | ⚻ | 150° | 3° | Adjustment |
+| Semi-sextile | ⚺ | 30° | 2° | Neutral |
+
+### API Response Structure
+```json
+{
+  "aspects": [
+    {
+      "planet1": { "name": "moon", "sign": "Cancer", "symbol": "☽" },
+      "planet2": { "name": "uranus", "sign": "Taurus", "symbol": "♅" },
+      "aspect": "Sextile",
+      "symbol": "⚹",
+      "angle": 60,
+      "actualAngle": 59.41,
+      "orb": 0.59,
+      "exactness": 90,
+      "nature": "major",
+      "quality": "harmonious",
+      "description": "Opportunity - requires effort to activate"
+    }
+  ]
+}
+```
+
+### UI Display
+- Cyan-themed section
+- Color-coded by quality (green=harmonious, red=challenging, cyan=neutral)
+- Shows planet symbols, aspect symbol, and orb
+- Scrollable list showing top 10 major aspects
+
+### Version Update
+v2.7.0 - Full aspect calculation with 7 aspect types
+
+---
+
+## Version History Summary
+
+| Version | Feature |
+|---------|---------|
+| v2.0.0 | Constitutional Trinity (Sun/Moon/Rising) |
+| v2.1.0 | Planetary Positions (Mercury-Saturn) |
+| v2.2.0 | House Cusps (Placidus) |
+| v2.3.0 | Geocentric Coordinates |
+| v2.4.0 | Retrograde Detection |
+| v2.5.0 | Moon Phase Calculation |
+| v2.6.0 | Outer Planets (Uranus, Neptune, Pluto) |
+| v2.7.0 | Aspect Calculations |
+
+---
+
 ## What's Next (Future Steps)
-- Geocentric planet positions (currently heliocentric)
+- ~~Geocentric planet positions~~ ✅ DONE
+- ~~Retrograde detection~~ ✅ DONE
+- ~~Recalculate button for existing profiles~~ ✅ DONE
+- ~~Retrograde interpretations~~ ✅ DONE
+- ~~Moon Phase calculation~~ ✅ DONE
+- ~~Outer Planets (Uranus, Neptune, Pluto)~~ ✅ DONE
+- ~~Aspect calculations~~ ✅ DONE
 - Additional house systems (Koch, Equal, Whole Sign)
-- Aspect calculations (conjunctions, trines, squares, etc.)
-- Retrograde detection
 - Chart visualization (circular chart wheel)
 - Display sovereign BaZi precision in UI with Solar Term badge
+- Aspect interpretations (what each aspect means)
 
 ---
 

@@ -22,6 +22,7 @@ import OverviewTab from './tabs/OverviewTab'
 import BirthDetailsPanel from './results/BirthDetailsPanel'
 import YearPillarPanel from './results/YearPillarPanel'
 import WesternAstrologyPanel from './results/WesternAstrologyPanel'
+import PsychologicalProfilePanel from './results/PsychologicalProfilePanel'
 import PlanetaryRulerPanel from './results/PlanetaryRulerPanel'
 import YinYangPanel from './results/YinYangPanel'
 import NumerologyPanel from './results/NumerologyPanel'
@@ -395,6 +396,11 @@ export default function Results() {
                                 />
                                 <WesternAstrologyPanel
                                     westZodiac={westZodiac}
+                                    profileId={profileId}
+                                />
+                                <PsychologicalProfilePanel
+                                    westZodiac={westZodiac}
+                                    profile={profile}
                                 />
                                 <PlanetaryRulerPanel
                                     dayInfo={dayInfo}

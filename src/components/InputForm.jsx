@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useProfiles } from '../contexts/ProfileContext'
+import { useKnowledgeBase } from '../contexts/KnowledgeBaseContext'
 import LocationPicker from './common/LocationPicker'
 
 export default function InputForm() {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const { profiles, createProfile, updateProfile } = useProfiles()
+    const { syncProfileToKB } = useKnowledgeBase()
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [saveError, setSaveError] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -126,7 +128,12 @@ export default function InputForm() {
             }
 
             if (isEditMode) {
-                await updateProfile(editProfileId, profileData)
+                const updatedProfile = await updateProfile(editProfileId, profileData)
+                // Sync the updated profile to Knowledge Base (generates Constitutional Blueprint + Psychological Profile)
+                if (updatedProfile && syncProfileToKB) {
+                    console.log('🧬 Syncing updated profile to KB:', updatedProfile.displayName || updatedProfile.firstName)
+                    await syncProfileToKB(updatedProfile)
+                }
             } else {
                 const newProfileId = await createProfile(profileData)
                 navigate(`/results/${newProfileId}`)
