@@ -52,6 +52,9 @@ import { MBTIRoseWindow } from './mbti'
 // ⭐ NEW! WESTERN ZODIAC 36-CUSP SYSTEM - Father Ticky's Model
 import { WesternZodiacSection } from './westernZodiac'
 
+// 🌙 NEW! REAL-TIME MOON PHASE WIDGET
+import MoonPhaseWidget from './common/MoonPhaseWidget'
+
 export default function Results() {
     const { profileId } = useParams()
     const navigate = useNavigate()
@@ -385,6 +388,14 @@ export default function Results() {
                 {activeTab === 'western' && (
                     <div className="max-w-6xl mx-auto px-4 py-8">
                         <div className="space-y-6">
+                            {/* 🌙 NEW! Real-Time Moon Phase Widget */}
+                            <MoonPhaseWidget
+                                sunSign={westZodiac?.sign}
+                                moonSign={westZodiac?.sovereignCalculation?.moon?.sign}
+                                showUpcoming={true}
+                                showGuidance={true}
+                            />
+
                             {/* ⭐ NEW! Western Zodiac 36-Cusp System */}
                             <WesternZodiacSection birthDate={profile.birthDate} userName={profile.displayName || profile.firstName} />
 
@@ -397,6 +408,7 @@ export default function Results() {
                                 <WesternAstrologyPanel
                                     westZodiac={westZodiac}
                                     profileId={profileId}
+                                    onRecalculate={handleRefresh}
                                 />
                                 <PsychologicalProfilePanel
                                     westZodiac={westZodiac}

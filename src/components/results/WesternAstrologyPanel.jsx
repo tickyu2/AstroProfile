@@ -67,7 +67,7 @@ const retrogradeInterpretations = {
     }
 }
 
-export default function WesternAstrologyPanel({ westZodiac, profileId }) {
+export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalculate }) {
     const western = westZodiac || {}
     const [secretsUnlocked, setSecretsUnlocked] = useState(false)
     const [isRecalculating, setIsRecalculating] = useState(false)
@@ -100,6 +100,10 @@ export default function WesternAstrologyPanel({ westZodiac, profileId }) {
         try {
             await recalculateSovereignData(profileId)
             console.log('✅ Chart recalculated successfully!')
+            // Trigger parent refresh to reload profile data
+            if (onRecalculate) {
+                await onRecalculate()
+            }
         } catch (error) {
             console.error('❌ Recalculation failed:', error)
         } finally {

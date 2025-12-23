@@ -564,6 +564,109 @@ export function ProfileProvider({ children }) {
     }
   }
 
+  // Clone profile - for "what if" analysis with AI SoulPartner
+  const cloneProfile = async (profileId, newName = null) => {
+    try {
+      setError(null)
+      const sourceProfile = profiles.find((p) => p.id === profileId)
+      if (!sourceProfile) {
+        throw new Error('Source profile not found')
+      }
+
+      // Create clone with new display name
+      const cloneName = newName || `${sourceProfile.displayName} (Clone)`
+      const [firstName, ...lastParts] = cloneName.split(' ')
+      const lastName = lastParts.join(' ') || sourceProfile.lastName
+
+      // Clone all data except ownership metadata
+      const clonedData = {
+        ...sourceProfile,
+        // New ownership metadata
+        userId: currentUser.uid,
+        isFavorite: false,
+        isArchived: false,
+
+        // New identity
+        firstName,
+        lastName,
+        displayName: cloneName,
+
+        // Reset timestamps
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        lastViewedAt: serverTimestamp(),
+
+        // Reset stats
+        viewCount: 0,
+        sharedCount: 0,
+        comparisonCount: 0,
+
+        // Mark as clone for reference
+        clonedFrom: profileId,
+        clonedAt: serverTimestamp()
+      }
+
+      // Remove the source document ID
+      delete clonedData.id
+
+      // Add to Firestore
+      const docRef = await addDoc(collection(db, 'profiles'), clonedData)
+
+      // Update user's profile count
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        profileCount: increment(1),
+        updatedAt: serverTimestamp()
+      })
+
+      console.log('📋 Profile cloned:', sourceProfile.displayName, '→', cloneName)
+      return { id: docRef.id, ...clonedData }
+    } catch (err) {
+      console.error('Error cloning profile:', err)
+      setError(err.message)
+      throw err
+    }
+  }
+
+  // Quick save - update metadata without triggering recalculation
+  // Use for notes, relationship type, tags, etc.
+  const quickSaveProfile = async (profileId, updates) => {
+    try {
+      setError(null)
+
+      // Only allow non-calculation fields
+      const safeUpdates = {}
+      const allowedFields = [
+        'notes', 'relationshipType', 'tags', 'isFavorite',
+        'nickname', 'pronouns', 'mbti', 'big5', 'enneagram', 'bloodType',
+        'selfDescription'
+      ]
+
+      Object.keys(updates).forEach(key => {
+        if (allowedFields.includes(key)) {
+          safeUpdates[key] = updates[key]
+        }
+      })
+
+      if (Object.keys(safeUpdates).length === 0) {
+        console.warn('⚠️ [quickSaveProfile] No valid fields to update')
+        return null
+      }
+
+      const profileRef = doc(db, 'profiles', profileId)
+      await updateDoc(profileRef, {
+        ...safeUpdates,
+        updatedAt: serverTimestamp()
+      })
+
+      console.log('💾 Quick save completed:', Object.keys(safeUpdates).join(', '))
+      return { id: profileId, ...safeUpdates }
+    } catch (err) {
+      console.error('Error in quick save:', err)
+      setError(err.message)
+      throw err
+    }
+  }
+
   // Update AI SoulPartner notes for a profile
   const updateAISoulPartnerNotes = async (profileId, aiNotes) => {
     try {
@@ -686,6 +789,8 @@ export function ProfileProvider({ children }) {
     deleteProfile,
     markProfileViewed,
     toggleFavorite,
+    cloneProfile,
+    quickSaveProfile,
     updateAISoulPartnerNotes,
     recalculateSovereignData
   }

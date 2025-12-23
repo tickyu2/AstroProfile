@@ -210,15 +210,24 @@ export function KnowledgeBaseProvider({ children }) {
     }
   };
 
-  // Get documents for Claude (respects token limits)
+  // Get documents for Claude (respects token limits and profile isolation)
   const getDocumentsForContext = (options = {}) => {
     const {
       maxTokens = 4000, // Approximate token limit for knowledge
       categories = null, // Filter by specific categories
-      includeAll = false // Include all docs regardless of flags
+      includeAll = false, // Include all docs regardless of flags
+      forProfileId = null // PROFILE ISOLATION: Only include docs for this profile
     } = options;
 
     let selectedDocs = [...documents];
+
+    // PROFILE ISOLATION: Filter to only include:
+    // 1. Documents with no profileId (global documents)
+    // 2. Documents matching the selected profile
+    if (forProfileId) {
+      selectedDocs = selectedDocs.filter(d => !d.profileId || d.profileId === forProfileId);
+      console.log(`📚 Profile isolation: filtered to ${selectedDocs.length} docs for profile ${forProfileId}`);
+    }
 
     // Filter by categories if specified
     if (categories && categories.length > 0) {
@@ -262,16 +271,17 @@ export function KnowledgeBaseProvider({ children }) {
     return result;
   };
 
-  // Build knowledge prompt for Claude
+  // Build knowledge prompt for Claude (with profile isolation)
   const buildKnowledgePrompt = (options = {}) => {
     // DEBUG: Log documents state
     console.log('📚 buildKnowledgePrompt called:', {
       totalDocuments: documents.length,
       documentTitles: documents.map(d => d.title),
+      forProfileId: options.forProfileId || 'ALL (no isolation)',
       loading
     });
 
-    const docs = getDocumentsForContext(options);
+    const docs = getDocumentsForContext(options); // Pass through forProfileId option
 
     if (docs.length === 0) {
       console.log('📚 No documents selected for context!');

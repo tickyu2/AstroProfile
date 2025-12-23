@@ -10,9 +10,36 @@
  *
  * UPDATED: December 17, 2024 - Added Psychological Profile integration
  * Liz Greene-inspired psychological astrology framework for Luna
+ *
+ * UPDATED: December 19, 2024 - Added Memory Architecture integration
+ * RAG pipeline with vector embeddings, facts table, reflection loop
  */
 
 import { generatePsychologicalProfile } from '../utils/psychologicalProfileGenerator';
+import { memoryService } from './memoryService';
+import { conversationCache, payloadToConversationHistory } from './conversationCache';
+import {
+  THINKING_LEVELS,
+  DEFAULT_THINKING_LEVEL,
+  determineThinkingLevel,
+  buildGemini3History,
+  convertFromGemini3Response,
+  extractTextFromParts,
+  cacheThoughtSignature,
+  getCachedThoughtSignature
+} from './gemini3Service';
+
+// Energy-aware thinking (Advanced Voice Features - Phase 4)
+import { lunaEnergyService, ENERGY_STATES } from './lunaEnergyService';
+
+// Focus Mode (Advanced Voice Features - Phase 4)
+import { focusModeService, FOCUS_MODES, FOCUS_SYSTEM_PROMPTS } from './focusModeService';
+
+// Focus Report (Advanced Voice Features - Phase 4)
+import { focusReportService } from './focusReportService';
+
+// Language Service (Phase 5 - Adaptive Localization)
+import { languageService, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './languageService';
 
 // Firebase Function URLs
 // 2nd Gen Cloud Functions use Cloud Run URLs
@@ -45,18 +72,213 @@ const getApiUrl = () => {
  * @param {string} params.knowledgePrompt - Pre-built knowledge base prompt from KnowledgeBaseContext
  * @param {string} params.learnedContext - Session Intelligence learned context (from contextBuilder)
  * @param {Object} params.image - Optional image data { dataUrl, type }
- * @returns {Promise<Object>} - AI response with metadata
+ * @param {string} params.profileId - Profile ID for memory isolation (NEW)
+ * @param {string} params.sessionId - Session ID for reflection tracking (NEW)
+ * @param {boolean} params.useOptimizedPayload - Use conversation cache for 80%+ token reduction (NEW)
+ * @param {string} params.conversationId - Conversation ID for optimized payload (NEW)
+ * @param {string} params.thinkingLevel - Gemini 3 thinking level: 'minimal'|'low'|'medium'|'high'|'auto' (NEW)
+ * @param {boolean} params.includeThoughts - Include thinking content in response (NEW)
+ * @returns {Promise<Object>} - AI response with metadata including Gemini 3 parts[]
  */
-export async function sendMessage({ message, guidance, conversationHistory = [], userProfile = {}, knowledgePrompt = '', learnedContext = null, image = null }) {
+export async function sendMessage({
+  message,
+  guidance,
+  conversationHistory = [],
+  userProfile = {},
+  knowledgePrompt = '',
+  learnedContext = null,
+  image = null,
+  profileId = null,
+  sessionId = null,
+  useOptimizedPayload = false,
+  conversationId = null,
+  thinkingLevel = 'auto',
+  includeThoughts = false
+}) {
   try {
+    // ════════════════════════════════════════════════════════════════════
+    // MEMORY RETRIEVAL (Phase 3 - RAG Pipeline)
+    // ════════════════════════════════════════════════════════════════════
+    let memoryContext = null;
+    let memoryPrompt = '';
+
+    const userId = userProfile?.userId;
+
+    if (userId && profileId) {
+      try {
+        // Detect if user seems down (for happiness anchors)
+        const moodIsLow = memoryService.detectLowMood(message, guidance?.emotions);
+
+        // Get full memory context (facts, memories, people, anchors)
+        memoryContext = await memoryService.getMemoryContext(
+          userId,
+          profileId,
+          message,
+          {
+            recencyDays: 90,
+            moodIsLow
+          }
+        );
+
+        // Build memory prompt section
+        memoryPrompt = memoryService.buildMemoryPrompt(memoryContext);
+
+        console.log('🧠 Memory context retrieved:', {
+          facts: memoryContext.facts?.length || 0,
+          memories: memoryContext.memories?.length || 0,
+          people: memoryContext.people?.length || 0,
+          anchors: memoryContext.happinessAnchors?.length || 0,
+          relationshipStats: memoryContext.relationshipStats ? {
+            bondLevel: memoryContext.relationshipStats.bondLevel,
+            ageInDays: memoryContext.relationshipStats.ageInDays,
+            pendingCelebrations: memoryContext.relationshipStats.pendingCelebration?.length || 0
+          } : 'new relationship',
+          timeMs: memoryContext.retrievalTimeMs
+        });
+
+        // Initialize relationship if first conversation (Tango Identity System)
+        if (!memoryContext.relationshipStats) {
+          console.log('💞 Tango: First conversation - initializing Luna\'s birthday with this user');
+          memoryService.initializeRelationship(userId, profileId)
+            .catch(err => console.warn('⚠️ Failed to initialize relationship:', err.message));
+        }
+
+      } catch (memError) {
+        console.warn('⚠️ Memory retrieval failed (continuing without):', memError.message);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // CONVERSATION CACHE - 80%+ Token Reduction (Phase 4)
+    // ════════════════════════════════════════════════════════════════════
+    let optimizedHistory = conversationHistory;
+    let payloadMetrics = null;
+    let storySoFarContext = null;
+
+    if (useOptimizedPayload && profileId) {
+      try {
+        // Set messages in cache if not already there
+        if (conversationHistory.length > 0) {
+          conversationCache.setMessages(profileId, conversationHistory);
+        }
+
+        // Build optimized payload
+        const optimizedPayload = await conversationCache.buildOptimizedPayload(
+          profileId,
+          conversationId,
+          { recentCount: 10, includeStory: true }
+        );
+
+        // Convert to conversation history format
+        optimizedHistory = payloadToConversationHistory(optimizedPayload);
+        payloadMetrics = optimizedPayload.metrics;
+        storySoFarContext = optimizedPayload.storySoFar;
+
+        console.log('📦 [ConversationCache] Token reduction:', {
+          before: payloadMetrics.fullPayloadTokens,
+          after: payloadMetrics.optimizedTokens,
+          saved: payloadMetrics.tokensSaved,
+          reduction: `${payloadMetrics.reductionPercent}%`
+        });
+
+        // Trigger background summarization if needed
+        conversationCache.maybeTriggersummarization(profileId, conversationId);
+
+      } catch (cacheError) {
+        console.warn('⚠️ [ConversationCache] Failed, using full history:', cacheError.message);
+        optimizedHistory = conversationHistory;
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // FOCUS MODE CONFIGURATION (Phase 4)
+    // Focus Mode overrides thinking level and adds system prompt modifications
+    // ════════════════════════════════════════════════════════════════════
+    const focusConfig = focusModeService.getLunaConfig();
+    let focusSystemPrompt = '';
+
+    if (focusConfig.isActive) {
+      focusSystemPrompt = focusConfig.systemPrompt;
+      console.log('🎯 [FocusMode] Active:', {
+        mode: focusConfig.mode,
+        thinkingLevel: focusConfig.thinkingLevel,
+        energyCostMultiplier: focusConfig.energyCostMultiplier
+      });
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // GEMINI 3 THINKING LEVEL with Energy & Focus Awareness (Phase 4)
+    // Luna's thinking adapts to her energy state and focus mode
+    // ════════════════════════════════════════════════════════════════════
+    let effectiveThinkingLevel = thinkingLevel;
+    let energyStatus = null;
+    let personalityModifier = '';
+    let wasDowngraded = false;
+
+    // Focus mode takes priority for thinking level
+    if (focusConfig.isActive && focusConfig.thinkingLevel !== 'auto') {
+      effectiveThinkingLevel = focusConfig.thinkingLevel;
+      console.log('🎯 [FocusMode] Thinking level set to:', effectiveThinkingLevel);
+    } else if (thinkingLevel === 'auto') {
+      // Use energy-aware preparation
+      const energyPrep = lunaEnergyService.prepareMessage('auto');
+      effectiveThinkingLevel = energyPrep.thinkingLevel;
+      energyStatus = energyPrep.energyStatus;
+      personalityModifier = energyPrep.personalityModifier;
+
+      // Fall back to content-based determination if energy is high
+      if (energyStatus.state === ENERGY_STATES.FULL || energyStatus.state === ENERGY_STATES.RESTED) {
+        const contentBasedLevel = determineThinkingLevel(message, { guidance });
+        // Allow content to request high if energy supports it
+        if (contentBasedLevel === 'high' && energyStatus.canUseHighThinking) {
+          effectiveThinkingLevel = 'high';
+        }
+      }
+
+      console.log('⚡ [EnergyAware] Thinking level adjusted:', {
+        requested: thinkingLevel,
+        effective: effectiveThinkingLevel,
+        energyState: energyStatus?.state,
+        energyLevel: energyStatus?.energy
+      });
+
+    } else if (thinkingLevel === 'high') {
+      // User explicitly requested high - check if possible
+      const energyPrep = lunaEnergyService.prepareMessage('high');
+      if (energyPrep.wasDowngraded) {
+        effectiveThinkingLevel = energyPrep.thinkingLevel;
+        personalityModifier = energyPrep.personalityModifier;
+        wasDowngraded = true;
+        console.log('⚡ [EnergyAware] Downgraded from high to', effectiveThinkingLevel, '(low energy)');
+      }
+      energyStatus = energyPrep.energyStatus;
+    }
+
+    // Get cached thought signature for conversation continuity
+    const cachedSignature = conversationId ? getCachedThoughtSignature(conversationId) : null;
+
+    // Build Gemini 3 compatible history (preserves thought signatures)
+    const gemini3History = buildGemini3History(optimizedHistory);
+
     console.log('🚀 Sending to AI SoulPartner:', {
       message: message?.slice(0, 50) + '...',
       mode: guidance?.mode,
-      historyLength: conversationHistory.length,
+      historyLength: optimizedHistory.length,
+      usingOptimizedPayload: useOptimizedPayload && !!payloadMetrics,
+      tokenReduction: payloadMetrics ? `${payloadMetrics.reductionPercent}%` : 'N/A',
       hasKnowledge: !!knowledgePrompt,
       knowledgeLength: knowledgePrompt?.length || 0,
       hasLearnedContext: !!learnedContext,
-      hasImage: !!image
+      hasMemory: !!memoryPrompt,
+      memoryLength: memoryPrompt?.length || 0,
+      hasImage: !!image,
+      // Gemini 3 fields
+      thinkingLevel: effectiveThinkingLevel,
+      includeThoughts,
+      hasThoughtSignature: !!cachedSignature,
+      // Energy state
+      energyState: energyStatus?.state || 'unknown',
+      hasPersonalityModifier: !!personalityModifier
     });
 
     const response = await fetch(getApiUrl(), {
@@ -72,14 +294,33 @@ export async function sendMessage({ message, guidance, conversationHistory = [],
           length: guidance?.length,
           suggestions: guidance?.suggestions || [],
           emotionalContext: formatEmotionalContext(guidance),
-          intensity: guidance?.intensity
+          intensity: guidance?.intensity,
+          // Energy-aware personality modifier (Phase 4)
+          personalityModifier: personalityModifier || '',
+          energyState: energyStatus?.state || null,
+          // Focus Mode (Phase 4)
+          focusMode: focusConfig.isActive ? focusConfig.mode : null,
+          focusSystemPrompt: focusSystemPrompt || null,
+          // Adaptive Localization (Phase 5)
+          polyglotPrompt: languageService.getPolyglotPrompt(),
+          culturalContext: languageService.getCulturalContextPrompt(),
+          sessionLanguage: languageService.getSessionLanguage()
         },
-        conversationHistory: conversationHistory.map(msg => ({
+        // Legacy format for backward compatibility
+        conversationHistory: optimizedHistory.map(msg => ({
           sender: msg.sender,
-          text: msg.text,
+          text: msg.text || extractTextFromParts(msg),
           // Include reaction data so Brother can see what user liked/loved
-          reactions: formatReactionsForContext(msg.reactions)
+          reactions: formatReactionsForContext(msg.reactions),
+          // Mark context injections for backend awareness
+          isContextInjection: msg.isContextInjection || false,
+          // Gemini 3: Preserve thought signature if present
+          thoughtSignature: msg.thoughtSignature || null,
+          // Gemini 3: Full parts array for Gemini 3 models
+          parts: msg.parts || null
         })),
+        // Gemini 3 format history (for Gemini 3 backend)
+        gemini3History,
         userProfile: {
           displayName: userProfile?.displayName || userProfile?.firstName || 'Friend',
           constitutional: userProfile?.constitutional_identity,
@@ -88,7 +329,16 @@ export async function sendMessage({ message, guidance, conversationHistory = [],
         },
         knowledgePrompt,  // Pre-built knowledge base prompt
         learnedContext,   // Session Intelligence learned patterns context
-        image  // Optional image for vision { dataUrl, type }
+        memoryPrompt,     // Memory Architecture context (NEW)
+        relationshipStats: memoryContext?.relationshipStats || null,  // Tango Identity System (NEW)
+        image,  // Optional image for vision { dataUrl, type }
+        storySoFarContext,  // Explicit story context for backend (NEW)
+        // Gemini 3 configuration (NEW)
+        gemini3Config: {
+          thinkingLevel: effectiveThinkingLevel,
+          includeThoughts,
+          thoughtSignature: cachedSignature  // Continue thinking chain
+        }
       })
     });
 
@@ -103,7 +353,11 @@ export async function sendMessage({ message, guidance, conversationHistory = [],
       mode: data.mode,
       responseLength: data.response?.length,
       hasGeneratedImage: !!data.generatedImage,
-      usage: data.usage
+      usage: data.usage,
+      // Gemini 3 fields
+      hasThoughtSignature: !!data.thoughtSignature,
+      hasThinkingContent: !!data.thinkingContent,
+      hasParts: !!data.parts
     });
 
     // If image was generated, include it in response
@@ -111,12 +365,140 @@ export async function sendMessage({ message, guidance, conversationHistory = [],
       console.log('🎨 Image generated via Nano Banana');
     }
 
+    // ════════════════════════════════════════════════════════════════════
+    // GEMINI 3: CACHE THOUGHT SIGNATURE (Phase 4)
+    // Cache the signature for next turn - this is Luna's "working memory"
+    // ════════════════════════════════════════════════════════════════════
+    if (data.thoughtSignature && conversationId) {
+      cacheThoughtSignature(conversationId, data.thoughtSignature);
+      console.log('🧠 Thought signature cached for conversation continuity');
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // ENERGY CONSUMPTION TRACKING (Phase 4 - Advanced Voice Features)
+    // Luna uses energy for each message - makes her feel more human
+    // ════════════════════════════════════════════════════════════════════
+    const energyResult = lunaEnergyService.recordTextMessage(effectiveThinkingLevel);
+    console.log('⚡ [EnergyAware] Message energy recorded:', {
+      consumed: energyResult.consumed,
+      remaining: energyResult.remaining,
+      newState: energyResult.state
+    });
+
+    // ════════════════════════════════════════════════════════════════════
+    // FOCUS REPORT BUFFERING (Phase 4 - Advanced Voice Features)
+    // Buffer messages and thoughts during focus sessions for the debrief
+    // ════════════════════════════════════════════════════════════════════
+    if (focusConfig.isActive && focusReportService.isSessionActive()) {
+      // Add thought signature for logic map
+      if (data.thoughtSignature) {
+        focusReportService.addThought(data.thoughtSignature, data.thinkingContent);
+      }
+
+      // Add message exchange for context
+      focusReportService.addMessage(message, data.response, {
+        thinkingLevel: effectiveThinkingLevel,
+        mode: data.mode,
+        energyConsumed: energyResult.consumed
+      });
+
+      console.log('📊 [FocusReport] Buffered exchange:', {
+        thoughtSignature: !!data.thoughtSignature,
+        thinkingContent: !!data.thinkingContent,
+        bufferSize: focusReportService.getCurrentSession()?.messagesCount || 0
+      });
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // LANGUAGE DETECTION (Phase 5 - Adaptive Localization)
+    // Detect language from response and update session language
+    // ════════════════════════════════════════════════════════════════════
+    let detectedLanguage = languageService.getSessionLanguage();
+    if (data.detectedLanguage) {
+      // Backend detected language from Gemini 3
+      detectedLanguage = languageService.processDetectedLanguage(
+        data.detectedLanguage,
+        data.languageConfidence || 0.8
+      );
+    } else if (data.response) {
+      // Quick detect from response text as fallback
+      const quickDetect = languageService.quickDetect(data.response);
+      if (quickDetect !== 'unknown') {
+        detectedLanguage = languageService.processDetectedLanguage(quickDetect, 0.7);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // REFLECTION SCHEDULING (Phase 3 - Background Fact Extraction)
+    // ════════════════════════════════════════════════════════════════════
+    if (userId && profileId && sessionId && data.response) {
+      // Schedule reflection (non-blocking - runs in background)
+      memoryService.scheduleReflection(
+        userId,
+        profileId,
+        sessionId,
+        message,
+        data.response
+      );
+    }
+
     return {
       success: true,
       text: data.response,
       mode: data.mode,
       usage: data.usage,
-      generatedImage: data.generatedImage || null  // { mimeType, data, prompt }
+      generatedImage: data.generatedImage || null,  // { mimeType, data, prompt }
+      memoryUsed: memoryContext ? {
+        facts: memoryContext.facts?.length || 0,
+        memories: memoryContext.memories?.length || 0,
+        people: memoryContext.people?.length || 0,
+        retrievalTimeMs: memoryContext.retrievalTimeMs
+      } : null,
+      // Conversation Cache metrics
+      cacheMetrics: payloadMetrics ? {
+        tokensSaved: payloadMetrics.tokensSaved,
+        reductionPercent: payloadMetrics.reductionPercent,
+        messagesInFull: payloadMetrics.messagesInFull,
+        messagesInOptimized: payloadMetrics.messagesInOptimized
+      } : null,
+      // ════════════════════════════════════════════════════════════════════
+      // GEMINI 3 RESPONSE DATA (Phase 4)
+      // Client MUST store these for next turn when using Gemini 3
+      // ════════════════════════════════════════════════════════════════════
+      gemini3: data.gemini3 || false,  // Flag: response is from Gemini 3
+      parts: data.parts || null,        // Full parts array - STORE THIS
+      thoughtSignature: data.thoughtSignature || null,  // Working memory signature
+      thinkingContent: data.thinkingContent || null,    // Visible thinking (if includeThoughts)
+      thinkingLevel: effectiveThinkingLevel,            // What level was used
+      // ════════════════════════════════════════════════════════════════════
+      // ENERGY STATE (Phase 4 - Advanced Voice Features)
+      // Luna's energy affects her thinking and personality
+      // ════════════════════════════════════════════════════════════════════
+      energyStatus: {
+        level: energyResult.remaining,
+        state: energyResult.state,
+        consumed: energyResult.consumed,
+        wasDowngraded,
+        stateChanged: energyResult.stateChanged
+      },
+      // ════════════════════════════════════════════════════════════════════
+      // FOCUS MODE (Phase 4 - Advanced Voice Features)
+      // Focus mode configuration for UI feedback
+      // ════════════════════════════════════════════════════════════════════
+      focusMode: focusConfig.isActive ? {
+        mode: focusConfig.mode,
+        thinkingLevel: focusConfig.thinkingLevel,
+        visuals: focusConfig.visuals
+      } : null,
+      // ════════════════════════════════════════════════════════════════════
+      // LANGUAGE STATUS (Phase 5 - Adaptive Localization)
+      // Current session language for UI feedback
+      // ════════════════════════════════════════════════════════════════════
+      languageStatus: {
+        sessionLanguage: detectedLanguage,
+        languageInfo: languageService.getLanguageInfo(detectedLanguage),
+        voiceAccent: languageService.getVoiceAccent()
+      }
     };
 
   } catch (error) {
@@ -847,8 +1229,195 @@ export function getQuickPsychologicalSummary(profile) {
   };
 }
 
+/**
+ * Get conversation cache metrics for debugging/display
+ */
+export function getCacheMetrics() {
+  return conversationCache.getMetrics();
+}
+
+/**
+ * Get profile-specific cache stats
+ */
+export function getProfileCacheStats(profileId) {
+  return conversationCache.getProfileStats(profileId);
+}
+
+/**
+ * Clear conversation cache (e.g., on logout or profile switch)
+ */
+export function clearConversationCache(profileId = null) {
+  conversationCache.clearCache(profileId);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GEMINI 3 EXPORTS (Phase 4)
+// Re-export Gemini 3 utilities for component use
+// ═══════════════════════════════════════════════════════════════════════════
+
+export {
+  THINKING_LEVELS,
+  DEFAULT_THINKING_LEVEL,
+  determineThinkingLevel,
+  clearThoughtSignatureCache
+} from './gemini3Service';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ENERGY SERVICE EXPORTS (Phase 4 - Advanced Voice Features)
+// Re-export energy service for component use
+// ═══════════════════════════════════════════════════════════════════════════
+
+export {
+  lunaEnergyService,
+  ENERGY_STATES,
+  ENERGY_CONFIG,
+  ENERGY_PERSONALITY
+} from './lunaEnergyService';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FOCUS MODE EXPORTS (Phase 4 - Advanced Voice Features)
+// Re-export focus mode service for component use
+// ═══════════════════════════════════════════════════════════════════════════
+
+export {
+  focusModeService,
+  FOCUS_MODES,
+  FOCUS_MODE_CONFIG,
+  FOCUS_SYSTEM_PROMPTS,
+  FOCUS_VISUALS
+} from './focusModeService';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOL-ENABLED CHAT (Claude with Autonomous Tools)
+// Luna can use tools proactively: web search, generational context, biography
+// This is the AI-driven approach - scales as AI improves
+// ═══════════════════════════════════════════════════════════════════════════
+
+const TOOL_CHAT_URL = 'https://toolenabledchat-sjpjwnbsmq-uc.a.run.app';
+const TOOL_CHAT_EMULATOR_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/toolEnabledChat';
+
+const getToolChatUrl = () => {
+  if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+    return TOOL_CHAT_EMULATOR_URL;
+  }
+  return TOOL_CHAT_URL;
+};
+
+/**
+ * Send a message using Claude with tool-use capabilities
+ * Luna can autonomously call tools to enrich the conversation:
+ * - get_generational_context: Historical/cultural context for birth years
+ * - search_biography: Search their life story
+ * - get_people_context: Look up people in their life
+ * - web_search: Search the internet
+ * - recall_memory: Search memories
+ * - store_memory: Save important information
+ * - And more...
+ *
+ * @param {Object} params - Request parameters
+ * @param {string} params.message - User message
+ * @param {Array} params.conversationHistory - Previous messages
+ * @param {Object} params.userProfile - User profile data
+ * @param {string} params.systemPromptAdditions - Additional system prompt
+ * @param {string|Array} params.enabledTools - 'all' | ['tool_name', ...] | 'none'
+ * @param {Object} params.image - Optional image { data, mimeType }
+ * @returns {Promise<Object>} - Response with toolsUsed array
+ */
+export async function sendToolEnabledMessage({
+  message,
+  conversationHistory = [],
+  userProfile = {},
+  systemPromptAdditions = '',
+  enabledTools = 'all',
+  image = null
+}) {
+  try {
+    console.log('🔧 [ToolChat] Sending message with tool capabilities:', {
+      message: message?.slice(0, 50) + '...',
+      historyLength: conversationHistory.length,
+      enabledTools,
+      hasImage: !!image
+    });
+
+    const response = await fetch(getToolChatUrl(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message,
+        conversationHistory: conversationHistory.map(msg => ({
+          role: msg.sender === 'ai' ? 'assistant' : 'user',
+          content: msg.text
+        })),
+        userProfile: {
+          userId: userProfile?.userId,
+          profileId: userProfile?.profileId,
+          displayName: userProfile?.displayName || userProfile?.firstName || 'Friend',
+          constitutional_identity: userProfile?.constitutional_identity
+        },
+        systemPromptAdditions,
+        enabledTools,
+        image
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('🔧 [ToolChat] Error response:', errorText);
+      throw new Error(`Tool chat failed: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    console.log('🔧 [ToolChat] Response received:', {
+      success: result.success,
+      toolsUsed: result.toolsUsed?.map(t => t.name) || [],
+      responseLength: result.response?.length
+    });
+
+    return {
+      success: true,
+      text: result.response,
+      toolsUsed: result.toolsUsed || [],
+      usage: result.usage
+    };
+
+  } catch (error) {
+    console.error('🔧 [ToolChat] Error:', error);
+    return {
+      success: false,
+      error: error.message,
+      text: "I'm having trouble connecting right now. Let me try again."
+    };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FOCUS REPORT EXPORTS (Phase 4 - Advanced Voice Features)
+// Re-export focus report service for component use
+// ═══════════════════════════════════════════════════════════════════════════
+
+export {
+  focusReportService,
+  REPORT_TYPES,
+  REPORT_STATUS
+} from './focusReportService';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LANGUAGE SERVICE EXPORTS (Phase 5 - Adaptive Localization)
+// Re-export language service for component use
+// ═══════════════════════════════════════════════════════════════════════════
+
+export {
+  languageService,
+  SUPPORTED_LANGUAGES,
+  DEFAULT_LANGUAGE
+} from './languageService';
+
 export default {
   sendMessage,
+  sendToolEnabledMessage, // Claude with autonomous tools (AI-driven approach)
   checkServiceHealth,
   getSecondOpinion,
   getGrokPerspective,
@@ -857,5 +1426,22 @@ export default {
   saveStoryAssessment,
   getStoryAssessment,
   generatePsychologicalContext,
-  getQuickPsychologicalSummary
+  getQuickPsychologicalSummary,
+  getCacheMetrics,
+  getProfileCacheStats,
+  clearConversationCache,
+  // Gemini 3
+  THINKING_LEVELS,
+  DEFAULT_THINKING_LEVEL,
+  // Energy System (Phase 4)
+  lunaEnergyService,
+  ENERGY_STATES,
+  // Focus Mode (Phase 4)
+  focusModeService,
+  FOCUS_MODES,
+  // Focus Report (Phase 4)
+  focusReportService,
+  // Language Service (Phase 5)
+  languageService,
+  SUPPORTED_LANGUAGES
 };

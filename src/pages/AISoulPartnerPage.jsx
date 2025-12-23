@@ -14,7 +14,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfiles } from '../contexts/ProfileContext';
 import { useConversations } from '../contexts/ConversationsContext';
@@ -25,8 +25,10 @@ import { AISoulPartnerChat, SoulPartnerNotes, AIIdentityPanel, StoryQuestionsAss
 import DEFAULT_AI_IDENTITY from '../data/aiSoulPartnerIdentity';
 import { saveStoryAssessment, getStoryAssessment } from '../services/aiSoulPartnerService';
 import { useSoulPartner } from '../hooks/useSoulPartner';
+import { VoiceChat } from '../components/voice';
 
 export default function AISoulPartnerPage() {
+  const location = useLocation();
   const { currentUser, logout } = useAuth();
   const { profiles, loading, updateAISoulPartnerNotes } = useProfiles();
   const { setActiveProfileId } = useConversations();
@@ -54,12 +56,21 @@ export default function AISoulPartnerPage() {
   const [showStoryQuestions, setShowStoryQuestions] = useState(false);
   const [storyProgress, setStoryProgress] = useState(null);
   const [storyAssessmentPending, setStoryAssessmentPending] = useState(null);
+  // Voice Chat state
+  const [showVoiceChat, setShowVoiceChat] = useState(false);
   // Reference to chat component for sending messages
   const chatRef = useRef(null);
 
   // Find the selected profile or default
+  // Prioritize: navigation state > current selection > self profile > first profile
   useEffect(() => {
     if (profiles.length > 0 && !selectedProfileId) {
+      // Check if coming from Timeline with a specific profile
+      const navProfileId = location.state?.profileId;
+      if (navProfileId && profiles.find(p => p.id === navProfileId)) {
+        setSelectedProfileId(navProfileId);
+        return;
+      }
       // Try to find self profile first, then fall back to first profile
       const selfProfile = profiles.find(p =>
         p.relationshipType?.toLowerCase() === 'self' ||
@@ -67,7 +78,7 @@ export default function AISoulPartnerPage() {
       );
       setSelectedProfileId(selfProfile?.id || profiles[0]?.id);
     }
-  }, [profiles, selectedProfileId]);
+  }, [profiles, selectedProfileId, location.state]);
 
   // Sync selected profile to ConversationsContext for per-profile chat isolation
   // When profile changes, conversations reload for that specific profile's threads
@@ -303,6 +314,16 @@ export default function AISoulPartnerPage() {
           {/* Profile Selector */}
           <div className="flex items-center gap-4">
             <button
+              onClick={() => setShowVoiceChat(true)}
+              className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 shadow-lg shadow-purple-500/20"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+              </svg>
+              Talk to {soulPartner?.name || 'Luna'}
+            </button>
+            <button
               onClick={() => setShowStoryQuestions(true)}
               className="px-3 py-1.5 bg-amber-600/80 hover:bg-amber-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
             >
@@ -374,6 +395,15 @@ export default function AISoulPartnerPage() {
                   {selectedProfile.mbti}
                 </span>
               )}
+              {/* Timeline link - pass current profile */}
+              <Link
+                to="/timeline"
+                state={{ profileId: selectedProfileId }}
+                className="ml-2 px-2 py-0.5 bg-cyan-500/20 border border-cyan-500/30 rounded text-xs text-cyan-300 hover:bg-cyan-500/30 transition-colors flex items-center gap-1"
+              >
+                <span>📅</span>
+                <span>Timeline</span>
+              </Link>
               {/* Notes button */}
               <button
                 onClick={() => setShowNotesPanel(!showNotesPanel)}
@@ -393,7 +423,7 @@ export default function AISoulPartnerPage() {
       {/* Main Content - adjust height for header + profile bar */}
       <main className="h-[calc(100vh-108px)] flex">
         {/* Chat area */}
-        <div className={`transition-all duration-300 ${showNotesPanel ? 'flex-1' : 'w-full'}`}>
+        <div className={`transition-all duration-300 h-full ${showNotesPanel ? 'flex-1' : 'w-full'}`}>
           <AISoulPartnerChat
             key={selectedProfileId} // Reset chat when profile changes
             userProfile={constitutionalProfile}
@@ -487,6 +517,13 @@ export default function AISoulPartnerPage() {
           </div>
         </div>
       )}
+
+      {/* Voice Chat Modal */}
+      <VoiceChat
+        isOpen={showVoiceChat}
+        onClose={() => setShowVoiceChat(false)}
+        profile={selectedProfile}
+      />
     </div>
   );
 }

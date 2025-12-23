@@ -34,13 +34,18 @@ const BaZiPanel = ({ birthDate, birthTime, locationData }) => {
     
     try {
       // Extract date/time from birthDate and birthTime
-      const year = birthDate.getFullYear();
-      const month = birthDate.getMonth() + 1; // JS months are 0-indexed
-      const day = birthDate.getDate();
-      
+      // FIX: Use UTC methods to avoid timezone shifting the day!
+      // The birth date represents the LOCAL date on the birth certificate,
+      // stored as UTC midnight. Using getDate() would shift it backward in Western timezones.
+      const year = birthDate.getUTCFullYear();
+      const month = birthDate.getUTCMonth() + 1; // JS months are 0-indexed
+      const day = birthDate.getUTCDate();
+
       const [hour = 12, minute = 0] = (birthTime || '12:00').split(':').map(Number);
       
       // Calculate using the TRUTH engine!
+      console.log('🔮 BaZi Calculation Input:', { year, month, day, hour, minute });
+
       const result = calculateBaZi({
         year,
         month,
@@ -48,7 +53,10 @@ const BaZiPanel = ({ birthDate, birthTime, locationData }) => {
         hour,
         minute
       });
-      
+
+      console.log('🔮 BaZi Result - Day Pillar:', result?.dayMaster?.chinese, result?.pillars?.[2]);
+      console.log('🔮 Full Result:', result);
+
       setChart(result);
     } catch (error) {
       console.error('BaZi calculation error:', error);

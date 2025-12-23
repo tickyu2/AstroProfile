@@ -16,6 +16,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import CompatibilityBreakdownPanel from './CompatibilityBreakdownPanel';
 import {
   getCompatibleCusps,
   getDetailedCompatibility,
@@ -25,6 +26,7 @@ import { getCuspDisplayName, getCuspDateRange, getSignEmoji } from '../../utils/
 
 export default function WesternZodiacCompatibility({ userCusp, userName, onSelectMatch }) {
   const [hoveredMatch, setHoveredMatch] = useState(null);
+  const [selectedCusp, setSelectedCusp] = useState(null);
 
   if (!userCusp) {
     return (
@@ -284,7 +286,10 @@ export default function WesternZodiacCompatibility({ userCusp, userName, onSelec
               whileHover={{ scale: 1.15, y: y - circleSize / 2 }}
               onHoverStart={() => setHoveredMatch(i)}
               onHoverEnd={() => setHoveredMatch(null)}
-              onClick={() => onSelectMatch && onSelectMatch(match.cusp)}
+              onClick={() => {
+                setSelectedCusp({ cusp: match.cusp, score: match.score });
+                onSelectMatch && onSelectMatch(match.cusp);
+              }}
             >
               {/* Match circle - 3D Raised Effect */}
               <div
@@ -446,6 +451,17 @@ export default function WesternZodiacCompatibility({ userCusp, userName, onSelec
       <p className="text-center text-purple-400 text-xs italic mt-4">
         Best match at top • Size & distance indicate compatibility strength
       </p>
+
+      {/* Compatibility Breakdown Panel */}
+      {selectedCusp && (
+        <div className="mt-8">
+          <CompatibilityBreakdownPanel
+            userCusp={userCusp}
+            partnerCusp={selectedCusp.cusp}
+            score={selectedCusp.score}
+          />
+        </div>
+      )}
     </motion.div>
   );
 }

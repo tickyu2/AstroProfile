@@ -19,6 +19,9 @@ import AISoulPartnerPage from './pages/AISoulPartnerPage'
 import KnowledgeBasePage from './pages/KnowledgeBasePage'
 import ConstitutionalAssessmentPage from './pages/ConstitutionalAssessmentPage'
 import SystemsPage from './pages/SystemsPage'
+import AdminConsolePage from './pages/AdminConsolePage'
+import { LunaConsole } from './components/console/LunaConsole'
+import TimelineConsolePage from './pages/TimelineConsolePage'
 
 function App() {
   return (
@@ -119,6 +122,35 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SystemsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminConsolePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Luna Management Console - Internal developer tool */}
+            <Route
+              path="/luna-console"
+              element={
+                <ProtectedRoute>
+                  <LunaConsole />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Timeline Console - Navigate through memories */}
+            <Route
+              path="/timeline"
+              element={
+                <ProtectedRoute>
+                  <TimelineConsolePage />
                 </ProtectedRoute>
               }
             />

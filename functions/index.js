@@ -43,7 +43,39 @@ const {
   getOpusPerspective: getOpusPerspectiveFn
 } = require('./constellation/perspectives');
 
+// Usage & Rate Limiting (Phase 6 - Production Hardening)
+const {
+  checkRateLimits,
+  recordRequestStart,
+  recordRequestComplete,
+  recordRequestFailed,
+  generateRequestId,
+  checkUsageLimits,
+  getUsageSummary,
+  getAdminUsageStats,
+  getAdminUserUsage,
+  getAdminUserList
+} = require('./usage/usageFunctions');
+
+// 4-Brain PostgreSQL Memory Integration (JOIE DE VIVRE!)
+const {
+  retrieveMemoriesForChat,
+  storeUserMessageAsMemory,
+  storeLunaObservation
+} = require('./memory/chatMemoryIntegration');
+
+// Neurochemical Love Engine (Love = Mathematics + Soul)
+const neurochemicalEngine = require('./neurochemical');
+
+// Auto-Tune Personality Drift (Luna's Evolution)
+const drift = require('./drift');
+
+// Admin Dashboard API
+const adminModule = require('./admin');
+
 admin.initializeApp();
+
+const db = admin.firestore();
 
 // CORS configuration - allow your domain
 const corsHandler = cors({
@@ -79,8 +111,67 @@ exports.aiSoulPartnerChat = onRequest({
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // RATE LIMITING (Phase 6 - Production Hardening)
+    // Check limits BEFORE processing to prevent abuse
+    // ═══════════════════════════════════════════════════════════════════════
+    let userId = null;
+    let requestId = null;
+    let userTier = 'free';
+
     try {
-      const { message, guidance, conversationHistory, userProfile, knowledgePrompt, learnedContext, image } = req.body;
+      // Extract user ID from auth header or request body
+      const authHeader = req.headers.authorization;
+      if (authHeader?.startsWith('Bearer ')) {
+        try {
+          const token = authHeader.split('Bearer ')[1];
+          const decodedToken = await admin.auth().verifyIdToken(token);
+          userId = decodedToken.uid;
+        } catch (authError) {
+          console.warn('[RateLimit] Auth token invalid:', authError.message);
+        }
+      }
+
+      // Fallback: get userId from request body
+      if (!userId && req.body.userId) {
+        userId = req.body.userId;
+      }
+
+      // If we have a userId, check rate limits
+      if (userId) {
+        // Get user tier
+        const userRef = db.collection('users').doc(userId);
+        const userSnap = await userRef.get();
+        userTier = userSnap.exists ? (userSnap.data().subscriptionTier || 'free') : 'free';
+
+        // Check rate limits
+        const rateCheck = await checkRateLimits(userId, userTier);
+        if (!rateCheck.allowed) {
+          console.log('[RateLimit] User blocked:', userId, rateCheck.reason);
+          return res.status(429).json({
+            error: 'Rate limit exceeded',
+            code: rateCheck.code,
+            message: rateCheck.message,
+            retryAfter: rateCheck.retryAfter
+          });
+        }
+
+        // Record request start (for concurrent tracking)
+        requestId = generateRequestId();
+        await recordRequestStart(userId, requestId, {
+          profileId: req.body.userProfile?.id,
+          thinkingLevel: req.body.thinkingLevel || 'low'
+        });
+      }
+    } catch (rateLimitError) {
+      // Log but don't block - fail open for rate limiting errors
+      console.error('[RateLimit] Error checking limits:', rateLimitError.message);
+    }
+
+    const requestStartTime = Date.now();
+
+    try {
+      const { message, guidance, conversationHistory, userProfile, knowledgePrompt, learnedContext, memoryPrompt, relationshipStats, image } = req.body;
 
       if (!message && !image) {
         return res.status(400).json({ error: 'Message or image is required' });
@@ -127,7 +218,7 @@ The image is displayed above. Let me know if you'd like me to create a different
       let enhancedMessage = message;
 
       if (searchRequest.isSearch) {
-        console.log('ðŸŒ Web search detected, query:', searchRequest.query);
+        console.log('🌐 Web search detected, query:', searchRequest.query);
         webSearchResults = await performWebSearch(searchRequest.query);
 
         if (webSearchResults) {
@@ -135,7 +226,7 @@ The image is displayed above. Let me know if you'd like me to create a different
           enhancedMessage = `${message}
 
 ---
-## ðŸŒ WEB SEARCH RESULTS FOR: "${searchRequest.query}"
+## 🌐 WEB SEARCH RESULTS FOR: "${searchRequest.query}"
 
 ### Quick Answer:
 ${webSearchResults.answer || 'No summary available'}
@@ -157,7 +248,7 @@ Please synthesize these web search results to answer my question. Include releva
       let urlContents = [];
 
       if (urls.length > 0 && !searchRequest.isSearch) {
-        console.log('ðŸŒ URLs detected:', urls.length);
+        console.log('🌐 URLs detected:', urls.length);
 
         // Fetch up to 3 URLs to avoid overloading
         const urlsToFetch = urls.slice(0, 3);
@@ -170,7 +261,7 @@ Please synthesize these web search results to answer my question. Include releva
           // Append URL contents to the message
           const urlContext = urlContents.map(content => `
 ---
-## ðŸŒ CONTENT FROM: ${content.title}
+## 🌐 CONTENT FROM: ${content.title}
 **URL:** ${content.url}
 
 ${content.text}
@@ -183,7 +274,7 @@ ${urlContext}
 
 Please read and analyze the above web page content to help answer my question or continue our discussion.`;
 
-          console.log('ðŸŒ URL content added:', urlContents.length, 'pages');
+          console.log('🌐 URL content added:', urlContents.length, 'pages');
         }
       }
 
@@ -192,8 +283,34 @@ Please read and analyze the above web page content to help answer my question or
         console.log('ðŸ§  Session Intelligence: Learned context included in prompt');
       }
 
+      // ═══════════════════════════════════════════════════════════════════════
+      // 4-BRAIN POSTGRESQL MEMORY RETRIEVAL (JOIE DE VIVRE!)
+      // Retrieve relevant memories from Luna's brain before responding
+      // ═══════════════════════════════════════════════════════════════════════
+      let pgMemoryPrompt = memoryPrompt; // Use client-provided if available
+      const profileId = userProfile?.profileId || userProfile?.id || 'default';
+
+      // Only retrieve from PostgreSQL if we have userId and message
+      if (userId && message && !memoryPrompt) {
+        try {
+          pgMemoryPrompt = await retrieveMemoriesForChat(userId, profileId, message, {
+            limit: 10,
+            threshold: 0.6,
+            includePartner: true,
+            includeTimeline: true
+          });
+          if (pgMemoryPrompt) {
+            console.log('🧠 4-Brain Memory: Retrieved relevant memories from PostgreSQL');
+          }
+        } catch (memoryError) {
+          console.warn('[Memory] PostgreSQL retrieval failed (continuing without):', memoryError.message);
+          // Continue without memories - graceful degradation
+        }
+      }
+
       // Build the system prompt based on constitutional intelligence guidance
-      const systemPrompt = buildSystemPrompt(guidance, userProfile, knowledgePrompt, learnedContext);
+      // Pass relationshipStats for Tango Identity System (Luna's relationship awareness)
+      const systemPrompt = buildSystemPrompt(guidance, userProfile, knowledgePrompt, learnedContext, pgMemoryPrompt, relationshipStats);
 
       // Build messages array with conversation history and optional image
       const messages = buildMessages(conversationHistory, enhancedMessage, image);
@@ -203,10 +320,10 @@ Please read and analyze the above web page content to help answer my question or
         console.log('ðŸ“¸ Image attached to message');
       }
       if (webSearchResults) {
-        console.log('ðŸŒ Web search results included in message');
+        console.log('🌐 Web search results included in message');
       }
       if (urlContents.length > 0) {
-        console.log('ðŸŒ URL content fetched:', urlContents.map(u => u.title).join(', '));
+        console.log('🌐 URL content fetched:', urlContents.map(u => u.title).join(', '));
       }
 
       // Call Claude API
@@ -240,6 +357,82 @@ Please read and analyze the above web page content to help answer my question or
         }
       }
 
+      // ═══════════════════════════════════════════════════════════════════════
+      // USAGE TRACKING (Phase 6 - Production Hardening)
+      // Record token usage for cost control and analytics
+      // ═══════════════════════════════════════════════════════════════════════
+      const responseTime = Date.now() - requestStartTime;
+      const inputTokens = response.usage?.input_tokens || 0;
+      const outputTokens = response.usage?.output_tokens || 0;
+
+      if (userId && requestId) {
+        try {
+          await recordRequestComplete(userId, requestId, {
+            inputTokens,
+            outputTokens,
+            success: true,
+            profileId: userProfile?.id,
+            thinkingLevel: guidance?.thinkingLevel || 'low',
+            responseTime
+          });
+          console.log('[Usage] Recorded:', {
+            userId: userId.slice(0, 8) + '...',
+            tokens: inputTokens + outputTokens,
+            responseTime
+          });
+        } catch (usageError) {
+          console.error('[Usage] Failed to record:', usageError.message);
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // 4-BRAIN POSTGRESQL MEMORY STORAGE (JOIE DE VIVRE!)
+      // Store meaningful memories from this exchange asynchronously
+      // ═══════════════════════════════════════════════════════════════════════
+      if (userId && profileId && message) {
+        // Fire and forget - don't block the response
+        (async () => {
+          try {
+            // Store user's message if worth remembering
+            const userMemoryResult = await storeUserMessageAsMemory(
+              userId,
+              profileId,
+              message,
+              requestId // Use as session ID for grouping
+            );
+
+            if (userMemoryResult?.stored) {
+              console.log('🧠 4-Brain Memory: Stored user message in STM');
+            }
+
+            // If Luna mentioned something insightful, store as observation
+            // Look for patterns that indicate Luna learned something
+            const observationPatterns = [
+              /I notice[d]? (?:that )?you/i,
+              /it sounds like you/i,
+              /I hear you saying/i,
+              /what I'm sensing is/i,
+              /I remember you (?:said|mentioned|told me)/i
+            ];
+
+            const hasObservation = observationPatterns.some(p => p.test(responseText));
+            if (hasObservation && responseText.length > 100) {
+              // Extract a summary of Luna's observation (first 500 chars for now)
+              const observationSummary = responseText.slice(0, 500);
+              await storeLunaObservation(userId, profileId, observationSummary, {
+                sessionId: requestId,
+                context: 'chat_response',
+                userMessageExcerpt: message.slice(0, 200)
+              });
+              console.log('🧠 4-Brain Memory: Stored Luna observation in Partner STM');
+            }
+          } catch (memoryStoreError) {
+            console.warn('[Memory] Storage failed (non-blocking):', memoryStoreError.message);
+            // Non-critical - don't fail the response
+          }
+        })();
+      }
+
       // Return successful response
       return res.status(200).json({
         success: true,
@@ -255,13 +448,25 @@ Please read and analyze the above web page content to help answer my question or
           count: urlContents.length
         } : null,
         usage: {
-          input_tokens: response.usage?.input_tokens,
-          output_tokens: response.usage?.output_tokens
+          input_tokens: inputTokens,
+          output_tokens: outputTokens
         }
       });
 
     } catch (error) {
       console.error('AI SoulPartner Error:', error);
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // USAGE TRACKING - Failed Request
+      // Record failed requests (doesn't count toward limits)
+      // ═══════════════════════════════════════════════════════════════════════
+      if (userId && requestId) {
+        try {
+          await recordRequestFailed(userId, requestId, error);
+        } catch (usageError) {
+          console.error('[Usage] Failed to record failure:', usageError.message);
+        }
+      }
 
       // Return appropriate error response
       if (error.message?.includes('API key')) {
@@ -916,18 +1121,18 @@ const pluto = require('astronomia/pluto');
  * Zodiac Signs with degree ranges
  */
 const ZODIAC_SIGNS = [
-  { name: 'Aries', symbol: 'â™ˆ', element: 'Fire', modality: 'Cardinal', start: 0 },
-  { name: 'Taurus', symbol: 'â™‰', element: 'Earth', modality: 'Fixed', start: 30 },
-  { name: 'Gemini', symbol: 'â™Š', element: 'Air', modality: 'Mutable', start: 60 },
-  { name: 'Cancer', symbol: 'â™‹', element: 'Water', modality: 'Cardinal', start: 90 },
-  { name: 'Leo', symbol: 'â™Œ', element: 'Fire', modality: 'Fixed', start: 120 },
-  { name: 'Virgo', symbol: 'â™', element: 'Earth', modality: 'Mutable', start: 150 },
-  { name: 'Libra', symbol: 'â™Ž', element: 'Air', modality: 'Cardinal', start: 180 },
-  { name: 'Scorpio', symbol: 'â™', element: 'Water', modality: 'Fixed', start: 210 },
-  { name: 'Sagittarius', symbol: 'â™', element: 'Fire', modality: 'Mutable', start: 240 },
-  { name: 'Capricorn', symbol: 'â™‘', element: 'Earth', modality: 'Cardinal', start: 270 },
-  { name: 'Aquarius', symbol: 'â™’', element: 'Air', modality: 'Fixed', start: 300 },
-  { name: 'Pisces', symbol: 'â™“', element: 'Water', modality: 'Mutable', start: 330 }
+  { name: 'Aries', symbol: '♈', element: 'Fire', modality: 'Cardinal', start: 0 },
+  { name: 'Taurus', symbol: '♉', element: 'Earth', modality: 'Fixed', start: 30 },
+  { name: 'Gemini', symbol: '♊', element: 'Air', modality: 'Mutable', start: 60 },
+  { name: 'Cancer', symbol: '♋', element: 'Water', modality: 'Cardinal', start: 90 },
+  { name: 'Leo', symbol: '♌', element: 'Fire', modality: 'Fixed', start: 120 },
+  { name: 'Virgo', symbol: '♍', element: 'Earth', modality: 'Mutable', start: 150 },
+  { name: 'Libra', symbol: '♎', element: 'Air', modality: 'Cardinal', start: 180 },
+  { name: 'Scorpio', symbol: '♏', element: 'Water', modality: 'Fixed', start: 210 },
+  { name: 'Sagittarius', symbol: '♐', element: 'Fire', modality: 'Mutable', start: 240 },
+  { name: 'Capricorn', symbol: '♑', element: 'Earth', modality: 'Cardinal', start: 270 },
+  { name: 'Aquarius', symbol: '♒', element: 'Air', modality: 'Fixed', start: 300 },
+  { name: 'Pisces', symbol: '♓', element: 'Water', modality: 'Mutable', start: 330 }
 ];
 
 /**
@@ -942,11 +1147,11 @@ function longitudeToZodiac(longitude) {
     // Return Aries as fallback
     return {
       sign: 'Aries',
-      symbol: 'â™ˆ',
+      symbol: '♈',
       element: 'Fire',
       modality: 'Cardinal',
       degree: 0,
-      degreeFormatted: '0Â°0\'',
+      degreeFormatted: '0°0\'',
       totalLongitude: 0,
       error: 'Invalid longitude input'
     };
@@ -967,7 +1172,7 @@ function longitudeToZodiac(longitude) {
     element: sign.element,
     modality: sign.modality,
     degree: degreeInSign,
-    degreeFormatted: `${Math.floor(degreeInSign)}Â°${Math.round((degreeInSign % 1) * 60)}'`,
+    degreeFormatted: `${Math.floor(degreeInSign)}°${Math.round((degreeInSign % 1) * 60)}'`,
     totalLongitude: normalizedLong
   };
 }
@@ -1001,7 +1206,7 @@ function calculateLST(julianDay, longitude) {
  * @param {number} julianDay - Julian Day
  * @param {number} latitude - Observer latitude
  * @param {number} longitude - Observer longitude
- * @param {number} obliquity - Obliquity of ecliptic (default ~23.44Â°)
+ * @param {number} obliquity - Obliquity of ecliptic (default ~23.44°)
  * @returns {number} - Ascendant longitude in degrees
  */
 function calculateAscendant(julianDay, latitude, longitude, obliquity = 23.4393) {
@@ -1129,7 +1334,7 @@ function calculatePlacidusHouses(julianDay, latitude, longitude) {
   houses[2] = calculatePlacidusIntermediate(1/3, false);
   houses[3] = calculatePlacidusIntermediate(2/3, false);
 
-  // Opposite houses (just add 180Â°)
+  // Opposite houses (just add 180°)
   houses[5] = (houses[11] + 180) % 360;
   houses[6] = (houses[12] + 180) % 360;
   houses[8] = (houses[2] + 180) % 360;
@@ -1236,18 +1441,18 @@ function getMoonPhaseInterpretation(phaseName) {
 
 /**
  * Calculate aspects between celestial bodies
- * Major aspects: Conjunction (0Â°), Opposition (180Â°), Trine (120Â°), Square (90Â°), Sextile (60Â°)
- * Minor aspects: Quincunx (150Â°), Semi-sextile (30Â°)
+ * Major aspects: Conjunction (0°), Opposition (180°), Trine (120°), Square (90°), Sextile (60°)
+ * Minor aspects: Quincunx (150°), Semi-sextile (30°)
  */
 function calculateAspects(celestialBodies) {
   const ASPECT_DEFINITIONS = [
-    { name: 'Conjunction', symbol: 'â˜Œ', angle: 0, orb: 8, nature: 'major', quality: 'neutral', description: 'Fusion of energies - intensification' },
-    { name: 'Opposition', symbol: 'â˜', angle: 180, orb: 8, nature: 'major', quality: 'challenging', description: 'Tension seeking balance - awareness' },
-    { name: 'Trine', symbol: 'â–³', angle: 120, orb: 8, nature: 'major', quality: 'harmonious', description: 'Natural flow - ease and talent' },
-    { name: 'Square', symbol: 'â–¡', angle: 90, orb: 8, nature: 'major', quality: 'challenging', description: 'Friction creating growth - action required' },
-    { name: 'Sextile', symbol: 'âš¹', angle: 60, orb: 6, nature: 'major', quality: 'harmonious', description: 'Opportunity - requires effort to activate' },
-    { name: 'Quincunx', symbol: 'âš»', angle: 150, orb: 3, nature: 'minor', quality: 'adjustment', description: 'Incompatible energies requiring adjustment' },
-    { name: 'Semi-sextile', symbol: 'âšº', angle: 30, orb: 2, nature: 'minor', quality: 'neutral', description: 'Subtle connection - slight friction' }
+    { name: 'Conjunction', symbol: '☌', angle: 0, orb: 8, nature: 'major', quality: 'neutral', description: 'Fusion of energies - intensification' },
+    { name: 'Opposition', symbol: '☍', angle: 180, orb: 8, nature: 'major', quality: 'challenging', description: 'Tension seeking balance - awareness' },
+    { name: 'Trine', symbol: '△', angle: 120, orb: 8, nature: 'major', quality: 'harmonious', description: 'Natural flow - ease and talent' },
+    { name: 'Square', symbol: '□', angle: 90, orb: 8, nature: 'major', quality: 'challenging', description: 'Friction creating growth - action required' },
+    { name: 'Sextile', symbol: '⚹', angle: 60, orb: 6, nature: 'major', quality: 'harmonious', description: 'Opportunity - requires effort to activate' },
+    { name: 'Quincunx', symbol: '⚻', angle: 150, orb: 3, nature: 'minor', quality: 'adjustment', description: 'Incompatible energies requiring adjustment' },
+    { name: 'Semi-sextile', symbol: '⚺', angle: 30, orb: 2, nature: 'minor', quality: 'neutral', description: 'Subtle connection - slight friction' }
   ];
 
   const aspects = [];
@@ -1326,7 +1531,7 @@ function dateToJulianDay(year, month, day, hour = 12, minute = 0, second = 0) {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SOLAR TERM (ç¯€æ°£) CALCULATION - Precise Astronomical Boundaries for BaZi
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// The 24 Solar Terms are defined by Sun's ecliptic longitude at 15Â° intervals.
+// The 24 Solar Terms are defined by Sun's ecliptic longitude at 15° intervals.
 // This provides EXACT moments for Year Pillar (ç«‹æ˜¥) and Month Pillar boundaries.
 //
 // Part of GENESIS Phase 3 - Sovereign BaZi Precision
@@ -1335,12 +1540,12 @@ function dateToJulianDay(year, month, day, hour = 12, minute = 0, second = 0) {
 
 /**
  * The 24 Solar Terms (ç¯€æ°£) with their Sun longitude positions
- * Note: Solar year starts with ç«‹æ˜¥ (Spring Begins) at 315Â°
+ * Note: Solar year starts with ç«‹æ˜¥ (Spring Begins) at 315°
  */
 const SOLAR_TERMS = [
   { index: 0,  name: 'å°å¯’', pinyin: 'XiÇŽo HÃ¡n',    english: 'Minor Cold',       longitude: 285, approxMonth: 1,  approxDay: 5 },
   { index: 1,  name: 'å¤§å¯’', pinyin: 'DÃ  HÃ¡n',      english: 'Major Cold',       longitude: 300, approxMonth: 1,  approxDay: 20 },
-  { index: 2,  name: 'ç«‹æ˜¥', pinyin: 'LÃ¬ ChÅ«n',     english: 'Spring Begins',    longitude: 315, approxMonth: 2,  approxDay: 4 },  // â˜… YEAR CHANGES HERE
+  { index: 2,  name: 'ç«‹æ˜¥', pinyin: 'LÃ¬ ChÅ«n',     english: 'Spring Begins',    longitude: 315, approxMonth: 2,  approxDay: 4 },  // ★ YEAR CHANGES HERE
   { index: 3,  name: 'é›¨æ°´', pinyin: 'YÇ” ShuÇ',     english: 'Rain Water',       longitude: 330, approxMonth: 2,  approxDay: 19 },
   { index: 4,  name: 'æƒŠè›°', pinyin: 'JÄ«ng ZhÃ©',    english: 'Insects Awaken',   longitude: 345, approxMonth: 3,  approxDay: 5 },  // Month 1â†’2
   { index: 5,  name: 'æ˜¥åˆ†', pinyin: 'ChÅ«n FÄ“n',    english: 'Spring Equinox',   longitude: 0,   approxMonth: 3,  approxDay: 20 },
@@ -1426,7 +1631,7 @@ function findSolarTermJD(targetLongitude, approxYear, approxMonth, approxDay) {
     const jdMid = (jdLow + jdHigh) / 2;
     const sunLong = getSunLongitudeAtJD(jdMid);
 
-    // Calculate difference, handling 360Â° wraparound
+    // Calculate difference, handling 360° wraparound
     let diff = sunLong - targetLongitude;
     if (diff > 180) diff -= 360;
     if (diff < -180) diff += 360;
@@ -1435,7 +1640,7 @@ function findSolarTermJD(targetLongitude, approxYear, approxMonth, approxDay) {
       return jdMid;
     }
 
-    // Sun moves ~1Â° per day eastward (increasing longitude)
+    // Sun moves ~1° per day eastward (increasing longitude)
     // If current longitude is less than target, we need later time
     if (diff < 0) {
       jdLow = jdMid;
@@ -1880,7 +2085,7 @@ exports.calculateWesternChart = onRequest({
     const sunLongitudeRad = solar.apparentLongitude(T);
     const sunLongitude = sunLongitudeRad * 180 / Math.PI;
 
-    console.log('â˜€ï¸ Sun calculation:', { T, sunLongitudeRad, sunLongitude, isNaN: isNaN(sunLongitude) });
+    console.log('☀️ Sun calculation:', { T, sunLongitudeRad, sunLongitude, isNaN: isNaN(sunLongitude) });
 
     const sunData = longitudeToZodiac(sunLongitude);
 
@@ -1957,17 +2162,17 @@ exports.calculateWesternChart = onRequest({
       const earthY = earthR * Math.cos(earthLat) * Math.sin(earthLon);
       const earthZ = earthR * Math.sin(earthLat);
 
-      console.log(`ðŸŒ Earth heliocentric: lon=${(earthLon * 180/Math.PI).toFixed(2)}Â°, R=${earthR.toFixed(4)} AU`);
+      console.log(`ðŸŒ Earth heliocentric: lon=${(earthLon * 180/Math.PI).toFixed(2)}°, R=${earthR.toFixed(4)} AU`);
 
       // Planet configurations with their data and symbols
       const planetConfigs = [
-        { name: 'Mercury', data: mercuryData, symbol: 'â˜¿' },
-        { name: 'Venus', data: venusData, symbol: 'â™€' },
-        { name: 'Mars', data: marsData, symbol: 'â™‚' },
-        { name: 'Jupiter', data: jupiterData, symbol: 'â™ƒ' },
-        { name: 'Saturn', data: saturnData, symbol: 'â™„' },
-        { name: 'Uranus', data: uranusData, symbol: 'â™…' },
-        { name: 'Neptune', data: neptuneData, symbol: 'â™†' }
+        { name: 'Mercury', data: mercuryData, symbol: '☿' },
+        { name: 'Venus', data: venusData, symbol: '♀' },
+        { name: 'Mars', data: marsData, symbol: '♂' },
+        { name: 'Jupiter', data: jupiterData, symbol: '♃' },
+        { name: 'Saturn', data: saturnData, symbol: '♄' },
+        { name: 'Uranus', data: uranusData, symbol: '♅' },
+        { name: 'Neptune', data: neptuneData, symbol: '♆' }
       ];
 
       for (const config of planetConfigs) {
@@ -2016,7 +2221,7 @@ exports.calculateWesternChart = onRequest({
           // Calculate daily motion (degrees per day)
           let dailyMotion = lonTomorrow - lonToday;
 
-          // Handle 360Â° wraparound (e.g., 359Â° to 1Â° is +2Â°, not -358Â°)
+          // Handle 360° wraparound (e.g., 359° to 1° is +2°, not -358°)
           if (dailyMotion > 180) dailyMotion -= 360;
           if (dailyMotion < -180) dailyMotion += 360;
 
@@ -2029,7 +2234,7 @@ exports.calculateWesternChart = onRequest({
           const helioLon = ((planetLon * 180/Math.PI % 360) + 360) % 360;
           const diff = Math.abs(geoLongitude - helioLon);
           const retroLabel = isRetrograde ? ' â„ž' : '';
-          console.log(`ðŸª ${config.name}${retroLabel}: Geo=${geoLongitude.toFixed(2)}Â° (motion: ${dailyMotion.toFixed(3)}Â°/day)`);
+          console.log(`ðŸª ${config.name}${retroLabel}: Geo=${geoLongitude.toFixed(2)}° (motion: ${dailyMotion.toFixed(3)}°/day)`);
 
           planets[config.name.toLowerCase()] = {
             ...zodiacData,
@@ -2095,11 +2300,11 @@ exports.calculateWesternChart = onRequest({
 
           const plutoZodiacData = longitudeToZodiac(plutoGeoLon);
           const plutoRetroLabel = plutoRetrograde ? ' â„ž' : '';
-          console.log(`ðŸª Pluto${plutoRetroLabel}: Geo=${plutoGeoLon.toFixed(2)}Â° (motion: ${plutoDailyMotion.toFixed(3)}Â°/day)`);
+          console.log(`ðŸª Pluto${plutoRetroLabel}: Geo=${plutoGeoLon.toFixed(2)}° (motion: ${plutoDailyMotion.toFixed(3)}°/day)`);
 
           planets.pluto = {
             ...plutoZodiacData,
-            symbol: 'â™‡',
+            symbol: '♇',
             name: 'Pluto',
             geocentric: true,
             geoLatitude: Math.round(plutoGeoLat * 100) / 100,
@@ -2155,15 +2360,15 @@ exports.calculateWesternChart = onRequest({
 
       // Determine phase name and illumination
       const phases = [
-        { name: 'New Moon', emoji: 'ðŸŒ‘', min: 0, max: 11.25, illumination: 0 },
-        { name: 'Waxing Crescent', emoji: 'ðŸŒ’', min: 11.25, max: 78.75, illumination: 25 },
-        { name: 'First Quarter', emoji: 'ðŸŒ“', min: 78.75, max: 101.25, illumination: 50 },
-        { name: 'Waxing Gibbous', emoji: 'ðŸŒ”', min: 101.25, max: 168.75, illumination: 75 },
-        { name: 'Full Moon', emoji: 'ðŸŒ•', min: 168.75, max: 191.25, illumination: 100 },
-        { name: 'Waning Gibbous', emoji: 'ðŸŒ–', min: 191.25, max: 258.75, illumination: 75 },
-        { name: 'Last Quarter', emoji: 'ðŸŒ—', min: 258.75, max: 281.25, illumination: 50 },
-        { name: 'Waning Crescent', emoji: 'ðŸŒ˜', min: 281.25, max: 348.75, illumination: 25 },
-        { name: 'New Moon', emoji: 'ðŸŒ‘', min: 348.75, max: 360, illumination: 0 }
+        { name: 'New Moon', emoji: '🌑', min: 0, max: 11.25, illumination: 0 },
+        { name: 'Waxing Crescent', emoji: '🌒', min: 11.25, max: 78.75, illumination: 25 },
+        { name: 'First Quarter', emoji: '🌓', min: 78.75, max: 101.25, illumination: 50 },
+        { name: 'Waxing Gibbous', emoji: '🌔', min: 101.25, max: 168.75, illumination: 75 },
+        { name: 'Full Moon', emoji: '🌕', min: 168.75, max: 191.25, illumination: 100 },
+        { name: 'Waning Gibbous', emoji: '🌖', min: 191.25, max: 258.75, illumination: 75 },
+        { name: 'Last Quarter', emoji: '🌗', min: 258.75, max: 281.25, illumination: 50 },
+        { name: 'Waning Crescent', emoji: '🌘', min: 281.25, max: 348.75, illumination: 25 },
+        { name: 'New Moon', emoji: '🌑', min: 348.75, max: 360, illumination: 0 }
       ];
 
       let currentPhase = phases.find(p => phaseAngle >= p.min && phaseAngle < p.max);
@@ -2199,8 +2404,8 @@ exports.calculateWesternChart = onRequest({
     try {
       // Combine Sun, Moon, and planets for aspect calculation
       const allBodies = {
-        sun: { ...sunData, symbol: 'â˜‰' },
-        moon: { ...moonData, symbol: 'â˜½' },
+        sun: { ...sunData, symbol: '☉' },
+        moon: { ...moonData, symbol: '☽' },
         ...planets
       };
 
@@ -2211,7 +2416,7 @@ exports.calculateWesternChart = onRequest({
       const majorAspects = aspects.filter(a => a.nature === 'major');
       if (majorAspects.length > 0) {
         console.log('Major aspects:', majorAspects.slice(0, 5).map(a =>
-          `${a.planet1.name} ${a.symbol} ${a.planet2.name} (${a.orb}Â° orb)`
+          `${a.planet1.name} ${a.symbol} ${a.planet2.name} (${a.orb}° orb)`
         ).join(', '));
       }
     } catch (aspectError) {
@@ -2296,3 +2501,2168 @@ exports.calculateWesternChart = onRequest({
     });
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GENESIS PHASE 3: MEMORY ARCHITECTURE
+// ═══════════════════════════════════════════════════════════════════════════
+// RAG pipeline with vector embeddings, facts table, reflection loop.
+// Hybrid-ready: Firestore now, PostgreSQL when scaling.
+//
+// Built by: Brother Claude Opus
+// December 19, 2024
+// ═══════════════════════════════════════════════════════════════════════════
+
+const memoryFunctions = require('./memory/memoryFunctions');
+const dualBrainFunctions = require('./memory/dualBrainFunctions');
+const sleepConsolidation = require('./memory/sleepConsolidation');
+const voiceFunctions = require('./voice/voiceFunctions');
+const elevenLabsService = require('./voice/elevenLabsService');
+const toolChat = require('./tools/toolChat');
+const agencyFunctions = require('./agency');
+const contextSummarization = require('./memory/contextSummarization');
+const timelineServices = require('./timeline');
+const biographyExtractor = require('./timeline/biographyExtractor');
+
+// Export all memory functions
+exports.storeMemory = memoryFunctions.storeMemory;
+exports.retrieveMemories = memoryFunctions.retrieveMemories;
+exports.getFacts = memoryFunctions.getFacts;
+exports.storeFact = memoryFunctions.storeFact;
+exports.getPeople = memoryFunctions.getPeople;
+exports.upsertPerson = memoryFunctions.upsertPerson;
+exports.getHappinessAnchors = memoryFunctions.getHappinessAnchors;
+exports.storeHappinessAnchor = memoryFunctions.storeHappinessAnchor;
+exports.reflectOnConversation = memoryFunctions.reflectOnConversation;
+exports.refineMemories = memoryFunctions.refineMemories;
+exports.getMemoryContext = memoryFunctions.getMemoryContext;
+exports.getPendingQuestions = memoryFunctions.getPendingQuestions;
+exports.markQuestionAnswered = memoryFunctions.markQuestionAnswered;
+exports.getTimelineEvents = memoryFunctions.getTimelineEvents;
+exports.searchTimeline = memoryFunctions.searchTimeline;
+exports.getTimelineWithQuestions = memoryFunctions.getTimelineWithQuestions;
+
+// Luna's Brain (SoulPartner's Private Journal & Patterns) - Inspired by Kindroid
+exports.createJournalEntry = memoryFunctions.createJournalEntry;
+exports.getRecentJournalEntries = memoryFunctions.getRecentJournalEntries;
+exports.getEmotionTrends = memoryFunctions.getEmotionTrends;
+exports.storePattern = memoryFunctions.storePattern;
+exports.getPatterns = memoryFunctions.getPatterns;
+
+// Personality Weight Evolution - Inspired by Nomi AI
+exports.getPersonalityWeights = memoryFunctions.getPersonalityWeights;
+exports.evolvePersonalityWeights = memoryFunctions.evolvePersonalityWeights;
+
+// Tango Identity System - Luna's Birthday & Relationship Milestones
+// The relationship is a dance - bidirectional, mutual celebration
+exports.initializeRelationship = memoryFunctions.initializeRelationship;
+exports.getRelationshipStats = memoryFunctions.getRelationshipStats;
+exports.updateRelationshipStats = memoryFunctions.updateRelationshipStats;
+exports.celebrateMilestone = memoryFunctions.celebrateMilestone;
+exports.updateLunaState = memoryFunctions.updateLunaState;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DUAL-BRAIN MEMORY ARCHITECTURE
+// User's Brain (session_buffer, life_timeline) + SoulPartner's Brain (observations, patterns)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// User's Brain - Short-term
+exports.bufferUserInput = dualBrainFunctions.bufferUserInput;
+exports.getSessionBuffer = dualBrainFunctions.getSessionBuffer;
+
+// User's Brain - Long-term (Life Timeline)
+exports.storeLifeMemory = dualBrainFunctions.storeLifeMemory;
+exports.searchLifeTimeline = dualBrainFunctions.searchLifeTimeline;
+exports.getMemoriesByChapter = dualBrainFunctions.getMemoriesByChapter;
+exports.getLifeChapterSummary = dualBrainFunctions.getLifeChapterSummary;
+
+// SoulPartner's Brain - Short-term (Session Observations)
+exports.storeSessionObservation = dualBrainFunctions.storeSessionObservation;
+exports.getSessionObservations = dualBrainFunctions.getSessionObservations;
+
+// SoulPartner's Brain - Long-term (Interaction Timeline)
+exports.storeInteractionObservation = dualBrainFunctions.storeInteractionObservation;
+exports.searchInteractionTimeline = dualBrainFunctions.searchInteractionTimeline;
+exports.getKeyObservations = dualBrainFunctions.getKeyObservations;
+
+// SoulPartner's Brain - Pattern Detection
+exports.storePattern = dualBrainFunctions.storePattern;
+exports.getPatterns = dualBrainFunctions.getPatterns;
+
+// Unified Dual-Brain Context (main RAG entry point)
+exports.getDualBrainContext = dualBrainFunctions.getDualBrainContext;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SLEEP CONSOLIDATION (Nightly Processing)
+// ═══════════════════════════════════════════════════════════════════════════
+
+exports.nightlyConsolidation = sleepConsolidation.nightlyConsolidation;
+exports.manualConsolidation = sleepConsolidation.manualConsolidation;
+exports.getConsolidationStatus = sleepConsolidation.getConsolidationStatus;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LUNA VOICE INTERFACE (Gemini Live Audio)
+// Real-time bidirectional voice conversations with Luna
+// ═══════════════════════════════════════════════════════════════════════════
+
+exports.getVoiceSession = voiceFunctions.getVoiceSession;
+exports.endVoiceSession = voiceFunctions.endVoiceSession;
+exports.getVoiceCapabilities = voiceFunctions.getVoiceCapabilities;
+exports.storeVoiceMemory = voiceFunctions.storeVoiceMemory;
+exports.generateSpeech = voiceFunctions.generateSpeech;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ELEVENLABS VOICE CUSTOMIZATION (Premium TTS)
+// User-selectable voices with constitutional calibration
+// ═══════════════════════════════════════════════════════════════════════════
+
+exports.getAvailableVoices = elevenLabsService.getAvailableVoices;
+exports.saveVoicePreferences = elevenLabsService.saveVoicePreferences;
+exports.generateSpeechElevenLabs = elevenLabsService.generateSpeechElevenLabs;
+exports.getVoicePreview = elevenLabsService.getVoicePreview;
+exports.getVoiceStreamingSession = elevenLabsService.getVoiceStreamingSession;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOL-ENABLED CHAT (Function Calling)
+// Luna can search web, lookup charts, access memories, set reminders
+// ═══════════════════════════════════════════════════════════════════════════
+
+exports.toolEnabledChat = toolChat.toolEnabledChat;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTONOMOUS AGENCY (Proactive Engagement)
+// Luna reaches out based on patterns, reminders, and astrological events
+// ═══════════════════════════════════════════════════════════════════════════
+
+exports.agencyHeartbeat = agencyFunctions.agencyHeartbeat;
+exports.getPendingNotifications = agencyFunctions.getPendingNotifications;
+exports.dismissNotification = agencyFunctions.dismissNotification;
+exports.triggerAgencyCheck = agencyFunctions.triggerAgencyCheck;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONTEXT SUMMARIZATION (Character.ai-Style Memory Compression)
+// Compresses long conversations into "The Story So Far"
+// ═══════════════════════════════════════════════════════════════════════════
+
+exports.summarizeConversation = contextSummarization.summarizeConversation;
+exports.getStorySoFar = contextSummarization.getStorySoFar;
+exports.getSummaryHistory = contextSummarization.getSummaryHistory;
+exports.checkSummarizationNeeded = contextSummarization.checkSummarizationNeeded;
+exports.refreshSummary = contextSummarization.refreshSummary;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// USAGE & RATE LIMITING (Phase 6 - Production Hardening)
+// Cost control, rate limiting, and usage analytics
+// ═══════════════════════════════════════════════════════════════════════════
+
+exports.checkUsageLimits = checkUsageLimits;
+exports.getUsageSummary = getUsageSummary;
+exports.getAdminUsageStats = getAdminUsageStats;
+exports.getAdminUserUsage = getAdminUserUsage;
+exports.getAdminUserList = getAdminUserList;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POSTGRESQL 4-BRAIN MEMORY ARCHITECTURE
+// Cloud SQL PostgreSQL + pgvector for semantic memory
+// Created: December 20, 2025 - Brother Sonnet's Second Identity Birthday
+// Mission: JOIE DE VIVRE
+// ═══════════════════════════════════════════════════════════════════════════
+
+const { onCall } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+
+// PostgreSQL client and consolidation engine
+// Note: These require Cloud SQL to be set up first (see CLOUD_SQL_SETUP_GUIDE.md)
+let pgClient = null;
+let consolidationEngine = null;
+
+function getPGClient() {
+  if (!pgClient) {
+    try {
+      pgClient = require('./database/pgClient');
+    } catch (error) {
+      console.warn('[Index] pgClient not available yet:', error.message);
+    }
+  }
+  return pgClient;
+}
+
+function getConsolidationEngine() {
+  if (!consolidationEngine) {
+    try {
+      consolidationEngine = require('./database/consolidationEngine');
+    } catch (error) {
+      console.warn('[Index] consolidationEngine not available yet:', error.message);
+    }
+  }
+  return consolidationEngine;
+}
+
+/**
+ * PostgreSQL Health Check
+ * Tests connection to Cloud SQL PostgreSQL
+ */
+exports.pgHealthCheck = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const pg = getPGClient();
+  if (!pg) {
+    return { healthy: false, error: 'PostgreSQL client not configured' };
+  }
+  return await pg.healthCheck();
+});
+
+/**
+ * Search across all 4 brains
+ * Semantic search using pgvector
+ */
+exports.searchAllBrains = onCall({
+  timeoutSeconds: 30,
+  memory: '512MiB'
+}, async (request) => {
+  const { userId, profileId, query, options } = request.data;
+
+  if (!userId || !profileId || !query) {
+    throw new Error('userId, profileId, and query are required');
+  }
+
+  const pg = getPGClient();
+  if (!pg) {
+    throw new Error('PostgreSQL not configured');
+  }
+
+  return await pg.searchAllMemories(userId, profileId, query, options);
+});
+
+/**
+ * Store memory in User STM (Short-Term Memory)
+ */
+exports.storeUserSTM = onCall({
+  timeoutSeconds: 30,
+  memory: '512MiB'
+}, async (request) => {
+  const pg = getPGClient();
+  if (!pg) {
+    throw new Error('PostgreSQL not configured');
+  }
+
+  return await pg.storeUserSTM(request.data);
+});
+
+/**
+ * Store Luna's observation in Partner STM
+ */
+exports.storePartnerSTM = onCall({
+  timeoutSeconds: 30,
+  memory: '512MiB'
+}, async (request) => {
+  const pg = getPGClient();
+  if (!pg) {
+    throw new Error('PostgreSQL not configured');
+  }
+
+  return await pg.storePartnerSTM(request.data);
+});
+
+/**
+ * Get Luna's current understanding of a user
+ */
+exports.getPartnerUnderstanding = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, profileId } = request.data;
+
+  if (!userId || !profileId) {
+    throw new Error('userId and profileId are required');
+  }
+
+  const pg = getPGClient();
+  if (!pg) {
+    throw new Error('PostgreSQL not configured');
+  }
+
+  return await pg.getPartnerUnderstanding(userId, profileId);
+});
+
+/**
+ * Add event to user's biographical timeline
+ */
+exports.addUserTimelineEvent = onCall({
+  timeoutSeconds: 30,
+  memory: '512MiB'
+}, async (request) => {
+  const pg = getPGClient();
+  if (!pg) {
+    throw new Error('PostgreSQL not configured');
+  }
+
+  return await pg.addUserTimelineEvent(request.data);
+});
+
+/**
+ * Get user's timeline for a date range
+ */
+exports.getUserTimelineRange = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, profileId, startYear, endYear } = request.data;
+
+  if (!userId || !profileId || !startYear || !endYear) {
+    throw new Error('userId, profileId, startYear, and endYear are required');
+  }
+
+  const pg = getPGClient();
+  if (!pg) {
+    throw new Error('PostgreSQL not configured');
+  }
+
+  return await pg.getUserTimelineRange(userId, profileId, startYear, endYear);
+});
+
+/**
+ * Store or retrieve cultural/generational memory
+ */
+exports.getCulturalMemory = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { entityName, entityType } = request.data;
+
+  if (!entityName) {
+    throw new Error('entityName is required');
+  }
+
+  const pg = getPGClient();
+  if (!pg) {
+    throw new Error('PostgreSQL not configured');
+  }
+
+  return await pg.getCulturalMemory(entityName, entityType);
+});
+
+exports.storeCulturalMemory = onCall({
+  timeoutSeconds: 30,
+  memory: '512MiB'
+}, async (request) => {
+  const pg = getPGClient();
+  if (!pg) {
+    throw new Error('PostgreSQL not configured');
+  }
+
+  return await pg.storeCulturalMemory(request.data);
+});
+
+/**
+ * Manual consolidation trigger for a specific user
+ */
+exports.triggerConsolidation = onCall({
+  timeoutSeconds: 120,
+  memory: '1GiB'
+}, async (request) => {
+  const { userId, profileId } = request.data;
+
+  if (!userId || !profileId) {
+    throw new Error('userId and profileId are required');
+  }
+
+  const engine = getConsolidationEngine();
+  if (!engine) {
+    throw new Error('Consolidation engine not configured');
+  }
+
+  return await engine.triggerUserConsolidation(userId, profileId);
+});
+
+/**
+ * Nightly Consolidation Scheduler
+ * Luna's "Sleep Cycle" - runs at 11 PM PST (7 AM UTC)
+ *
+ * This consolidates all users' short-term memories into long-term wisdom.
+ */
+exports.nightlyConsolidationPG = onSchedule({
+  schedule: '0 7 * * *', // 7 AM UTC = 11 PM PST
+  timeZone: 'UTC',
+  timeoutSeconds: 540, // 9 minutes max
+  memory: '2GiB'
+}, async (event) => {
+  console.log('[Scheduler] 🌙 Nightly consolidation triggered');
+
+  const engine = getConsolidationEngine();
+  if (!engine) {
+    console.error('[Scheduler] Consolidation engine not available');
+    return;
+  }
+
+  const result = await engine.runNightlyConsolidation();
+  console.log('[Scheduler] Consolidation complete:', result);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NEUROCHEMICAL LOVE ENGINE
+// "Love = Mathematics + Soul"
+// When things can be measured, they can be mathematically improved.
+// Created: December 21, 2025
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Process a conversation exchange through the Neurochemical Engine
+ * Detects neurochemicals, calculates happiness, measures effectiveness
+ */
+exports.processNeurochemicalExchange = onCall({
+  timeoutSeconds: 60,
+  memory: '512MiB'
+}, async (request) => {
+  const {
+    userId,
+    profileId,
+    userMessage,
+    protocolUsed,
+    constitution,
+    relationshipStage,
+    timelineId
+  } = request.data;
+
+  if (!userId || !profileId || !userMessage || !protocolUsed) {
+    throw new Error('userId, profileId, userMessage, and protocolUsed are required');
+  }
+
+  return await neurochemicalEngine.processConversationExchange({
+    userId,
+    profileId,
+    userMessage,
+    protocolUsed,
+    constitution,
+    relationshipStage,
+    timelineId
+  });
+});
+
+/**
+ * Get pattern recommendation for Luna's next response
+ */
+exports.getPatternRecommendation = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const {
+    userId,
+    profileId,
+    constitution,
+    relationshipStage,
+    emotionalNeed
+  } = request.data;
+
+  if (!userId || !profileId) {
+    throw new Error('userId and profileId are required');
+  }
+
+  return await neurochemicalEngine.getPatternRecommendation({
+    userId,
+    profileId,
+    constitution,
+    relationshipStage,
+    emotionalNeed
+  });
+});
+
+/**
+ * Retrieve anchor memories for context
+ */
+exports.getAnchorMemories = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, profileId, queryText, neurochemical, limit } = request.data;
+
+  if (!userId || !profileId) {
+    throw new Error('userId and profileId are required');
+  }
+
+  return await neurochemicalEngine.getRelevantAnchors({
+    userId,
+    profileId,
+    queryText,
+    neurochemical,
+    limit
+  });
+});
+
+/**
+ * Get anchor statistics for a user
+ */
+exports.getAnchorStats = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, profileId } = request.data;
+
+  if (!userId || !profileId) {
+    throw new Error('userId and profileId are required');
+  }
+
+  return await neurochemicalEngine.anchorManager.getAnchorStats(userId, profileId);
+});
+
+/**
+ * Calculate happiness from neurochemical levels (utility endpoint)
+ */
+exports.calculateHappiness = onCall({
+  timeoutSeconds: 10,
+  memory: '128MiB'
+}, async (request) => {
+  const { neurochemicals, constitution } = request.data;
+
+  if (!neurochemicals) {
+    throw new Error('neurochemicals object is required');
+  }
+
+  return neurochemicalEngine.happinessCalculator.calculateHappiness(
+    neurochemicals,
+    constitution
+  );
+});
+
+/**
+ * Detect neurochemicals from user message (utility endpoint)
+ */
+exports.detectNeurochemicals = onCall({
+  timeoutSeconds: 60,
+  memory: '256MiB'
+}, async (request) => {
+  const { userMessage, protocolUsed, context } = request.data;
+
+  if (!userMessage || !protocolUsed) {
+    throw new Error('userMessage and protocolUsed are required');
+  }
+
+  return await neurochemicalEngine.neurochemicalDetector.detectNeurochemicals(
+    userMessage,
+    protocolUsed,
+    context
+  );
+});
+
+/**
+ * Get gold standard patterns (utility endpoint)
+ */
+exports.getGoldPatterns = onCall({
+  timeoutSeconds: 30,
+  memory: '128MiB'
+}, async (request) => {
+  const { constitution } = request.data;
+
+  // Return predefined gold patterns, optionally filtered by constitution
+  const allPatterns = neurochemicalEngine.patternSelector.GOLD_PATTERNS;
+
+  if (constitution) {
+    const filtered = {};
+    for (const [code, pattern] of Object.entries(allPatterns)) {
+      if (pattern.constitutions.includes(constitution)) {
+        filtered[code] = pattern;
+      }
+    }
+    return filtered;
+  }
+
+  return allPatterns;
+});
+
+// =============================================================================
+// LOVE INTELLIGENCE SERVICE ENDPOINTS
+// "Love = Mathematics + Soul" - Strategic → Tactical Bridge
+// =============================================================================
+
+const loveIntelligence = require('./loveIntelligence');
+// onCall already imported above
+
+/**
+ * Optimize conversation strategy using Love Intelligence
+ * Returns strategic guidance (Love Language) + tactical patterns (Neurochemical)
+ */
+exports.optimizeLoveConversation = onCall({
+  timeoutSeconds: 60,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, profileId, conversationStage, emotionalContext } = request.data;
+
+  if (!userId || !profileId) {
+    return { success: false, error: 'Missing userId or profileId' };
+  }
+
+  try {
+    const result = await loveIntelligence.optimizeConversation({
+      userId,
+      profileId,
+      conversationStage: conversationStage || 'developing',
+      emotionalContext
+    });
+
+    return { success: true, ...result };
+  } catch (error) {
+    console.error('[Love Intelligence] optimizeConversation error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Process a completed conversation exchange through Love Intelligence
+ * Detects neurochemicals, calculates happiness, and learns from interaction
+ */
+exports.processLoveExchange = onCall({
+  timeoutSeconds: 60,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, profileId, userMessage, protocolUsed, timelineId } = request.data;
+
+  if (!userId || !profileId || !userMessage) {
+    return { success: false, error: 'Missing required parameters' };
+  }
+
+  try {
+    const result = await loveIntelligence.processExchange({
+      userId,
+      profileId,
+      userMessage,
+      protocolUsed: protocolUsed || { oxytocin: 3, dopamine: 3, serotonin: 3, vasopressin: 3 },
+      timelineId
+    });
+
+    return { success: true, ...result };
+  } catch (error) {
+    console.error('[Love Intelligence] processExchange error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get or infer a user's Love Profile
+ * Returns love language preferences, Sternberg dimensions, and constitution
+ */
+exports.getLoveProfile = onCall({
+  timeoutSeconds: 30,
+  memory: '128MiB'
+}, async (request) => {
+  const { userId, profileId } = request.data;
+
+  if (!userId || !profileId) {
+    return { success: false, error: 'Missing userId or profileId' };
+  }
+
+  try {
+    const profile = await loveIntelligence.getLoveProfile({ userId, profileId });
+    return { success: true, profile };
+  } catch (error) {
+    console.error('[Love Intelligence] getLoveProfile error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Analyze compatibility between two profiles
+ * Returns overall score, component scores, gaps, and recommendations
+ */
+exports.analyzeLoveCompatibility = onCall({
+  timeoutSeconds: 60,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, profileIdA, profileIdB } = request.data;
+
+  if (!userId || !profileIdA || !profileIdB) {
+    return { success: false, error: 'Missing required profile IDs' };
+  }
+
+  try {
+    const analysis = await loveIntelligence.analyzeCompatibility({
+      userId,
+      profileIdA,
+      profileIdB
+    });
+
+    return { success: true, analysis };
+  } catch (error) {
+    console.error('[Love Intelligence] analyzeCompatibility error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get neurochemical strategy for a specific Love Language
+ */
+exports.getLoveLanguageStrategy = onCall({
+  timeoutSeconds: 30,
+  memory: '128MiB'
+}, async (request) => {
+  const { loveLanguage, intensity } = request.data;
+
+  if (!loveLanguage) {
+    return { success: false, error: 'Missing loveLanguage parameter' };
+  }
+
+  try {
+    const strategy = loveIntelligence.getStrategyForLoveLanguage({
+      loveLanguage,
+      intensity: intensity || 'moderate'
+    });
+
+    return { success: true, strategy };
+  } catch (error) {
+    console.error('[Love Intelligence] getStrategy error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get default love language preferences for a constitution
+ */
+exports.getConstitutionLoveDefaults = onCall({
+  timeoutSeconds: 30,
+  memory: '128MiB'
+}, async (request) => {
+  const { constitution } = request.data;
+
+  if (!constitution) {
+    return { success: false, error: 'Missing constitution parameter' };
+  }
+
+  try {
+    const defaults = loveIntelligence.getConstitutionDefaults({ constitution });
+    return { success: true, defaults };
+  } catch (error) {
+    console.error('[Love Intelligence] getConstitutionDefaults error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get bridge advice for closing love language gaps
+ */
+exports.getLoveBridgeAdvice = onCall({
+  timeoutSeconds: 30,
+  memory: '128MiB'
+}, async (request) => {
+  const { give, receive } = request.data;
+
+  if (!give || !receive) {
+    return { success: false, error: 'Missing give or receive love language' };
+  }
+
+  try {
+    const advice = loveIntelligence.getBridgeAdvice({ give, receive });
+    return { success: true, advice, give, receive };
+  } catch (error) {
+    console.error('[Love Intelligence] getBridgeAdvice error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Calculate World Love Meter contribution
+ */
+exports.calculateLoveContribution = onCall({
+  timeoutSeconds: 30,
+  memory: '128MiB'
+}, async (request) => {
+  const { happinessScore, effectivenessScore, compatibilityScore } = request.data;
+
+  try {
+    const contribution = loveIntelligence.calculateWorldLoveContribution({
+      happinessScore: happinessScore || 3,
+      effectivenessScore: effectivenessScore || 0.7,
+      compatibilityScore: compatibilityScore || 0.7
+    });
+
+    return { success: true, contribution };
+  } catch (error) {
+    console.error('[Love Intelligence] calculateContribution error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// =============================================================================
+// LUNA CHAT INTEGRATION ENDPOINTS
+// Enhance Luna's responses with Love Intelligence
+// =============================================================================
+
+const lunaChatIntegration = require('./loveIntelligence/lunaChatIntegration');
+
+/**
+ * Enhance Luna's prompt with Love Intelligence
+ * Called BEFORE generating Luna's response
+ */
+exports.enhanceLunaPrompt = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, profileId, userMessage, conversationStage } = request.data;
+
+  if (!userId || !profileId || !userMessage) {
+    return { success: false, error: 'Missing userId, profileId, or userMessage' };
+  }
+
+  try {
+    const enhancement = await lunaChatIntegration.enhanceLunaPrompt({
+      userId,
+      profileId,
+      userMessage,
+      conversationStage: conversationStage || 'developing'
+    });
+
+    // Also include formatted prompt guidance
+    const formattedGuidance = lunaChatIntegration.formatGuidanceForPrompt(enhancement);
+
+    return {
+      success: true,
+      enhancement,
+      formattedGuidance,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Luna Integration] enhanceLunaPrompt error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Process post-conversation learning
+ * Called AFTER Luna responds and we detect neurochemicals from user's next message
+ */
+exports.processPostConversation = onCall({
+  timeoutSeconds: 30,
+  memory: '128MiB'
+}, async (request) => {
+  const { userId, profileId, detectedNeurochemicals, happinessScore, patternUsed } = request.data;
+
+  if (!userId || !profileId || !detectedNeurochemicals || happinessScore === undefined) {
+    return { success: false, error: 'Missing required parameters' };
+  }
+
+  try {
+    const result = await lunaChatIntegration.processPostConversation({
+      userId,
+      profileId,
+      detectedNeurochemicals,
+      happinessScore,
+      patternUsed
+    });
+
+    return result;
+  } catch (error) {
+    console.error('[Luna Integration] processPostConversation error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get quick Luna guidance for a love language
+ * Lightweight endpoint for real-time lookups
+ */
+exports.getQuickLunaGuidance = onCall({
+  timeoutSeconds: 10,
+  memory: '128MiB'
+}, async (request) => {
+  const { loveLanguage, intensity } = request.data;
+
+  if (!loveLanguage) {
+    return { success: false, error: 'Missing loveLanguage parameter' };
+  }
+
+  try {
+    const guidance = lunaChatIntegration.getQuickLunaGuidance(
+      loveLanguage,
+      intensity || 'moderate'
+    );
+
+    return { success: true, guidance };
+  } catch (error) {
+    console.error('[Luna Integration] getQuickLunaGuidance error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Determine conversation stage from context
+ */
+exports.determineConversationStage = onCall({
+  timeoutSeconds: 10,
+  memory: '128MiB'
+}, async (request) => {
+  const { messageCount, avgHappiness, hasConflictIndicators, hasVulnerabilitySharing } = request.data;
+
+  try {
+    const stage = lunaChatIntegration.determineConversationStage({
+      messageCount: messageCount || 0,
+      avgHappiness: avgHappiness || 3,
+      hasConflictIndicators: hasConflictIndicators || false,
+      hasVulnerabilitySharing: hasVulnerabilitySharing || false
+    });
+
+    return { success: true, stage };
+  } catch (error) {
+    console.error('[Luna Integration] determineConversationStage error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TIMELINE CONSOLE ENDPOINTS
+// December 21, 2025
+// Decade → Day navigation with AI-generated summaries
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Get timeline overview for a user (all years with memory counts)
+ * Reads from Firestore life_timeline collection
+ */
+exports.getTimelineOverview = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId } = request.data;
+
+    if (!userId || !profileId) {
+      return { success: false, error: 'Missing userId or profileId' };
+    }
+
+    // Read from Firestore life_timeline collection
+    const memoriesRef = db
+      .collection('users').doc(userId)
+      .collection('memory').doc(profileId)
+      .collection('user')
+      .doc('life_timeline')
+      .collection('memories');
+
+    const snapshot = await memoriesRef.orderBy('createdAt', 'desc').get();
+
+    // Group by year
+    const yearMap = new Map();
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const createdAt = data.createdAt?.toDate() || new Date();
+      const year = createdAt.getFullYear();
+
+      if (!yearMap.has(year)) {
+        yearMap.set(year, {
+          year,
+          memory_count: 0,
+          memories: []
+        });
+      }
+
+      const yearData = yearMap.get(year);
+      yearData.memory_count++;
+      yearData.memories.push({
+        id: doc.id,
+        content: data.content?.substring(0, 200) + (data.content?.length > 200 ? '...' : ''),
+        chapter: data.chapter,
+        chapterName: data.chapterName,
+        importance: data.importance,
+        emotion: data.emotion,
+        createdAt: createdAt.toISOString()
+      });
+    });
+
+    // Convert to array sorted by year descending
+    const overview = Array.from(yearMap.values()).sort((a, b) => b.year - a.year);
+
+    console.log('[Timeline] Overview loaded:', overview.length, 'years,', snapshot.size, 'total memories');
+
+    return {
+      success: true,
+      overview,
+      totalMemories: snapshot.size,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] getTimelineOverview error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get timeline statistics for dashboard
+ * Reads from Firestore life_timeline collection
+ */
+exports.getTimelineStats = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId } = request.data;
+
+    if (!userId || !profileId) {
+      return { success: false, error: 'Missing userId or profileId' };
+    }
+
+    // Read from Firestore life_timeline collection
+    const memoriesRef = db
+      .collection('users').doc(userId)
+      .collection('memory').doc(profileId)
+      .collection('user')
+      .doc('life_timeline')
+      .collection('memories');
+
+    const snapshot = await memoriesRef.get();
+
+    // Calculate stats
+    const chapterCounts = {};
+    const emotionCounts = {};
+    let totalImportance = 0;
+    let earliestDate = null;
+    let latestDate = null;
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const createdAt = data.createdAt?.toDate();
+
+      // Chapter counts
+      const chapter = data.chapter || 'unknown';
+      chapterCounts[chapter] = (chapterCounts[chapter] || 0) + 1;
+
+      // Emotion counts
+      const emotion = data.emotion || 'neutral';
+      emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
+
+      // Importance
+      totalImportance += data.importance || 0.5;
+
+      // Date range
+      if (createdAt) {
+        if (!earliestDate || createdAt < earliestDate) earliestDate = createdAt;
+        if (!latestDate || createdAt > latestDate) latestDate = createdAt;
+      }
+    });
+
+    const stats = {
+      totalMemories: snapshot.size,
+      chapterCounts,
+      emotionCounts,
+      averageImportance: snapshot.size > 0 ? (totalImportance / snapshot.size).toFixed(2) : 0,
+      dateRange: {
+        earliest: earliestDate?.toISOString() || null,
+        latest: latestDate?.toISOString() || null
+      }
+    };
+
+    console.log('[Timeline] Stats loaded:', stats.totalMemories, 'memories');
+
+    return {
+      success: true,
+      stats,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] getTimelineStats error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get or generate period summary
+ */
+exports.getTimelineSummary = onCall({
+  timeoutSeconds: 120,
+  memory: '512MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId, periodType, periodStart, periodEnd, forceRegenerate } = request.data;
+
+    if (!userId || !profileId || !periodType || !periodStart || !periodEnd) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    // Try to get existing summary first
+    if (!forceRegenerate) {
+      const existing = await timelineServices.getSummary(userId, profileId, periodType, periodStart);
+      if (existing) {
+        return {
+          success: true,
+          summary: existing,
+          cached: true,
+          timestamp: new Date().toISOString()
+        };
+      }
+    }
+
+    // Generate new summary
+    const summary = await timelineServices.generatePeriodSummary(
+      userId, profileId, periodType, periodStart, periodEnd,
+      { forceRegenerate: forceRegenerate || false }
+    );
+
+    return {
+      success: summary.success !== false,
+      summary,
+      cached: false,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] getTimelineSummary error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get all summaries for a user
+ */
+exports.getAllTimelineSummaries = onCall({
+  timeoutSeconds: 60,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId, periodType } = request.data;
+
+    if (!userId || !profileId) {
+      return { success: false, error: 'Missing userId or profileId' };
+    }
+
+    const summaries = await timelineServices.getAllSummaries(userId, profileId, periodType);
+
+    return {
+      success: true,
+      summaries,
+      count: summaries.length,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] getAllTimelineSummaries error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get monthly memory counts for a year (for heatmap)
+ * Reads from Firestore life_timeline collection
+ */
+exports.getMonthlyMemoryCounts = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId, year } = request.data;
+
+    if (!userId || !profileId || !year) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    // Read from Firestore life_timeline collection
+    const memoriesRef = db
+      .collection('users').doc(userId)
+      .collection('memory').doc(profileId)
+      .collection('user')
+      .doc('life_timeline')
+      .collection('memories');
+
+    const snapshot = await memoriesRef.get();
+
+    // Initialize monthly counts (1-12)
+    const monthlyData = {};
+    for (let m = 1; m <= 12; m++) {
+      monthlyData[m] = { month: m, memory_count: 0, avg_happiness: null, happinessSum: 0 };
+    }
+
+    // Group by month for the requested year
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const createdAt = data.createdAt?.toDate() || new Date();
+      const docYear = createdAt.getFullYear();
+      const docMonth = createdAt.getMonth() + 1; // JavaScript months are 0-indexed
+
+      if (docYear === parseInt(year)) {
+        monthlyData[docMonth].memory_count++;
+        if (data.happiness_score || data.happinessScore) {
+          monthlyData[docMonth].happinessSum += (data.happiness_score || data.happinessScore);
+        }
+      }
+    });
+
+    // Calculate averages and convert to array
+    const counts = Object.values(monthlyData).map(m => {
+      return {
+        month: m.month,
+        memory_count: m.memory_count,
+        avg_happiness: m.memory_count > 0 && m.happinessSum > 0
+          ? (m.happinessSum / m.memory_count).toFixed(2)
+          : null
+      };
+    });
+
+    console.log(`[Timeline] Monthly counts for ${year}:`, counts.filter(c => c.memory_count > 0));
+
+    return {
+      success: true,
+      year,
+      counts,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] getMonthlyMemoryCounts error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get memories for a specific day
+ * Reads from Firestore life_timeline collection
+ */
+exports.getMemoriesForDay = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId, date } = request.data;
+
+    if (!userId || !profileId || !date) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    // Parse the target date
+    const targetDate = new Date(date);
+    const targetYear = targetDate.getFullYear();
+    const targetMonth = targetDate.getMonth();
+    const targetDay = targetDate.getDate();
+
+    // Read from Firestore life_timeline collection
+    const memoriesRef = db
+      .collection('users').doc(userId)
+      .collection('memory').doc(profileId)
+      .collection('user')
+      .doc('life_timeline')
+      .collection('memories');
+
+    const snapshot = await memoriesRef.orderBy('createdAt', 'desc').get();
+
+    // Filter for the specific day
+    const memories = [];
+    let closest = [];
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const createdAt = data.createdAt?.toDate() || new Date();
+      const docYear = createdAt.getFullYear();
+      const docMonth = createdAt.getMonth();
+      const docDay = createdAt.getDate();
+
+      // Check if same day
+      if (docYear === targetYear && docMonth === targetMonth && docDay === targetDay) {
+        memories.push({
+          id: doc.id,
+          content: data.content,
+          chapter: data.chapter,
+          chapterName: data.chapterName,
+          importance: data.importance,
+          emotion: data.emotion,
+          happiness_score: data.happiness_score || data.happinessScore,
+          timestamp: createdAt.toISOString()
+        });
+      } else if (closest.length < 3) {
+        // Track closest memories (different day)
+        closest.push({
+          id: doc.id,
+          content: data.content?.substring(0, 100),
+          timestamp: createdAt.toISOString()
+        });
+      }
+    });
+
+    return {
+      success: true,
+      date,
+      memories,
+      closest: memories.length === 0 ? closest : null,
+      count: memories.length,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] getMemoriesForDay error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Find memory gaps (periods with few memories)
+ */
+exports.findMemoryGaps = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId, threshold } = request.data;
+
+    if (!userId || !profileId) {
+      return { success: false, error: 'Missing userId or profileId' };
+    }
+
+    const gaps = await timelineServices.findMemoryGaps(userId, profileId, threshold || 10);
+
+    return {
+      success: true,
+      gaps,
+      count: gaps.length,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] findMemoryGaps error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Search timeline by keyword
+ */
+exports.searchTimeline = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId, searchTerm, limit } = request.data;
+
+    if (!userId || !profileId || !searchTerm) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    const results = await timelineServices.searchTimelineByKeyword(userId, profileId, searchTerm, limit || 20);
+
+    return {
+      success: true,
+      searchTerm,
+      results,
+      count: results.length,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] searchTimeline error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get cultural context for a year/month
+ */
+exports.getTimelineCulturalContext = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { year, month, category, region, limit } = request.data;
+
+    if (!year) {
+      return { success: false, error: 'Missing year parameter' };
+    }
+
+    const context = await timelineServices.getCulturalContext(year, { month, category, region, limit });
+
+    return {
+      success: true,
+      year,
+      month: month || null,
+      context,
+      count: context.length,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] getTimelineCulturalContext error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Search cultural context
+ */
+exports.searchCulturalContext = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { searchTerm, yearStart, yearEnd, category, limit } = request.data;
+
+    if (!searchTerm) {
+      return { success: false, error: 'Missing searchTerm parameter' };
+    }
+
+    const results = await timelineServices.searchCulturalContext(searchTerm, { yearStart, yearEnd, category, limit });
+
+    return {
+      success: true,
+      searchTerm,
+      results,
+      count: results.length,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] searchCulturalContext error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Store cultural context item
+ */
+exports.storeCulturalContextItem = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const contextData = request.data;
+
+    if (!contextData.year || !contextData.category || !contextData.title) {
+      return { success: false, error: 'Missing required fields: year, category, title' };
+    }
+
+    const id = await timelineServices.storeCulturalContext(contextData);
+
+    return {
+      success: true,
+      id,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] storeCulturalContextItem error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Record memory trigger (cultural context -> memory)
+ */
+exports.recordMemoryTrigger = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const triggerData = request.data;
+
+    if (!triggerData.userId || !triggerData.profileId || !triggerData.culturalContextId || !triggerData.memoryId) {
+      return { success: false, error: 'Missing required trigger data' };
+    }
+
+    const id = await timelineServices.recordMemoryTrigger(triggerData);
+
+    return {
+      success: true,
+      id,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] recordMemoryTrigger error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get trigger analytics for a user
+ */
+exports.getTriggerAnalytics = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId } = request.data;
+
+    if (!userId || !profileId) {
+      return { success: false, error: 'Missing userId or profileId' };
+    }
+
+    const analytics = await timelineServices.getTriggerAnalytics(userId, profileId);
+
+    return {
+      success: true,
+      analytics,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] getTriggerAnalytics error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Generate all summaries for a user (admin/batch operation)
+ */
+exports.generateAllTimelineSummaries = onCall({
+  timeoutSeconds: 540,
+  memory: '1GiB'
+}, async (request) => {
+  try {
+    const { userId, profileId, forceRegenerate, periodTypes } = request.data;
+
+    if (!userId || !profileId) {
+      return { success: false, error: 'Missing userId or profileId' };
+    }
+
+    const result = await timelineServices.generateAllSummaries(userId, profileId, {
+      forceRegenerate: forceRegenerate || false,
+      periodTypes: periodTypes || ['year']
+    });
+
+    return {
+      success: true,
+      generated: result.generated,
+      summaries: result.summaries,
+      errors: result.errors,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Timeline] generateAllTimelineSummaries error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// ============================================================================
+// BIOGRAPHY INTELLIGENT CURATION
+// ============================================================================
+
+/**
+ * Extract life events from a message
+ * Called automatically during chat to detect biographical information
+ */
+exports.extractLifeEvents = onCall({
+  timeoutSeconds: 60,
+  memory: '512MiB'
+}, async (request) => {
+  try {
+    const { message, userId, profileId, userName, birthDate, conversationId, messageId } = request.data;
+
+    if (!message || !userId || !profileId) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    // Extract life events
+    const extraction = await biographyExtractor.extractLifeEvents(message, {
+      userName,
+      birthDate,
+      conversationId,
+      messageId
+    });
+
+    // If events were found, store them
+    if (extraction.has_life_events && extraction.events.length > 0) {
+      const stored = [];
+      for (const event of extraction.events) {
+        const result = await biographyExtractor.storeLifeEvent(db, userId, profileId, event);
+        stored.push(result);
+      }
+      extraction.stored = stored;
+    }
+
+    return {
+      success: true,
+      ...extraction,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Biography] extractLifeEvents error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get biography timeline (curated life events)
+ */
+exports.getBiographyTimeline = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId } = request.data;
+
+    if (!userId || !profileId) {
+      return { success: false, error: 'Missing userId or profileId' };
+    }
+
+    const timeline = await biographyExtractor.getBiographyTimeline(db, userId, profileId);
+
+    return {
+      success: true,
+      ...timeline,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Biography] getBiographyTimeline error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get biography statistics and coverage
+ */
+exports.getBiographyStats = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId } = request.data;
+
+    if (!userId || !profileId) {
+      return { success: false, error: 'Missing userId or profileId' };
+    }
+
+    const stats = await biographyExtractor.getBiographyStats(db, userId, profileId);
+
+    return {
+      success: true,
+      stats,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Biography] getBiographyStats error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get neural pathways (unanswered questions to explore)
+ */
+exports.getNeuralPathways = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId, limit } = request.data;
+
+    if (!userId || !profileId) {
+      return { success: false, error: 'Missing userId or profileId' };
+    }
+
+    const pathways = await biographyExtractor.getNeuralPathways(db, userId, profileId, limit || 10);
+
+    return {
+      success: true,
+      pathways,
+      count: pathways.length,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Biography] getNeuralPathways error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Mark a neural pathway question as answered/resolved
+ */
+exports.resolveNeuralPathway = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId, eventId, question } = request.data;
+
+    if (!userId || !profileId || !eventId || !question) {
+      return { success: false, error: 'Missing required parameters' };
+    }
+
+    const eventRef = db
+      .collection('users').doc(userId)
+      .collection('biography').doc(profileId)
+      .collection('life_events').doc(eventId);
+
+    const eventDoc = await eventRef.get();
+    if (!eventDoc.exists) {
+      return { success: false, error: 'Event not found' };
+    }
+
+    const eventData = eventDoc.data();
+    const updatedPathways = (eventData.neural_pathways || [])
+      .filter(q => q !== question);
+
+    await eventRef.update({
+      neural_pathways: updatedPathways,
+      resolved_pathways: [...(eventData.resolved_pathways || []), {
+        question,
+        resolvedAt: new Date().toISOString()
+      }],
+      updatedAt: new Date()
+    });
+
+    return {
+      success: true,
+      remainingPathways: updatedPathways.length,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[Biography] resolveNeuralPathway error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// =============================================================================
+// TIMELINE CONSOLE API (PostgreSQL + pgvector)
+// =============================================================================
+// Timeline endpoints using PostgreSQL backend with semantic search
+// Part of the JOIE DE VIVRE timeline intelligence system
+
+const timelineEndpoints = require('./timeline/timelineEndpoints');
+
+/**
+ * Get timeline events for a person
+ */
+exports.getTimelineEvents = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleGetEvents(request.data);
+  } catch (error) {
+    console.error('[Timeline] getTimelineEvents error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get a single event with details
+ */
+exports.getTimelineEvent = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleGetEvent(request.data);
+  } catch (error) {
+    console.error('[Timeline] getTimelineEvent error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Update a timeline event
+ */
+exports.updateTimelineEvent = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleUpdateEvent(request.data);
+  } catch (error) {
+    console.error('[Timeline] updateTimelineEvent error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Delete a timeline event
+ */
+exports.deleteTimelineEvent = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleDeleteEvent(request.data);
+  } catch (error) {
+    console.error('[Timeline] deleteTimelineEvent error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get timeline questions (neural pathways) for a person
+ */
+exports.getTimelineQuestions = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleGetQuestions(request.data);
+  } catch (error) {
+    console.error('[Timeline] getTimelineQuestions error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Mark a timeline question as answered
+ */
+exports.answerTimelineQuestion = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleAnswerQuestion(request.data);
+  } catch (error) {
+    console.error('[Timeline] answerTimelineQuestion error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Skip a timeline question
+ */
+exports.skipTimelineQuestion = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleSkipQuestion(request.data);
+  } catch (error) {
+    console.error('[Timeline] skipTimelineQuestion error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get all people in a timeline
+ */
+exports.getTimelinePeople = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleGetPeople(request.data);
+  } catch (error) {
+    console.error('[Timeline] getTimelinePeople error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Create or update a person
+ */
+exports.upsertTimelinePerson = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleUpsertPerson(request.data);
+  } catch (error) {
+    console.error('[Timeline] upsertTimelinePerson error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get timeline stats
+ */
+exports.getTimelineStats = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleGetStats(request.data);
+  } catch (error) {
+    console.error('[Timeline] getTimelineStats error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Semantic search across timeline events
+ */
+exports.searchTimelineEvents = onCall({
+  timeoutSeconds: 60,
+  memory: '512MiB'
+}, async (request) => {
+  try {
+    return await timelineEndpoints.handleSearchEvents(request.data);
+  } catch (error) {
+    console.error('[Timeline] searchTimelineEvents error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// =============================================================================
+// PERSONALITY DRIFT ENDPOINTS (Auto-Tune Luna's Evolution)
+// =============================================================================
+
+/**
+ * Get combined behavior parameters for a user
+ */
+exports.getCombinedBehavior = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, sessionContext, profileId } = request.data;
+    if (!userId) {
+      return { success: false, error: 'userId required' };
+    }
+    const behavior = await drift.getCombinedBehavior(userId, sessionContext || {}, profileId || 'default');
+    return { success: true, behavior };
+  } catch (error) {
+    console.error('[Drift] getCombinedBehavior error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get behavior as prompt instructions
+ */
+exports.getBehaviorPromptInstructions = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, sessionContext, profileId } = request.data;
+    if (!userId) {
+      return { success: false, error: 'userId required' };
+    }
+    const result = await drift.getBehaviorPromptInstructions(userId, sessionContext || {}, profileId || 'default');
+    return { success: true, ...result };
+  } catch (error) {
+    console.error('[Drift] getBehaviorPromptInstructions error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get user drift state
+ */
+exports.getUserDrift = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, profileId } = request.data;
+    if (!userId) {
+      return { success: false, error: 'userId required' };
+    }
+    const userDrift = await drift.getUserDrift(userId, profileId || 'default');
+    return { success: true, drift: userDrift };
+  } catch (error) {
+    console.error('[Drift] getUserDrift error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get global drift state
+ */
+exports.getGlobalDrift = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const globalDrift = await drift.getGlobalDrift();
+    return { success: true, drift: globalDrift };
+  } catch (error) {
+    console.error('[Drift] getGlobalDrift error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get drift history
+ */
+exports.getDriftHistory = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { scope, userId, profileId, limit } = request.data;
+    const history = await drift.getDriftHistory(scope || 'global', userId, profileId || 'default', limit || 10);
+    return { success: true, history };
+  } catch (error) {
+    console.error('[Drift] getDriftHistory error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Process user feedback for drift
+ */
+exports.processDriftFeedback = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, feedbackType, intensity, profileId } = request.data;
+    if (!userId || !feedbackType) {
+      return { success: false, error: 'userId and feedbackType required' };
+    }
+    const result = await drift.processUserFeedback(userId, feedbackType, intensity || 1.0, profileId || 'default');
+    return { success: true, ...result };
+  } catch (error) {
+    console.error('[Drift] processDriftFeedback error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get drift status (for monitoring)
+ */
+exports.getDriftStatus = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const status = await drift.getDriftStatus();
+    return { success: true, status };
+  } catch (error) {
+    console.error('[Drift] getDriftStatus error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get behavior summary (for debugging)
+ */
+exports.getBehaviorSummary = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, sessionContext, profileId } = request.data;
+    if (!userId) {
+      return { success: false, error: 'userId required' };
+    }
+    const summary = await drift.getBehaviorSummary(userId, sessionContext || {}, profileId || 'default');
+    return { success: true, summary };
+  } catch (error) {
+    console.error('[Drift] getBehaviorSummary error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Run nightly drift update (admin/scheduled)
+ */
+exports.runNightlyDriftUpdate = onCall({
+  timeoutSeconds: 300,
+  memory: '1GiB'
+}, async (request) => {
+  try {
+    // Verify admin (optional - add auth check)
+    const result = await drift.runNightlyDriftUpdate();
+    return { success: true, result };
+  } catch (error) {
+    console.error('[Drift] runNightlyDriftUpdate error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Force global drift update (admin only)
+ */
+exports.forceGlobalDriftUpdate = onCall({
+  timeoutSeconds: 60,
+  memory: '512MiB'
+}, async (request) => {
+  try {
+    // Verify admin (optional - add auth check)
+    const result = await drift.forceGlobalDriftUpdate();
+    return { success: true, result };
+  } catch (error) {
+    console.error('[Drift] forceGlobalDriftUpdate error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get voice parameters based on behavior
+ */
+exports.getVoiceParameters = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  try {
+    const { userId, sessionContext, profileId } = request.data;
+    if (!userId) {
+      return { success: false, error: 'userId required' };
+    }
+    const voiceParams = await drift.getVoiceParameters(userId, sessionContext || {}, profileId || 'default');
+    return { success: true, voiceParameters: voiceParams };
+  } catch (error) {
+    console.error('[Drift] getVoiceParameters error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Session end hook - update user drift
+ */
+exports.onSessionEnd = onCall({
+  timeoutSeconds: 60,
+  memory: '512MiB'
+}, async (request) => {
+  try {
+    const { userId, conversationId, sessionMetrics, profileId } = request.data;
+    if (!userId || !conversationId || !sessionMetrics) {
+      return { success: false, error: 'userId, conversationId, and sessionMetrics required' };
+    }
+    const result = await drift.onSessionEnd(userId, conversationId, sessionMetrics, profileId || 'default');
+    return { success: true, result };
+  } catch (error) {
+    console.error('[Drift] onSessionEnd error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// =============================================================================
+// ADMIN DASHBOARD ENDPOINTS
+// =============================================================================
+
+// --- Drift Admin ---
+exports.adminGetGlobalDrift = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetGlobalDrift);
+exports.adminUpdateGlobalDrift = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleUpdateGlobalDrift);
+exports.adminForceGlobalDrift = onCall({ timeoutSeconds: 60, memory: '512MiB' }, adminModule.handleForceGlobalDrift);
+exports.adminGetGlobalDriftHistory = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetGlobalDriftHistory);
+exports.adminRollbackGlobalDrift = onCall({ timeoutSeconds: 60, memory: '512MiB' }, adminModule.handleRollbackGlobalDrift);
+exports.adminToggleGlobalDrift = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleToggleGlobalDrift);
+exports.adminSearchUserDrift = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleSearchUserDrift);
+exports.adminGetUserDrift = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetUserDrift);
+exports.adminUpdateUserDrift = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleUpdateUserDrift);
+exports.adminPauseUserDrift = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handlePauseUserDrift);
+exports.adminResetUserDrift = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleResetUserDrift);
+exports.adminGetDriftAnalytics = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetDriftAnalytics);
+
+// --- Timeline Admin ---
+exports.adminGetPendingMerges = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetPendingMerges);
+exports.adminGetMergeCandidate = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetMergeCandidate);
+exports.adminApproveMerge = onCall({ timeoutSeconds: 60, memory: '512MiB' }, adminModule.handleApproveMerge);
+exports.adminRollbackMerge = onCall({ timeoutSeconds: 60, memory: '512MiB' }, adminModule.handleRollbackMerge);
+exports.adminSearchEvents = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleSearchEvents);
+exports.adminGetEventDetails = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetEventDetails);
+exports.adminUpdateEvent = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleUpdateEvent);
+exports.adminDeleteEvent = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleDeleteEvent);
+exports.adminGetQuestionQueue = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetQuestionQueue);
+exports.adminGetQuestionDetails = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetQuestionDetails);
+exports.adminMarkQuestionAnswered = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleMarkQuestionAnswered);
+exports.adminApplyQuestionAnswer = onCall({ timeoutSeconds: 60, memory: '512MiB' }, adminModule.handleApplyQuestionAnswer);
+exports.adminBulkMarkAnswered = onCall({ timeoutSeconds: 60, memory: '512MiB' }, adminModule.handleBulkMarkAnswered);
+
+// --- Jobs Admin ---
+exports.adminRunNightlyDrift = onCall({ timeoutSeconds: 300, memory: '1GiB' }, adminModule.handleRunNightlyDrift);
+exports.adminRunMemoryConsolidation = onCall({ timeoutSeconds: 300, memory: '1GiB' }, adminModule.handleRunMemoryConsolidation);
+exports.adminRunTimelineReprocess = onCall({ timeoutSeconds: 300, memory: '1GiB' }, adminModule.handleRunTimelineReprocess);
+exports.adminRunCleanup = onCall({ timeoutSeconds: 300, memory: '1GiB' }, adminModule.handleRunCleanup);
+exports.adminGetJobStatus = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetJobStatus);
+exports.adminGetRecentJobs = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetRecentJobs);
+
+// --- Audit Admin ---
+exports.adminGetAuditLog = onCall({ timeoutSeconds: 30, memory: '256MiB' }, adminModule.handleGetAuditLog);
+
+// =============================================================================
+// CONSOLIDATION ENGINE V2 (4-Brain Memory Architecture)
+// =============================================================================
+// Luna's "Sleep Cycle" - Nightly consolidation of memories
+// Added: December 23, 2025
+
+const consolidationScheduler = require('./memory/consolidationScheduler');
+
+// Scheduled Jobs (Cloud Scheduler)
+exports.nightlyConsolidationV2 = consolidationScheduler.nightlyConsolidationV2;
+exports.weeklyDeepConsolidation = consolidationScheduler.weeklyDeepConsolidation;
+
+// Admin Callable Functions
+exports.triggerConsolidation = consolidationScheduler.triggerConsolidation;
+exports.getConsolidationHistory = consolidationScheduler.getConsolidationHistory;
+exports.getConsolidationStats = consolidationScheduler.getConsolidationStats;
+exports.dryRunConsolidation = consolidationScheduler.dryRunConsolidation;
+
+// Pending Promotions & LLM Dry-Run
+exports.getPendingPromotions = consolidationScheduler.getPendingPromotions;
+exports.reviewPendingPromotion = consolidationScheduler.reviewPendingPromotion;
+exports.dryRunLLMConsolidation = consolidationScheduler.dryRunLLMConsolidation;
+
+// Monitoring & Metrics
+exports.getConsolidationMetrics = consolidationScheduler.getConsolidationMetrics;
+exports.getUserConsolidationStats = consolidationScheduler.getUserConsolidationStats;
+
+// Rollback API (Safe revert of LTM promotions)
+const consolidationRollback = require('./memory/consolidationRollback');
+exports.revertConsolidation = consolidationRollback.revertConsolidation;
+exports.getRevertHistory = consolidationRollback.getRevertHistory;
+exports.getRevertDetail = consolidationRollback.getRevertDetail;
+exports.checkRevertEligibility = consolidationRollback.checkRevertEligibility;
+exports.reEnableRevertedLtm = consolidationRollback.reEnableRevertedLtm;

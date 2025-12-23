@@ -213,8 +213,8 @@ export default function CuspDetailPanel({ cusp, compareTo = null, isUserCusp = f
               {cusp.type === 'pure'
                 ? `Undiluted ${cusp.sign} energy - classic textbook traits`
                 : cusp.type === 'blend-back'
-                  ? `${cusp.previousSign}'s influence blending INTO ${cusp.sign}`
-                  : `${cusp.sign}'s energy blending INTO ${cusp.nextSign}`
+                  ? `${cusp.influencedBy}'s influence blending INTO ${cusp.sign}`
+                  : `${cusp.sign}'s energy blending INTO ${cusp.influencedBy}`
               }
             </span>
           </div>

@@ -38,7 +38,7 @@
  *   Example: Metal in Spring (trying to chop massive forest)
  */
 
-const SEASONAL_MULTIPLIERS = {
+export const SEASONAL_MULTIPLIERS = {
   spring: {
     Wood: 1.5,   // 王 King - Rules the season
     Fire: 1.2,   // 相 Child - Wood produces Fire
@@ -106,7 +106,7 @@ const MONTH_BRANCH_TO_SEASON = {
   'Ox': 'earth'         // Special: Winter Earth (transition)
 };
 
-const SEASON_NAMES = {
+export const SEASON_NAMES = {
   spring: '🌸 Spring (Wood Season)',
   summer: '☀️ Summer (Fire Season)',
   autumn: '🍂 Autumn (Metal Season)',
@@ -114,7 +114,7 @@ const SEASON_NAMES = {
   earth: '🌍 Earth Season (Transition)'
 };
 
-const QI_STATE_NAMES = {
+export const QI_STATE_NAMES = {
   1.5: '王 Prosperous (King)',
   1.2: '相 Strengthening (Child)',
   0.8: '休 Resting (Mother)',

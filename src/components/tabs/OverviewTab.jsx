@@ -9,6 +9,37 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { MoonPhaseCompact } from '../common/MoonPhaseWidget';
+
+/**
+ * Get Day Master display string with defensive null checks
+ * Handles various data structures gracefully
+ *
+ * @param {Object} fourPillars - BaZi four pillars data
+ * @returns {string} Formatted Day Master display string
+ */
+function getDayMasterDisplay(fourPillars) {
+  if (!fourPillars?.dayMaster) {
+    return 'Four Pillars of Destiny';
+  }
+
+  const dm = fourPillars.dayMaster;
+
+  // Try multiple property paths for robustness
+  const char = dm.char || dm.chinese?.charAt?.(0) || '';
+  const element = dm.element || dm.english || '';
+  const polarity = dm.polarity || '';
+
+  // Build display string
+  const parts = [char, element, polarity].filter(Boolean);
+
+  if (parts.length === 0) {
+    // Fallback: try fullName
+    return dm.fullName || 'Day Master';
+  }
+
+  return parts.join(' ').trim();
+}
 
 export default function OverviewTab({
   profile,
@@ -42,9 +73,7 @@ export default function OverviewTab({
       title: 'BaZi (八字)',
       icon: '☯️',
       gradient: 'from-purple-500 to-pink-600',
-      summary: fourPillars
-        ? `${fourPillars.dayMaster?.element || 'Unknown'} ${fourPillars.dayMaster?.polarity || 'Day Master'}`
-        : 'Four Pillars of Destiny',
+      summary: getDayMasterDisplay(fourPillars),
       details: chinese?.animal
         ? `${chinese.element} ${chinese.animal} • ${chinese.year}`
         : 'Calculate your destiny chart',
@@ -106,6 +135,13 @@ export default function OverviewTab({
           {profile.displayName || profile.firstName || 'Your'}'s complete astrological and psychological profile
         </p>
         <div className="h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent max-w-md mx-auto" />
+
+        {/* Current Moon Phase - Quick Status */}
+        <div className="flex justify-center mt-4">
+          <div className="bg-indigo-900/40 backdrop-blur-sm rounded-full px-4 py-2 border border-indigo-500/30">
+            <MoonPhaseCompact sunSign={westZodiac?.sign} showSensitivity={true} />
+          </div>
+        </div>
       </motion.div>
 
       {/* Archetype Highlight (if available) */}

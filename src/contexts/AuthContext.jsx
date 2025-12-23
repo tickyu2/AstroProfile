@@ -10,6 +10,7 @@ import {
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '../config/firebase'
+import { clearConversationCache } from '../services/aiSoulPartnerService'
 
 const AuthContext = createContext({})
 
@@ -121,6 +122,9 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       setError(null)
+      // Clear all caches before logout (security: prevent data leakage to next user)
+      clearConversationCache()
+      console.log('🔐 [AuthContext] Cleared all caches on logout')
       await signOut(auth)
     } catch (err) {
       setError(err.message)

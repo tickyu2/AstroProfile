@@ -1,0 +1,68 @@
+/**
+ * accessibleModal.css - Styles for AccessibleModal wrapper
+ *
+ * Dark theme matching admin UI.
+ * December 23, 2025
+ */
+
+.am-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 8, 15, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  animation: am-fade-in 0.15s ease-out;
+}
+
+@keyframes am-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.am-modal {
+  width: 560px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: linear-gradient(145deg, #0a1520, #071018);
+  color: #e6eef8;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.6),
+    0 0 1px rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  animation: am-slide-up 0.2s ease-out;
+}
+
+@keyframes am-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar styling for modal content */
+.am-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.am-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.am-modal::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.am-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}

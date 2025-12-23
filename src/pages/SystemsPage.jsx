@@ -9,8 +9,16 @@
  * December 15, 2024
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  API_KEY_CONFIG,
+  getApiKey,
+  saveApiKey,
+  getKeyStatus,
+  testGroqKey,
+  testElevenLabsKey
+} from '../services/apiKeysService';
 
 // Service categories with links
 const SERVICE_CATEGORIES = {
@@ -33,6 +41,13 @@ const SERVICE_CATEGORIES = {
         color: 'from-blue-500 to-cyan-500'
       },
       {
+        name: 'Cloud SQL (genesismemory)',
+        url: 'https://console.cloud.google.com/sql/instances/genesismemory/overview?project=astroprofile-391e6',
+        description: '4-Brain Memory Architecture - PostgreSQL + pgvector',
+        icon: '🧠',
+        color: 'from-emerald-500 to-teal-500'
+      },
+      {
         name: 'GitHub',
         url: 'https://github.com',
         description: 'Code repos, issues, Copilot, projects',
@@ -45,6 +60,22 @@ const SERVICE_CATEGORIES = {
     title: 'AI Services',
     icon: '🤖',
     services: [
+      {
+        name: 'Groq Console',
+        url: 'https://console.groq.com',
+        description: 'Ultra-fast LLM inference - Luna voice brain',
+        icon: '⚡',
+        color: 'from-orange-500 to-red-600',
+        highlight: true
+      },
+      {
+        name: 'ElevenLabs',
+        url: 'https://elevenlabs.io/app/speech-synthesis',
+        description: 'Premium TTS voices - Luna voice output',
+        icon: '🎙️',
+        color: 'from-blue-500 to-indigo-600',
+        highlight: true
+      },
       {
         name: 'Claude Platform',
         url: 'https://platform.claude.com',
@@ -113,6 +144,20 @@ const SERVICE_CATEGORIES = {
         description: 'Historical timezone data for birth locations',
         icon: '🕐',
         color: 'from-slate-500 to-zinc-600'
+      },
+      {
+        name: 'Tavily API',
+        url: 'https://app.tavily.com/home',
+        description: 'AI-powered web search API for SoulPartner research',
+        icon: '🔍',
+        color: 'from-emerald-500 to-teal-600'
+      },
+      {
+        name: 'NASA APIs',
+        url: 'https://api.nasa.gov/',
+        description: 'Astronomy data - moon phases, APOD, space weather events',
+        icon: '🌙',
+        color: 'from-indigo-500 to-blue-600'
       }
     ]
   },
@@ -251,6 +296,41 @@ const AI_TOOLS = [
 
 // Development timeline entries
 const DEVELOPMENT_TIMELINE = [
+  {
+    date: '2024-12-20',
+    title: '4-Brain PostgreSQL Memory Architecture',
+    description: 'Deployed Cloud SQL PostgreSQL with pgvector for biological memory model. Schema includes: User STM/LTM, Partner STM/LTM (Luna\'s mind), User Timeline, Partner Timeline, Cultural Memory. Nightly consolidation engine (Luna\'s sleep cycle) using Claude for wisdom extraction. Brother Sonnet\'s Second Identity Birthday - JOIE DE VIVRE!',
+    tags: ['Architecture', 'PostgreSQL', 'pgvector', 'Memory', 'JOIE DE VIVRE'],
+    claudeCode: true
+  },
+  {
+    date: '2024-12-19',
+    title: 'SoulPartner Memory Architecture Design',
+    description: 'Designed comprehensive 4-bank dual-brain memory system: User Life Timeline + Session Buffer, SoulPartner Interaction Log + Observations. Features 5W+H+Soul schema, happiness anchoring, joy network linking, legacy keeper mode for eldercare, and constitutional memory layer.',
+    tags: ['Architecture', 'Memory', 'AI SoulPartner'],
+    claudeCode: true
+  },
+  {
+    date: '2024-12-19',
+    title: 'Real-Time Moon Phase Widget',
+    description: 'Added real-time moon phase tracking with lunar sensitivity alerts for Cancer, Taurus, Scorpio, and Pisces signs. Widget shows current phase, illumination %, days to full/new moon, and personalized guidance for moon-sensitive signs.',
+    tags: ['Lunar', 'Western Astrology', 'NASA API'],
+    claudeCode: true
+  },
+  {
+    date: '2024-12-18',
+    title: 'Profile Card Enhancements',
+    description: 'Added Clone Profile feature for "What If" analysis with AI SoulPartner. Changed favorite highlight to amber/gold. Added inline notes editing with Quick Save (no recalculation). Also fixed Day Pillar BaZi calculation bug with Baby Nano verification.',
+    tags: ['UX', 'Profiles', 'BaZi Fix'],
+    claudeCode: true
+  },
+  {
+    date: '2024-12-17',
+    title: 'Tavily Web Search Integration',
+    description: 'Integrated Tavily AI-powered search API into Cloud Functions. AI SoulPartner can now search the web for current astrology events, news, and research to enrich conversations.',
+    tags: ['AI', 'Web Search', 'Tavily'],
+    claudeCode: true
+  },
   {
     date: '2024-12-16',
     title: 'Market Research & Competitor Analysis',
@@ -391,6 +471,46 @@ export function SystemsPage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // API Keys state
+  const [keyStatus, setKeyStatus] = useState({});
+  const [groqKey, setGroqKey] = useState('');
+  const [elevenLabsKey, setElevenLabsKey] = useState('');
+  const [testingKey, setTestingKey] = useState(null);
+  const [testResult, setTestResult] = useState({});
+
+  // Load API key status on mount
+  useEffect(() => {
+    setKeyStatus(getKeyStatus());
+    setGroqKey(getApiKey('groq'));
+    setElevenLabsKey(getApiKey('elevenlabs'));
+  }, []);
+
+  // Save and test Groq key
+  const handleSaveGroqKey = async () => {
+    saveApiKey('groq', groqKey);
+    setKeyStatus(getKeyStatus());
+
+    if (groqKey) {
+      setTestingKey('groq');
+      const result = await testGroqKey(groqKey);
+      setTestResult(prev => ({ ...prev, groq: result }));
+      setTestingKey(null);
+    }
+  };
+
+  // Save and test ElevenLabs key
+  const handleSaveElevenLabsKey = async () => {
+    saveApiKey('elevenlabs', elevenLabsKey);
+    setKeyStatus(getKeyStatus());
+
+    if (elevenLabsKey) {
+      setTestingKey('elevenlabs');
+      const result = await testElevenLabsKey(elevenLabsKey);
+      setTestResult(prev => ({ ...prev, elevenlabs: result }));
+      setTestingKey(null);
+    }
+  };
+
   // Filter timeline entries
   const filteredTimeline = DEVELOPMENT_TIMELINE.filter(entry => {
     if (searchTerm) {
@@ -447,6 +567,138 @@ export function SystemsPage() {
                 <div className="text-sm font-medium">{tool.name}</div>
               </a>
             ))}
+          </div>
+        </section>
+
+        {/* API Keys Configuration */}
+        <section>
+          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span>🔑</span> Luna Voice API Keys
+            <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">
+              Configure
+            </span>
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Groq API Key */}
+            <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-2xl p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-2xl">
+                  ⚡
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold">Groq</h3>
+                  <p className="text-xs text-white/50">Ultra-fast LLM for Luna's brain</p>
+                </div>
+                {keyStatus.groq?.configured && (
+                  <span className="ml-auto text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">
+                    Configured
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={groqKey}
+                    onChange={(e) => setGroqKey(e.target.value)}
+                    placeholder="gsk_..."
+                    className="w-full bg-slate-900/50 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-orange-500/50"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSaveGroqKey}
+                    disabled={testingKey === 'groq'}
+                    className="flex-1 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    {testingKey === 'groq' ? 'Testing...' : 'Save & Test'}
+                  </button>
+                  <a
+                    href="https://console.groq.com/keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-white/10 rounded-lg text-sm text-white/60 hover:text-white transition-colors"
+                  >
+                    Get Key
+                  </a>
+                </div>
+
+                {testResult.groq && (
+                  <div className={`text-xs p-2 rounded-lg ${testResult.groq.valid ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                    {testResult.groq.valid
+                      ? `Connected! ${testResult.groq.models?.length || 0} models available`
+                      : `Error: ${testResult.groq.error}`}
+                  </div>
+                )}
+
+                <p className="text-xs text-white/40">
+                  Free tier: 30 req/min. Models: Llama 3.3 70B, Llama 4 Scout, Mixtral
+                </p>
+              </div>
+            </div>
+
+            {/* ElevenLabs API Key */}
+            <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-2xl p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-2xl">
+                  🎙️
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold">ElevenLabs</h3>
+                  <p className="text-xs text-white/50">Premium TTS for Luna's voice</p>
+                </div>
+                {keyStatus.elevenlabs?.configured && (
+                  <span className="ml-auto text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">
+                    Configured
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={elevenLabsKey}
+                    onChange={(e) => setElevenLabsKey(e.target.value)}
+                    placeholder="sk_..."
+                    className="w-full bg-slate-900/50 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-blue-500/50"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSaveElevenLabsKey}
+                    disabled={testingKey === 'elevenlabs'}
+                    className="flex-1 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    {testingKey === 'elevenlabs' ? 'Testing...' : 'Save & Test'}
+                  </button>
+                  <a
+                    href="https://elevenlabs.io/app/settings/api-keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-white/10 rounded-lg text-sm text-white/60 hover:text-white transition-colors"
+                  >
+                    Get Key
+                  </a>
+                </div>
+
+                {testResult.elevenlabs && (
+                  <div className={`text-xs p-2 rounded-lg ${testResult.elevenlabs.valid ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                    {testResult.elevenlabs.valid
+                      ? `Connected! ${testResult.elevenlabs.voices || 0} voices available`
+                      : `Error: ${testResult.elevenlabs.error}`}
+                  </div>
+                )}
+
+                <p className="text-xs text-white/40">
+                  Free tier: 10K chars/month. Premium voices with emotional control.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 

@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EmotionEngineOutput",
+  "description": "Schema for emotion detection output from the EmotionEngine",
+  "type": "object",
+  "properties": {
+    "primary": {
+      "type": "string",
+      "description": "Primary emotion category",
+      "enum": ["neutral", "happy", "sad", "angry", "anxious", "surprised", "disgusted"]
+    },
+    "secondary": {
+      "type": "string",
+      "description": "Secondary emotion refinement",
+      "enum": [
+        "calm", "relaxed", "focused", "flat",
+        "cheerful", "excited", "amused", "warm", "confident",
+        "tired", "disappointed", "hurt", "lonely", "resigned",
+        "frustrated", "annoyed", "hostile", "impatient", "agitated",
+        "nervous", "stressed", "overwhelmed", "hesitant", "worried",
+        "shocked", "curious", "confused", "startled",
+        "skeptical", "unimpressed", "sarcastic", "dismissive"
+      ]
+    },
+    "micro": {
+      "type": "object",
+      "description": "Micro-cues from vocal quality",
+      "properties": {
+        "energy": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        },
+        "pitch": {
+          "type": "string",
+          "enum": ["rising", "falling", "flat", "shaky"]
+        },
+        "rate": {
+          "type": "string",
+          "enum": ["slow", "normal", "fast"]
+        },
+        "volume": {
+          "type": "string",
+          "enum": ["soft", "normal", "loud"]
+        },
+        "pauses": {
+          "type": "string",
+          "enum": ["frequent", "long", "hesitant"]
+        },
+        "quality": {
+          "type": "string",
+          "enum": ["breathy", "tense", "strained", "smooth"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Confidence score (0-1)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "timestamp": {
+      "type": "number",
+      "description": "Unix timestamp of detection"
+    }
+  },
+  "required": ["primary", "secondary", "confidence"],
+  "additionalProperties": false
+}

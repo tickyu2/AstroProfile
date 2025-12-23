@@ -1,0 +1,9 @@
+/**
+ * LLM Module Exports
+ */
+
+const embeddings = require('./embeddings');
+
+module.exports = {
+  ...embeddings
+};

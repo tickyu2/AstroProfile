@@ -1,0 +1,361 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * SOUL VISUALIZER - Ethereal Voice Animation Styles
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *
+ * Creates a mystical, audio-reactive "soul" visualization:
+ * - Breathing animation when idle
+ * - Pulsing glow when speaking
+ * - Particle effects for energy
+ * - Constitutional color theming
+ *
+ * Created: December 21, 2025
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   CONTAINER
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.soul-visualizer-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: var(--container-size, 200px);
+  height: var(--container-size, 200px);
+  perspective: 1000px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   AURA RINGS
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.soul-aura {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--soul-aura, rgba(78, 205, 196, 0.3));
+  pointer-events: none;
+}
+
+.soul-aura-1 {
+  width: 100%;
+  height: 100%;
+  animation: aura-pulse 4s ease-in-out infinite;
+  opacity: 0.4;
+}
+
+.soul-aura-2 {
+  width: 85%;
+  height: 85%;
+  animation: aura-pulse 4s ease-in-out infinite 0.5s;
+  opacity: 0.3;
+}
+
+.soul-aura-3 {
+  width: 70%;
+  height: 70%;
+  animation: aura-pulse 4s ease-in-out infinite 1s;
+  opacity: 0.2;
+}
+
+.speaking .soul-aura {
+  animation-duration: 1.5s;
+}
+
+@keyframes aura-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.4;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   CORE SOUL ORB
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.soul-core {
+  position: relative;
+  width: var(--core-size, 100px);
+  height: var(--core-size, 100px);
+  border-radius: 50%;
+  background: var(--soul-gradient);
+  transition: transform 0.1s ease-out, filter 0.15s ease-out;
+  box-shadow:
+    0 0 20px var(--soul-glow, rgba(78, 205, 196, 0.5)),
+    0 0 40px var(--soul-aura, rgba(30, 144, 255, 0.3)),
+    inset 0 0 30px rgba(255, 255, 255, 0.2);
+  z-index: 2;
+}
+
+/* Breathing animation for idle state */
+.soul-core.breathing {
+  animation: soul-breathe 4s ease-in-out infinite;
+}
+
+@keyframes soul-breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 20px var(--soul-glow),
+      0 0 40px var(--soul-aura),
+      inset 0 0 30px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 35px var(--soul-glow),
+      0 0 60px var(--soul-aura),
+      inset 0 0 40px rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Active speaking state */
+.soul-core.active {
+  animation: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   INNER LIGHT
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.soul-inner-light {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40%;
+  height: 40%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  animation: inner-glow 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.speaking .soul-inner-light {
+  animation: inner-glow-active 0.5s ease-in-out infinite;
+}
+
+@keyframes inner-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+@keyframes inner-glow-active {
+  0%, 100% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   PARTICLES
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.soul-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: var(--soul-primary, #4ECDC4);
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 6px var(--soul-glow);
+}
+
+.idle .particle {
+  animation: particle-orbit 8s linear infinite;
+  animation-delay: var(--delay, 0s);
+  opacity: 0.6;
+}
+
+.speaking .particle {
+  animation: particle-burst 1.5s ease-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes particle-orbit {
+  0% {
+    transform: rotate(var(--angle, 0deg)) translateX(60px) scale(0.5);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+    transform: rotate(calc(var(--angle, 0deg) + 180deg)) translateX(70px) scale(1);
+  }
+  100% {
+    transform: rotate(calc(var(--angle, 0deg) + 360deg)) translateX(60px) scale(0.5);
+    opacity: 0.3;
+  }
+}
+
+@keyframes particle-burst {
+  0% {
+    transform: rotate(var(--angle, 0deg)) translateX(50px) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: rotate(var(--angle, 0deg)) translateX(100px) scale(0);
+    opacity: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   AMPLITUDE RING
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.amplitude-ring {
+  position: absolute;
+  width: calc(var(--core-size, 100px) * 1.5);
+  height: calc(var(--core-size, 100px) * 1.5);
+  border-radius: 50%;
+  border: 2px solid var(--luna-accent, var(--soul-primary));
+  transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   LABELS
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.soul-label {
+  position: absolute;
+  bottom: -30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--soul-primary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.8;
+}
+
+.element-name {
+  font-weight: 600;
+}
+
+.tone-indicator {
+  font-size: 10px;
+  color: var(--luna-accent);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 8px;
+  border-radius: 10px;
+  animation: tone-fade-in 0.3s ease-out;
+}
+
+@keyframes tone-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MINI VISUALIZER (For chat inline)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.soul-mini {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+}
+
+.soul-mini-core {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--soul-primary, #4ECDC4);
+  box-shadow: 0 0 8px var(--soul-glow, rgba(78, 205, 196, 0.5));
+  animation: mini-breathe 3s ease-in-out infinite;
+}
+
+.soul-mini.speaking .soul-mini-core {
+  animation: mini-pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes mini-breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes mini-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 8px var(--soul-glow);
+  }
+  50% {
+    transform: scale(1.2);
+    box-shadow: 0 0 16px var(--soul-glow);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE / THEMES
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* Dark theme enhancements */
+@media (prefers-color-scheme: dark) {
+  .soul-core {
+    box-shadow:
+      0 0 30px var(--soul-glow),
+      0 0 60px var(--soul-aura),
+      inset 0 0 40px rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .soul-core,
+  .soul-aura,
+  .soul-inner-light,
+  .particle,
+  .soul-mini-core {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .soul-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+}

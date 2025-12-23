@@ -1,0 +1,490 @@
+/**
+ * Revert UI Styles
+ * Dark theme styling for consolidation revert interface
+ *
+ * December 23, 2025
+ */
+
+/* ============================================================================
+   REVERT SHELL
+   ============================================================================ */
+
+.revert-shell {
+  padding: 1.5rem;
+  min-height: 100%;
+  color: #e4e4e7;
+}
+
+.revert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.revert-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.revert-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .revert-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================================
+   REVERT LIST
+   ============================================================================ */
+
+.revert-list {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.revert-list .list-item {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #27272a;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.revert-list .list-item:hover {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.revert-list .list-item.selected {
+  background: rgba(99, 102, 241, 0.12);
+  border-left: 3px solid #6366f1;
+}
+
+.item-reason {
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  color: #71717a;
+  font-style: italic;
+}
+
+.actor {
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.count {
+  font-size: 0.75rem;
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+}
+
+/* ============================================================================
+   ERROR BANNER
+   ============================================================================ */
+
+.error-banner {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+/* ============================================================================
+   DETAIL VIEW
+   ============================================================================ */
+
+.detail-root {
+  padding: 1rem;
+}
+
+.detail-header {
+  margin-bottom: 1.25rem;
+}
+
+.detail-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.detail-title-row h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.meta-badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   SUMMARY GRID
+   ============================================================================ */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.875rem;
+  background: #0f0f14;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+}
+
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #6366f1;
+}
+
+.summary-label {
+  font-size: 0.75rem;
+  color: #71717a;
+  margin-top: 0.25rem;
+}
+
+/* ============================================================================
+   IDS CONTAINER
+   ============================================================================ */
+
+.ids-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ids-group {
+  background: #0f0f14;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.ids-title {
+  font-size: 0.6875rem;
+  color: #52525b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.ids-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.id-chip {
+  font-size: 0.6875rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(99, 102, 241, 0.1);
+  color: #a5b4fc;
+  border-radius: 4px;
+}
+
+.id-chip.stm {
+  background: rgba(34, 197, 94, 0.1);
+  color: #86efac;
+}
+
+/* ============================================================================
+   SNAPSHOT TABS
+   ============================================================================ */
+
+.snapshot-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #27272a;
+  padding-bottom: 0.25rem;
+}
+
+.tab-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 4px 4px 0 0;
+  color: #71717a;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-btn:hover {
+  color: #a1a1aa;
+}
+
+.tab-btn.active {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border-bottom: 2px solid #6366f1;
+}
+
+.snapshot-content {
+  min-height: 200px;
+}
+
+.summary-content {
+  padding: 1rem;
+  color: #a1a1aa;
+  line-height: 1.6;
+}
+
+.summary-content strong {
+  color: #e4e4e7;
+}
+
+.snapshot-block {
+  background: #0f0f14;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+  padding: 0.875rem;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.json-block {
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+
+/* ============================================================================
+   DIFF VIEWER
+   ============================================================================ */
+
+.diff-root {
+  background: #0f0f14;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.diff-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid #27272a;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: #71717a;
+}
+
+.stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.stat-item.changed .stat-dot {
+  background: #f59e0b;
+}
+
+.stat-item.added .stat-dot {
+  background: #22c55e;
+}
+
+.stat-item.removed .stat-dot {
+  background: #ef4444;
+}
+
+.stat-item.unchanged .stat-dot {
+  background: #52525b;
+}
+
+.diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.diff-col {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.diff-col-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.375rem 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #27272a;
+}
+
+.diff-row {
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.375rem;
+  background: transparent;
+}
+
+.diff-row.changed {
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 2px solid #f59e0b;
+}
+
+.diff-row.added {
+  background: rgba(34, 197, 94, 0.08);
+  border-left: 2px solid #22c55e;
+}
+
+.diff-row.removed {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 2px solid #ef4444;
+}
+
+.diff-row.unchanged {
+  opacity: 0.5;
+}
+
+.diff-key {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #e4e4e7;
+  margin-bottom: 0.375rem;
+}
+
+.diff-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.diff-row.changed .diff-indicator {
+  background: #f59e0b;
+}
+
+.diff-row.added .diff-indicator {
+  background: #22c55e;
+}
+
+.diff-row.removed .diff-indicator {
+  background: #ef4444;
+}
+
+.diff-row.unchanged .diff-indicator {
+  background: #52525b;
+}
+
+.diff-value {
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.5rem;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  max-height: 100px;
+  overflow: auto;
+}
+
+.diff-value .placeholder {
+  color: #52525b;
+}
+
+.diff-empty {
+  text-align: center;
+  color: #52525b;
+  padding: 2rem;
+  font-size: 0.875rem;
+}
+
+/* ============================================================================
+   INLINE DIFF
+   ============================================================================ */
+
+.inline-diff {
+  font-family: monospace;
+  font-size: 0.8125rem;
+}
+
+.inline-before {
+  display: block;
+  color: #f87171;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.inline-after {
+  display: block;
+  color: #86efac;
+}
+
+.inline-same {
+  color: #71717a;
+}
+
+/* ============================================================================
+   SCROLLBAR
+   ============================================================================ */
+
+.revert-list::-webkit-scrollbar,
+.diff-grid::-webkit-scrollbar,
+.snapshot-block::-webkit-scrollbar,
+.diff-value::-webkit-scrollbar {
+  width: 6px;
+}
+
+.revert-list::-webkit-scrollbar-track,
+.diff-grid::-webkit-scrollbar-track,
+.snapshot-block::-webkit-scrollbar-track,
+.diff-value::-webkit-scrollbar-track {
+  background: #0f0f14;
+}
+
+.revert-list::-webkit-scrollbar-thumb,
+.diff-grid::-webkit-scrollbar-thumb,
+.snapshot-block::-webkit-scrollbar-thumb,
+.diff-value::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 3px;
+}
+
+.revert-list::-webkit-scrollbar-thumb:hover,
+.diff-grid::-webkit-scrollbar-thumb:hover,
+.snapshot-block::-webkit-scrollbar-thumb:hover,
+.diff-value::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}

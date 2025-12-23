@@ -4,9 +4,12 @@ import { useNavigate } from 'react-router-dom'
 import { useProfiles } from '../../contexts/ProfileContext'
 
 export default function ProfileCard({ profile }) {
-  const { archiveProfile, toggleFavorite } = useProfiles()
+  const { archiveProfile, toggleFavorite, cloneProfile, quickSaveProfile } = useProfiles()
   const [loading, setLoading] = useState(false)
   const [notesExpanded, setNotesExpanded] = useState(false)
+  const [editingNotes, setEditingNotes] = useState(false)
+  const [notesValue, setNotesValue] = useState(profile.notes || '')
+  const [savingNotes, setSavingNotes] = useState(false)
   const navigate = useNavigate()
 
   // Click card body → View Results
@@ -46,6 +49,54 @@ export default function ProfileCard({ profile }) {
   const handleToggleNotes = (e) => {
     e.stopPropagation()
     setNotesExpanded(!notesExpanded)
+  }
+
+  // Clone profile for "what if" analysis
+  const handleClone = async (e) => {
+    e.stopPropagation()
+    const newName = window.prompt(
+      `Clone "${profile.displayName}"?\n\nEnter name for the clone:`,
+      `${profile.displayName} (What If)`
+    )
+    if (newName) {
+      try {
+        setLoading(true)
+        await cloneProfile(profile.id, newName)
+      } catch (err) {
+        alert('Error cloning profile: ' + err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
+
+  // Quick save notes without recalculation
+  const handleQuickSaveNotes = async (e) => {
+    e.stopPropagation()
+    try {
+      setSavingNotes(true)
+      await quickSaveProfile(profile.id, { notes: notesValue })
+      setEditingNotes(false)
+    } catch (err) {
+      alert('Error saving notes: ' + err.message)
+    } finally {
+      setSavingNotes(false)
+    }
+  }
+
+  // Start editing notes inline
+  const handleStartEditNotes = (e) => {
+    e.stopPropagation()
+    setNotesValue(profile.notes || '')
+    setEditingNotes(true)
+    setNotesExpanded(true)
+  }
+
+  // Cancel editing notes
+  const handleCancelEditNotes = (e) => {
+    e.stopPropagation()
+    setNotesValue(profile.notes || '')
+    setEditingNotes(false)
   }
 
   // ============================================
@@ -115,10 +166,12 @@ export default function ProfileCard({ profile }) {
   return (
     <div
       onClick={handleViewResults}
-      className={`group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 
-                  hover:bg-white/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20
+      className={`group relative backdrop-blur-sm rounded-xl p-5
                   transition-all duration-300 cursor-pointer
-                  ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+                  ${loading ? 'opacity-50 pointer-events-none' : ''}
+                  ${profile.isFavorite
+                    ? 'bg-amber-500/10 border-2 border-amber-400/40 hover:bg-amber-500/15 hover:border-amber-400/60 hover:shadow-lg hover:shadow-amber-500/20'
+                    : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20'}`}
     >
       {/* Click hint - appears on hover */}
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-purple-300">
@@ -163,6 +216,15 @@ export default function ProfileCard({ profile }) {
             ) : (
               <span className="text-gray-500">☆</span>
             )}
+          </button>
+
+          {/* Clone Icon - for "what if" analysis */}
+          <button
+            onClick={handleClone}
+            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors opacity-60 group-hover:opacity-100"
+            title="Clone profile (What If analysis)"
+          >
+            <span className="text-purple-400">📋</span>
           </button>
 
           {/* Delete Icon */}
@@ -211,7 +273,7 @@ export default function ProfileCard({ profile }) {
         )}
       </div>
 
-      {/* Notes Section - Collapsible */}
+      {/* Notes Section - Collapsible with Inline Edit */}
       {hasNotes && (
         <div className="mt-3 pt-3 border-t border-white/10">
           <button
@@ -222,37 +284,90 @@ export default function ProfileCard({ profile }) {
             <span>Notes</span>
             <span className="ml-auto text-white/40">{notesExpanded ? '▼' : '▶'}</span>
           </button>
-          
+
           {notesExpanded && (
             <div className="mt-2 p-3 bg-slate-900/50 rounded-lg border border-cyan-500/20">
-              <p className="text-white/80 text-sm whitespace-pre-wrap">{profile.notes}</p>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigate(`/results/${profile.id}#notes`)
-                }}
-                className="mt-2 text-xs text-cyan-400 hover:text-cyan-300 hover:underline"
-              >
-                Edit notes →
-              </button>
+              {editingNotes ? (
+                <>
+                  <textarea
+                    value={notesValue}
+                    onChange={(e) => setNotesValue(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full bg-slate-800 text-white/90 text-sm p-2 rounded border border-cyan-500/30 focus:border-cyan-400 focus:outline-none resize-none"
+                    rows={4}
+                    placeholder="Add your notes here..."
+                  />
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={handleQuickSaveNotes}
+                      disabled={savingNotes}
+                      className="px-3 py-1 bg-green-500/80 hover:bg-green-500 text-white text-xs rounded transition-colors disabled:opacity-50"
+                    >
+                      {savingNotes ? '💾 Saving...' : '💾 Save Changes'}
+                    </button>
+                    <button
+                      onClick={handleCancelEditNotes}
+                      className="px-3 py-1 bg-gray-500/50 hover:bg-gray-500/70 text-white/70 text-xs rounded transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-white/80 text-sm whitespace-pre-wrap">{profile.notes}</p>
+                  <button
+                    onClick={handleStartEditNotes}
+                    className="mt-2 text-xs text-cyan-400 hover:text-cyan-300 hover:underline"
+                  >
+                    Edit notes →
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* No notes indicator - subtle */}
+      {/* No notes indicator - with inline add option */}
       {!hasNotes && (
         <div className="mt-3 pt-3 border-t border-white/10">
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              navigate(`/results/${profile.id}#notes`)
-            }}
-            className="flex items-center gap-2 text-sm text-white/40 hover:text-cyan-400 transition-colors"
-          >
-            <span>📝</span>
-            <span>Add notes...</span>
-          </button>
+          {editingNotes ? (
+            <div className="p-3 bg-slate-900/50 rounded-lg border border-cyan-500/20">
+              <textarea
+                value={notesValue}
+                onChange={(e) => setNotesValue(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full bg-slate-800 text-white/90 text-sm p-2 rounded border border-cyan-500/30 focus:border-cyan-400 focus:outline-none resize-none"
+                rows={3}
+                placeholder="Add your notes here..."
+                autoFocus
+              />
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={handleQuickSaveNotes}
+                  disabled={savingNotes || !notesValue.trim()}
+                  className="px-3 py-1 bg-green-500/80 hover:bg-green-500 text-white text-xs rounded transition-colors disabled:opacity-50"
+                >
+                  {savingNotes ? '💾 Saving...' : '💾 Save Changes'}
+                </button>
+                <button
+                  onClick={handleCancelEditNotes}
+                  className="px-3 py-1 bg-gray-500/50 hover:bg-gray-500/70 text-white/70 text-xs rounded transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleStartEditNotes}
+              className="flex items-center gap-2 text-sm text-white/40 hover:text-cyan-400 transition-colors"
+            >
+              <span>📝</span>
+              <span>Add notes...</span>
+            </button>
+          )}
         </div>
       )}
 

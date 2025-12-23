@@ -1,0 +1,208 @@
+/**
+ * accessibleConfirmation.css - Styles for AccessibleConfirmationDialog
+ *
+ * Dark theme matching admin UI.
+ * December 23, 2025
+ */
+
+/* ============================================================================
+   FORM LAYOUT
+   ============================================================================ */
+
+.ac-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.ac-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ac-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #e6eef8;
+  line-height: 1.4;
+}
+
+.ac-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #8b9db8;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ac-close:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e6eef8;
+}
+
+.ac-close:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.ac-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   DESCRIPTION
+   ============================================================================ */
+
+.ac-desc {
+  color: #9fb0c8;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* ============================================================================
+   REASON INPUT
+   ============================================================================ */
+
+.ac-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ac-label {
+  color: #9fb0c8;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.ac-required {
+  color: #ef4444;
+}
+
+.ac-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: #06121a;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  color: #e6eef8;
+  font-size: 0.875rem;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.15s ease;
+}
+
+.ac-textarea::placeholder {
+  color: #6b7c94;
+}
+
+.ac-textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.ac-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ac-hint {
+  color: #6b7c94;
+  font-size: 0.75rem;
+}
+
+/* ============================================================================
+   ERROR
+   ============================================================================ */
+
+.ac-error {
+  padding: 10px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #fca5a5;
+  font-size: 0.8125rem;
+}
+
+/* ============================================================================
+   ACTIONS
+   ============================================================================ */
+
+.ac-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  margin-top: 4px;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.ac-modal-form .btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ac-modal-form .btn.ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #9fb0c8;
+}
+
+.ac-modal-form .btn.ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e6eef8;
+}
+
+.ac-modal-form .btn.danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: none;
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+.ac-modal-form .btn.danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.ac-modal-form .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ac-modal-form .btn:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}

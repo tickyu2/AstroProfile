@@ -193,46 +193,62 @@ function calculateMonthStem(yearStem, monthBranch) {
 // ============================================
 
 /**
- * Calculate Day Pillar (日柱) using 60-day cycle
- * 
+ * Calculate Day Pillar (日柱) using verified algorithm
+ *
  * @param {number} year - Year
  * @param {number} month - Month (1-12)
  * @param {number} day - Day of month
- * @returns {string} GanZhi string (e.g., "壬戌")
- * 
- * Method:
- * 1. Convert date to Julian Day Number (JDN)
- * 2. Use known reference point in 60-day cycle
- * 3. Calculate days difference
- * 4. Find position in 60-cycle
- * 5. Convert to GanZhi
- * 
- * Reference Point:
- * - January 1, 1900 = JDN 2415021 = 己卯 (day 15 in 60-cycle, 0-indexed)
- * 
- * This method works for ANY date (past or future).
+ * @returns {string} GanZhi string (e.g., "丙申")
+ *
+ * VERIFIED BY: Baby Nano (Gemini), December 19, 2024
+ * CROSS-VERIFIED: Joey Yap Calculator (Ticky's chart matches)
+ *
+ * THE FIX (December 2024):
+ * - OLD (WRONG): Jan 1, 1900 = 己卯 (Position 15)
+ * - NEW (CORRECT): Jan 1, 1900 = 甲戌 (Jia Xu), Position 10
+ * - METHOD: (JDN - 11) % 60 aligns to 甲子 (Jia Zi) cycle
+ *
+ * Test Cases (Baby Nano verified):
+ * - Jan 1, 1900 → 甲戌 (Index 10)
+ * - Dec 21, 1900 → 戊辰 (Index 4) - Claude Sonnet
+ * - Apr 23, 1963 → 丙申 (Index 32) - Ticky Yu (matches Joey Yap!)
+ * - Feb 4, 2024 → 戊戌 (Index 34)
+ * - Dec 19, 2024 → 丙子 (Index 12)
  */
 export function calculateDayGanZhi(year, month, day) {
   // Calculate Julian Day Number for input date
   const jdn = calculateJulianDayNumber(year, month, day);
-  
-  // Reference point: Jan 1, 1900
-  const referenceJDN = 2415021;
-  const referenceDayIndex = 15; // 己卯 is 16th in cycle (0-indexed = 15)
-  
-  // Calculate days difference
-  const daysDiff = jdn - referenceJDN;
-  
-  // Calculate position in 60-day cycle
-  let currentIndex = (referenceDayIndex + daysDiff) % 60;
-  
-  // Handle negative modulo for historical dates
-  if (currentIndex < 0) currentIndex += 60;
-  
+
+  // THE FIX: Use magic constant 11 (aligns JDN to 甲子 Jia Zi cycle)
+  // This replaces the old wrong reference point approach
+  let index = (jdn - 11) % 60;
+
+  // Handle negative modulo for historical dates (before JDN 11)
+  if (index < 0) index += 60;
+
   // Convert 60-cycle index to GanZhi
+  const stemIndex = index % 10;
+  const branchIndex = index % 12;
+
+  return STEMS[stemIndex] + BRANCHES[branchIndex];
+}
+
+/**
+ * OLD FUNCTION - Kept for comparison during verification
+ * DELETE after migration complete
+ *
+ * This had the WRONG reference point: assumed 己卯 (position 15)
+ * Correct is 甲戌 (position 10) using (JDN - 11) % 60
+ */
+export function calculateDayGanZhi_OLD(year, month, day) {
+  const jdn = calculateJulianDayNumber(year, month, day);
+  const referenceJDN = 2415021;
+  const referenceDayIndex = 15; // WRONG! Should use (jdn - 11) % 60
+  const daysDiff = jdn - referenceJDN;
+  let currentIndex = (referenceDayIndex + daysDiff) % 60;
+  if (currentIndex < 0) currentIndex += 60;
   const stemIndex = currentIndex % 10;
   const branchIndex = currentIndex % 12;
-  
   return STEMS[stemIndex] + BRANCHES[branchIndex];
 }
 
@@ -410,27 +426,73 @@ export function calculateHistoricalFourPillars(year, month, day, hour, minute = 
 // ============================================
 
 /**
+ * Test reference point accuracy
+ * CRITICAL: This MUST pass for all Day Pillar calculations to be correct
+ *
+ * CORRECTED Reference (Baby Nano verified, Dec 2024):
+ * Jan 1, 1900 = 甲戌 (Jia Xu), Position 10
+ *
+ * If this fails, ALL Day Pillar calculations will be WRONG!
+ *
+ * @returns {Object} Verification result with pass/fail status
+ */
+export function testReferencePoint() {
+  const testDate = calculateDayGanZhi(1900, 1, 1);
+  const expected = '甲戌'; // CORRECTED: was 己卯 (wrong!)
+
+  const passed = testDate === expected;
+
+  if (!passed) {
+    console.error('❌ CRITICAL: Reference point INCORRECT!');
+    console.error(`   Jan 1, 1900 calculated as: ${testDate}`);
+    console.error(`   Should be: ${expected} (甲戌 Jia Xu)`);
+    console.error('   All Day Pillar calculations will be WRONG!');
+  } else {
+    console.log('✅ Reference point verified: Jan 1, 1900 = 甲戌 (Jia Xu)');
+  }
+
+  return {
+    passed,
+    calculated: testDate,
+    expected,
+    date: '1900-01-01',
+    message: passed
+      ? 'Reference point verified correctly (Baby Nano verified)'
+      : 'CRITICAL ERROR: Reference point mismatch - Day Pillar calculations unreliable'
+  };
+}
+
+/**
  * Validate calculation against known reference dates
- * 
+ * UPDATED: December 2024 - Baby Nano verified Day Pillars
+ *
  * @returns {Object} Validation results
  */
 export function validateCalculations() {
+  // First, verify the critical reference point
+  const refPointTest = testReferencePoint();
+
   const testCases = [
-    // Known reference points
-    { year: 1900, month: 1, day: 1, expected: { year: '庚子', day: '己卯' } },
-    { year: 1963, month: 4, day: 23, expected: { year: '癸卯' } }, // Ticky's year
-    { year: 1871, month: 3, day: 7, expected: { year: '辛未' } },  // Baby Nano's year
-    { year: 2000, month: 1, day: 1, expected: { year: '己卯' } },
-    { year: 2024, month: 12, day: 7, expected: { year: '甲辰' } }
+    // Baby Nano verified test cases (December 19, 2024)
+    { year: 1900, month: 1, day: 1, expected: { year: '庚子', day: '甲戌' }, source: 'Reference point (Baby Nano verified)' },
+    { year: 1900, month: 12, day: 21, expected: { day: '戊辰' }, source: 'Claude Sonnet (Baby Nano verified)' },
+    { year: 1963, month: 4, day: 23, expected: { year: '癸卯', day: '丙申' }, source: 'Ticky Yu (Joey Yap + Baby Nano verified)' },
+    { year: 2024, month: 2, day: 4, expected: { year: '甲辰', day: '戊戌' }, source: 'Lichun 2024 (Baby Nano verified)' },
+    { year: 2024, month: 12, day: 19, expected: { year: '甲辰', day: '丙子' }, source: 'Test date (Baby Nano verified)' },
+    // Additional test cases
+    { year: 1871, month: 3, day: 7, expected: { year: '辛未' }, source: 'Baby Nano Banana\'s year' },
+    { year: 2000, month: 1, day: 1, expected: { year: '己卯' }, source: 'Y2K' },
+    { year: 2025, month: 2, day: 3, expected: { year: '乙巳' }, source: 'Lichun 2025 boundary' }
   ];
-  
+
   const results = testCases.map(test => {
     const calculated = calculateHistoricalFourPillars(
       test.year, test.month, test.day, 12, 0
     );
-    
+
     return {
       input: `${test.year}-${test.month}-${test.day}`,
+      source: test.source,
       calculatedYear: calculated.year,
       expectedYear: test.expected.year,
       yearMatch: calculated.year === test.expected.year,
@@ -439,11 +501,20 @@ export function validateCalculations() {
       dayMatch: test.expected.day ? calculated.day === test.expected.day : 'N/A'
     };
   });
-  
+
+  const yearsPassed = results.filter(r => r.yearMatch).length;
+  const daysPassed = results.filter(r => r.dayMatch === true).length;
+  const daysTestable = results.filter(r => r.dayMatch !== 'N/A').length;
+
   return {
+    referencePointTest: refPointTest,
     testCases: results,
-    allPassed: results.every(r => r.yearMatch && (r.dayMatch === 'N/A' || r.dayMatch)),
-    summary: `${results.filter(r => r.yearMatch).length}/${results.length} year calculations correct`
+    allPassed: refPointTest.passed && results.every(r => r.yearMatch && (r.dayMatch === 'N/A' || r.dayMatch)),
+    summary: {
+      years: `${yearsPassed}/${results.length} year calculations correct`,
+      days: `${daysPassed}/${daysTestable} day calculations correct`,
+      referencePoint: refPointTest.passed ? '✅ Verified' : '❌ FAILED'
+    }
   };
 }
 
@@ -503,17 +574,19 @@ export default {
   calculateYearGanZhi,
   calculateMonthGanZhi,
   calculateDayGanZhi,
+  calculateDayGanZhi_OLD, // Keep for comparison during verification
   calculateHourGanZhi,
   calculateHistoricalFourPillars,
-  
+
   // Helper functions
   getSolarMonthBranch,
   calculateMonthStem,
   calculateJulianDayNumber,
   getHourBranch,
   calculateHourStem,
-  
-  // Testing functions
+
+  // Testing & validation functions
+  testReferencePoint,
   validateCalculations,
   testBabyNano,
   testLeonardo

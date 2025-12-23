@@ -12,7 +12,7 @@
  * December 14, 2024
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import {
   collection,
   query,
@@ -26,6 +26,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from './AuthContext';
+import { clearConversationCache } from '../services/aiSoulPartnerService';
 
 const ConversationsContext = createContext({});
 
@@ -65,6 +66,9 @@ export function ConversationsProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Track previous profile for cache invalidation
+  const previousProfileIdRef = useRef(null);
+
   // Real-time listener for conversations
   // Re-run when profileId changes to load different profile's conversations
   useEffect(() => {
@@ -83,6 +87,13 @@ export function ConversationsProvider({ children }) {
       setLoading(true); // Keep loading until profile is set
       return;
     }
+
+    // Clear conversation cache when switching profiles (security: prevent data leakage)
+    if (previousProfileIdRef.current && previousProfileIdRef.current !== activeProfileId) {
+      console.log('🔄 [ConversationsContext] Profile switch detected, clearing caches');
+      clearConversationCache(previousProfileIdRef.current);
+    }
+    previousProfileIdRef.current = activeProfileId;
 
     // Reset active conversation when switching profiles
     setActiveConversationId(null);

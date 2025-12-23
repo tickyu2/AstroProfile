@@ -19,17 +19,96 @@ import {
   getConstitutionalMetaphor
 } from './baziEngine.js';
 import {
-  calculateHistoricalFourPillars
+  calculateHistoricalFourPillars,
+  calculateDayGanZhi
 } from './historicalBaziCalc.js';
 
 /**
- * Main calculation function
+ * Safe default Day Master for error cases
+ * Ensures UI doesn't break even if calculation fails
+ */
+const SAFE_DEFAULT_DAYMASTER = {
+  char: '?',
+  element: 'Unknown',
+  polarity: 'Unknown',
+  english: 'Unknown',
+  chinese: '?',
+  animal: 'Unknown',
+  fullName: 'Unknown Day Master'
+};
+
+/**
+ * Main calculation function with error handling
  * @param {Object} birthData - Birth information
  * @returns {Object} Complete BaZi analysis
  */
 export function calculateBaZi(birthData) {
+  try {
+    // Validate input
+    if (!birthData || typeof birthData !== 'object') {
+      console.error('BaZi calculation error: Invalid birth data - must be an object');
+      return createErrorResult(birthData, 'Invalid birth data: must be an object');
+    }
+
+    const { year, month, day, hour, minute = 0, second = 0 } = birthData;
+
+    // Validate required fields
+    if (!year || year < 1 || year > 9999) {
+      console.error(`BaZi calculation error: Invalid year: ${year}`);
+      return createErrorResult(birthData, `Invalid year: ${year}`);
+    }
+
+    if (!month || month < 1 || month > 12) {
+      console.error(`BaZi calculation error: Invalid month: ${month}`);
+      return createErrorResult(birthData, `Invalid month: ${month}`);
+    }
+
+    if (!day || day < 1 || day > 31) {
+      console.error(`BaZi calculation error: Invalid day: ${day}`);
+      return createErrorResult(birthData, `Invalid day: ${day}`);
+    }
+
+    return calculateBaZiInternal({ year, month, day, hour, minute, second });
+  } catch (error) {
+    console.error('BaZi calculation error:', error);
+    return createErrorResult(birthData, error.message);
+  }
+}
+
+/**
+ * Create an error result with safe defaults so UI doesn't break
+ */
+function createErrorResult(birthData, errorMessage) {
+  return {
+    error: true,
+    message: errorMessage,
+    birthData: birthData || {},
+    pillars: [],
+    dayMaster: SAFE_DEFAULT_DAYMASTER,
+    elements: {
+      totals: {},
+      percentages: {},
+      strengths: [],
+      weaknesses: [],
+      missing: [],
+      dominant: 'Unknown'
+    },
+    yinYang: { balance: 'Unknown' },
+    interactions: [],
+    metaphor: null,
+    calculationMethod: 'error',
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Internal calculation function (original logic)
+ * @param {Object} birthData - Validated birth information
+ * @returns {Object} Complete BaZi analysis
+ */
+function calculateBaZiInternal(birthData) {
   const { year, month, day, hour, minute = 0, second = 0 } = birthData;
-  
+
   let yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi;
   let calculationMethod = 'lunar-javascript (Industry Standard)';
   
@@ -38,14 +117,19 @@ export function calculateBaZi(birthData) {
     try {
       // 1. Create Solar object (uses Gregorian calendar)
       const solar = Solar.fromYmdHms(year, month, day, hour, minute, second);
-      
+
       // 2. Convert to Lunar for BaZi methods
       const lunar = solar.getLunar();
-      
-      // 3. Get Four Pillars using EXACT methods (respects Solar Terms!)
+
+      // 3. Get Four Pillars
       yearGanZhi = lunar.getYearInGanZhiExact();
       monthGanZhi = lunar.getMonthInGanZhiExact();  // ← This respects Jie Qi!
-      dayGanZhi = lunar.getDayInGanZhiExact();
+
+      // DAY PILLAR FIX (Dec 2024): Use Baby Nano's verified algorithm
+      // The lunar-javascript library was off by one day!
+      // Our calculateDayGanZhi uses: (JDN - 11) % 60
+      dayGanZhi = calculateDayGanZhi(year, month, day);
+
       hourGanZhi = lunar.getTimeInGanZhi();
     } catch (error) {
       console.warn('Library calculation failed, using mathematical fallback:', error);

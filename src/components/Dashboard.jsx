@@ -83,6 +83,13 @@ export default function Dashboard() {
                   <span>⚙️</span>
                   <span>Systems</span>
                 </Link>
+                <Link
+                  to="/admin"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1"
+                >
+                  <span>📊</span>
+                  <span>Admin</span>
+                </Link>
               </div>
             </div>
 

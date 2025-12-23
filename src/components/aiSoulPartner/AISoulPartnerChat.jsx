@@ -27,9 +27,19 @@ import { patternExtraction } from '../../services/patternExtractionService';
 import { contextBuilder } from '../../services/contextBuilder';
 import { proactiveIntelligence } from '../../services/proactiveIntelligence';
 
+// Timeline Service (for saving conversations to timeline)
+import { timelineService } from '../../services/timelineService';
+
+// Biography Service (intelligent life event extraction)
+import { biographyService } from '../../services/biographyService';
+
 // Constitutional Threading System (Phase 2)
 import { ThreadBranchButton, ThreadPanel, ThreadView } from '../Threading';
 import { useThreading, THREAD_TYPES } from '../../hooks/useThreading';
+
+// Luna Voice Integration
+import { VoiceControlPanel, MessageSpeakButton } from '../voice';
+import { useVoice } from '../../hooks/useVoice';
 
 // Fallback responses when API is unavailable
 const FALLBACK_RESPONSES = {
@@ -84,7 +94,8 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
     searchConversations
   } = useConversations();
 
-  const [inputValue, setInputValue] = useState('');
+  // Initialize with prefillMessage if coming from Timeline Neural Pathways
+  const [inputValue, setInputValue] = useState(location.state?.prefillMessage || '');
   const [isTyping, setIsTyping] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showConversations, setShowConversations] = useState(false); // Conversations panel
@@ -136,6 +147,12 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
   // Baby Nano - Debate Visualization
   const [debateVisuals, setDebateVisuals] = useState({}); // { messageId: { image, visualType, ... } }
   const [loadingDebateVisual, setLoadingDebateVisual] = useState(null); // messageId currently generating visual
+  // Luna Voice Integration (via useVoice hook)
+  const {
+    isVoiceEnabled,
+    setIsVoiceEnabled,
+    constitution: userConstitution
+  } = useVoice({ userProfile });
   const messagesEndRef = useRef(null);
   const previousConversationRef = useRef(null); // Track previous conversation for pattern extraction
   const inputRef = useRef(null);
@@ -979,6 +996,143 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
     setShowKBUpdateModal(true);
   };
 
+  // Save conversation to Timeline
+  const [savingToTimeline, setSavingToTimeline] = useState(null); // message ID being saved
+  const [timelinedMessageIds, setTimelinedMessageIds] = useState(new Set()); // Track which messages are already timelined
+  const [buildingTimeline, setBuildingTimeline] = useState(false); // Building full timeline in progress
+  const [timelineBuildProgress, setTimelineBuildProgress] = useState({ current: 0, total: 0 });
+
+  const handleSaveToTimeline = async (aiMessage) => {
+    if (!aiMessage || !userProfile?.userId || !userProfile?.profileId) {
+      console.warn('Missing data for timeline save');
+      return;
+    }
+
+    // Find the user message that preceded this AI response
+    const messageIndex = messages.findIndex(m => m.id === aiMessage.id);
+    const userMessage = messageIndex > 0
+      ? messages.slice(0, messageIndex).reverse().find(m => m.sender === 'user')
+      : null;
+
+    setSavingToTimeline(aiMessage.id);
+
+    try {
+      // Parse conversation for date extraction
+      const parsed = timelineService.parseConversationForTimeline(
+        userMessage?.text || '',
+        aiMessage.text,
+        userProfile?.displayName
+      );
+
+      // Save to timeline
+      const result = await timelineService.saveConversationToTimeline(
+        userProfile.userId,
+        userProfile.profileId,
+        aiMessage,
+        {
+          userQuestion: userMessage?.text,
+          mode: aiMessage.mode || currentState?.mode,
+          memoryDate: parsed.memoryDate,
+          chapter: 'conversations',
+          importance: 0.7
+        }
+      );
+
+      if (result.success) {
+        console.log('📅 Saved to timeline:', parsed.title);
+        // Could show a toast notification here
+      } else {
+        console.error('Failed to save to timeline:', result.error);
+      }
+    } catch (error) {
+      console.error('Error saving to timeline:', error);
+    } finally {
+      setSavingToTimeline(null);
+    }
+  };
+
+  // Build Timeline from entire conversation (processes only new messages)
+  const handleBuildTimeline = async () => {
+    if (!userProfile?.userId || !userProfile?.profileId) {
+      console.warn('Missing user/profile for timeline build');
+      return;
+    }
+
+    // Filter AI messages that haven't been timelined yet (skip greeting message id=0)
+    const aiMessages = messages.filter(
+      msg => msg.sender === 'ai' && msg.id !== 0 && !timelinedMessageIds.has(msg.id)
+    );
+
+    if (aiMessages.length === 0) {
+      console.log('📅 All messages already in timeline');
+      return { processed: 0, message: 'All messages already saved to timeline' };
+    }
+
+    setBuildingTimeline(true);
+    setTimelineBuildProgress({ current: 0, total: aiMessages.length });
+
+    const newTimelinedIds = new Set(timelinedMessageIds);
+    let successCount = 0;
+
+    try {
+      for (let i = 0; i < aiMessages.length; i++) {
+        const aiMessage = aiMessages[i];
+        setTimelineBuildProgress({ current: i + 1, total: aiMessages.length });
+
+        // Find the user message that preceded this AI response
+        const messageIndex = messages.findIndex(m => m.id === aiMessage.id);
+        const userMessage = messageIndex > 0
+          ? messages.slice(0, messageIndex).reverse().find(m => m.sender === 'user')
+          : null;
+
+        try {
+          // Parse conversation for date extraction
+          const parsed = timelineService.parseConversationForTimeline(
+            userMessage?.text || '',
+            aiMessage.text,
+            userProfile?.displayName
+          );
+
+          // Save to timeline
+          const result = await timelineService.saveConversationToTimeline(
+            userProfile.userId,
+            userProfile.profileId,
+            aiMessage,
+            {
+              userQuestion: userMessage?.text,
+              mode: aiMessage.mode || currentState?.mode,
+              memoryDate: parsed.memoryDate,
+              chapter: 'conversations',
+              importance: 0.6
+            }
+          );
+
+          if (result.success) {
+            newTimelinedIds.add(aiMessage.id);
+            successCount++;
+          }
+        } catch (err) {
+          console.error(`Failed to timeline message ${aiMessage.id}:`, err);
+        }
+
+        // Small delay to avoid overwhelming the API
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      // Update tracked IDs
+      setTimelinedMessageIds(newTimelinedIds);
+      console.log(`📅 Timeline built: ${successCount}/${aiMessages.length} messages saved`);
+
+      return { processed: successCount, total: aiMessages.length };
+
+    } catch (error) {
+      console.error('Error building timeline:', error);
+    } finally {
+      setBuildingTimeline(false);
+      setTimelineBuildProgress({ current: 0, total: 0 });
+    }
+  };
+
   // Export message as markdown file
   const handleExportToMD = (message) => {
     // Generate filename from first line or timestamp
@@ -1015,6 +1169,59 @@ ${message.text}
     URL.revokeObjectURL(url);
 
     console.log('📄 Exported message to:', filename);
+  };
+
+  // Export entire conversation as markdown file
+  const handleExportConversationToMD = () => {
+    if (messages.length <= 1) {
+      alert('No messages to export');
+      return;
+    }
+
+    // Generate filename
+    const timestamp = new Date().toISOString().split('T')[0];
+    const profileName = userProfile?.name?.replace(/\s+/g, '-').toLowerCase() || 'conversation';
+    const filename = `${profileName}-conversation-${timestamp}.md`;
+
+    // Build markdown content
+    const conversationMessages = messages
+      .filter(m => m.id !== 0) // Skip initial greeting placeholder
+      .map(m => {
+        const sender = m.sender === 'user' ? '## 👤 User' : '## 🐀 Luna (AI SoulPartner)';
+        const time = m.timestamp ? new Date(m.timestamp).toLocaleString() : '';
+        const mode = m.mode ? `*Mode: ${m.mode}*` : '';
+        return `${sender}\n*${time}*${mode ? ` | ${mode}` : ''}\n\n${m.text}`;
+      })
+      .join('\n\n---\n\n');
+
+    const mdContent = `# AI SoulPartner Conversation
+
+> **Profile:** ${userProfile?.name || 'Unknown'}
+> **Date:** ${new Date().toLocaleString()}
+> **Messages:** ${messages.filter(m => m.id !== 0).length}
+
+---
+
+${conversationMessages}
+
+---
+
+*Exported from AstroProfile AI SoulPartner*
+*${new Date().toISOString()}*
+`;
+
+    // Create blob and trigger download
+    const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    console.log('📄 Exported conversation to:', filename);
   };
 
   // ========== AI CONSTELLATION - SECOND OPINION / DEBATE ==========
@@ -1936,9 +2143,16 @@ Please create a comprehensive document. Start with a clear title on the first li
     }
   };
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom on new messages (scroll within container only)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Get the scrollable container (parent of messagesContainerRef)
+    const scrollContainer = messagesContainerRef.current?.parentElement;
+    if (scrollContainer) {
+      scrollContainer.scrollTo({
+        top: scrollContainer.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   }, [messages]);
 
   // Focus input on mount
@@ -1946,15 +2160,47 @@ Please create a comprehensive document. Start with a clear title on the first li
     inputRef.current?.focus();
   }, []);
 
-  // Handle incoming KB document from navigation state (from KB page "Chat" button)
+  // Track if we've already processed the prefill to prevent clearing
+  const prefillProcessedRef = useRef(false);
+
+  // Handle incoming navigation state (KB document or prefilled message)
   useEffect(() => {
     const kbDocument = location.state?.kbDocument;
+    const prefillMessage = location.state?.prefillMessage;
+
+    // Skip if no actionable state or already processed
+    if (!kbDocument && !prefillMessage) return;
+    if (prefillMessage && prefillProcessedRef.current) return;
+
+    console.log('🔍 [NavState] Processing:', { kbDocument: !!kbDocument, prefillMessage });
+
     if (kbDocument) {
       setSelectedKBDoc(kbDocument);
       setInputValue(`Let's discuss: "${kbDocument.title}"`);
       inputRef.current?.focus();
-      // Clear the navigation state to prevent re-triggering
       navigate(location.pathname, { replace: true, state: {} });
+    } else if (prefillMessage) {
+      console.log('🧠 [NeuralPathway] Setting question:', prefillMessage);
+      prefillProcessedRef.current = true;
+
+      // Set via React state
+      setInputValue(prefillMessage);
+
+      // Also set directly on DOM to ensure visibility
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.value = prefillMessage;
+          inputRef.current.focus();
+          // Move cursor to end of text
+          const len = prefillMessage.length;
+          inputRef.current.setSelectionRange(len, len);
+        }
+      }, 50);
+
+      // Clear navigation state after a delay to let React settle
+      setTimeout(() => {
+        navigate(location.pathname, { replace: true, state: { profileId: location.state?.profileId } });
+      }, 100);
     }
   }, [location.state, navigate, location.pathname]);
 
@@ -2084,6 +2330,36 @@ Please create a comprehensive document. Start with a clear title on the first li
     setSelectedKBDoc(null); // Clear KB context after sending
     setIsTyping(true);
 
+    // BIOGRAPHICAL EXTRACTION (fire-and-forget, non-blocking)
+    // Intelligently detect and store life events mentioned in the message
+    const bioUserId = userProfile?.userId;
+    const bioProfileId = userProfile?.profileId || userProfile?.id;
+    console.log('📖 [Biography] Check:', {
+      userId: bioUserId,
+      profileId: bioProfileId,
+      messageLength: userMessageText.length,
+      willExtract: !!(bioUserId && bioProfileId && userMessageText.length > 10)
+    });
+    if (bioUserId && bioProfileId && userMessageText.length > 10) {
+      console.log('📖 [Biography] Starting extraction...');
+      biographyService.extractLifeEvents({
+        message: userMessageText,
+        userId: bioUserId,
+        profileId: bioProfileId,
+        userName: userProfile.firstName || userProfile.displayName,
+        birthDate: userProfile.birth?.date || userProfile.birthDate,
+        conversationId: targetConvId,
+        messageId: userMessage.id?.toString()
+      }).then(result => {
+        if (result.has_life_events) {
+          console.log('📖 [Biography] Life events detected:', result.events?.length, 'events');
+          result.events?.forEach(e => console.log(`  - ${e.title} (${e.date?.year || 'unknown year'})`));
+        }
+      }).catch(err => {
+        console.warn('📖 [Biography] Extraction error (non-blocking):', err.message);
+      });
+    }
+
     // ANALYZE with constitutional intelligence
     const analysis = analyzeMessage(userMessageText);
 
@@ -2102,8 +2378,11 @@ Please create a comprehensive document. Start with a clear title on the first li
       // Call the real Claude API via Firebase Function
       console.log('🚀 Calling Claude API with mode:', guidance.mode);
 
-      // Build knowledge prompt for this conversation
-      const knowledgePrompt = buildKnowledgePrompt({ maxTokens: 4000 });
+      // Build knowledge prompt for this conversation (with profile isolation)
+      const knowledgePrompt = buildKnowledgePrompt({
+        maxTokens: 4000,
+        forProfileId: userProfile?.profileId || userProfile?.id // Only include KB docs for this profile
+      });
 
       // Build learned context from Session Intelligence
       let sessionContext = null;
@@ -2139,8 +2418,23 @@ Please create a comprehensive document. Start with a clear title on the first li
         userProfile: userProfile,
         knowledgePrompt,
         learnedContext: sessionContext?.learnedContext || null, // Session Intelligence context
-        image: imageData // Include image if attached
+        image: imageData, // Include image if attached
+        // Memory Architecture (Phase 3)
+        profileId: userProfile?.id,
+        sessionId: activeConversationId,
+        // Conversation Cache - 80%+ token reduction (Phase 4)
+        useOptimizedPayload: messages.length > 10, // Enable when we have enough history
+        conversationId: activeConversationId
       });
+
+      // Log token savings if using optimized payload
+      if (response.cacheMetrics) {
+        console.log('💰 [ConversationCache] Token Savings:', {
+          tokensSaved: response.cacheMetrics.tokensSaved,
+          reductionPercent: `${response.cacheMetrics.reductionPercent}%`,
+          messagesCompressed: response.cacheMetrics.messagesInFull - response.cacheMetrics.messagesInOptimized
+        });
+      }
 
       // Create message for Firestore (without large base64 image data)
       const aiMessageForFirestore = {
@@ -2203,6 +2497,29 @@ Please create a comprehensive document. Start with a clear title on the first li
 
       // Call parent callback if provided
       onMessageSend?.(userMessage, aiMessageForDisplay, analysis);
+
+      // BIOGRAPHICAL EXTRACTION FROM AI RESPONSE (capture deduced facts)
+      // The AI often deduces and confirms biographical details (e.g., "Amy born April 1, 2001")
+      if (bioUserId && bioProfileId && response.text && response.text.length > 50) {
+        console.log('📖 [Biography] Extracting from AI response...');
+        biographyService.extractLifeEvents({
+          message: response.text,
+          userId: bioUserId,
+          profileId: bioProfileId,
+          userName: userProfile.firstName || userProfile.displayName,
+          birthDate: userProfile.birth?.date || userProfile.birthDate,
+          conversationId: targetConvId,
+          messageId: aiMessageForFirestore.id?.toString(),
+          isAIResponse: true  // Flag to indicate this is AI-deduced information
+        }).then(result => {
+          if (result.has_life_events) {
+            console.log('📖 [Biography] AI-deduced events:', result.events?.length, 'events');
+            result.events?.forEach(e => console.log(`  - ${e.title} (${e.date?.year || 'unknown year'})`));
+          }
+        }).catch(err => {
+          console.warn('📖 [Biography] AI response extraction error (non-blocking):', err.message);
+        });
+      }
 
     } catch (error) {
       console.error('❌ API Error:', error);
@@ -2360,6 +2677,14 @@ Please create a comprehensive document. Start with a clear title on the first li
             </a>
           </div>
 
+          {/* Luna Voice Control Panel */}
+          <VoiceControlPanel
+            profileId={userProfile?.id}
+            constitution={userConstitution}
+            isEnabled={isVoiceEnabled}
+            onToggle={setIsVoiceEnabled}
+          />
+
           {/* Constitutional Threading Panel - Always visible */}
           <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20 overflow-hidden">
             <ThreadPanel
@@ -2428,9 +2753,9 @@ Please create a comprehensive document. Start with a clear title on the first li
       )}
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Chat Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-slate-900/80 to-slate-800/80">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
+        {/* Chat Header - always visible at top */}
+        <div className="flex-shrink-0 z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-slate-900/95 to-slate-800/95">
           <div className="flex items-center gap-3">
             {!showSidebar && (
               <button
@@ -2561,6 +2886,67 @@ Please create a comprehensive document. Start with a clear title on the first li
             >
               📋 Copy
             </button>
+
+            {/* Export conversation as MD button */}
+            <button
+              onClick={handleExportConversationToMD}
+              disabled={messages.length <= 1}
+              className={`text-xs px-2 py-1 rounded-lg transition-colors ${
+                messages.length <= 1
+                  ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                  : 'bg-white/5 text-white/40 hover:bg-emerald-500/20 hover:text-emerald-400'
+              }`}
+              title="Export conversation as Markdown file"
+            >
+              📄 Export MD
+            </button>
+
+            {/* Build Timeline button */}
+            {(() => {
+              const untimedAiMessages = messages.filter(
+                m => m.sender === 'ai' && m.id !== 0 && !timelinedMessageIds.has(m.id)
+              ).length;
+              const hasMessages = messages.filter(m => m.sender === 'ai' && m.id !== 0).length > 0;
+
+              return (
+                <button
+                  onClick={handleBuildTimeline}
+                  disabled={buildingTimeline || !hasMessages}
+                  className={`text-xs px-2 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                    buildingTimeline
+                      ? 'bg-cyan-500/30 text-cyan-300 cursor-wait'
+                      : !hasMessages
+                        ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                        : untimedAiMessages === 0
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : 'bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20'
+                  }`}
+                  title={
+                    buildingTimeline
+                      ? `Building... ${timelineBuildProgress.current}/${timelineBuildProgress.total}`
+                      : untimedAiMessages === 0
+                        ? 'All messages saved to timeline'
+                        : `Save ${untimedAiMessages} messages to timeline`
+                  }
+                >
+                  {buildingTimeline ? (
+                    <>⏳ {timelineBuildProgress.current}/{timelineBuildProgress.total}</>
+                  ) : (
+                    <>
+                      📅 Timeline
+                      {untimedAiMessages > 0 && (
+                        <span className="text-[10px] bg-cyan-500/30 px-1.5 py-0.5 rounded-full">
+                          {untimedAiMessages}
+                        </span>
+                      )}
+                      {untimedAiMessages === 0 && hasMessages && (
+                        <span className="text-[10px]">✓</span>
+                      )}
+                    </>
+                  )}
+                </button>
+              );
+            })()}
 
             {/* Profile KB Access button */}
             <button
@@ -3056,8 +3442,8 @@ Please create a comprehensive document. Start with a clear title on the first li
           </div>
         )}
 
-        {/* Messages Container with Navigation */}
-        <div className="flex-1 relative overflow-hidden">
+        {/* Messages Container with Navigation - scrollable */}
+        <div className="flex-1 relative min-h-0 overflow-y-auto">
           {/* Thread View - when viewing a specific energy thread */}
           {isInThread && currentThread ? (
             <ThreadView
@@ -3072,9 +3458,9 @@ Please create a comprehensive document. Start with a clear title on the first li
             />
           ) : (
             <>
-          {/* Navigation Arrows - Left Side */}
+          {/* Navigation Arrows - Left Side (Fixed to viewport, not scrollable) */}
           {messages.length > 2 && (
-            <div className="absolute left-2 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-1">
+            <div className="fixed left-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-1">
               {/* Jump to Top */}
               <button
                 onClick={handleNavToTop}
@@ -3168,7 +3554,7 @@ Please create a comprehensive document. Start with a clear title on the first li
 
           <div
             ref={messagesContainerRef}
-            className="h-full overflow-y-auto p-6 pl-14 space-y-4"
+            className="p-6 pl-14 space-y-4"
             onMouseUp={handleTextSelection}
           >
           {messages.map((msg, msgIndex) => (
@@ -3354,6 +3740,15 @@ Please create a comprehensive document. Start with a clear title on the first li
                       {msg.fromAPI === false && ' (offline)'}
                     </span>
 
+                    {/* Speak button - Luna Voice (only on AI messages when voice enabled) */}
+                    {msg.sender === 'ai' && msg.id !== 0 && isVoiceEnabled && (
+                      <MessageSpeakButton
+                        text={msg.text}
+                        profileId={userProfile?.id}
+                        constitution={userConstitution}
+                      />
+                    )}
+
                     {/* Save to Knowledge Base button - only on AI messages */}
                     {msg.sender === 'ai' && msg.id !== 0 && (
                       <button
@@ -3362,6 +3757,22 @@ Please create a comprehensive document. Start with a clear title on the first li
                         title="Review and save to Knowledge Base"
                       >
                         📚 Save to KB
+                      </button>
+                    )}
+
+                    {/* Save to Timeline button - only on AI messages */}
+                    {msg.sender === 'ai' && msg.id !== 0 && (
+                      <button
+                        onClick={() => handleSaveToTimeline(msg)}
+                        disabled={savingToTimeline === msg.id}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors ${
+                          savingToTimeline === msg.id
+                            ? 'bg-cyan-500/30 text-cyan-300 cursor-wait'
+                            : 'bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20'
+                        }`}
+                        title="Save this conversation to your Timeline"
+                      >
+                        {savingToTimeline === msg.id ? '⏳' : '📅'} Timeline
                       </button>
                     )}
 
