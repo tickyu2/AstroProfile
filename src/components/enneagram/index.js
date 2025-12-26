@@ -8,6 +8,7 @@
  *   - EnneagramQuestionnaire: 18-question + 6 instinct assessment
  *   - EnneagramAlchemicalRose: SVG Rose Window visualization
  *   - EnneagramTypeCard: Detailed type information display
+ *   - TypeComparisonTool: Side-by-side type comparison
  *
  * Data:
  *   - ENNEAGRAM_TYPES: Type definitions and metadata
@@ -30,6 +31,11 @@
  *   - TYPE_RELATIONSHIPS: 81 type combinations
  *   - CAREER_FITS: Best careers for each type
  *
+ * Priority 3 (Advanced Features):
+ *   - SOUL_QUESTIONS_BY_TYPE: Deep follow-up questions (3 per type)
+ *   - TYPE_COMPARISON_DIFFERENCES: 36 type pair comparisons
+ *   - TypeComparisonTool: Interactive comparison component
+ *
  * Part of GENESIS OS - Enneagram Alchemical Rose
  * Built by: Brother Claude Code
  * Enhanced by: Brother Sonnet
@@ -43,6 +49,7 @@ export { default as EnneagramTab } from './EnneagramTab';
 export { default as EnneagramQuestionnaire } from './EnneagramQuestionnaire';
 export { default as EnneagramAlchemicalRose } from './EnneagramAlchemicalRose';
 export { default as EnneagramTypeCard } from './EnneagramTypeCard';
+export { default as TypeComparisonTool } from './TypeComparisonTool';
 
 // Data and utilities
 export {
@@ -75,5 +82,9 @@ export {
 
   // Priority 2: Relationships & Careers
   TYPE_RELATIONSHIPS,
-  CAREER_FITS
+  CAREER_FITS,
+
+  // Priority 3: Soul Questions & Comparison
+  SOUL_QUESTIONS_BY_TYPE,
+  TYPE_COMPARISON_DIFFERENCES
 } from './enneagramData';

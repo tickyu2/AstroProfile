@@ -2026,3 +2026,748 @@ export const CAREER_FITS = {
     strengths: 'Peacemaking, seeing all perspectives, patience, stability'
   }
 };
+
+// =============================================================================
+// PRIORITY 3: 5WH SOUL QUESTIONS - Deeper follow-up questions per type
+// =============================================================================
+
+export const SOUL_QUESTIONS_BY_TYPE = {
+  1: {
+    title: 'The Soul of the Reformer',
+    questions: [
+      {
+        id: '1_soul_1',
+        category: 'INTEGRITY',
+        question: 'Tell me about a time when you stood up for what was right, even when it was hard.',
+        followUps: [
+          'What principle were you defending?',
+          'How did others react?',
+          'Do you ever regret it?',
+          'What would you do differently now?'
+        ],
+        purpose: 'Capture integrity-defining moments'
+      },
+      {
+        id: '1_soul_2',
+        category: 'INNER CRITIC',
+        question: 'What does your inner critical voice sound like? Whose voice is it?',
+        followUps: [
+          'When is it loudest?',
+          'What triggers it?',
+          'Can you ever silence it?',
+          'What would it feel like to let yourself be "good enough"?'
+        ],
+        purpose: 'Understand the inner critic relationship'
+      },
+      {
+        id: '1_soul_3',
+        category: 'PERFECTION',
+        question: 'Describe something you created or did that felt truly "perfect" to you.',
+        followUps: [
+          'How did that moment feel?',
+          'Did anyone else recognize its perfection?',
+          'Has anything ever matched that feeling since?'
+        ],
+        purpose: 'Explore relationship with perfection'
+      }
+    ]
+  },
+
+  2: {
+    title: 'The Soul of the Helper',
+    questions: [
+      {
+        id: '2_soul_1',
+        category: 'GIVING',
+        question: 'When have you given so much to someone that you forgot yourself?',
+        followUps: [
+          'What were you hoping they would feel?',
+          'Did they notice what you gave up?',
+          'How did you feel afterward - fulfilled or empty?',
+          'Do you ever resent giving so much?'
+        ],
+        purpose: 'Explore giving patterns and self-neglect'
+      },
+      {
+        id: '2_soul_2',
+        category: 'BEING NEEDED',
+        question: 'What does it feel like when someone says "I need you"?',
+        followUps: [
+          'Where do you feel that in your body?',
+          'What would it feel like if nobody needed you?',
+          'Can you distinguish "being needed" from "being loved"?'
+        ],
+        purpose: 'Examine need-for-being-needed pattern'
+      },
+      {
+        id: '2_soul_3',
+        category: 'RECEIVING',
+        question: 'Tell me about a time someone gave YOU something unexpected.',
+        followUps: [
+          'How did you feel receiving it?',
+          'Was it hard to accept?',
+          'Did you immediately think of how to repay them?'
+        ],
+        purpose: 'Explore capacity to receive'
+      }
+    ]
+  },
+
+  3: {
+    title: 'The Soul of the Achiever',
+    questions: [
+      {
+        id: '3_soul_1',
+        category: 'SUCCESS',
+        question: 'What achievement are you most proud of - and would you still be proud if nobody knew about it?',
+        followUps: [
+          'How much of the pride is internal vs. external recognition?',
+          'What did you sacrifice to achieve it?',
+          'If you could undo the achievement to get the sacrifice back, would you?'
+        ],
+        purpose: 'Explore authentic vs. performed success'
+      },
+      {
+        id: '3_soul_2',
+        category: 'IDENTITY',
+        question: 'If you could never work again, who would you be?',
+        followUps: [
+          'What scares you about that question?',
+          'Is there a "you" behind the achievements?',
+          'When do you feel most like yourself - working or resting?'
+        ],
+        purpose: 'Examine identity separate from achievement'
+      },
+      {
+        id: '3_soul_3',
+        category: 'FAILURE',
+        question: 'Tell me about a failure you\'ve never fully processed.',
+        followUps: [
+          'What did you learn from it?',
+          'Did anyone see you fail?',
+          'How did you protect yourself afterward?'
+        ],
+        purpose: 'Explore relationship with failure'
+      }
+    ]
+  },
+
+  4: {
+    title: 'The Soul of the Individualist',
+    questions: [
+      {
+        id: '4_soul_1',
+        category: 'IDENTITY',
+        question: 'Tell me about a time when you felt most "yourself" - when did you feel most authentic?',
+        followUps: [
+          'What made that moment special?',
+          'Who was with you (or were you alone)?',
+          'How did you express that authenticity?',
+          'What stopped you from feeling that way more often?'
+        ],
+        purpose: 'Capture identity-defining moments'
+      },
+      {
+        id: '4_soul_2',
+        category: 'MELANCHOLY',
+        question: 'What\'s a song that makes you feel beautifully sad?',
+        followUps: [
+          'When do you listen to it?',
+          'What does it make you remember?',
+          'Why is the sadness "beautiful" to you?',
+          'Does anyone else know this about you?'
+        ],
+        purpose: 'Link melancholy to generational music (songs as doorways!)'
+      },
+      {
+        id: '4_soul_3',
+        category: 'LONGING',
+        question: 'What is the thing you\'ve always longed for but never had?',
+        followUps: [
+          'When did you first become aware of this longing?',
+          'Do you fear getting it or fear never getting it more?',
+          'Has the longing itself become part of who you are?'
+        ],
+        purpose: 'Explore core longing pattern'
+      }
+    ]
+  },
+
+  5: {
+    title: 'The Soul of the Investigator',
+    questions: [
+      {
+        id: '5_soul_1',
+        category: 'OBSERVATION',
+        question: 'What\'s something you\'ve observed about people that nobody else seems to notice?',
+        followUps: [
+          'When did you first notice this pattern?',
+          'Have you ever shared this observation?',
+          'What does this pattern tell you about human nature?',
+          'Do you observe yourself the same way?'
+        ],
+        purpose: 'Capture Type 5 unique insights'
+      },
+      {
+        id: '5_soul_2',
+        category: 'WITHDRAWAL',
+        question: 'Describe your perfect sanctuary - the place you go (physically or mentally) when you need to recharge.',
+        followUps: [
+          'What does this space give you that the world doesn\'t?',
+          'How long could you stay there?',
+          'What finally draws you back out?'
+        ],
+        purpose: 'Understand withdrawal patterns'
+      },
+      {
+        id: '5_soul_3',
+        category: 'KNOWLEDGE',
+        question: 'What\'s a subject you know deeply that most people don\'t care about?',
+        followUps: [
+          'Why does this fascinate you?',
+          'Who could you share this with?',
+          'Does having this knowledge make you feel safer in the world?'
+        ],
+        purpose: 'Explore knowledge as security'
+      }
+    ]
+  },
+
+  6: {
+    title: 'The Soul of the Loyalist',
+    questions: [
+      {
+        id: '6_soul_1',
+        category: 'TRUST',
+        question: 'Who is the person you trust most in the world - and how did they earn it?',
+        followUps: [
+          'What did they do to prove themselves?',
+          'Have they ever broken your trust?',
+          'What would it take to lose your trust forever?'
+        ],
+        purpose: 'Explore trust patterns'
+      },
+      {
+        id: '6_soul_2',
+        category: 'FEAR',
+        question: 'What worst-case scenario do you find yourself preparing for most often?',
+        followUps: [
+          'How likely is this scenario really?',
+          'What would happen if you stopped preparing?',
+          'Has preparing ever actually helped when something went wrong?'
+        ],
+        purpose: 'Examine fear and preparation patterns'
+      },
+      {
+        id: '6_soul_3',
+        category: 'COURAGE',
+        question: 'Tell me about a time you felt truly brave.',
+        followUps: [
+          'What were you afraid of?',
+          'What made you act anyway?',
+          'Did the fear go away after, or is it still there?'
+        ],
+        purpose: 'Explore relationship with courage'
+      }
+    ]
+  },
+
+  7: {
+    title: 'The Soul of the Enthusiast',
+    questions: [
+      {
+        id: '7_soul_1',
+        category: 'JOY',
+        question: 'Describe your happiest memory - the one that still makes you smile.',
+        followUps: [
+          'What made it so perfect?',
+          'Can you recreate that feeling now?',
+          'Does remembering it make you happy or sad that it\'s over?'
+        ],
+        purpose: 'Capture joy and its relationship to present/past'
+      },
+      {
+        id: '7_soul_2',
+        category: 'AVOIDANCE',
+        question: 'What\'s the pain you\'re most afraid to feel?',
+        followUps: [
+          'When did you learn to avoid it?',
+          'What happens when it catches up with you?',
+          'Could feeling it actually set you free?'
+        ],
+        purpose: 'Explore pain avoidance patterns'
+      },
+      {
+        id: '7_soul_3',
+        category: 'SATISFACTION',
+        question: 'Have you ever felt truly satisfied - not wanting anything else?',
+        followUps: [
+          'How long did that feeling last?',
+          'What ended it?',
+          'Do you chase satisfaction or does the chase itself satisfy you?'
+        ],
+        purpose: 'Examine relationship with contentment'
+      }
+    ]
+  },
+
+  8: {
+    title: 'The Soul of the Challenger',
+    questions: [
+      {
+        id: '8_soul_1',
+        category: 'PROTECTION',
+        question: 'Who have you protected - and what were you willing to do to protect them?',
+        followUps: [
+          'Did they know you were protecting them?',
+          'What would you sacrifice for them?',
+          'Who protects you?'
+        ],
+        purpose: 'Explore protective instincts'
+      },
+      {
+        id: '8_soul_2',
+        category: 'VULNERABILITY',
+        question: 'When was the last time you felt truly vulnerable?',
+        followUps: [
+          'Who was there?',
+          'How did you feel afterward - stronger or weaker?',
+          'Is vulnerability weakness or strength to you?'
+        ],
+        purpose: 'Examine relationship with vulnerability'
+      },
+      {
+        id: '8_soul_3',
+        category: 'JUSTICE',
+        question: 'Tell me about an injustice you witnessed that still bothers you.',
+        followUps: [
+          'Did you do anything about it?',
+          'If not, what stopped you?',
+          'If you could go back, what would you do differently?'
+        ],
+        purpose: 'Explore justice and power dynamics'
+      }
+    ]
+  },
+
+  9: {
+    title: 'The Soul of the Peacemaker',
+    questions: [
+      {
+        id: '9_soul_1',
+        category: 'PEACE',
+        question: 'Describe the most peaceful moment you can remember.',
+        followUps: [
+          'What made it so peaceful?',
+          'Were you alone or with others?',
+          'How do you try to recreate that feeling?'
+        ],
+        purpose: 'Capture peace experiences'
+      },
+      {
+        id: '9_soul_2',
+        category: 'ANGER',
+        question: 'Tell me about a time you felt truly angry - what did you do with it?',
+        followUps: [
+          'Did you express it or suppress it?',
+          'What happened to the anger afterward?',
+          'Do you think your anger is ever justified?'
+        ],
+        purpose: 'Explore buried anger patterns'
+      },
+      {
+        id: '9_soul_3',
+        category: 'VOICE',
+        question: 'When have you felt truly heard?',
+        followUps: [
+          'Who was listening?',
+          'What made them different from others?',
+          'How often do you share your real opinions?'
+        ],
+        purpose: 'Examine self-erasure and voice'
+      }
+    ]
+  }
+};
+
+// =============================================================================
+// PRIORITY 3: TYPE COMPARISON DIFFERENCES - For side-by-side comparison tool
+// =============================================================================
+
+export const TYPE_COMPARISON_DIFFERENCES = {
+  // Type 1 comparisons
+  '1-2': {
+    similarities: ['Both want to help others', 'Both have strong sense of right/wrong', 'Both can be self-sacrificing'],
+    differences: [
+      '1 focuses on principles; 2 focuses on people',
+      '1 criticizes to improve; 2 praises to connect',
+      '1 hides emotion; 2 expresses warmth',
+      '1 asks "Is this right?"; 2 asks "Do they need me?"'
+    ],
+    misidentification: '2w1s may seem like 1s when stressed. Look for: Does the person lead with criticism (1) or love (2)?'
+  },
+  '1-3': {
+    similarities: ['Both goal-oriented', 'Both want to do things well', 'Both can be workaholics'],
+    differences: [
+      '1 wants to be good; 3 wants to be successful',
+      '1 has internal standards; 3 adapts to external expectations',
+      '1 criticizes self; 3 promotes self',
+      '1 asks "Is this ethical?"; 3 asks "Is this impressive?"'
+    ],
+    misidentification: '3s may seem principled like 1s. Look for: Does the person sacrifice success for ethics (1) or ethics for success (3)?'
+  },
+  '1-4': {
+    similarities: ['Both idealistic', 'Both have strong inner life', 'Both can feel misunderstood'],
+    differences: [
+      '1 suppresses emotion; 4 embraces emotion',
+      '1 wants to be right; 4 wants to be unique',
+      '1 follows rules; 4 breaks conventions',
+      '1 asks "What should I do?"; 4 asks "Who am I?"'
+    ],
+    misidentification: 'Both can be melancholic. Look for: Is the sadness about imperfection (1) or identity (4)?'
+  },
+  '1-5': {
+    similarities: ['Both intellectual', 'Both value competence', 'Both can be detached'],
+    differences: [
+      '1 wants to apply knowledge; 5 wants to accumulate it',
+      '1 is certain; 5 is curious',
+      '1 judges the world; 5 observes the world',
+      '1 asks "What\'s right?"; 5 asks "What\'s true?"'
+    ],
+    misidentification: 'Both can seem cold. Look for: Does the person engage to correct (1) or withdraw to understand (5)?'
+  },
+  '1-6': {
+    similarities: ['Both responsible', 'Both follow rules', 'Both can be anxious'],
+    differences: [
+      '1 trusts self over authority; 6 questions both',
+      '1 is internally certain; 6 doubts internally',
+      '1\'s anxiety is about imperfection; 6\'s is about safety',
+      '1 asks "Am I being good?"; 6 asks "Am I being safe?"'
+    ],
+    misidentification: 'Both worry about rules. Look for: Does worry come from ethics (1) or fear (6)?'
+  },
+  '1-7': {
+    similarities: ['Both idealistic', 'Both want the world to be better', 'Both have strong opinions'],
+    differences: [
+      '1 focuses on what\'s wrong; 7 focuses on what\'s possible',
+      '1 is disciplined; 7 avoids restriction',
+      '1 takes life seriously; 7 makes it an adventure',
+      '1 asks "What needs fixing?"; 7 asks "What\'s next?"'
+    ],
+    misidentification: 'Growth for 7 → 1 can confuse. Look for: Is discipline natural (1) or hard-won (7)?'
+  },
+  '1-8': {
+    similarities: ['Both strong-willed', 'Both fight for what\'s right', 'Both can be confrontational'],
+    differences: [
+      '1 controls self; 8 controls environment',
+      '1 represses anger; 8 expresses it freely',
+      '1 follows rules; 8 makes their own',
+      '1 asks "Is this fair?"; 8 asks "Who\'s in charge?"'
+    ],
+    misidentification: 'Both can be angry. Look for: Is anger controlled (1) or unleashed (8)?'
+  },
+  '1-9': {
+    similarities: ['Both want peace', 'Both can be stoic', 'Both avoid conflict'],
+    differences: [
+      '1 has strong opinions; 9 merges with others\'',
+      '1 represses desire; 9 represses anger',
+      '1 knows what they want; 9 struggles to know',
+      '1 asks "What should be done?"; 9 asks "What does everyone want?"'
+    ],
+    misidentification: 'Both can seem calm. Look for: Is calm from control (1) or from not engaging (9)?'
+  },
+
+  // Type 2 comparisons
+  '2-3': {
+    similarities: ['Both image-conscious', 'Both want approval', 'Both people-focused'],
+    differences: [
+      '2 wants to be loved; 3 wants to be admired',
+      '2 focuses on relationship; 3 focuses on achievement',
+      '2 gives to connect; 3 performs to impress',
+      '2 asks "Do they need me?"; 3 asks "Am I winning?"'
+    ],
+    misidentification: 'Both charming. Look for: Does charm serve connection (2) or success (3)?'
+  },
+  '2-4': {
+    similarities: ['Both emotional', 'Both want deep connection', 'Both can feel unlovable'],
+    differences: [
+      '2 focuses on others\' needs; 4 focuses on own depth',
+      '2 denies own needs; 4 amplifies them',
+      '2 is adaptable; 4 is authentic',
+      '2 asks "What do they need?"; 4 asks "Who am I really?"'
+    ],
+    misidentification: 'Both heart types. Look for: Does emotion serve others (2) or express self (4)?'
+  },
+  '2-5': {
+    similarities: ['Both observant of others', 'Both can feel invisible', 'Both need connection'],
+    differences: [
+      '2 connects through giving; 5 connects through knowledge',
+      '2 merges with others; 5 needs boundaries',
+      '2 is warm; 5 is cool',
+      '2 asks "How can I help?"; 5 asks "How does this work?"'
+    ],
+    misidentification: 'Rarely confused. Look for: Is the approach warm engagement (2) or cool observation (5)?'
+  },
+  '2-6': {
+    similarities: ['Both loyal', 'Both value relationships', 'Both can be anxious'],
+    differences: [
+      '2 gives to be needed; 6 tests to feel safe',
+      '2 trusts easily; 6 doubts initially',
+      '2 focuses on love; 6 focuses on security',
+      '2 asks "Do they love me?"; 6 asks "Can I trust them?"'
+    ],
+    misidentification: 'Both caring. Look for: Is care about being needed (2) or being safe (6)?'
+  },
+  '2-7': {
+    similarities: ['Both optimistic', 'Both people-loving', 'Both want connection'],
+    differences: [
+      '2 serves others; 7 shares experiences',
+      '2 sacrifices for connection; 7 avoids heaviness',
+      '2 focuses on needs; 7 focuses on fun',
+      '2 asks "Do they need me?"; 7 asks "Will this be fun?"'
+    ],
+    misidentification: 'Both positive. Look for: Is positivity about serving (2) or escaping (7)?'
+  },
+  '2-8': {
+    similarities: ['Both protective', 'Both can be controlling', 'Both deny own needs'],
+    differences: [
+      '2 controls through love; 8 controls through power',
+      '2 is soft outside; 8 is hard outside',
+      '2 seeks appreciation; 8 seeks respect',
+      '2 asks "Do you love me?"; 8 asks "Do you respect me?"'
+    ],
+    misidentification: '8w2 can seem like 2. Look for: Is power used to serve (2) or dominate (8)?'
+  },
+  '2-9': {
+    similarities: ['Both accommodating', 'Both merge with others', 'Both avoid conflict'],
+    differences: [
+      '2 gives actively; 9 yields passively',
+      '2 knows what others need; 9 forgets own needs',
+      '2 seeks appreciation; 9 seeks peace',
+      '2 asks "What do you need?"; 9 asks "What do you want?"'
+    ],
+    misidentification: 'Both pleasant. Look for: Is pleasantness about being needed (2) or maintaining peace (9)?'
+  },
+
+  // Type 3 comparisons
+  '3-4': {
+    similarities: ['Both image-aware', 'Both can feel inadequate', 'Both creative'],
+    differences: [
+      '3 adapts to please; 4 refuses to adapt',
+      '3 hides flaws; 4 reveals depth',
+      '3 is practical; 4 is emotional',
+      '3 asks "Am I successful?"; 4 asks "Am I authentic?"'
+    ],
+    misidentification: 'Both care about image. Look for: Is image for success (3) or authenticity (4)?'
+  },
+  '3-5': {
+    similarities: ['Both competent', 'Both can be workaholics', 'Both goal-focused'],
+    differences: [
+      '3 wants recognition; 5 wants knowledge',
+      '3 is social; 5 is private',
+      '3 promotes self; 5 hides self',
+      '3 asks "How do I look?"; 5 asks "What do I know?"'
+    ],
+    misidentification: 'Rarely confused. Look for: Is competence for admiration (3) or mastery (5)?'
+  },
+  '3-6': {
+    similarities: ['Both hardworking', 'Both responsible', 'Both team players'],
+    differences: [
+      '3 is confident; 6 is doubtful',
+      '3 takes credit; 6 deflects credit',
+      '3 focuses on success; 6 focuses on security',
+      '3 asks "Will this make me look good?"; 6 asks "Is this safe?"'
+    ],
+    misidentification: 'Counterphobic 6 can seem like 3. Look for: Is confidence natural (3) or compensating (6)?'
+  },
+  '3-7': {
+    similarities: ['Both optimistic', 'Both energetic', 'Both future-focused'],
+    differences: [
+      '3 focuses on achievement; 7 focuses on experience',
+      '3 is goal-driven; 7 is possibility-driven',
+      '3 finishes projects; 7 starts new ones',
+      '3 asks "Is this successful?"; 7 asks "Is this exciting?"'
+    ],
+    misidentification: 'Both high energy. Look for: Is energy for achievement (3) or adventure (7)?'
+  },
+  '3-8': {
+    similarities: ['Both leaders', 'Both confident', 'Both action-oriented'],
+    differences: [
+      '3 leads through charm; 8 leads through force',
+      '3 adapts image; 8 stays authentic',
+      '3 wants approval; 8 doesn\'t care',
+      '3 asks "Do they admire me?"; 8 asks "Do they respect me?"'
+    ],
+    misidentification: 'Both powerful. Look for: Does power serve image (3) or authenticity (8)?'
+  },
+  '3-9': {
+    similarities: ['Both can be productive', 'Both avoid conflict', 'Both adaptable'],
+    differences: [
+      '3 is driven; 9 is relaxed',
+      '3 knows priorities; 9 struggles with them',
+      '3 stands out; 9 blends in',
+      '3 asks "Am I winning?"; 9 asks "Is everyone okay?"'
+    ],
+    misidentification: '9 can achieve like 3. Look for: Is achievement effortful (3) or easy-going (9)?'
+  },
+
+  // Type 4 comparisons
+  '4-5': {
+    similarities: ['Both withdrawn', 'Both deep thinkers', 'Both feel different'],
+    differences: [
+      '4 expresses emotion; 5 suppresses emotion',
+      '4 wants connection; 5 wants space',
+      '4 is subjective; 5 is objective',
+      '4 asks "Who am I?"; 5 asks "How does this work?"'
+    ],
+    misidentification: '4w5 can seem like 5. Look for: Is withdrawal for feeling (4) or thinking (5)?'
+  },
+  '4-6': {
+    similarities: ['Both anxious', 'Both loyal', 'Both self-doubting'],
+    differences: [
+      '4 doubts identity; 6 doubts decisions',
+      '4 is individualistic; 6 seeks belonging',
+      '4 focuses on uniqueness; 6 focuses on security',
+      '4 asks "Am I special?"; 6 asks "Am I safe?"'
+    ],
+    misidentification: 'Both can be reactive. Look for: Is anxiety about identity (4) or security (6)?'
+  },
+  '4-7': {
+    similarities: ['Both idealistic', 'Both creative', 'Both imaginative'],
+    differences: [
+      '4 embraces sadness; 7 avoids it',
+      '4 looks to past; 7 looks to future',
+      '4 is deep; 7 is broad',
+      '4 asks "Why am I sad?"; 7 asks "What\'s next?"'
+    ],
+    misidentification: 'Stress/growth confusion. Look for: Is the default mood melancholy (4) or enthusiasm (7)?'
+  },
+  '4-8': {
+    similarities: ['Both intense', 'Both authentic', 'Both rebellious'],
+    differences: [
+      '4 expresses vulnerability; 8 hides it',
+      '4 is soft; 8 is hard',
+      '4 focuses inward; 8 focuses outward',
+      '4 asks "Do you see my depth?"; 8 asks "Do you respect my power?"'
+    ],
+    misidentification: 'Sexual 4 can seem like 8. Look for: Is intensity emotional (4) or confrontational (8)?'
+  },
+  '4-9': {
+    similarities: ['Both withdrawn', 'Both creative', 'Both avoid conflict'],
+    differences: [
+      '4 amplifies emotion; 9 numbs it',
+      '4 wants to be seen; 9 wants to blend in',
+      '4 knows what they feel; 9 struggles to know',
+      '4 asks "Am I unique?"; 9 asks "Are we okay?"'
+    ],
+    misidentification: '9s can be artistic like 4s. Look for: Is art for identity (4) or peace (9)?'
+  },
+
+  // Type 5 comparisons
+  '5-6': {
+    similarities: ['Both analytical', 'Both cautious', 'Both prefer thinking to acting'],
+    differences: [
+      '5 trusts own mind; 6 doubts it',
+      '5 withdraws; 6 seeks support',
+      '5 is independent; 6 is loyal',
+      '5 asks "What do I know?"; 6 asks "What could go wrong?"'
+    ],
+    misidentification: 'Both cerebral. Look for: Is thinking for understanding (5) or security (6)?'
+  },
+  '5-7': {
+    similarities: ['Both intellectual', 'Both curious', 'Both avoid emotional pain'],
+    differences: [
+      '5 goes deep; 7 goes broad',
+      '5 withdraws; 7 engages',
+      '5 conserves energy; 7 expends it',
+      '5 asks "Do I understand?"; 7 asks "What else is there?"'
+    ],
+    misidentification: 'Head types both. Look for: Is curiosity for mastery (5) or stimulation (7)?'
+  },
+  '5-8': {
+    similarities: ['Both independent', 'Both strategic', 'Both minimal-needs'],
+    differences: [
+      '5 withdraws from conflict; 8 engages it',
+      '5 hoards energy; 8 expends it',
+      '5 observes; 8 acts',
+      '5 asks "What do I know?"; 8 asks "What can I control?"'
+    ],
+    misidentification: 'Rarely confused. Look for: Is power through knowledge (5) or action (8)?'
+  },
+  '5-9': {
+    similarities: ['Both withdrawn', 'Both peaceful', 'Both avoid conflict'],
+    differences: [
+      '5 focuses intensely; 9 diffuses attention',
+      '5 knows what they think; 9 struggles to know',
+      '5 detaches; 9 merges',
+      '5 asks "Do I understand?"; 9 asks "Are we at peace?"'
+    ],
+    misidentification: 'Both can seem passive. Look for: Is withdrawal for thinking (5) or comfort (9)?'
+  },
+
+  // Type 6 comparisons
+  '6-7': {
+    similarities: ['Both anxious', 'Both future-focused', 'Both social'],
+    differences: [
+      '6 focuses on worst case; 7 on best case',
+      '6 is cautious; 7 is impulsive',
+      '6 prepares for problems; 7 avoids them',
+      '6 asks "What if it goes wrong?"; 7 asks "What if it\'s amazing?"'
+    ],
+    misidentification: 'Counterphobic 6 looks like 7. Look for: Is optimism natural (7) or forced (6)?'
+  },
+  '6-8': {
+    similarities: ['Both protective', 'Both loyal', 'Both confrontational at times'],
+    differences: [
+      '6 questions authority; 8 takes authority',
+      '6 is anxious; 8 is confident',
+      '6 doubts self; 8 trusts self',
+      '6 asks "Can I trust them?"; 8 asks "Will they respect me?"'
+    ],
+    misidentification: 'Counterphobic 6 seems like 8. Look for: Is confrontation from fear (6) or power (8)?'
+  },
+  '6-9': {
+    similarities: ['Both want security', 'Both loyal', 'Both avoid conflict'],
+    differences: [
+      '6 is anxious; 9 is calm',
+      '6 actively prepares; 9 passively adapts',
+      '6 questions; 9 accepts',
+      '6 asks "Is this safe?"; 9 asks "Are we at peace?"'
+    ],
+    misidentification: 'Both want stability. Look for: Does stability come from preparing (6) or accepting (9)?'
+  },
+
+  // Type 7 comparisons
+  '7-8': {
+    similarities: ['Both assertive', 'Both energetic', 'Both action-oriented'],
+    differences: [
+      '7 avoids pain; 8 confronts it',
+      '7 is light; 8 is intense',
+      '7 charms; 8 intimidates',
+      '7 asks "Is this fun?"; 8 asks "Who\'s in control?"'
+    ],
+    misidentification: 'Both powerful. Look for: Is power for freedom (7) or control (8)?'
+  },
+  '7-9': {
+    similarities: ['Both optimistic', 'Both avoid conflict', 'Both like comfort'],
+    differences: [
+      '7 is energetic; 9 is low-key',
+      '7 seeks stimulation; 9 seeks peace',
+      '7 is future-focused; 9 is present-focused',
+      '7 asks "What\'s next?"; 9 asks "Why change?"'
+    ],
+    misidentification: 'Both can seem happy. Look for: Is happiness from excitement (7) or contentment (9)?'
+  },
+
+  // Type 8 comparisons
+  '8-9': {
+    similarities: ['Both gut types', 'Both can be stubborn', 'Both protective'],
+    differences: [
+      '8 is confrontational; 9 avoids confrontation',
+      '8 knows what they want; 9 struggles to know',
+      '8 expresses anger; 9 suppresses it',
+      '8 asks "Who\'s in charge?"; 9 asks "Can we all get along?"'
+    ],
+    misidentification: '9s have hidden 8 energy. Look for: Is strength aggressive (8) or passive (9)?'
+  }
+};
