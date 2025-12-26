@@ -16,8 +16,9 @@
  * December 26, 2024
  */
 
-import React, { useState } from 'react';
-import { createEmptyInput, hasMinimumContent } from '../../sanctuary/selfRecognitionTypes';
+import React, { useState, useCallback } from 'react';
+import { useProfiles } from '../../contexts/ProfileContext';
+import { createEmptyInput, hasMinimumContent, buildInputFromProfile } from '../../sanctuary/selfRecognitionTypes';
 
 /**
  * Main Sanctuary Component
@@ -30,8 +31,29 @@ export default function SelfRecognitionSanctuary({
   onClear = null,
   initialInput = null
 }) {
+  const { profiles } = useProfiles();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(initialInput || createEmptyInput());
+  const [selectedProfileId, setSelectedProfileId] = useState(null);
+
+  /**
+   * Handle profile selection - auto-fill form with profile data
+   */
+  const handleProfileSelect = useCallback((profileId) => {
+    setSelectedProfileId(profileId);
+
+    if (!profileId) {
+      // Clear to empty form
+      setForm(createEmptyInput());
+      return;
+    }
+
+    const profile = profiles?.find(p => p.id === profileId);
+    if (profile) {
+      const filledInput = buildInputFromProfile(profile);
+      setForm(filledInput);
+    }
+  }, [profiles]);
 
   const updateField = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value || null }));
@@ -82,6 +104,9 @@ export default function SelfRecognitionSanctuary({
             form={form}
             updateField={updateField}
             onNext={() => setStep(2)}
+            profiles={profiles}
+            selectedProfileId={selectedProfileId}
+            onProfileSelect={handleProfileSelect}
           />
         )}
 
@@ -136,12 +161,12 @@ export default function SelfRecognitionSanctuary({
 /**
  * Step 1: Arrival - Who is stepping into the Sanctuary?
  */
-function StepOneArrival({ form, updateField, onNext }) {
+function StepOneArrival({ form, updateField, onNext, profiles, selectedProfileId, onProfileSelect }) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-lg font-semibold text-amber-300 flex items-center gap-2">
-          <span>🌅</span>
+          <span>&#127749;</span>
           Movement I: Arrival
         </h2>
         <p className="text-sm text-white/70">
@@ -149,6 +174,31 @@ function StepOneArrival({ form, updateField, onNext }) {
           Everything here is optional. You can keep this simple.
         </p>
       </div>
+
+      {/* Profile Selector */}
+      {profiles && profiles.length > 0 && (
+        <div className="p-4 rounded-xl bg-gradient-to-r from-amber-900/20 via-slate-900/40 to-amber-900/20 border border-amber-500/20">
+          <label className="block text-amber-300/80 text-xs font-medium mb-2">
+            &#128100; Quick Fill from Profile
+          </label>
+          <select
+            value={selectedProfileId || ''}
+            onChange={(e) => onProfileSelect(e.target.value || null)}
+            className="w-full rounded-lg bg-slate-900/80 border border-amber-500/30 p-3 text-sm text-white focus:border-amber-400/50 focus:outline-none transition-colors cursor-pointer"
+          >
+            <option value="">-- Select a profile to auto-fill --</option>
+            {profiles.map((profile) => (
+              <option key={profile.id} value={profile.id}>
+                {profile.name || profile.displayName || 'Unnamed Profile'}
+                {profile.enneagram?.coreType ? ` (Type ${profile.enneagram.coreType})` : ''}
+              </option>
+            ))}
+          </select>
+          <p className="text-white/40 text-xs mt-2">
+            This will fill in your Enneagram, astrology signs, and other known data
+          </p>
+        </div>
+      )}
 
       {/* Soul System Context */}
       <div className="grid md:grid-cols-3 gap-4 text-xs">
