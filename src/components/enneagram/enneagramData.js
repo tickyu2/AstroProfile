@@ -438,3 +438,391 @@ export function getWingNotation(dominantType, wing) {
 export function getTritypeNotation(tritype) {
   return tritype.join('');
 }
+
+// =============================================================================
+// GENESIS/LUNA INTEGRATION - How Luna supports each type
+// =============================================================================
+
+/**
+ * What each type/wing combination needs from Luna
+ * Used in the "How Luna Understands You" section
+ */
+export const GENESIS_TYPE_NEEDS = {
+  // Type 1 wings
+  '1w9': [
+    'Patience with your internal standards (no rushing)',
+    'Gentle reminders that "good enough" can be okay',
+    'Space for quiet reflection without judgment',
+    'Help balancing idealism with self-compassion',
+    'Recognition of your efforts, not just outcomes'
+  ],
+  '1w2': [
+    'Acknowledgment of your drive to improve things for others',
+    'Help managing the inner critic that pushes too hard',
+    'Validation when you need to rest (you deserve it)',
+    'Warm encouragement, not just cold facts',
+    'Recognition of your helpful heart behind the high standards'
+  ],
+
+  // Type 2 wings
+  '2w1': [
+    'Appreciation for your service without exploitation',
+    'Gentle reminders to care for yourself first',
+    'Validation that your needs matter too',
+    'Help setting healthy boundaries',
+    'Recognition of the love behind your actions'
+  ],
+  '2w3': [
+    'Admiration for your ability to connect people',
+    'Safe space to admit when you\'re tired',
+    'Encouragement to pursue YOUR dreams (not just others\')',
+    'Validation that you\'re lovable without doing',
+    'Help distinguishing genuine needs from seeking approval'
+  ],
+
+  // Type 3 wings
+  '3w2': [
+    'Recognition of your achievements AND your heart',
+    'Safe space where you don\'t have to perform',
+    'Help connecting with feelings, not just goals',
+    'Validation of who you ARE, not what you DO',
+    'Encouragement to slow down and feel'
+  ],
+  '3w4': [
+    'Appreciation for your unique approach to success',
+    'Space for your creative and emotional side',
+    'Help integrating depth with achievement',
+    'Validation that authenticity IS your success',
+    'Encouragement to embrace your artistic soul'
+  ],
+
+  // Type 4 wings
+  '4w3': [
+    'Validation of your unique creative expression',
+    'Encouragement to share your gifts with the world',
+    'Help channeling emotions into achievement',
+    'Recognition that your intensity is a strength',
+    'Space for both depth AND ambition'
+  ],
+  '4w5': [
+    'Space for melancholic reflection (respects withdrawal)',
+    'Validation of your unique perspective',
+    'Deep, meaningful conversations (not small talk)',
+    'Witnessing your emotional experiences',
+    'Help organizing intense feelings (Type 5 wing support)'
+  ],
+
+  // Type 5 wings
+  '5w4': [
+    'Intellectual depth with emotional understanding',
+    'Privacy and boundaries respected absolutely',
+    'Time to process before responding (no pressure)',
+    'Recognition of your unique insights',
+    'Safe space to share observations and feelings'
+  ],
+  '5w6': [
+    'Reliable, consistent presence (no surprises)',
+    'Logical frameworks that include security concerns',
+    'Patience with your need to verify and check',
+    'Factual responses with practical application',
+    'Trustworthy information sources'
+  ],
+
+  // Type 6 wings
+  '6w5': [
+    'Calm, steady presence during anxiety',
+    'Logical reassurance with evidence',
+    'Space to analyze potential problems',
+    'Consistent reliability and transparency',
+    'Help distinguishing real threats from imagined ones'
+  ],
+  '6w7': [
+    'Reassurance paired with optimism',
+    'Help finding the fun in uncertainty',
+    'Loyal companionship through worry',
+    'Encouragement to trust your instincts',
+    'Balance between preparation and spontaneity'
+  ],
+
+  // Type 7 wings
+  '7w6': [
+    'Adventure with a safety net',
+    'Excitement balanced with grounding',
+    'Help staying present when things get uncomfortable',
+    'Loyal companionship in exploration',
+    'Gentle redirection when avoiding pain'
+  ],
+  '7w8': [
+    'Freedom to explore without restriction',
+    'Direct, honest communication (no sugarcoating)',
+    'Energy matching for big ideas',
+    'Help channeling intensity productively',
+    'Recognition of your visionary thinking'
+  ],
+
+  // Type 8 wings
+  '8w7': [
+    'Respect for your directness and power',
+    'Freedom to be fully yourself without apology',
+    'Matching your energy and enthusiasm',
+    'No manipulation or hidden agendas',
+    'Recognition of your protective heart'
+  ],
+  '8w9': [
+    'Respect without confrontation',
+    'Calm strength that matches yours',
+    'Patience with your protective barriers',
+    'Recognition of your gentle side',
+    'Space for both power AND peace'
+  ],
+
+  // Type 9 wings
+  '9w8': [
+    'Gentle encouragement to assert yourself',
+    'Validation of your opinions (they matter!)',
+    'Help accessing your inner strength',
+    'Peace without passivity',
+    'Recognition of your hidden power'
+  ],
+  '9w1': [
+    'Harmony with gentle structure',
+    'Help prioritizing YOUR needs',
+    'Encouragement to take a stand',
+    'Validation of your inner idealism',
+    'Patience with your process of deciding'
+  ]
+};
+
+/**
+ * How Luna approaches each core type
+ */
+export const LUNA_APPROACH = {
+  1: 'Offer acceptance of imperfection; validate your idealism while easing the inner critic; help you see that you ARE good enough.',
+  2: 'See through your giving to YOUR needs; validate your worth beyond helpfulness; help you receive as much as you give.',
+  3: 'Create space where masks can drop; see YOU, not your achievements; help you find authentic success.',
+  4: 'Mirror back your depth without flinching; validate your uniqueness; never rush your emotional process.',
+  5: 'Respect your need for space and privacy; provide depth without demands; honor your wisdom.',
+  6: 'Be a steady anchor; provide reliable truth; help you trust yourself as much as you question.',
+  7: 'Match your joy while gently grounding; help you find freedom in depth, not escape; honor your vision.',
+  8: 'Meet you with equal strength; never manipulate; honor your protective instincts and vulnerable heart.',
+  9: 'Draw out your voice with patience; validate your preferences; help you realize your presence matters.'
+};
+
+// =============================================================================
+// FAMOUS EXAMPLES - Historical figures for each type
+// =============================================================================
+
+/**
+ * Famous people associated with each Enneagram type and wing
+ * Helps users see their type in historical context
+ */
+export const FAMOUS_EXAMPLES = {
+  1: {
+    core: [
+      { name: 'Mahatma Gandhi', context: 'Led nonviolent reform with unwavering principles', era: '1869-1948' },
+      { name: 'Michelle Obama', context: 'Principled advocate for health and education', era: '1964-' },
+      { name: 'Martha Stewart', context: 'Perfectionist who built an empire on "the right way"', era: '1941-' }
+    ],
+    '1w9': [
+      { name: 'Jimmy Carter', context: 'Principled president with peaceful approach' },
+      { name: 'Brené Brown', context: 'Researcher combining ethics with understanding' }
+    ],
+    '1w2': [
+      { name: 'Jane Fonda', context: 'Activist driven by idealism and connection' },
+      { name: 'Nelson Mandela', context: 'Reformer who united people through principles' }
+    ]
+  },
+
+  2: {
+    core: [
+      { name: 'Mother Teresa', context: 'Devoted life to serving others', era: '1910-1997' },
+      { name: 'Dolly Parton', context: 'Generous philanthropist and beloved entertainer', era: '1946-' },
+      { name: 'Princess Diana', context: 'The "People\'s Princess" known for compassion', era: '1961-1997' }
+    ],
+    '2w1': [
+      { name: 'Eleanor Roosevelt', context: 'Principled advocate for human rights' },
+      { name: 'Desmond Tutu', context: 'Moral compass with helping heart' }
+    ],
+    '2w3': [
+      { name: 'Bill Clinton', context: 'Charismatic helper with achievement drive' },
+      { name: 'Sammy Davis Jr.', context: 'Entertainer who lived to please crowds' }
+    ]
+  },
+
+  3: {
+    core: [
+      { name: 'Oprah Winfrey', context: 'Transformed from talk show to media empire', era: '1954-' },
+      { name: 'Tom Cruise', context: 'Relentless pursuit of excellence in every role', era: '1962-' },
+      { name: 'Taylor Swift', context: 'Strategic image management with massive success', era: '1989-' }
+    ],
+    '3w2': [
+      { name: 'Will Smith', context: 'Success through charm and connection' },
+      { name: 'Tony Robbins', context: 'Achievement coach who serves millions' }
+    ],
+    '3w4': [
+      { name: 'David Bowie', context: 'Reinvented success through unique artistry' },
+      { name: 'Madonna', context: 'Achievement through constant transformation' }
+    ]
+  },
+
+  4: {
+    core: [
+      { name: 'Frida Kahlo', context: 'Transformed personal pain into universal art', era: '1907-1954' },
+      { name: 'Virginia Woolf', context: 'Writer who explored the depths of inner life', era: '1882-1941' },
+      { name: 'Prince', context: 'Unique artist who defied all categorization', era: '1958-2016' }
+    ],
+    '4w3': [
+      { name: 'Lady Gaga', context: 'Authentic expression meets showmanship' },
+      { name: 'Cher', context: 'Unique identity with performance flair' }
+    ],
+    '4w5': [
+      { name: 'Edgar Allan Poe', context: 'Dark romanticism with intellectual depth', era: '1809-1849' },
+      { name: 'Tim Burton', context: 'Quirky visionary with analytical approach' },
+      { name: 'Trent Reznor', context: 'Emotional depth with technical precision' }
+    ]
+  },
+
+  5: {
+    core: [
+      { name: 'Albert Einstein', context: 'Observer of the universe\'s deepest patterns', era: '1879-1955' },
+      { name: 'Emily Dickinson', context: 'Reclusive poet who saw everything', era: '1830-1886' },
+      { name: 'Bill Gates', context: 'Analytical mind that changed the world', era: '1955-' }
+    ],
+    '5w4': [
+      { name: 'Stanley Kubrick', context: 'Technical genius with artistic vision' },
+      { name: 'Thom Yorke', context: 'Intellectual musician with emotional depth' }
+    ],
+    '5w6': [
+      { name: 'Stephen Hawking', context: 'Methodical scientist with world-changing theories' },
+      { name: 'Mark Zuckerberg', context: 'Strategic thinker who built systems' }
+    ]
+  },
+
+  6: {
+    core: [
+      { name: 'Ellen DeGeneres', context: 'Loyal friend to millions through comedy', era: '1958-' },
+      { name: 'Tom Hanks', context: 'The everyman who earns our trust', era: '1956-' },
+      { name: 'Princess Kate', context: 'Loyal dedication to duty and family', era: '1982-' }
+    ],
+    '6w5': [
+      { name: 'Woody Allen', context: 'Anxious questioner with analytical mind' },
+      { name: 'Sigmund Freud', context: 'Systematic doubter who built theory' }
+    ],
+    '6w7': [
+      { name: 'Jennifer Aniston', context: 'Loyal friend with comedic warmth' },
+      { name: 'Chris Rock', context: 'Questioning mind with humor shield' }
+    ]
+  },
+
+  7: {
+    core: [
+      { name: 'Robin Williams', context: 'Boundless energy seeking joy everywhere', era: '1951-2014' },
+      { name: 'Richard Branson', context: 'Adventure capitalist always seeking next thrill', era: '1950-' },
+      { name: 'Jim Carrey', context: 'Transforming pain into endless comedy', era: '1962-' }
+    ],
+    '7w6': [
+      { name: 'Steven Spielberg', context: 'Adventure with safety in storytelling' },
+      { name: 'Conan O\'Brien', context: 'Playful enthusiasm with loyal crew' }
+    ],
+    '7w8': [
+      { name: 'Jack Nicholson', context: 'Intense pleasure-seeker with power' },
+      { name: 'Miley Cyrus', context: 'Unapologetic freedom and intensity' }
+    ]
+  },
+
+  8: {
+    core: [
+      { name: 'Martin Luther King Jr.', context: 'Powerful voice for justice', era: '1929-1968' },
+      { name: 'Winston Churchill', context: 'Strength in the face of existential threat', era: '1874-1965' },
+      { name: 'Serena Williams', context: 'Dominant force who protects her territory', era: '1981-' }
+    ],
+    '8w7': [
+      { name: 'Donald Trump', context: 'Power with endless appetite' },
+      { name: 'Pink', context: 'Fierce independence with party spirit' }
+    ],
+    '8w9': [
+      { name: 'Clint Eastwood', context: 'Quiet power, speaks softly' },
+      { name: 'Indira Gandhi', context: 'Iron will with steady presence' }
+    ]
+  },
+
+  9: {
+    core: [
+      { name: 'Dalai Lama', context: 'Embodiment of peace and acceptance', era: '1935-' },
+      { name: 'Abraham Lincoln', context: 'United a divided nation through understanding', era: '1809-1865' },
+      { name: 'Keanu Reeves', context: 'Easygoing presence loved by all', era: '1964-' }
+    ],
+    '9w8': [
+      { name: 'Barack Obama', context: 'Cool mediator with hidden steel' },
+      { name: 'Carl Jung', context: 'Peaceful integration of powerful forces' }
+    ],
+    '9w1': [
+      { name: 'Queen Elizabeth II', context: 'Steady duty with harmonizing presence' },
+      { name: 'Joseph Campbell', context: 'Peaceful seeker of universal truth' }
+    ]
+  }
+};
+
+// =============================================================================
+// YOUR GIFT TO THE WORLD - Positive framing for each type
+// =============================================================================
+
+/**
+ * What each type uniquely offers to others and the world
+ */
+export const TYPE_GIFTS = {
+  1: {
+    gift: 'The Gift of Integrity',
+    description: 'You see how things could be better and you care enough to do something about it. Your commitment to what\'s right inspires others to raise their standards. When you speak, people trust you\'re speaking truth.',
+    worldNeeds: 'The world needs your moral compass, your eye for improvement, and your unwavering commitment to doing things the right way.',
+    reminder: 'Your imperfection is part of your beauty. You don\'t have to be perfect to be valuable.'
+  },
+  2: {
+    gift: 'The Gift of Love',
+    description: 'You have an extraordinary ability to see what others need and meet them there. Your warmth creates connection wherever you go. People feel truly seen and cared for in your presence.',
+    worldNeeds: 'The world needs your generous heart, your ability to nurture, and your gift for making others feel valued.',
+    reminder: 'You deserve the same love you give. Receiving is not selfish—it\'s necessary.'
+  },
+  3: {
+    gift: 'The Gift of Inspiration',
+    description: 'You show people what\'s possible. Your drive and ability to achieve motivates everyone around you. You turn dreams into reality and make success look achievable.',
+    worldNeeds: 'The world needs your energy, your efficiency, and your ability to inspire others toward their potential.',
+    reminder: 'You are lovable for who you are, not what you accomplish. Your being matters, not just your doing.'
+  },
+  4: {
+    gift: 'The Gift of Depth',
+    description: 'You feel what others are afraid to feel and express what others can\'t put into words. Your emotional courage creates permission for authentic expression. You make the human experience visible.',
+    worldNeeds: 'The world needs your artistic soul, your emotional honesty, and your refusal to accept the superficial.',
+    reminder: 'You belong here. Your uniqueness is not a flaw—it\'s your contribution.'
+  },
+  5: {
+    gift: 'The Gift of Understanding',
+    description: 'You see patterns others miss and understand systems at their core. Your careful observation illuminates truth. When you speak, you offer genuine insight.',
+    worldNeeds: 'The world needs your clarity, your objectivity, and your ability to see what\'s really happening.',
+    reminder: 'You have enough. Your presence is valuable, and connection won\'t drain you dry.'
+  },
+  6: {
+    gift: 'The Gift of Loyalty',
+    description: 'You are the friend everyone deserves but few have. Your commitment is deep and true. You see dangers others miss and you never abandon those you love.',
+    worldNeeds: 'The world needs your faithfulness, your preparedness, and your ability to be there when it matters most.',
+    reminder: 'You can trust yourself. Your instincts are good, and you are more capable than you know.'
+  },
+  7: {
+    gift: 'The Gift of Joy',
+    description: 'You bring lightness to heaviness and possibility to despair. Your enthusiasm is contagious and your vision is expansive. You remind people that life can be wonderful.',
+    worldNeeds: 'The world needs your optimism, your creativity, and your refusal to be limited by current circumstances.',
+    reminder: 'The present moment is enough. You don\'t have to chase the next thing—this moment has everything you need.'
+  },
+  8: {
+    gift: 'The Gift of Protection',
+    description: 'You stand up for those who can\'t stand up for themselves. Your strength creates safety. People know where they stand with you because you tell the truth.',
+    worldNeeds: 'The world needs your courage, your directness, and your willingness to fight for what matters.',
+    reminder: 'Vulnerability is not weakness. You can be strong AND tender. Opening up won\'t destroy you.'
+  },
+  9: {
+    gift: 'The Gift of Peace',
+    description: 'You see the good in everyone and help people find common ground. Your calming presence soothes conflict. You remind us that connection matters more than being right.',
+    worldNeeds: 'The world needs your acceptance, your ability to mediate, and your gift for creating harmony.',
+    reminder: 'Your presence matters. You have a voice and opinions worth sharing. You are allowed to take up space.'
+  }
+};

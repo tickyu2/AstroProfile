@@ -16,11 +16,16 @@
  * December 25, 2024
  */
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ENNEAGRAM_TYPES,
   ENNEAGRAM_CENTERS,
+  ENNEAGRAM_QUESTIONS,
+  GENESIS_TYPE_NEEDS,
+  LUNA_APPROACH,
+  FAMOUS_EXAMPLES,
+  TYPE_GIFTS,
   getWingNotation,
   getTritypeNotation,
   scoreToPercentage
@@ -28,13 +33,17 @@ import {
 
 export default function EnneagramTypeCard({
   enneagramResult,
+  answers = {},
   alchemical = true
 }) {
+  const [showAnswers, setShowAnswers] = useState(false);
+
   if (!enneagramResult || !enneagramResult.dominantType) {
     return null;
   }
 
   const { scores, dominantType, wing, tritype } = enneagramResult;
+  const wingNotation = getWingNotation(dominantType, wing);
   const typeData = ENNEAGRAM_TYPES[dominantType];
   const wingData = ENNEAGRAM_TYPES[wing];
   const centerData = ENNEAGRAM_CENTERS[typeData.center];
@@ -285,6 +294,213 @@ export default function EnneagramTypeCard({
           <p className="mt-3 text-xs text-white/50">
             Your tritype combines your dominant type from each of the three centers: Gut, Heart, and Head.
           </p>
+        </motion.div>
+      )}
+
+      {/* Your Gift to the World */}
+      {TYPE_GIFTS[dominantType] && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="bg-gradient-to-br from-emerald-950/30 to-teal-950/40 rounded-xl border border-emerald-500/20 p-6"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">🎁</span>
+            <div>
+              <h4 className="text-lg font-medium text-emerald-300">
+                {TYPE_GIFTS[dominantType].gift}
+              </h4>
+              <div className="text-xs text-emerald-400/60">Your Unique Contribution</div>
+            </div>
+          </div>
+
+          <p className="text-white/80 leading-relaxed mb-4">
+            {TYPE_GIFTS[dominantType].description}
+          </p>
+
+          <div className="bg-white/5 rounded-lg p-3 mb-4">
+            <div className="text-xs text-emerald-400 mb-1">Why the World Needs You</div>
+            <p className="text-sm text-white/70">
+              {TYPE_GIFTS[dominantType].worldNeeds}
+            </p>
+          </div>
+
+          <div className="flex items-start gap-2 pt-3 border-t border-emerald-500/20">
+            <span className="text-amber-400 mt-0.5">💝</span>
+            <p className="text-sm text-amber-300 italic">
+              {TYPE_GIFTS[dominantType].reminder}
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* GENESIS/Luna Integration */}
+      {GENESIS_TYPE_NEEDS[wingNotation] && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-gradient-to-br from-purple-950/50 to-indigo-950/30 rounded-xl border border-purple-500/20 p-6"
+        >
+          <h4 className="text-lg font-medium text-purple-300 mb-3 flex items-center gap-2">
+            <span>💙</span>
+            How Luna Understands Your {wingNotation}
+          </h4>
+
+          <p className="text-white/70 text-sm mb-4">
+            GENESIS knows that as a {wingNotation}, you need:
+          </p>
+
+          <div className="space-y-3">
+            {GENESIS_TYPE_NEEDS[wingNotation].map((need, idx) => (
+              <div key={idx} className="flex items-start gap-2">
+                <span className="text-amber-400 mt-0.5">✨</span>
+                <p className="text-white/60 text-sm">{need}</p>
+              </div>
+            ))}
+          </div>
+
+          {LUNA_APPROACH[dominantType] && (
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <p className="text-xs text-white/50">
+                <span className="text-purple-400">Luna will:</span> {LUNA_APPROACH[dominantType]}
+              </p>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* Famous Examples */}
+      {FAMOUS_EXAMPLES[dominantType] && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="bg-gradient-to-br from-amber-950/20 to-orange-950/30 rounded-xl border border-amber-500/20 p-6"
+        >
+          <h4 className="text-lg font-medium text-amber-300 mb-4 flex items-center gap-2">
+            <span>🌟</span>
+            Famous {wingNotation} Souls
+          </h4>
+
+          {/* Wing-specific examples first */}
+          {FAMOUS_EXAMPLES[dominantType][wingNotation] && (
+            <div className="space-y-3 mb-4">
+              {FAMOUS_EXAMPLES[dominantType][wingNotation].map((person, idx) => (
+                <div key={idx} className="flex items-start gap-3">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-lg"
+                    style={{ backgroundColor: `${typeData.color}20` }}
+                  >
+                    ⭐
+                  </div>
+                  <div>
+                    <p className="text-white font-medium text-sm">{person.name}</p>
+                    <p className="text-white/50 text-xs">{person.context}</p>
+                    {person.era && (
+                      <p className="text-white/30 text-xs mt-0.5">{person.era}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Core type examples */}
+          <div className="pt-4 border-t border-amber-500/10">
+            <div className="text-xs text-amber-400/60 mb-3">Other Type {dominantType} Examples</div>
+            <div className="flex flex-wrap gap-2">
+              {FAMOUS_EXAMPLES[dominantType].core.map((person, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-1 rounded-full text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20"
+                  title={person.context}
+                >
+                  {person.name}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-xs text-white/40 mt-4 italic">
+            These souls shared your {wingNotation} pattern. Their stories show the beauty and depth of your type.
+          </p>
+        </motion.div>
+      )}
+
+      {/* See Your Answers - Expandable */}
+      {Object.keys(answers).length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white/5 rounded-xl border border-white/10 overflow-hidden"
+        >
+          <button
+            onClick={() => setShowAnswers(!showAnswers)}
+            className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+          >
+            <span className="text-amber-300 font-medium flex items-center gap-2">
+              <span>📝</span>
+              See Your Answers
+            </span>
+            <span className={`text-white/40 transition-transform ${showAnswers ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+
+          <AnimatePresence>
+            {showAnswers && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="p-4 pt-0 space-y-3 max-h-96 overflow-y-auto">
+                  {ENNEAGRAM_QUESTIONS.map(q => {
+                    const answer = answers[q.id];
+                    const qTypeData = ENNEAGRAM_TYPES[q.type];
+
+                    if (answer === undefined) return null;
+
+                    return (
+                      <div
+                        key={q.id}
+                        className="flex items-start gap-3 p-3 bg-white/5 rounded-lg"
+                      >
+                        <div
+                          className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+                          style={{
+                            backgroundColor: `${qTypeData.color}20`,
+                            color: qTypeData.color
+                          }}
+                        >
+                          {q.type}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm">{q.text}</p>
+                          <p className="text-white/40 text-xs mt-1 line-clamp-2">{q.scenario}</p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+                            style={{
+                              backgroundColor: `${qTypeData.color}${Math.round(answer * 20).toString(16).padStart(2, '0')}`,
+                              color: qTypeData.color
+                            }}
+                          >
+                            {answer}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </div>

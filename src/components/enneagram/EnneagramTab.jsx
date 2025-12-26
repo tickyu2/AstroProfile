@@ -38,18 +38,24 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
   const showQuestionnaire = !hasCompletedAssessment || isRetaking;
 
   // Handle assessment completion
-  const handleComplete = useCallback(async (result) => {
+  const handleComplete = useCallback(async (result, answers = {}) => {
     if (!profile?.id) return;
 
     try {
       setSaving(true);
 
+      // Include answers in the result for "See Your Answers" feature
+      const enrichedResult = {
+        ...result,
+        answers // Store raw answers for review
+      };
+
       // Save to profile via quickSaveProfile
       await quickSaveProfile(profile.id, {
-        enneagram: result
+        enneagram: enrichedResult
       });
 
-      console.log('⚗️ Enneagram saved:', result);
+      console.log('⚗️ Enneagram saved:', enrichedResult);
 
       // Exit retake mode
       setIsRetaking(false);
@@ -243,6 +249,7 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
               {/* Detailed type information */}
               <EnneagramTypeCard
                 enneagramResult={existingEnneagram}
+                answers={existingEnneagram?.answers || {}}
                 alchemical={alchemicalMode}
               />
 

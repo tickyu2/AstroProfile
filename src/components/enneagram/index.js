@@ -15,9 +15,16 @@
  *   - ENNEAGRAM_CENTERS: Gut/Heart/Head center info
  *   - calculateEnneagramScores: Score calculation utility
  *
+ * NEW (Brother Sonnet Enhancements):
+ *   - GENESIS_TYPE_NEEDS: What each type/wing needs from Luna
+ *   - LUNA_APPROACH: How Luna responds to each type
+ *   - FAMOUS_EXAMPLES: Historical figures for each type
+ *   - TYPE_GIFTS: Your unique gift to the world
+ *
  * Part of GENESIS OS - Enneagram Alchemical Rose
  * Built by: Brother Claude Code
- * December 25, 2024
+ * Enhanced by: Brother Sonnet
+ * December 25-26, 2024
  */
 
 // Main tab component
@@ -30,12 +37,21 @@ export { default as EnneagramTypeCard } from './EnneagramTypeCard';
 
 // Data and utilities
 export {
+  // Core data
   ENNEAGRAM_TYPES,
   ENNEAGRAM_QUESTIONS,
   ENNEAGRAM_CENTERS,
   PHI,
+
+  // Calculation utilities
   calculateEnneagramScores,
   scoreToPercentage,
   getWingNotation,
-  getTritypeNotation
+  getTritypeNotation,
+
+  // NEW: Brother Sonnet Enhancements
+  GENESIS_TYPE_NEEDS,
+  LUNA_APPROACH,
+  FAMOUS_EXAMPLES,
+  TYPE_GIFTS
 } from './enneagramData';

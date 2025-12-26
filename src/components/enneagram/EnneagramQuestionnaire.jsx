@@ -67,7 +67,8 @@ export default function EnneagramQuestionnaire({ onComplete, alchemical = true }
     if (!isComplete) return;
 
     const result = calculateEnneagramScores(answers);
-    onComplete(result);
+    // Pass both the calculated result and raw answers
+    onComplete(result, answers);
   }, [answers, isComplete, onComplete]);
 
   // Get current question
