@@ -23,6 +23,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useProfiles } from '../contexts/ProfileContext';
 import { HouseStrengthPlayground } from '../components/playground';
 import LocationPicker from '../components/common/LocationPicker';
+import SoulConfessional from '../components/soulGarden/SoulConfessional';
+import { submitConfessional, buildConfessionalChart } from '../services/confessionalService';
 
 // Input mode options
 const INPUT_MODES = {
@@ -48,6 +50,10 @@ export default function SoulGardenPage() {
   // Playground state
   const [showPlayground, setShowPlayground] = useState(false);
   const [specificTime, setSpecificTime] = useState(null); // For exact time calculation
+
+  // Soul Confessional state
+  const [confessionalLoading, setConfessionalLoading] = useState(false);
+  const [confessionalResponse, setConfessionalResponse] = useState(null);
 
   // Get list of profiles for search
   // Handle both old structure (birth.date) and new structure (birthDate at top level)
@@ -193,6 +199,58 @@ export default function SoulGardenPage() {
       setShowPlayground(true);
     }
   }, [activeBirthData]);
+
+  // Handle Soul Confessional submission
+  const handleConfessionalSubmit = useCallback(async (context) => {
+    setConfessionalLoading(true);
+    setConfessionalResponse(null);
+
+    try {
+      // Build chart data from selected profile or manual entry
+      let chartData = null;
+      if (inputMode === INPUT_MODES.PROFILE && selectedProfileForSearch) {
+        const fullProfile = profiles?.find(p => p.id === selectedProfileForSearch);
+        if (fullProfile) {
+          chartData = buildConfessionalChart(fullProfile);
+        }
+      }
+
+      // If no profile chart, build minimal chart from manual data
+      if (!chartData && activeBirthData) {
+        chartData = {
+          birth: {
+            date: activeBirthData.birthDate,
+            time: activeBirthData.birthTime,
+            location: {
+              latitude: activeBirthData.latitude,
+              longitude: activeBirthData.longitude
+            }
+          }
+        };
+      }
+
+      const result = await submitConfessional({
+        chart: chartData,
+        context
+      });
+
+      setConfessionalResponse(result);
+    } catch (error) {
+      console.error('Confessional error:', error);
+      setConfessionalResponse({
+        soulReply: 'The Cathedral whispers softly... but the words were lost in the ether. Please try again, dear soul.',
+        highlights: [],
+        gentlePractices: ['Take a deep breath', 'Know that you are heard', 'Try again when ready']
+      });
+    } finally {
+      setConfessionalLoading(false);
+    }
+  }, [inputMode, selectedProfileForSearch, profiles, activeBirthData]);
+
+  // Clear confessional response
+  const handleConfessionalClear = useCallback(() => {
+    setConfessionalResponse(null);
+  }, []);
 
   // Check if we have valid data to explore
   const canExplore = activeBirthData?.birthDate &&
@@ -539,6 +597,23 @@ export default function SoulGardenPage() {
               Enter an exact birth time to see house strengths at that precise moment, not limited to 15-minute increments.
             </p>
           </div>
+        </div>
+
+        {/* Soul Confessional Chamber */}
+        <div className="mt-12">
+          <div className="text-center mb-6">
+            <div className="inline-block px-6 py-2 bg-gradient-to-r from-amber-900/30 via-purple-900/30 to-amber-900/30 rounded-full border border-amber-500/20">
+              <span className="text-amber-300/80 text-sm tracking-widest uppercase">
+                The Whisper Alcove
+              </span>
+            </div>
+          </div>
+          <SoulConfessional
+            onSubmit={handleConfessionalSubmit}
+            loading={confessionalLoading}
+            response={confessionalResponse}
+            onClear={handleConfessionalClear}
+          />
         </div>
       </main>
     </div>

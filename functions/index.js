@@ -74,6 +74,9 @@ const drift = require('./drift');
 // Admin Dashboard API
 const adminModule = require('./admin');
 
+// Soul Confessional - Cathedral's compassionate voice
+const { soulConfessional } = require('./confessional');
+
 admin.initializeApp();
 
 const db = admin.firestore();
@@ -5171,6 +5174,38 @@ exports.checkAIAvailability = onCall({
   } catch (error) {
     console.error('[SoulLetter] AI availability check failed:', error);
     return { available: false, error: error.message };
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SOUL CONFESSIONAL - Cathedral's Compassionate Voice
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Soul Confessional
+ * A sacred whisper alcove where users pour their hearts out
+ * and receive gentle, validating guidance from the Cathedral.
+ */
+exports.soulConfessional = onCall({
+  timeoutSeconds: 60,
+  memory: '512MiB'
+}, async (request) => {
+  const { chart, context } = request.data;
+
+  console.log('[SoulConfessional] Receiving confession...');
+
+  try {
+    const result = await soulConfessional({ chart, context });
+    return {
+      success: true,
+      ...result
+    };
+  } catch (error) {
+    console.error('[SoulConfessional] Error:', error.message);
+    return {
+      success: false,
+      error: error.message || 'The Cathedral could not respond'
+    };
   }
 });
 
