@@ -24,7 +24,9 @@ import { useProfiles } from '../contexts/ProfileContext';
 import { HouseStrengthPlayground } from '../components/playground';
 import LocationPicker from '../components/common/LocationPicker';
 import SoulConfessional from '../components/soulGarden/SoulConfessional';
+import TakeHomeGiftPanel from '../components/soulGarden/TakeHomeGiftPanel';
 import { submitConfessional, buildConfessionalChart } from '../services/confessionalService';
+import { buildTakeHomeToolkit } from '../utils/risingPartingGifts';
 
 // Input mode options
 const INPUT_MODES = {
@@ -251,6 +253,17 @@ export default function SoulGardenPage() {
   const handleConfessionalClear = useCallback(() => {
     setConfessionalResponse(null);
   }, []);
+
+  // Build Take-Home Toolkit based on selected profile
+  const takeHomeToolkit = useMemo(() => {
+    if (inputMode === INPUT_MODES.PROFILE && selectedProfileForSearch) {
+      const fullProfile = profiles?.find(p => p.id === selectedProfileForSearch);
+      if (fullProfile) {
+        return buildTakeHomeToolkit(fullProfile);
+      }
+    }
+    return null;
+  }, [inputMode, selectedProfileForSearch, profiles]);
 
   // Check if we have valid data to explore
   const canExplore = activeBirthData?.birthDate &&
@@ -615,6 +628,20 @@ export default function SoulGardenPage() {
             onClear={handleConfessionalClear}
           />
         </div>
+
+        {/* Take-Home Gift Section */}
+        {takeHomeToolkit && (
+          <div className="mt-12">
+            <div className="text-center mb-6">
+              <div className="inline-block px-6 py-2 bg-gradient-to-r from-amber-900/30 via-slate-900/30 to-amber-900/30 rounded-full border border-amber-400/20">
+                <span className="text-amber-300/80 text-sm tracking-widest uppercase">
+                  Parting Gifts
+                </span>
+              </div>
+            </div>
+            <TakeHomeGiftPanel toolkit={takeHomeToolkit} />
+          </div>
+        )}
       </main>
     </div>
   );
