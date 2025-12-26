@@ -2,7 +2,7 @@
  * The Sanctuary of the Unseen Self - Full Page Experience
  *
  * A sacred chamber where souls are recognized, not managed.
- * Entrance portal → Interior sanctuary → Four Movements → Take-home rituals
+ * A staged journey through: Entrance → Arrival → Walls → Mirror → Release → Integration
  *
  * "Here, the unseen is welcomed.
  *  Here, the unheard is honored.
@@ -16,26 +16,56 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+
+// Sanctuary components
 import SanctuaryEntrancePortal from '../components/sanctuary/SanctuaryEntrancePortal';
 import SelfRecognitionSanctuary from '../components/sanctuary/SelfRecognitionSanctuary';
+import { BreathingChamber } from '../components/sanctuary/BreathingChamber';
+import { InteriorReveal } from '../components/sanctuary/InteriorReveal';
+import { WallInscriptions } from '../components/sanctuary/WallInscriptions';
+import { MirrorTransition } from '../components/sanctuary/MirrorTransition';
+import { MirrorMovement } from '../components/sanctuary/MirrorMovement';
+import { ReleaseMovement } from '../components/sanctuary/ReleaseMovement';
+import { IntegrationMovement } from '../components/sanctuary/IntegrationMovement';
+
+// Services and hooks
 import { submitToSanctuary, buildInputFromProfile } from '../services/sanctuaryService';
+import { useSanctuarySoundscape } from '../hooks/useSanctuarySoundscape';
 
 /**
- * Main Sanctuary Page - Manages entrance → interior transition
+ * Journey stages through the Sanctuary
+ */
+const STAGES = {
+  ENTRANCE: 'entrance',
+  THRESHOLD: 'threshold',
+  ARRIVAL: 'arrival',
+  WALLS: 'walls',
+  INPUT: 'input',
+  MIRROR_TRANSITION: 'mirrorTransition',
+  MIRROR: 'mirror',
+  RELEASE: 'release',
+  INTEGRATION: 'integration'
+};
+
+/**
+ * Main Sanctuary Page - Manages the full staged journey
  */
 export default function SanctuaryPage() {
   const navigate = useNavigate();
-  const [hasEntered, setHasEntered] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [stage, setStage] = useState(STAGES.ENTRANCE);
 
-  // Sanctuary state
+  // Sanctuary API state
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
-  // Try to get profile from localStorage for pre-filling
+  // Profile pre-fill
   const [initialInput, setInitialInput] = useState(null);
 
+  // Soundscape (optional - gracefully fails if no audio file)
+  useSanctuarySoundscape({ enabled: stage !== STAGES.ENTRANCE, volume: 0.25 });
+
+  // Load profile for pre-filling
   useEffect(() => {
     try {
       const storedProfile = localStorage.getItem('currentProfile');
@@ -50,19 +80,20 @@ export default function SanctuaryPage() {
   }, []);
 
   /**
-   * Handle entrance transition
+   * Navigate to next stage
+   */
+  const goTo = (nextStage) => setStage(nextStage);
+
+  /**
+   * Handle entrance portal activation
    */
   const handleEnter = () => {
-    setIsTransitioning(true);
-    // After transition animation, show interior
-    setTimeout(() => {
-      setHasEntered(true);
-      setIsTransitioning(false);
-    }, 800);
+    setStage(STAGES.THRESHOLD);
+    setTimeout(() => setStage(STAGES.ARRIVAL), 1200);
   };
 
   /**
-   * Handle sanctuary submission
+   * Handle sanctuary form submission
    */
   const handleSubmit = async (input) => {
     setLoading(true);
@@ -71,6 +102,8 @@ export default function SanctuaryPage() {
     try {
       const response = await submitToSanctuary(input);
       setResult(response);
+      // After getting result, go to mirror transition
+      setStage(STAGES.MIRROR_TRANSITION);
     } catch (err) {
       console.error('Sanctuary error:', err);
       setError(err.message || 'The Sanctuary could not receive your words. Please try again.');
@@ -88,36 +121,56 @@ export default function SanctuaryPage() {
   };
 
   /**
-   * Handle exit from sanctuary
+   * Return to entrance
    */
-  const handleExit = () => {
-    setHasEntered(false);
+  const handleReturnToEntrance = () => {
+    setStage(STAGES.ENTRANCE);
     setResult(null);
     setError(null);
   };
 
+  /**
+   * Complete journey - return to Cathedral
+   */
+  const handleComplete = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 relative">
-      {/* Ambient Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-indigo-950/20 to-slate-950" />
-        <motion.div
-          className="absolute inset-0"
-          animate={{
-            background: [
-              'radial-gradient(ellipse at 50% 30%, rgba(251,191,36,0.03) 0%, transparent 50%)',
-              'radial-gradient(ellipse at 50% 30%, rgba(251,191,36,0.06) 0%, transparent 60%)',
-              'radial-gradient(ellipse at 50% 30%, rgba(251,191,36,0.03) 0%, transparent 50%)'
-            ]
-          }}
-          transition={{ duration: 8, repeat: Infinity }}
-        />
-      </div>
+      {/* Navigation buttons - shown after entrance */}
+      {stage !== STAGES.ENTRANCE && stage !== STAGES.THRESHOLD && (
+        <div className="fixed top-4 left-4 right-4 z-50 flex justify-between">
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onClick={handleReturnToEntrance}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 border border-white/10 text-white/60 text-sm hover:bg-slate-800/80 hover:text-white/80 transition-all backdrop-blur-sm"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span>&#8592;</span>
+            <span className="hidden sm:inline">Return to Entrance</span>
+          </motion.button>
 
-      {/* Content */}
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 border border-white/10 text-white/60 text-sm hover:bg-slate-800/80 hover:text-white/80 transition-all backdrop-blur-sm"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span className="hidden sm:inline">Exit to Cathedral</span>
+            <span>&#8594;</span>
+          </motion.button>
+        </div>
+      )}
+
+      {/* Stage Content */}
       <AnimatePresence mode="wait">
-        {/* Entrance Portal */}
-        {!hasEntered && !isTransitioning && (
+        {/* Stage: Entrance Portal */}
+        {stage === STAGES.ENTRANCE && (
           <motion.div
             key="entrance"
             initial={{ opacity: 0 }}
@@ -129,14 +182,14 @@ export default function SanctuaryPage() {
           </motion.div>
         )}
 
-        {/* Transition Screen */}
-        {isTransitioning && (
+        {/* Stage: Threshold Crossing */}
+        {stage === STAGES.THRESHOLD && (
           <motion.div
-            key="transition"
+            key="threshold"
             className="fixed inset-0 bg-amber-400/20 flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 1, 0] }}
-            transition={{ duration: 0.8, times: [0, 0.3, 0.7, 1] }}
+            transition={{ duration: 1.2, times: [0, 0.3, 0.7, 1] }}
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -148,129 +201,134 @@ export default function SanctuaryPage() {
           </motion.div>
         )}
 
-        {/* Interior Sanctuary */}
-        {hasEntered && !isTransitioning && (
+        {/* Stage: Arrival */}
+        {stage === STAGES.ARRIVAL && (
           <motion.div
-            key="interior"
-            className="relative z-10"
+            key="arrival"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <BreathingChamber intensity="subtle">
+              <InteriorReveal onComplete={() => goTo(STAGES.WALLS)} />
+            </BreathingChamber>
+          </motion.div>
+        )}
+
+        {/* Stage: Wall Inscriptions */}
+        {stage === STAGES.WALLS && (
+          <motion.div
+            key="walls"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <BreathingChamber>
+              <WallInscriptions onContinue={() => goTo(STAGES.INPUT)} />
+            </BreathingChamber>
+          </motion.div>
+        )}
+
+        {/* Stage: Input Form */}
+        {stage === STAGES.INPUT && (
+          <motion.div
+            key="input"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.8 }}
+            className="min-h-screen flex items-center justify-center px-4 py-20"
           >
-            {/* Back Button */}
-            <div className="absolute top-4 left-4 z-20">
-              <motion.button
-                onClick={handleExit}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 border border-white/10 text-white/60 text-sm hover:bg-slate-800/80 hover:text-white/80 transition-all"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <span>←</span>
-                <span>Return to Entrance</span>
-              </motion.button>
-            </div>
-
-            {/* Dashboard Link */}
-            <div className="absolute top-4 right-4 z-20">
-              <motion.button
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 border border-white/10 text-white/60 text-sm hover:bg-slate-800/80 hover:text-white/80 transition-all"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <span>Exit to Cathedral</span>
-                <span>→</span>
-              </motion.button>
-            </div>
-
-            {/* Interior Content */}
-            <div className="min-h-screen flex items-center justify-center px-4 py-20">
-              <motion.div
-                className="w-full max-w-3xl"
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-              >
+            <BreathingChamber intensity="deep">
+              <div className="w-full max-w-3xl mx-auto">
                 <SelfRecognitionSanctuary
                   onSubmit={handleSubmit}
                   loading={loading}
-                  result={result}
+                  result={null}
                   error={error}
                   onClear={handleClear}
                   initialInput={initialInput}
                 />
-              </motion.div>
-            </div>
+              </div>
+            </BreathingChamber>
+          </motion.div>
+        )}
 
-            {/* Interior Ambient Elements */}
-            <InteriorAmbience />
+        {/* Stage: Mirror Transition */}
+        {stage === STAGES.MIRROR_TRANSITION && (
+          <motion.div
+            key="mirrorTransition"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <BreathingChamber intensity="deep">
+              <MirrorTransition onComplete={() => goTo(STAGES.MIRROR)} />
+            </BreathingChamber>
+          </motion.div>
+        )}
+
+        {/* Stage: Mirror Movement */}
+        {stage === STAGES.MIRROR && result && (
+          <motion.div
+            key="mirror"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.8 }}
+          >
+            <BreathingChamber>
+              <MirrorMovement
+                mirror={result.mirror}
+                patterns={result.emotionalPatterns}
+                onContinue={() => goTo(STAGES.RELEASE)}
+              />
+            </BreathingChamber>
+          </motion.div>
+        )}
+
+        {/* Stage: Release Movement */}
+        {stage === STAGES.RELEASE && result && (
+          <motion.div
+            key="release"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.8 }}
+          >
+            <BreathingChamber>
+              <ReleaseMovement
+                section={result.release}
+                ritual={result.rituals?.release}
+                onContinue={() => goTo(STAGES.INTEGRATION)}
+              />
+            </BreathingChamber>
+          </motion.div>
+        )}
+
+        {/* Stage: Integration Movement */}
+        {stage === STAGES.INTEGRATION && result && (
+          <motion.div
+            key="integration"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.8 }}
+          >
+            <BreathingChamber intensity="subtle">
+              <IntegrationMovement
+                section={result.integration}
+                rituals={result.rituals}
+                shortMantra={result.shortMantra}
+                onComplete={handleComplete}
+              />
+            </BreathingChamber>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
-
-/**
- * Interior ambient visual elements - subtle candle glows
- */
-function InteriorAmbience() {
-  return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      {/* Corner candle glows */}
-      <motion.div
-        className="absolute -top-20 -left-20 w-60 h-60 rounded-full bg-amber-400/5 blur-3xl"
-        animate={{
-          opacity: [0.3, 0.5, 0.3],
-          scale: [1, 1.1, 1]
-        }}
-        transition={{ duration: 6, repeat: Infinity }}
-      />
-      <motion.div
-        className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-amber-400/5 blur-3xl"
-        animate={{
-          opacity: [0.4, 0.3, 0.4],
-          scale: [1.1, 1, 1.1]
-        }}
-        transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-      />
-      <motion.div
-        className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-indigo-400/5 blur-3xl"
-        animate={{
-          opacity: [0.3, 0.4, 0.3],
-          scale: [1, 1.05, 1]
-        }}
-        transition={{ duration: 7, repeat: Infinity, delay: 2 }}
-      />
-      <motion.div
-        className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full bg-indigo-400/5 blur-3xl"
-        animate={{
-          opacity: [0.4, 0.5, 0.4],
-          scale: [1.05, 1, 1.05]
-        }}
-        transition={{ duration: 6, repeat: Infinity, delay: 0.5 }}
-      />
-
-      {/* Floating dust particles */}
-      {[...Array(15)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-0.5 h-0.5 rounded-full bg-amber-300/20"
-          style={{
-            left: `${10 + Math.random() * 80}%`,
-            top: `${10 + Math.random() * 80}%`
-          }}
-          animate={{
-            y: [0, -20, 0],
-            opacity: [0.1, 0.3, 0.1]
-          }}
-          transition={{
-            duration: 5 + Math.random() * 3,
-            repeat: Infinity,
-            delay: Math.random() * 3
-          }}
-        />
-      ))}
     </div>
   );
 }
