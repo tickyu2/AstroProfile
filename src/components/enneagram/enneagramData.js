@@ -826,3 +826,1203 @@ export const TYPE_GIFTS = {
     reminder: 'Your presence matters. You have a voice and opinions worth sharing. You are allowed to take up space.'
   }
 };
+
+// =============================================================================
+// INSTINCTUAL VARIANTS - The 3 biological drives (sp/sx/so)
+// =============================================================================
+
+/**
+ * The three instinctual variants that create 27 subtypes
+ */
+export const INSTINCTUAL_VARIANTS = {
+  sp: {
+    name: 'Self-Preservation',
+    shortName: 'SP',
+    focus: 'Safety, security, comfort, resources, health, routine',
+    color: '#84cc16',
+    icon: '🛡️',
+    description: 'Your attention goes first to survival needs: physical comfort, financial security, health, and maintaining a stable environment. You notice what could go wrong and prepare for it.'
+  },
+  sx: {
+    name: 'Sexual (One-to-One)',
+    shortName: 'SX',
+    focus: 'Intensity, chemistry, deep connection, attraction, merging',
+    color: '#ec4899',
+    icon: '🔥',
+    description: 'Your attention goes to intensity and chemistry. You seek deep one-on-one connections that feel electric. Life feels most alive when there\'s passion, attraction, or profound intimacy.'
+  },
+  so: {
+    name: 'Social',
+    shortName: 'SO',
+    focus: 'Groups, belonging, contribution, status, community',
+    color: '#06b6d4',
+    icon: '👥',
+    description: 'Your attention goes to groups and your place within them. You\'re aware of social dynamics, want to belong, and care about contributing to something larger than yourself.'
+  }
+};
+
+/**
+ * 6 additional questions to determine instinctual variant (2 per variant)
+ */
+export const INSTINCT_QUESTIONS = [
+  // Self-Preservation (sp)
+  {
+    id: 'sp_1',
+    variant: 'sp',
+    text: "I focus a lot on having enough—money, food, comfort, or security for myself.",
+    scenario: "When stressed, your first thought is 'Do I have enough?' Whether that's savings, food in the pantry, or a safe space to retreat to.",
+    shortText: "Focus on resources/comfort"
+  },
+  {
+    id: 'sp_2',
+    variant: 'sp',
+    text: "I get anxious when my routine or physical needs aren't met.",
+    scenario: "Missing a meal, losing sleep, or having your space disrupted throws off your whole day. You need basics handled first.",
+    shortText: "Routine and needs-focused"
+  },
+
+  // Sexual/One-to-One (sx)
+  {
+    id: 'sx_1',
+    variant: 'sx',
+    text: "I crave deep, intense one-on-one connections more than group hangouts.",
+    scenario: "You'd rather have one amazing heart-to-heart conversation than attend a party with 20 people making small talk.",
+    shortText: "Craves intensity"
+  },
+  {
+    id: 'sx_2',
+    variant: 'sx',
+    text: "I feel most alive when there's chemistry or strong attraction between me and someone.",
+    scenario: "Whether romantic or platonic, you're drawn to people who 'get' you on a deep level—there's an electric quality to the connection.",
+    shortText: "Seeks connection/chemistry"
+  },
+
+  // Social (so)
+  {
+    id: 'so_1',
+    variant: 'so',
+    text: "I care about my role or status in the groups I'm part of.",
+    scenario: "Whether it's your friend group, team, or community—you're aware of where you fit and how others perceive you.",
+    shortText: "Group-aware"
+  },
+  {
+    id: 'so_2',
+    variant: 'so',
+    text: "I want to be part of something bigger—a cause, community, or movement.",
+    scenario: "You're happiest when you belong to a group that matters, where you're contributing to shared goals.",
+    shortText: "Seeks belonging"
+  }
+];
+
+/**
+ * Calculate instinctual variant from answers
+ * @param {Object} answers - Object with question id as key, rating (1-5) as value
+ * @returns {Object} - { dominant, stack, scores }
+ */
+export function calculateInstinctualVariant(answers) {
+  const variantScores = { sp: 0, sx: 0, so: 0 };
+
+  // Sum scores for each variant
+  INSTINCT_QUESTIONS.forEach(q => {
+    if (answers[q.id] !== undefined) {
+      variantScores[q.variant] += answers[q.id];
+    }
+  });
+
+  // Find dominant variant
+  const sorted = Object.entries(variantScores)
+    .sort(([, a], [, b]) => b - a);
+
+  return {
+    dominant: sorted[0][0],
+    stack: sorted.map(([variant]) => variant),
+    scores: variantScores
+  };
+}
+
+/**
+ * 27 Subtype descriptions (9 types × 3 variants)
+ * Each type expresses differently through each instinctual lens
+ */
+export const SUBTYPE_DESCRIPTIONS = {
+  // Type 1 Subtypes
+  '1-sp': {
+    name: 'The Perfectionist',
+    focus: 'Perfecting self and personal environment',
+    description: 'You direct your reforming energy inward. Your home, body, and personal habits must meet high standards. You\'re the most self-controlled 1, focusing on being good rather than preaching goodness.',
+    countertype: false
+  },
+  '1-sx': {
+    name: 'The Zealot',
+    focus: 'Reforming others through intense connection',
+    description: 'Most intense Type 1. You feel called to perfect those closest to you. Your passion for improvement can become fiery crusading in intimate relationships.',
+    countertype: true
+  },
+  '1-so': {
+    name: 'The Social Reformer',
+    focus: 'Improving society and systems',
+    description: 'Classic reformer—concerned with social justice, proper behavior, and doing what\'s right for the group. You teach and model the "right way" to live.',
+    countertype: false
+  },
+
+  // Type 2 Subtypes
+  '2-sp': {
+    name: 'The Privilege',
+    focus: 'Being indispensable to close others',
+    description: 'Countertype 2—you help in practical, concrete ways rather than emotional support. You earn love through usefulness. Can seem less warm than other 2s.',
+    countertype: true
+  },
+  '2-sx': {
+    name: 'The Seducer/Seductress',
+    focus: 'Being irresistible to specific others',
+    description: 'Most intense 2. You want to be the most important person to those you love. Seductive, passionate, and deeply attuned to what makes you desirable.',
+    countertype: false
+  },
+  '2-so': {
+    name: 'The Ambassador',
+    focus: 'Being important to groups and causes',
+    description: 'You help through leadership and influence. Drawn to powerful people and positions where you can help many. Your giving is public and ambitious.',
+    countertype: false
+  },
+
+  // Type 3 Subtypes
+  '3-sp': {
+    name: 'The Professional',
+    focus: 'Security through excellence and efficiency',
+    description: 'Countertype 3—you pursue success quietly, through consistent hard work. Less flashy than other 3s, you prefer substance over image. Most workaholic subtype.',
+    countertype: true
+  },
+  '3-sx': {
+    name: 'The Star',
+    focus: 'Being attractive and impressive to specific others',
+    description: 'Most charismatic 3. You need to be seen as desirable, attractive, successful. Your identity is wrapped up in being the ideal partner or admired figure.',
+    countertype: false
+  },
+  '3-so': {
+    name: 'The Politician',
+    focus: 'Status and recognition in groups',
+    description: 'Classic achiever—focused on climbing ladders, winning awards, being recognized. You excel at reading what groups value and becoming that.',
+    countertype: false
+  },
+
+  // Type 4 Subtypes
+  '4-sp': {
+    name: 'The Stoic',
+    focus: 'Enduring suffering silently, creating security through uniqueness',
+    description: 'Countertype 4—you bear emotional depth privately, expressing it through work rather than drama. Less outwardly melancholic, more self-contained and industrious.',
+    countertype: true
+  },
+  '4-sx': {
+    name: 'The Romantic',
+    focus: 'Intensity in one-to-one connections',
+    description: 'Most intense 4. You crave deep merger and can feel competitive about emotional depth. Passionate, magnetic, dramatic—you need others to feel your depths.',
+    countertype: false
+  },
+  '4-so': {
+    name: 'The Aristocrat',
+    focus: 'Being recognized as unique by groups',
+    description: 'You want the group to see your specialness. More extroverted than other 4s, you share your emotional depth openly, sometimes dramatizing suffering for recognition.',
+    countertype: false
+  },
+
+  // Type 5 Subtypes
+  '5-sp': {
+    name: 'The Castle',
+    focus: 'Creating a secure sanctuary of resources',
+    description: 'Most withdrawn 5. You build walls around yourself, hoarding resources (knowledge, space, energy) to feel safe. Your home is your fortress.',
+    countertype: false
+  },
+  '5-sx': {
+    name: 'The Secret',
+    focus: 'Intense sharing with one trusted person',
+    description: 'Countertype 5—you actually seek deep connection, but with one person at a time. You share your inner world intensely with chosen few. Most emotional 5.',
+    countertype: true
+  },
+  '5-so': {
+    name: 'The Expert',
+    focus: 'Being the authority in a group',
+    description: 'You engage with groups through specialized knowledge. You want to be the go-to expert, contributing intellectually while maintaining emotional distance.',
+    countertype: false
+  },
+
+  // Type 6 Subtypes
+  '6-sp': {
+    name: 'The Worrier',
+    focus: 'Anticipating and preparing for threats',
+    description: 'Classic anxious 6—warm but worried. You seek security through preparation, alliances, and having backup plans. Your fear is most visible.',
+    countertype: false
+  },
+  '6-sx': {
+    name: 'The Warrior',
+    focus: 'Facing fear through strength and intimidation',
+    description: 'Countertype 6—you move toward danger rather than away. Can appear like an 8—confrontational, intense, running at fear. Your anxiety drives action.',
+    countertype: true
+  },
+  '6-so': {
+    name: 'The Loyalist',
+    focus: 'Finding security through group membership',
+    description: 'You find safety in belonging—to teams, ideologies, or authorities. Strong sense of duty and responsibility. The most rule-following 6.',
+    countertype: false
+  },
+
+  // Type 7 Subtypes
+  '7-sp': {
+    name: 'The Gourmet',
+    focus: 'Pleasure and comfort in the physical world',
+    description: 'Countertype 7—focused on quality over quantity. You create networks of like-minded pleasure-seekers. Less scattered, more focused on reliable good things.',
+    countertype: true
+  },
+  '7-sx': {
+    name: 'The Enthusiast',
+    focus: 'Intensity and idealization in relationships',
+    description: 'Most intense 7. You idealize people and experiences, always chasing the next high. Fascinated, fascination-seeking, easily bored.',
+    countertype: false
+  },
+  '7-so': {
+    name: 'The Utopian',
+    focus: 'Creating an ideal world for everyone',
+    description: 'You channel enthusiasm into causes and groups. Your optimism is social—you want to uplift everyone, create movements, spread joy widely.',
+    countertype: false
+  },
+
+  // Type 8 Subtypes
+  '8-sp': {
+    name: 'The Survivor',
+    focus: 'Material security and territorial control',
+    description: 'Most practical 8. You build empires and protect what\'s yours. Focused on resources, power, and creating unassailable security. Less about people, more about position.',
+    countertype: false
+  },
+  '8-sx': {
+    name: 'The Rebel',
+    focus: 'Intensity and possession in relationships',
+    description: 'Most intense 8. You need to possess and be possessed. Relationships are all-or-nothing. Charismatic, commanding, can be jealous and demanding.',
+    countertype: false
+  },
+  '8-so': {
+    name: 'The Protector',
+    focus: 'Protecting the group and fighting injustice',
+    description: 'Countertype 8—your power serves others. You champion underdogs, fight for causes, protect your people. Most social and "helpful" of the 8s.',
+    countertype: true
+  },
+
+  // Type 9 Subtypes
+  '9-sp': {
+    name: 'The Hedonist',
+    focus: 'Comfort through routines and pleasures',
+    description: 'Most grounded 9. You merge with physical comforts—food, sleep, habits. You can be quite stubborn about your routines. Resistance through inertia.',
+    countertype: false
+  },
+  '9-sx': {
+    name: 'The Merger',
+    focus: 'Union with a partner or passion',
+    description: 'Countertype 9—you know what you want (connection with another). You merge with partners, losing yourself in relationships. Can seem un-9-like in intensity.',
+    countertype: true
+  },
+  '9-so': {
+    name: 'The Mediator',
+    focus: 'Harmony in groups and social situations',
+    description: 'Classic peacemaker—you smooth conflicts, see all sides, want everyone to get along. You merge with group consensus, often forgetting your own opinion.',
+    countertype: false
+  }
+};
+
+// =============================================================================
+// LEVELS OF DEVELOPMENT - Health spectrum for each type
+// =============================================================================
+
+/**
+ * Three levels of psychological health for each type
+ * Based on Riso-Hudson Enneagram Institute framework
+ */
+export const DEVELOPMENT_LEVELS = {
+  1: {
+    healthy: {
+      level: 'Healthy (Levels 1-3)',
+      traits: [
+        'Wise and discerning, accepting of self and others',
+        'Principled but not rigid, ethical without judging',
+        'Inspiring integrity, leading by example',
+        'Able to see the good in imperfection'
+      ],
+      integration: 'Moving toward Type 7: Spontaneous, joyful, allowing imperfection'
+    },
+    average: {
+      level: 'Average (Levels 4-6)',
+      traits: [
+        'Perfectionistic and critical (of self first)',
+        'Orderly but rigid, judgmental of others',
+        'Repressing anger that leaks as resentment',
+        'Focused on what\'s wrong rather than what\'s right'
+      ],
+      patterns: 'The inner critic dominates; seeing flaws everywhere'
+    },
+    unhealthy: {
+      level: 'Unhealthy (Levels 7-9)',
+      traits: [
+        'Self-righteous and condemnatory',
+        'Obsessive-compulsive about order',
+        'Punishing self and others harshly',
+        'Hypocritical, unable to see own faults'
+      ],
+      disintegration: 'Moving toward Type 4: Moody, depressed, feeling misunderstood'
+    }
+  },
+
+  2: {
+    healthy: {
+      level: 'Healthy (Levels 1-3)',
+      traits: [
+        'Unconditionally loving without expecting return',
+        'Genuinely humble and caring',
+        'Aware of own needs, able to receive',
+        'Empathetic without losing boundaries'
+      ],
+      integration: 'Moving toward Type 4: Acknowledging own feelings, authentic self-expression'
+    },
+    average: {
+      level: 'Average (Levels 4-6)',
+      traits: [
+        'People-pleasing and intrusive helping',
+        'Possessive and manipulative in giving',
+        'Martyr complex, keeping score of help given',
+        'Unable to admit own needs'
+      ],
+      patterns: 'Giving to get; helping others to feel worthy'
+    },
+    unhealthy: {
+      level: 'Unhealthy (Levels 7-9)',
+      traits: [
+        'Controlling and coercive through helpfulness',
+        'Playing victim when needs aren\'t met',
+        'Hypochondria or physical symptoms to get attention',
+        'Deluded about own motivations'
+      ],
+      disintegration: 'Moving toward Type 8: Dominating, aggressive, attacking those who don\'t appreciate'
+    }
+  },
+
+  3: {
+    healthy: {
+      level: 'Healthy (Levels 1-3)',
+      traits: [
+        'Authentic and self-accepting',
+        'Inspiring others through genuine achievement',
+        'In touch with feelings, not just image',
+        'Inner-directed rather than approval-seeking'
+      ],
+      integration: 'Moving toward Type 6: Committed to others, loyal, vulnerable'
+    },
+    average: {
+      level: 'Average (Levels 4-6)',
+      traits: [
+        'Competitive and image-conscious',
+        'Workaholic, sacrificing authenticity for success',
+        'Comparing self to others constantly',
+        'Performing rather than being'
+      ],
+      patterns: 'The mask becomes the identity; losing touch with real self'
+    },
+    unhealthy: {
+      level: 'Unhealthy (Levels 7-9)',
+      traits: [
+        'Deceptive and exploitative',
+        'Sabotaging others to win',
+        'Jealous and vindictive when outshone',
+        'Empty, hollow, no sense of real self'
+      ],
+      disintegration: 'Moving toward Type 9: Checked out, apathetic, giving up'
+    }
+  },
+
+  4: {
+    healthy: {
+      level: 'Healthy (Levels 1-3)',
+      traits: [
+        'Creative and self-renewing',
+        'Emotionally honest and authentic',
+        'Transforms personal experience into universal art',
+        'Able to hold beauty and pain together'
+      ],
+      integration: 'Moving toward Type 1: Disciplined, principled, objective action'
+    },
+    average: {
+      level: 'Average (Levels 4-6)',
+      traits: [
+        'Self-absorbed and emotionally dramatic',
+        'Envious of what others have',
+        'Withdrawn, moody, feeling misunderstood',
+        'Creating drama to feel special'
+      ],
+      patterns: 'Living in fantasy; pushing away what\'s offered while longing for what\'s missing'
+    },
+    unhealthy: {
+      level: 'Unhealthy (Levels 7-9)',
+      traits: [
+        'Self-destructive, depressed, hopeless',
+        'Alienated from everyone',
+        'Feeling worthless and ashamed',
+        'Self-sabotage, possibly self-harm'
+      ],
+      disintegration: 'Moving toward Type 2: Clinging, desperate for validation, manipulative'
+    }
+  },
+
+  5: {
+    healthy: {
+      level: 'Healthy (Levels 1-3)',
+      traits: [
+        'Visionary and pioneering in thought',
+        'Perceptive with groundbreaking insights',
+        'Able to engage while maintaining independence',
+        'Generous with knowledge and time'
+      ],
+      integration: 'Moving toward Type 8: Confident, decisive, engaged with world'
+    },
+    average: {
+      level: 'Average (Levels 4-6)',
+      traits: [
+        'Intellectually arrogant, dismissive of others',
+        'Isolated, lost in abstract theories',
+        'Reducing everything to concepts, avoiding feelings',
+        'Hoarding resources (time, energy, knowledge)'
+      ],
+      patterns: 'Observing life rather than living it; preparing but never acting'
+    },
+    unhealthy: {
+      level: 'Unhealthy (Levels 7-9)',
+      traits: [
+        'Paranoid and delusional',
+        'Completely cut off from others',
+        'Eccentric, possibly psychotic',
+        'Unable to distinguish thought from reality'
+      ],
+      disintegration: 'Moving toward Type 7: Scattered, impulsive, escapist'
+    }
+  },
+
+  6: {
+    healthy: {
+      level: 'Healthy (Levels 1-3)',
+      traits: [
+        'Courageous and self-trusting',
+        'Loyal and reliable without being dependent',
+        'Able to act despite uncertainty',
+        'Creates safety for others through stability'
+      ],
+      integration: 'Moving toward Type 9: Relaxed, trusting, peaceful'
+    },
+    average: {
+      level: 'Average (Levels 4-6)',
+      traits: [
+        'Anxious and suspicious',
+        'Oscillating between trust and doubt',
+        'Dependent on authority or rebelling against it',
+        'Worst-case scenario thinking'
+      ],
+      patterns: 'Creating the crises you fear; self-sabotage through overthinking'
+    },
+    unhealthy: {
+      level: 'Unhealthy (Levels 7-9)',
+      traits: [
+        'Panicky and paranoid',
+        'Self-defeating and masochistic',
+        'Attacking perceived threats preemptively',
+        'Unable to function without constant reassurance'
+      ],
+      disintegration: 'Moving toward Type 3: Deceptive, competitive, image-focused'
+    }
+  },
+
+  7: {
+    healthy: {
+      level: 'Healthy (Levels 1-3)',
+      traits: [
+        'Joyful and grateful for what is',
+        'Able to commit and follow through',
+        'Present in the moment, not chasing next thing',
+        'Uses pain as portal to depth'
+      ],
+      integration: 'Moving toward Type 5: Focused, still, deep thinker'
+    },
+    average: {
+      level: 'Average (Levels 4-6)',
+      traits: [
+        'Scattered and hyperactive',
+        'Avoiding pain through constant stimulation',
+        'Superficial, unable to go deep',
+        'Commitment-phobic in work and relationships'
+      ],
+      patterns: 'Running from discomfort; confusing stimulation with satisfaction'
+    },
+    unhealthy: {
+      level: 'Unhealthy (Levels 7-9)',
+      traits: [
+        'Addictive and out of control',
+        'Manic, unable to stop moving',
+        'Offensive and abusive when crossed',
+        'Acting out impulsively, destructively'
+      ],
+      disintegration: 'Moving toward Type 1: Critical, rigid, perfectionist about wrong things'
+    }
+  },
+
+  8: {
+    healthy: {
+      level: 'Healthy (Levels 1-3)',
+      traits: [
+        'Magnanimous and protective',
+        'Uses power to empower others',
+        'Vulnerable and open-hearted',
+        'Restrains strength, gentle with the weak'
+      ],
+      integration: 'Moving toward Type 2: Caring, supportive, big-hearted'
+    },
+    average: {
+      level: 'Average (Levels 4-6)',
+      traits: [
+        'Dominating and confrontational',
+        'Controlling through intimidation',
+        'Denying vulnerability, never showing weakness',
+        'Bullying to stay on top'
+      ],
+      patterns: 'Believing only power keeps you safe; creating enemies everywhere'
+    },
+    unhealthy: {
+      level: 'Unhealthy (Levels 7-9)',
+      traits: [
+        'Ruthless and destructive',
+        'Terrorizing others for control',
+        'Delusional about own omnipotence',
+        'Willing to destroy everything rather than lose'
+      ],
+      disintegration: 'Moving toward Type 5: Withdrawn, paranoid, secretive'
+    }
+  },
+
+  9: {
+    healthy: {
+      level: 'Healthy (Levels 1-3)',
+      traits: [
+        'Self-aware and self-possessed',
+        'Harmonious yet maintains own voice',
+        'Present and engaged with life',
+        'Powerful peacemaker with clear priorities'
+      ],
+      integration: 'Moving toward Type 3: Energized, self-developing, effective'
+    },
+    average: {
+      level: 'Average (Levels 4-6)',
+      traits: [
+        'Complacent and disengaged',
+        'Going along to get along',
+        'Passive-aggressive when pushed',
+        'Numbing out through routines'
+      ],
+      patterns: 'Disappearing into comfort; not knowing what you want'
+    },
+    unhealthy: {
+      level: 'Unhealthy (Levels 7-9)',
+      traits: [
+        'Dissociated and neglectful',
+        'Stubborn to the point of obstruction',
+        'Unable to function or take action',
+        'Completely checked out from life'
+      ],
+      disintegration: 'Moving toward Type 6: Anxious, paranoid, self-doubting'
+    }
+  }
+};
+
+// =============================================================================
+// TYPE RELATIONSHIPS - How each type relates to every other
+// =============================================================================
+
+/**
+ * Relationship dynamics between all 81 type combinations
+ */
+export const TYPE_RELATIONSHIPS = {
+  1: {
+    with_1: {
+      attraction: 'Shared values, both want to do right',
+      challenges: 'Double criticism, competing standards',
+      growth: 'Learning to accept imperfection together'
+    },
+    with_2: {
+      attraction: '1 loves 2\'s warmth; 2 loves 1\'s integrity',
+      challenges: '1 too critical; 2 too emotional',
+      growth: '1 learns to receive; 2 learns boundaries'
+    },
+    with_3: {
+      attraction: 'Both ambitious and hardworking',
+      challenges: '1 sees 3 as superficial; 3 sees 1 as rigid',
+      growth: 'Balance of depth and achievement'
+    },
+    with_4: {
+      attraction: 'Both value authenticity and depth',
+      challenges: '1 too logical; 4 too emotional',
+      growth: '1 accesses feelings; 4 gains objectivity'
+    },
+    with_5: {
+      attraction: 'Mutual respect for competence',
+      challenges: 'Both can be emotionally distant',
+      growth: 'Combining principles with analysis'
+    },
+    with_6: {
+      attraction: 'Both value reliability and commitment',
+      challenges: '1\'s certainty frustrates 6\'s doubt',
+      growth: '1 learns flexibility; 6 learns self-trust'
+    },
+    with_7: {
+      attraction: 'Opposites attract (discipline/spontaneity)',
+      challenges: '1 sees 7 as irresponsible; 7 sees 1 as rigid',
+      growth: '1 lightens up; 7 develops discipline'
+    },
+    with_8: {
+      attraction: 'Both strong-willed and principled',
+      challenges: 'Power struggles, different styles of control',
+      growth: 'Learning when to lead and when to follow'
+    },
+    with_9: {
+      attraction: '1 appreciates 9\'s peace; 9 appreciates 1\'s clarity',
+      challenges: '1 pushes; 9 resists passively',
+      growth: '1 learns acceptance; 9 learns assertion'
+    }
+  },
+
+  2: {
+    with_1: {
+      attraction: '2 loves 1\'s integrity; 1 loves 2\'s warmth',
+      challenges: '2 too needy; 1 too critical',
+      growth: 'Balance of heart and principles'
+    },
+    with_2: {
+      attraction: 'Deep emotional attunement',
+      challenges: 'Competition for who helps more; codependency',
+      growth: 'Learning to receive, not just give'
+    },
+    with_3: {
+      attraction: 'Both people-focused and charming',
+      challenges: '2 wants more intimacy; 3 wants more space',
+      growth: '2 respects 3\'s work; 3 opens heart'
+    },
+    with_4: {
+      attraction: 'Both value emotional depth',
+      challenges: '2 too intrusive; 4 too withdrawn',
+      growth: '2 respects 4\'s space; 4 receives 2\'s love'
+    },
+    with_5: {
+      attraction: '2 drawn to 5\'s depth; 5 drawn to 2\'s warmth',
+      challenges: '2 too demanding; 5 too withdrawn',
+      growth: 'Learning to give space and connection'
+    },
+    with_6: {
+      attraction: 'Both loyal and committed',
+      challenges: '2 frustrated by 6\'s doubt; 6 suspicious of 2\'s motives',
+      growth: 'Building genuine trust together'
+    },
+    with_7: {
+      attraction: 'Both positive and people-focused',
+      challenges: '2 wants more depth; 7 wants more freedom',
+      growth: 'Balance of commitment and adventure'
+    },
+    with_8: {
+      attraction: 'Complementary strengths (soft/hard power)',
+      challenges: '2 too accommodating; 8 too dominating',
+      growth: '2 finds strength; 8 opens heart'
+    },
+    with_9: {
+      attraction: 'Both accommodating and caring',
+      challenges: 'Neither asserts needs directly',
+      growth: 'Both learning to voice preferences'
+    }
+  },
+
+  3: {
+    with_1: {
+      attraction: 'Both achievement-oriented',
+      challenges: '3 cuts corners; 1 demands perfection',
+      growth: 'Balancing efficiency with integrity'
+    },
+    with_2: {
+      attraction: 'Both charming and people-focused',
+      challenges: '3 too image-focused; 2 too emotional',
+      growth: '3 develops depth; 2 respects goals'
+    },
+    with_3: {
+      attraction: 'Power couple energy, mutual ambition',
+      challenges: 'Competition, neglecting relationship for success',
+      growth: 'Learning authenticity over achievement'
+    },
+    with_4: {
+      attraction: '3 drawn to 4\'s depth; 4 drawn to 3\'s success',
+      challenges: '3 too superficial; 4 too dramatic',
+      growth: '3 accesses feelings; 4 takes action'
+    },
+    with_5: {
+      attraction: 'Both competent and capable',
+      challenges: '3 too flashy; 5 too withdrawn',
+      growth: 'Combining visibility with depth'
+    },
+    with_6: {
+      attraction: '6 loves 3\'s confidence; 3 loves 6\'s loyalty',
+      challenges: '3 impatient with doubt; 6 suspicious of image',
+      growth: '3 develops vulnerability; 6 builds confidence'
+    },
+    with_7: {
+      attraction: 'Both energetic and optimistic',
+      challenges: 'Both avoiding negative feelings',
+      growth: 'Slowing down to feel together'
+    },
+    with_8: {
+      attraction: 'Both powerful and goal-oriented',
+      challenges: 'Power struggles, different leadership styles',
+      growth: 'Mutual respect without competition'
+    },
+    with_9: {
+      attraction: '3 loves 9\'s steadiness; 9 loves 3\'s energy',
+      challenges: '3 pushes; 9 disengages',
+      growth: '3 relaxes; 9 engages more'
+    }
+  },
+
+  4: {
+    with_1: {
+      attraction: 'Both value authenticity',
+      challenges: '4 too emotional; 1 too judgmental',
+      growth: 'Combining feeling with discipline'
+    },
+    with_2: {
+      attraction: 'Both emotionally expressive',
+      challenges: '4 wants space; 2 wants closeness',
+      growth: 'Mutual validation of emotional needs'
+    },
+    with_3: {
+      attraction: '4 loves 3\'s confidence; 3 loves 4\'s depth',
+      challenges: '4 feels unseen; 3 feels dragged down',
+      growth: '4 takes action; 3 explores feelings'
+    },
+    with_4: {
+      attraction: 'Profound emotional understanding',
+      challenges: 'Double intensity, competing for uniqueness',
+      growth: 'Finding individuality within togetherness'
+    },
+    with_5: {
+      attraction: 'Both introspective outsiders',
+      challenges: '4 too emotional; 5 too detached',
+      growth: 'Combining heart and mind'
+    },
+    with_6: {
+      attraction: '4 loves 6\'s loyalty; 6 loves 4\'s creativity',
+      challenges: '4 too unpredictable; 6 too anxious',
+      growth: 'Building stable emotional foundation'
+    },
+    with_7: {
+      attraction: 'Opposites attract (depth/lightness)',
+      challenges: '4 too heavy; 7 too superficial',
+      growth: '4 lightens up; 7 goes deeper'
+    },
+    with_8: {
+      attraction: 'Both intense and authentic',
+      challenges: '4 too vulnerable; 8 too aggressive',
+      growth: '4 develops strength; 8 accesses feelings'
+    },
+    with_9: {
+      attraction: '4 loves 9\'s acceptance; 9 loves 4\'s passion',
+      challenges: '4 wants more intensity; 9 wants more peace',
+      growth: 'Balancing emotional range'
+    }
+  },
+
+  5: {
+    with_1: {
+      attraction: 'Both value competence and truth',
+      challenges: 'Both can be emotionally detached',
+      growth: 'Learning emotional expression together'
+    },
+    with_2: {
+      attraction: '5 loves 2\'s warmth; 2 loves 5\'s depth',
+      challenges: '5 needs space; 2 needs connection',
+      growth: 'Finding rhythm of closeness/distance'
+    },
+    with_3: {
+      attraction: 'Both capable and efficient',
+      challenges: '5 too withdrawn; 3 too image-focused',
+      growth: 'Balancing substance and visibility'
+    },
+    with_4: {
+      attraction: 'Both deep and introspective',
+      challenges: '5 too cerebral; 4 too emotional',
+      growth: 'Integrating thinking and feeling'
+    },
+    with_5: {
+      attraction: 'Intellectual companionship, shared space',
+      challenges: 'Both withdrawn, may drift apart',
+      growth: 'Actively maintaining connection'
+    },
+    with_6: {
+      attraction: 'Both analytical and thoughtful',
+      challenges: '5 too detached; 6 too anxious',
+      growth: '5 provides calm; 6 provides engagement'
+    },
+    with_7: {
+      attraction: 'Both intellectual and curious',
+      challenges: '5 too serious; 7 too scattered',
+      growth: '5 lightens up; 7 focuses'
+    },
+    with_8: {
+      attraction: 'Both independent and strong',
+      challenges: '5 too withdrawn; 8 too confrontational',
+      growth: '5 engages more; 8 thinks before acting'
+    },
+    with_9: {
+      attraction: 'Both need space and peace',
+      challenges: 'Both may avoid conflict until explosion',
+      growth: 'Learning to engage with differences'
+    }
+  },
+
+  6: {
+    with_1: {
+      attraction: 'Both responsible and committed',
+      challenges: '6 doubts; 1 judges',
+      growth: 'Building trust and self-acceptance'
+    },
+    with_2: {
+      attraction: 'Both loyal and caring',
+      challenges: '6 suspicious; 2 hurt by doubt',
+      growth: 'Developing secure attachment'
+    },
+    with_3: {
+      attraction: '6 loves 3\'s confidence; 3 loves 6\'s loyalty',
+      challenges: '6 sees through image; 3 frustrated by doubt',
+      growth: 'Authentic confidence together'
+    },
+    with_4: {
+      attraction: 'Both value emotional authenticity',
+      challenges: '6 too anxious; 4 too dramatic',
+      growth: 'Grounding each other emotionally'
+    },
+    with_5: {
+      attraction: 'Both value thinking and analysis',
+      challenges: '6 too reactive; 5 too withdrawn',
+      growth: 'Balancing thought and action'
+    },
+    with_6: {
+      attraction: 'Deep understanding of each other\'s fears',
+      challenges: 'Double anxiety, reinforcing worry',
+      growth: 'Building confidence together'
+    },
+    with_7: {
+      attraction: '6 loves 7\'s optimism; 7 loves 6\'s commitment',
+      challenges: '6 too worried; 7 too flighty',
+      growth: 'Balance of caution and adventure'
+    },
+    with_8: {
+      attraction: '6 loves 8\'s strength; 8 loves 6\'s loyalty',
+      challenges: '6 provokes 8; 8 intimidates 6',
+      growth: 'Trust through reliability'
+    },
+    with_9: {
+      attraction: 'Both value security and stability',
+      challenges: 'Both may avoid issues until crisis',
+      growth: 'Addressing problems proactively'
+    }
+  },
+
+  7: {
+    with_1: {
+      attraction: 'Opposites attract',
+      challenges: '7 avoids rules; 1 creates them',
+      growth: '7 develops discipline; 1 finds joy'
+    },
+    with_2: {
+      attraction: 'Both positive and people-loving',
+      challenges: '7 avoids depth; 2 wants intensity',
+      growth: 'Balancing fun and intimacy'
+    },
+    with_3: {
+      attraction: 'Both energetic and optimistic',
+      challenges: 'Both may avoid difficult feelings',
+      growth: 'Slowing down for depth'
+    },
+    with_4: {
+      attraction: '7 drawn to 4\'s depth; 4 drawn to 7\'s joy',
+      challenges: '7 too light; 4 too heavy',
+      growth: 'Full spectrum emotional expression'
+    },
+    with_5: {
+      attraction: 'Both curious and intellectual',
+      challenges: '7 too scattered; 5 too focused',
+      growth: 'Balancing breadth and depth'
+    },
+    with_6: {
+      attraction: '7 provides optimism; 6 provides grounding',
+      challenges: '7 avoids worry; 6 creates it',
+      growth: 'Realistic optimism'
+    },
+    with_7: {
+      attraction: 'Endless adventure and fun',
+      challenges: 'No one to ground the relationship',
+      growth: 'Learning commitment and depth'
+    },
+    with_8: {
+      attraction: 'Both energetic and direct',
+      challenges: 'Power struggles over control',
+      growth: 'Mutual respect and flexibility'
+    },
+    with_9: {
+      attraction: 'Both avoid conflict',
+      challenges: '7 too pushy; 9 too passive',
+      growth: '7 slows down; 9 engages more'
+    }
+  },
+
+  8: {
+    with_1: {
+      attraction: 'Both strong and principled',
+      challenges: 'Different views on rules and power',
+      growth: 'Respecting each other\'s approach'
+    },
+    with_2: {
+      attraction: '8 loves 2\'s devotion; 2 loves 8\'s protection',
+      challenges: '8 too dominating; 2 too accommodating',
+      growth: 'Mutual strength and tenderness'
+    },
+    with_3: {
+      attraction: 'Power couple, mutual respect',
+      challenges: 'Competition for leadership',
+      growth: 'Sharing power and vulnerability'
+    },
+    with_4: {
+      attraction: 'Both intense and authentic',
+      challenges: '8 too harsh; 4 too sensitive',
+      growth: '8 softens; 4 strengthens'
+    },
+    with_5: {
+      attraction: 'Both independent and capable',
+      challenges: '8 too controlling; 5 too withdrawn',
+      growth: 'Respecting different needs'
+    },
+    with_6: {
+      attraction: '8 provides strength; 6 provides loyalty',
+      challenges: '8 triggers 6\'s fear; 6 triggers 8\'s impatience',
+      growth: 'Building trust through consistency'
+    },
+    with_7: {
+      attraction: 'Both adventurous and direct',
+      challenges: 'Both want control',
+      growth: 'Sharing leadership'
+    },
+    with_8: {
+      attraction: 'Respect for each other\'s strength',
+      challenges: 'Intense power struggles',
+      growth: 'Vulnerability and surrender'
+    },
+    with_9: {
+      attraction: '8 loves 9\'s calm; 9 loves 8\'s strength',
+      challenges: '8 dominates; 9 withdraws',
+      growth: '8 softens; 9 asserts'
+    }
+  },
+
+  9: {
+    with_1: {
+      attraction: '9 loves 1\'s clarity; 1 loves 9\'s acceptance',
+      challenges: '1 pushes; 9 resists',
+      growth: 'Meeting in the middle'
+    },
+    with_2: {
+      attraction: 'Both accommodating and caring',
+      challenges: 'Both may lose themselves',
+      growth: 'Asserting individual needs'
+    },
+    with_3: {
+      attraction: '9 loves 3\'s energy; 3 loves 9\'s support',
+      challenges: '3 too driven; 9 too slow',
+      growth: 'Balanced pace'
+    },
+    with_4: {
+      attraction: '9 loves 4\'s passion; 4 loves 9\'s calm',
+      challenges: '4 too intense; 9 too passive',
+      growth: 'Full emotional range together'
+    },
+    with_5: {
+      attraction: 'Both peaceful and undemanding',
+      challenges: 'Both may avoid engagement',
+      growth: 'Active connection'
+    },
+    with_6: {
+      attraction: 'Both value security',
+      challenges: '6 anxious; 9 checked out',
+      growth: 'Grounded presence'
+    },
+    with_7: {
+      attraction: '9 loves 7\'s energy; 7 loves 9\'s peace',
+      challenges: '7 too fast; 9 too slow',
+      growth: 'Finding mutual rhythm'
+    },
+    with_8: {
+      attraction: 'Complementary strengths',
+      challenges: '8 dominates; 9 disappears',
+      growth: '9 finds voice; 8 finds patience'
+    },
+    with_9: {
+      attraction: 'Deep peace and understanding',
+      challenges: 'Stagnation, avoiding problems',
+      growth: 'Staying awake together'
+    }
+  }
+};
+
+// =============================================================================
+// CAREER FITS - Best career paths for each type
+// =============================================================================
+
+/**
+ * Career guidance for each Enneagram type
+ */
+export const CAREER_FITS = {
+  1: {
+    best: [
+      'Quality Assurance / Inspector',
+      'Editor / Proofreader',
+      'Judge / Lawyer',
+      'Ethics Officer',
+      'Environmental Advocate',
+      'Teacher / Professor',
+      'Accountant / Auditor',
+      'Surgeon / Precision Medicine'
+    ],
+    why: 'Need for doing things right, improving systems, maintaining standards',
+    warning: 'Avoid: Chaotic environments, roles requiring flexibility over accuracy',
+    strengths: 'Attention to detail, integrity, reliability, systematic thinking'
+  },
+
+  2: {
+    best: [
+      'Nurse / Healthcare Provider',
+      'Social Worker',
+      'Human Resources',
+      'Therapist / Counselor',
+      'Teacher (especially elementary)',
+      'Hospitality / Customer Service',
+      'Nonprofit Director',
+      'Event Planner'
+    ],
+    why: 'Need to help others, create connection, feel appreciated',
+    warning: 'Avoid: Isolated roles, purely analytical work, cold corporate cultures',
+    strengths: 'Empathy, relationship-building, anticipating needs, service orientation'
+  },
+
+  3: {
+    best: [
+      'Sales / Business Development',
+      'Marketing Executive',
+      'Entrepreneur',
+      'Corporate Leader / CEO',
+      'Consultant',
+      'Actor / Entertainer',
+      'Politician',
+      'Real Estate Agent'
+    ],
+    why: 'Need for achievement, recognition, measurable success',
+    warning: 'Avoid: Roles without clear metrics, extremely collaborative (no individual credit)',
+    strengths: 'Goal-setting, adaptability, presentation, driving results'
+  },
+
+  4: {
+    best: [
+      'Artist / Creative (any medium)',
+      'Writer / Poet / Novelist',
+      'Therapist / Counselor',
+      'Designer (fashion, interior, graphic)',
+      'Musician / Composer',
+      'Actor / Performer',
+      'Art Therapist',
+      'Creative Director'
+    ],
+    why: 'Need for self-expression, meaning, authenticity in work',
+    warning: 'Avoid: Repetitive, impersonal, or emotionally sterile environments',
+    strengths: 'Creativity, emotional intelligence, aesthetic sense, depth'
+  },
+
+  5: {
+    best: [
+      'Research Scientist',
+      'Data Analyst / Scientist',
+      'Software Engineer / Developer',
+      'Professor / Academic',
+      'Technical Writer',
+      'Librarian / Archivist',
+      'Financial Analyst',
+      'Forensic Specialist'
+    ],
+    why: 'Need for intellectual depth, autonomy, expertise',
+    warning: 'Avoid: Highly social roles, constant interruptions, emotional labor',
+    strengths: 'Analysis, objectivity, innovation, deep knowledge acquisition'
+  },
+
+  6: {
+    best: [
+      'Project Manager',
+      'Risk Analyst',
+      'Paralegal / Legal Assistant',
+      'Security Specialist',
+      'Administrative Leader',
+      'Compliance Officer',
+      'Detective / Investigator',
+      'Emergency Services'
+    ],
+    why: 'Need for security, clear guidelines, protecting others',
+    warning: 'Avoid: High-uncertainty roles without support, isolated positions',
+    strengths: 'Troubleshooting, loyalty, preparedness, team building'
+  },
+
+  7: {
+    best: [
+      'Travel Writer / Guide',
+      'Event Producer',
+      'Entrepreneur / Startup Founder',
+      'Marketing Creative',
+      'Motivational Speaker',
+      'Television / Radio Host',
+      'Adventure Guide',
+      'Product Designer'
+    ],
+    why: 'Need for variety, stimulation, freedom, positive impact',
+    warning: 'Avoid: Routine-heavy, isolated, or emotionally heavy roles',
+    strengths: 'Innovation, enthusiasm, adaptability, vision, networking'
+  },
+
+  8: {
+    best: [
+      'CEO / Executive',
+      'Trial Lawyer',
+      'Military / Police Leader',
+      'Entrepreneur',
+      'Sports Coach',
+      'Union Organizer',
+      'Crisis Manager',
+      'Venture Capitalist'
+    ],
+    why: 'Need for control, impact, protecting the underdog',
+    warning: 'Avoid: Highly bureaucratic, requiring constant deference to authority',
+    strengths: 'Leadership, decisiveness, strategic thinking, protecting others'
+  },
+
+  9: {
+    best: [
+      'Mediator / Arbitrator',
+      'Counselor / Therapist',
+      'Diplomat',
+      'Veterinarian',
+      'Librarian',
+      'Nature / Park Ranger',
+      'Human Resources',
+      'Yoga / Meditation Teacher'
+    ],
+    why: 'Need for harmony, helping others, peaceful environment',
+    warning: 'Avoid: High-conflict, aggressive competition, constant deadlines',
+    strengths: 'Peacemaking, seeing all perspectives, patience, stability'
+  }
+};
