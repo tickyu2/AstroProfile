@@ -82,7 +82,14 @@
       "Bash(cmd /c:*)",
       "Bash(git -C c:/astroprofile status)",
       "Bash(git -C c:/astroprofile diff --stat)",
-      "Bash(git -C c:/astroprofile log --oneline -5)"
+      "Bash(git -C c:/astroprofile log --oneline -5)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Accessible Admin Console + Memory Consolidation System\n\n- Add AccessibleModal wrapper with focus-trap-react for robust focus management\n- Add QueuedToastProvider with sequential screen reader announcements\n- Add AccessibleConfirmationDialog for consistent confirmation UIs\n- Wire accessible dialogs into LLMProposals, ProposalDetail, RevertList\n- Wrap AdminConsolePage with QueuedToastProvider\n- Add Playwright E2E tests for proposal undo flow\n- Remove deprecated RollbackModal \\(replaced by AccessibleConfirmationDialog\\)\n- Reorganize docs: move completed items to 99_To Do Completed\n- Add admin functions: drift, consolidation, timeline, memory modules\n- Add Cloud SQL schemas for consolidation audit and revert tracking\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C c:/astroprofile status --porcelain)",
+      "Bash(git clean:*)",
+      "Bash(wsl -e rm:*)",
+      "Bash(wsl -e ls:*)",
+      "Bash(firebase functions:list:*)",
+      "Bash(dir /S /B \"c:\\\\astroprofile\\\\src\")"
     ],
     "deny": [],
     "ask": []

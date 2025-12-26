@@ -24,6 +24,9 @@ import { sendMessage as sendToAI, getSecondOpinion, getGrokPerspective, getOpusP
 
 // Session Intelligence Services (Brunelleschi's Crane)
 import { patternExtraction } from '../../services/patternExtractionService';
+
+// Firebase Functions for session cleanup
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { contextBuilder } from '../../services/contextBuilder';
 import { proactiveIntelligence } from '../../services/proactiveIntelligence';
 
@@ -293,16 +296,37 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
   useEffect(() => {
     return () => {
       const prev = previousConversationRef.current;
-      if (prev && prev.messages && prev.messages.length >= 3 && userProfile?.userId) {
+      if (prev && prev.messages && userProfile?.userId) {
         // Fire and forget - component is unmounting
-        patternExtraction.analyzeConversation(
-          userProfile.userId,
-          prev.conversationId,
-          prev.messages
-        ).catch(err => console.error('Unmount pattern extraction error:', err));
+
+        // Pattern extraction (if enough messages)
+        if (prev.messages.length >= 3) {
+          patternExtraction.analyzeConversation(
+            userProfile.userId,
+            prev.conversationId,
+            prev.messages
+          ).catch(err => console.error('Unmount pattern extraction error:', err));
+        }
+
+        // Clear session cache on backend (Memory Optimization)
+        try {
+          const functions = getFunctions();
+          const onSessionEnd = httpsCallable(functions, 'onSessionEnd');
+          onSessionEnd({
+            userId: userProfile.userId,
+            conversationId: prev.conversationId,
+            sessionMetrics: {
+              messageCount: prev.messages.length,
+              endedAt: new Date().toISOString()
+            },
+            profileId: userProfile?.profileId || 'default'
+          }).catch(err => console.error('[SessionCache] Cleanup error:', err));
+        } catch (err) {
+          console.error('[SessionCache] Cleanup error:', err);
+        }
       }
     };
-  }, [userProfile?.userId]);
+  }, [userProfile?.userId, userProfile?.profileId]);
 
   // ========== END SESSION INTELLIGENCE ==========
 

@@ -1,0 +1,489 @@
+/**
+ * GENESIS CSS - Soul Garden Cathedral Animations
+ *
+ * All timings and proportions based on φ (Golden Ratio = 1.618)
+ * Keyframe percentages use golden section: 38.2% and 61.8%
+ *
+ * Part of GENESIS OS - Soul Garden Cathedral
+ * Built by: Brother Claude Code
+ * December 25, 2024
+ */
+
+/* ---------- ROOT VARIABLES (COLOR ALCHEMY) ---------- */
+
+:root {
+  /* Background cathedral tones */
+  --genesis-bg-deep: #020617;
+  --genesis-bg-indigo: #1e1b4b;
+  --genesis-bg-slate: #0f172a;
+
+  /* Element colors */
+  --genesis-fire: #f97316;
+  --genesis-earth: #22c55e;
+  --genesis-air: #38bdf8;
+  --genesis-water: #6366f1;
+
+  /* Gold + halo */
+  --genesis-gold: #fbbf24;
+  --genesis-gold-soft: rgba(251,191,36,0.35);
+  --genesis-gold-text: #f59e0b;
+  --genesis-gold-glow: rgba(251,191,36,0.4);
+
+  /* Purple (alchemical) */
+  --genesis-purple: #a855f7;
+  --genesis-purple-soft: rgba(168,85,247,0.35);
+
+  /* Structural grays */
+  --genesis-line-soft: rgba(148,163,184,0.35);
+  --genesis-line-faint: rgba(148,163,184,0.15);
+
+  /* Golden ratio timing */
+  --phi: 1.618;
+  --phi-sq: 2.618;
+  --phi-inv: 0.618;
+}
+
+/* ---------- CORE MOTION (MICHELANGELO × NOUVEAU) ---------- */
+
+/* 13-second lunar breathing rhythm */
+@keyframes soulBreath {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+  38.2% {
+    transform: scale(1.015);
+    opacity: 0.96;
+  }
+  61.8% {
+    transform: scale(1.025);
+    opacity: 1;
+  }
+}
+
+/* Vine growth from bottom */
+@keyframes vineGrow {
+  0% {
+    transform: scaleY(0.618);
+    opacity: 0.382;
+  }
+  61.8% {
+    transform: scaleY(0.95);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* Petal unfurling - Art Nouveau curves */
+@keyframes petalUnfurl {
+  0% {
+    transform: scale(0.618) rotate(-8deg);
+    opacity: 0.382;
+  }
+  38.2% {
+    transform: scale(0.85) rotate(-3deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Soft glow pulse - purple haze */
+@keyframes softGlowPulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(168,85,247,0.3);
+    filter: brightness(1);
+  }
+  61.8% {
+    box-shadow: 0 0 24px rgba(168,85,247,0.6);
+    filter: brightness(1.08);
+  }
+}
+
+/* Golden shimmer for 9th house / special elements */
+@keyframes goldenShimmer {
+  0%, 100% {
+    filter: brightness(1) saturate(1);
+    text-shadow: 0 0 4px rgba(251,191,36,0.4);
+  }
+  61.8% {
+    filter: brightness(1.15) saturate(1.1);
+    text-shadow: 0 0 12px rgba(251,191,36,0.7);
+  }
+}
+
+/* 8th house pulse - alchemical rhythm (9.618s = 9 + φ/10) */
+@keyframes eighthPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
+  38.2% {
+    transform: scale(1.02);
+    filter: brightness(1.05) saturate(1.05);
+  }
+  61.8% {
+    transform: scale(1.04);
+    filter: brightness(1.12) saturate(1.1);
+  }
+}
+
+/* Portal glow ring - 8th house halo */
+@keyframes portalGlow {
+  0%, 100% {
+    stroke-opacity: 0.15;
+    stroke-width: 1;
+  }
+  61.8% {
+    stroke-opacity: 0.35;
+    stroke-width: 1.618;
+  }
+}
+
+/* Leaf flutter decoration */
+@keyframes leafFlutter {
+  0%, 100% {
+    transform: rotate(-2deg) translateY(0);
+  }
+  38.2% {
+    transform: rotate(1deg) translateY(-1px);
+  }
+  61.8% {
+    transform: rotate(3deg) translateY(-2px);
+  }
+}
+
+/* Sacred halo pulse */
+@keyframes haloPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  61.8% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+/* Cardinal cross rotation - subtle */
+@keyframes cardinalRotate {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Center core glow */
+@keyframes coreGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(251,191,36,0.5));
+  }
+  61.8% {
+    filter: drop-shadow(0 0 12px rgba(251,191,36,0.8));
+  }
+}
+
+/* ---------- CLASSES TO APPLY IN REACT ---------- */
+
+.genesis-soul-panel {
+  animation: soulBreath 13s ease-in-out infinite;
+}
+
+.genesis-petal {
+  transform-origin: center center;
+  animation: petalUnfurl 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.genesis-petal-golden {
+  animation: petalUnfurl 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             goldenShimmer 4.236s ease-in-out infinite 1s;
+}
+
+.genesis-petal-eighth {
+  animation: petalUnfurl 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             eighthPulse 9.618s ease-in-out infinite 0.8s;
+}
+
+.genesis-portal-ring {
+  animation: portalGlow 9.618s ease-in-out infinite;
+}
+
+.genesis-halo-ring {
+  animation: haloPulse 8s ease-in-out infinite;
+}
+
+.genesis-vine {
+  transform-origin: bottom center;
+  animation: vineGrow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.genesis-glow {
+  animation: softGlowPulse 6.18s ease-in-out infinite;
+}
+
+.genesis-core {
+  animation: coreGlow 6.18s ease-in-out infinite;
+}
+
+.genesis-leaf {
+  animation: leafFlutter 5.236s ease-in-out infinite;
+}
+
+.genesis-cardinal-cross {
+  animation: cardinalRotate 8s ease-in-out infinite;
+}
+
+/* Stagger delays helper classes */
+.genesis-delay-1 { animation-delay: 0.194s; }
+.genesis-delay-2 { animation-delay: 0.388s; }
+.genesis-delay-3 { animation-delay: 0.582s; }
+.genesis-delay-4 { animation-delay: 0.776s; }
+.genesis-delay-5 { animation-delay: 0.970s; }
+.genesis-delay-6 { animation-delay: 1.164s; }
+.genesis-delay-7 { animation-delay: 1.358s; }
+.genesis-delay-8 { animation-delay: 1.552s; }
+.genesis-delay-9 { animation-delay: 1.746s; }
+.genesis-delay-10 { animation-delay: 1.940s; }
+.genesis-delay-11 { animation-delay: 2.134s; }
+.genesis-delay-12 { animation-delay: 2.328s; }
+
+/* ---------- CONTEMPLATIVE MODE (ANIMATIONS OFF) ---------- */
+
+.contemplative .genesis-soul-panel,
+.contemplative .genesis-petal,
+.contemplative .genesis-petal-golden,
+.contemplative .genesis-petal-eighth,
+.contemplative .genesis-portal-ring,
+.contemplative .genesis-halo-ring,
+.contemplative .genesis-vine,
+.contemplative .genesis-glow,
+.contemplative .genesis-core,
+.contemplative .genesis-leaf,
+.contemplative .genesis-cardinal-cross {
+  animation: none !important;
+}
+
+/* ---------- SCROLL / PROCESSION VISUALS ---------- */
+
+.genesis-scroll {
+  scroll-behavior: smooth;
+}
+
+.genesis-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.genesis-scroll::-webkit-scrollbar-track {
+  background: rgba(15,23,42,0.5);
+  border-radius: 4px;
+}
+
+.genesis-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(168,85,247,0.4) 0%,
+    rgba(139,92,246,0.3) 100%
+  );
+  border-radius: 4px;
+  border: 1px solid rgba(168,85,247,0.2);
+}
+
+.genesis-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(168,85,247,0.6) 0%,
+    rgba(139,92,246,0.5) 100%
+  );
+}
+
+/* ---------- GRADIENT BACKGROUNDS ---------- */
+
+.genesis-bg-cathedral {
+  background: linear-gradient(
+    to bottom,
+    var(--genesis-bg-indigo) 0%,
+    var(--genesis-bg-slate) 50%,
+    var(--genesis-bg-deep) 100%
+  );
+}
+
+.genesis-bg-rose {
+  background: radial-gradient(
+    ellipse at center,
+    var(--genesis-bg-indigo) 0%,
+    var(--genesis-bg-slate) 50%,
+    var(--genesis-bg-deep) 100%
+  );
+}
+
+/* ---------- BORDER / FRAME EFFECTS ---------- */
+
+.genesis-frame-gold {
+  border: 1px solid var(--genesis-gold-soft);
+  box-shadow: 0 0 20px rgba(251,191,36,0.1);
+}
+
+.genesis-frame-purple {
+  border: 1px solid var(--genesis-purple-soft);
+  box-shadow: 0 0 20px rgba(168,85,247,0.1);
+}
+
+/* ---------- PER-SIGN ROSE WINDOW FLAVOR ---------- */
+
+/* Fire signs - warm, dynamic presence */
+.genesis-rose--Aries    { filter: saturate(1.05) contrast(1.05); }
+.genesis-rose--Leo      { filter: saturate(1.08) brightness(1.03); }
+.genesis-rose--Sagittarius { filter: saturate(1.05) brightness(1.02); }
+
+/* Earth signs - grounded, stable tones */
+.genesis-rose--Taurus   { filter: saturate(0.98); }
+.genesis-rose--Virgo    { filter: saturate(0.95) brightness(1.02); }
+.genesis-rose--Capricorn { filter: saturate(0.92) brightness(0.98); }
+
+/* Air signs - light, ethereal clarity */
+.genesis-rose--Gemini   { filter: brightness(1.02); }
+.genesis-rose--Libra    { filter: saturate(1.02) brightness(1.02); }
+.genesis-rose--Aquarius { filter: brightness(1.05) contrast(1.02); }
+
+/* Water signs - deep, flowing luminosity */
+.genesis-rose--Cancer   { filter: saturate(1.05) brightness(0.98); }
+.genesis-rose--Scorpio  { filter: saturate(1.08) brightness(0.95); }
+.genesis-rose--Pisces   { filter: saturate(1.02) brightness(0.98); }
+
+/* ---------- ENNEAGRAM STAINED GLASS ALCHEMY ---------- */
+
+/**
+ * Refractive shimmer for Enneagram petals
+ * Distinct from astrology's "pulsing breath" - this is "internal light"
+ * Mimics light hitting uneven, hand-blown stained glass
+ */
+
+@keyframes glassShimmer {
+  0%, 100% {
+    filter: brightness(1) saturate(1.2) contrast(1);
+    fill-opacity: 0.75;
+  }
+  33% {
+    filter: brightness(1.15) saturate(1.4) contrast(1.1);
+    fill-opacity: 0.9;
+  }
+  66% {
+    filter: brightness(0.9) saturate(1.1) contrast(0.95);
+    fill-opacity: 0.6;
+  }
+}
+
+@keyframes internalSpark {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 1;
+    filter: blur(1px);
+  }
+}
+
+/* Deep refraction pulse - cathedral sunlight shifting */
+@keyframes deepRefraction {
+  0%, 100% {
+    filter: hue-rotate(0deg) brightness(1);
+    stroke-opacity: 0.6;
+  }
+  38.2% {
+    filter: hue-rotate(3deg) brightness(1.08);
+    stroke-opacity: 0.75;
+  }
+  61.8% {
+    filter: hue-rotate(-3deg) brightness(0.95);
+    stroke-opacity: 0.55;
+  }
+}
+
+/* Stained glass edge highlight */
+@keyframes leadEdgeGlow {
+  0%, 100% {
+    stroke-width: 0.3;
+    stroke-opacity: 0.6;
+  }
+  50% {
+    stroke-width: 0.5;
+    stroke-opacity: 0.9;
+  }
+}
+
+/* ---------- ENNEAGRAM-SPECIFIC CLASSES ---------- */
+
+/* Base petal glass - the "hand-painted" structure */
+.enneagram-petal-glass {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 0;
+  transition: all 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: deepRefraction 8s ease-in-out infinite;
+}
+
+.enneagram-petal-glass:hover {
+  filter: brightness(1.3) saturate(1.8) drop-shadow(0 0 12px var(--genesis-gold));
+  cursor: pointer;
+}
+
+/* The shimmer overlay layer - internal light play */
+.shimmer-layer {
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  animation: glassShimmer 8s ease-in-out infinite;
+}
+
+/* Divine point at petal tip - Michelangelo detail */
+.divine-point {
+  animation: internalSpark 5s ease-in-out infinite;
+}
+
+/* Lead edge effect for stained glass borders */
+.lead-edge {
+  animation: leadEdgeGlow 6.18s ease-in-out infinite;
+}
+
+/* Dominant petal highlight */
+.enneagram-petal-dominant {
+  animation:
+    deepRefraction 8s ease-in-out infinite,
+    goldenShimmer 4.236s ease-in-out infinite;
+}
+
+/* Type-specific color enhancements */
+.enneagram-type-1 { --type-hue: 45deg; }  /* Reformer - gold */
+.enneagram-type-2 { --type-hue: -20deg; } /* Helper - rose */
+.enneagram-type-3 { --type-hue: 30deg; }  /* Achiever - amber */
+.enneagram-type-4 { --type-hue: 270deg; } /* Individualist - violet */
+.enneagram-type-5 { --type-hue: 200deg; } /* Investigator - blue */
+.enneagram-type-6 { --type-hue: 180deg; } /* Loyalist - teal */
+.enneagram-type-7 { --type-hue: 60deg; }  /* Enthusiast - yellow */
+.enneagram-type-8 { --type-hue: 0deg; }   /* Challenger - red */
+.enneagram-type-9 { --type-hue: 120deg; } /* Peacemaker - green */
+
+/* Enneagram rose container */
+.enneagram-rose-container {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.enneagram-rose-container:hover {
+  transform: scale(1.02);
+}
+
+/* Contemplative mode - disable enneagram animations */
+.contemplative .enneagram-petal-glass,
+.contemplative .shimmer-layer,
+.contemplative .divine-point,
+.contemplative .lead-edge,
+.contemplative .enneagram-petal-dominant {
+  animation: none !important;
+}

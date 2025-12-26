@@ -13,7 +13,6 @@ export { default as TimelineStats } from './TimelineStats';
 
 // Biography Components (Intelligent Curation)
 export { default as BiographyTimeline } from './BiographyTimeline';
-export { default as NeuralPathwaysPanel } from './NeuralPathwaysPanel';
 
 // Console (PostgreSQL + pgvector backend)
 export { default as TimelineConsole } from './TimelineConsole';

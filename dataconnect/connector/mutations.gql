@@ -1,0 +1,298 @@
+# GENESIS Memory Architecture - PostgreSQL Mutations
+# Firebase Data Connect with pgvector
+#
+# These mutations handle storing memories, facts, and people.
+# The _embed directive automatically generates vector embeddings.
+#
+# Built by: Brother Claude Opus
+# December 19, 2024
+
+# ═══════════════════════════════════════════════════════════════════════════
+# MEMORY MUTATIONS
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Create a new memory with automatic embedding
+mutation CreateMemory(
+  $userId: String!,
+  $profileId: String!,
+  $content: String!,
+  $type: String = "episodic",
+  $importance: Float = 0.5,
+  $emotion: String,
+  $coreMemory: Boolean = false
+) @auth(level: USER) {
+  memory_insert(data: {
+    userId: $userId,
+    profileId: $profileId,
+    content: $content,
+    type: $type,
+    importance: $importance,
+    emotion: $emotion,
+    coreMemory: $coreMemory,
+    # Automatic embedding generation!
+    embedding_embed: {
+      model: "text-embedding-004",
+      text: $content
+    }
+  })
+}
+
+# Update memory access count
+mutation UpdateMemoryAccess(
+  $memoryId: UUID!
+) @auth(level: USER) {
+  memory_update(
+    id: $memoryId,
+    data: {
+      accessCount_update: { inc: 1 },
+      lastAccessed: { set: "now()" }
+    }
+  )
+}
+
+# Mark memory as core (never decay)
+mutation MarkCoreMemory(
+  $memoryId: UUID!
+) @auth(level: USER) {
+  memory_update(
+    id: $memoryId,
+    data: {
+      coreMemory: true
+    }
+  )
+}
+
+# Delete a memory
+mutation DeleteMemory(
+  $memoryId: UUID!
+) @auth(level: USER) {
+  memory_delete(id: $memoryId)
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FACT MUTATIONS
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Create or update a fact (upsert)
+mutation UpsertFact(
+  $userId: String!,
+  $profileId: String!,
+  $fact: String!,
+  $category: String = "general",
+  $confidence: Float = 0.8,
+  $source: String = "reflection"
+) @auth(level: USER) {
+  fact_upsert(
+    data: {
+      userId: $userId,
+      profileId: $profileId,
+      fact: $fact,
+      category: $category,
+      confidence: $confidence,
+      weight: 2.0,
+      source: $source,
+      lastConfirmed: { set: "now()" },
+      confirmations: 1
+    },
+    update: {
+      confidence_update: { inc: 0.1 },
+      lastConfirmed: { set: "now()" },
+      confirmations_update: { inc: 1 }
+    }
+  )
+}
+
+# Confirm an existing fact (boost confidence)
+mutation ConfirmFact(
+  $factId: UUID!
+) @auth(level: USER) {
+  fact_update(
+    id: $factId,
+    data: {
+      confidence_update: { inc: 0.1 },
+      lastConfirmed: { set: "now()" },
+      confirmations_update: { inc: 1 }
+    }
+  )
+}
+
+# Mark fact as contradicted
+mutation MarkFactContradicted(
+  $factId: UUID!,
+  $newFact: String!
+) @auth(level: USER) {
+  fact_update(
+    id: $factId,
+    data: {
+      contradictedBy: $newFact,
+      weight: 0.5
+    }
+  )
+}
+
+# Delete a fact
+mutation DeleteFact(
+  $factId: UUID!
+) @auth(level: USER) {
+  fact_delete(id: $factId)
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PERSON MUTATIONS
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Create or update a person
+mutation UpsertPerson(
+  $userId: String!,
+  $profileId: String!,
+  $name: String!,
+  $relationship: String,
+  $notes: String,
+  $sentiment: Float = 0
+) @auth(level: USER) {
+  person_upsert(
+    data: {
+      userId: $userId,
+      profileId: $profileId,
+      name: $name,
+      relationship: $relationship,
+      notes: $notes,
+      sentiment: $sentiment,
+      lastMention: { set: "now()" },
+      mentionCount: 1
+    },
+    update: {
+      lastMention: { set: "now()" },
+      mentionCount_update: { inc: 1 },
+      relationship: $relationship,
+      notes: $notes,
+      sentiment: $sentiment
+    }
+  )
+}
+
+# Update person sentiment
+mutation UpdatePersonSentiment(
+  $personId: UUID!,
+  $sentiment: Float!
+) @auth(level: USER) {
+  person_update(
+    id: $personId,
+    data: {
+      sentiment: $sentiment,
+      lastMention: { set: "now()" }
+    }
+  )
+}
+
+# Link person to memory
+mutation LinkPersonToMemory(
+  $memoryId: UUID!,
+  $personId: UUID!,
+  $role: String = "mentioned"
+) @auth(level: USER) {
+  memoryPerson_insert(data: {
+    memory: { id: $memoryId },
+    person: { id: $personId },
+    role: $role
+  })
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# HAPPINESS ANCHOR MUTATIONS
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Create a happiness anchor
+mutation CreateHappinessAnchor(
+  $userId: String!,
+  $profileId: String!,
+  $memory: String!,
+  $score: Float!,
+  $peakMoment: String,
+  $sensoryAnchors: String
+) @auth(level: USER) {
+  happinessAnchor_insert(data: {
+    userId: $userId,
+    profileId: $profileId,
+    memory: $memory,
+    score: $score,
+    peakMoment: $peakMoment,
+    sensoryAnchors: $sensoryAnchors,
+    lastRecalled: { set: "now()" },
+    recallCount: 1
+  })
+}
+
+# Update happiness anchor on recall
+mutation RecordAnchorRecall(
+  $anchorId: UUID!
+) @auth(level: USER) {
+  happinessAnchor_update(
+    id: $anchorId,
+    data: {
+      lastRecalled: { set: "now()" },
+      recallCount_update: { inc: 1 }
+    }
+  )
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CONVERSATION SUMMARY MUTATIONS
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Create conversation summary (after reflection)
+mutation CreateConversationSummary(
+  $userId: String!,
+  $profileId: String!,
+  $sessionId: String!,
+  $summary: String!,
+  $keyThemes: String,
+  $emotionalArc: String,
+  $breakthrough: Boolean = false,
+  $messageCount: Int!,
+  $startTime: DateTime!,
+  $endTime: DateTime!
+) @auth(level: USER) {
+  conversationSummary_insert(data: {
+    userId: $userId,
+    profileId: $profileId,
+    sessionId: $sessionId,
+    summary: $summary,
+    keyThemes: $keyThemes,
+    emotionalArc: $emotionalArc,
+    breakthrough: $breakthrough,
+    messageCount: $messageCount,
+    startTime: $startTime,
+    endTime: $endTime
+  })
+}
+
+# Mark conversation as breakthrough
+mutation MarkBreakthrough(
+  $summaryId: UUID!
+) @auth(level: USER) {
+  conversationSummary_update(
+    id: $summaryId,
+    data: {
+      breakthrough: true
+    }
+  )
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# BATCH OPERATIONS (for reflection loop)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Batch create facts from reflection
+mutation BatchCreateFacts(
+  $facts: [FactInput!]!
+) @auth(level: USER) {
+  fact_insertMany(data: $facts)
+}
+
+# Batch create memories from reflection
+mutation BatchCreateMemories(
+  $memories: [MemoryInput!]!
+) @auth(level: USER) {
+  memory_insertMany(data: $memories)
+}

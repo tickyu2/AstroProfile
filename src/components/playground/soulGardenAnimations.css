@@ -1,0 +1,378 @@
+/**
+ * Soul Garden Alchemical Animations
+ *
+ * Art Nouveau × Michelangelo × Golden Ratio × 8th-House Alchemy
+ *
+ * Key proportions tuned to φ (1.618):
+ * - Panel heights: 1 : φ : φ² (Nave : Cloister : Rose Window)
+ * - Breath cycle: 13 seconds (lunar/occult rhythm)
+ * - Petal stagger: φ-multiplied delays
+ * - 8th house: Special pulse at 9.618s (9 + φ)
+ *
+ * Part of GENESIS OS - Soul Garden Cathedral
+ * Built by: Brother Claude Code
+ * December 25, 2024
+ */
+
+/* ============================================
+   GOLDEN RATIO CONSTANTS (φ = 1.618)
+   ============================================
+   φ = 1.618
+   φ² = 2.618
+   1/φ = 0.618
+
+   Timing based on lunar/occult rhythm:
+   - Base breath: 13s
+   - Petal stagger: 0.12s × φ = 0.194s
+   - 8th house pulse: 9 + φ = 9.618s
+   ============================================ */
+
+/* ============================================
+   KEYFRAME ANIMATIONS
+   ============================================ */
+
+/* Main breathing animation - 13s lunar rhythm */
+@keyframes soulBreath {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+  38.2% { /* 1/φ × 0.618 = golden section */
+    transform: scale(1.015);
+    opacity: 0.96;
+  }
+  61.8% { /* φ/φ² = golden point */
+    transform: scale(1.025);
+    opacity: 1;
+  }
+}
+
+/* Vine/bar growth - emergence from earth */
+@keyframes vineGrow {
+  0% {
+    transform: scaleY(0.618); /* 1/φ */
+    opacity: 0.382; /* 1 - 1/φ */
+  }
+  61.8% {
+    transform: scaleY(0.95);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* Petal unfurling with φ easing */
+@keyframes petalUnfurl {
+  0% {
+    transform: scale(0.618) rotate(-8deg);
+    opacity: 0.382;
+  }
+  38.2% {
+    transform: scale(0.85) rotate(-3deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Soft glow pulse */
+@keyframes softGlowPulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+    filter: brightness(1);
+  }
+  61.8% {
+    box-shadow: 0 0 24px rgba(168, 85, 247, 0.6);
+    filter: brightness(1.08);
+  }
+}
+
+/* Golden shimmer for 9th house / special elements */
+@keyframes goldenShimmer {
+  0%, 100% {
+    filter: brightness(1) saturate(1);
+    text-shadow: 0 0 4px rgba(251, 191, 36, 0.4);
+  }
+  61.8% {
+    filter: brightness(1.15) saturate(1.1);
+    text-shadow: 0 0 12px rgba(251, 191, 36, 0.7);
+  }
+}
+
+/* 8th House special pulse - 9.618s = 9 + φ */
+@keyframes eighthPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
+  38.2% {
+    transform: scale(1.02);
+    filter: brightness(1.05) saturate(1.05);
+  }
+  61.8% {
+    transform: scale(1.04);
+    filter: brightness(1.12) saturate(1.1);
+  }
+}
+
+/* 8th House portal glow */
+@keyframes portalGlow {
+  0%, 100% {
+    stroke-opacity: 0.15;
+    stroke-width: 1;
+  }
+  61.8% {
+    stroke-opacity: 0.35;
+    stroke-width: 1.618;
+  }
+}
+
+/* Leaf flutter with organic timing */
+@keyframes leafFlutter {
+  0%, 100% {
+    transform: rotate(-2deg) translateY(0);
+  }
+  38.2% {
+    transform: rotate(1deg) translateY(-1px);
+  }
+  61.8% {
+    transform: rotate(3deg) translateY(-2px);
+  }
+}
+
+/* Rose window subtle rotation (very slow) */
+@keyframes roseWindowSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Halo pulse for sacred elements */
+@keyframes haloPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  61.8% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+/* ============================================
+   COMPONENT CLASSES - ALCHEMICAL MODE
+   ============================================ */
+
+/* Panel breathing effect - 13s lunar rhythm */
+.soul-panel {
+  animation: soulBreath 13s ease-in-out infinite;
+}
+
+/* Vine/bar growth effect */
+.soul-vine {
+  transform-origin: bottom center;
+  animation: vineGrow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Soft glow pulse for highlighted elements */
+.soul-glow {
+  animation: softGlowPulse 6.18s ease-in-out infinite; /* φ × 3.82 */
+}
+
+/* Petal unfurling for radial elements */
+.soul-petal {
+  transform-origin: center center;
+  animation: petalUnfurl 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Golden shimmer for 9th house */
+.soul-golden {
+  animation: goldenShimmer 4.236s ease-in-out infinite; /* φ × 2.618 */
+}
+
+/* Leaf decoration flutter */
+.soul-leaf {
+  animation: leafFlutter 5.236s ease-in-out infinite; /* φ × 3.236 */
+}
+
+/* 8th House special styling */
+.soul-eighth {
+  animation:
+    petalUnfurl 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    eighthPulse 9.618s ease-in-out infinite 0.8s; /* 9 + φ timing */
+}
+
+.soul-eighth-portal {
+  animation: portalGlow 9.618s ease-in-out infinite;
+}
+
+/* Halo effect for sacred centers */
+.soul-halo {
+  animation: haloPulse 8s ease-in-out infinite;
+}
+
+/* ============================================
+   CONTEMPLATIVE MODE (animations disabled)
+   ============================================ */
+
+.contemplative .soul-panel,
+.contemplative .soul-vine,
+.contemplative .soul-glow,
+.contemplative .soul-petal,
+.contemplative .soul-golden,
+.contemplative .soul-leaf,
+.contemplative .soul-eighth,
+.contemplative .soul-eighth-portal,
+.contemplative .soul-halo {
+  animation: none !important;
+}
+
+.contemplative .soul-vine {
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+.contemplative .soul-petal {
+  transform: scale(1) rotate(0deg);
+  opacity: 1;
+}
+
+/* ============================================
+   HOVER INTERACTIONS
+   ============================================ */
+
+/* Bar flap tooltip */
+.bar-flap {
+  position: absolute;
+  bottom: -52px;
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 27, 75, 0.95) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #e2e8f0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap;
+  z-index: 30;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Show flap on hover */
+.bar-container:hover .bar-flap {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Vine hover glow */
+.vine-bar {
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.38s ease;
+}
+
+.bar-container:hover .vine-bar {
+  transform: scaleX(1.15); /* ≈ φ/1.4 */
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.75);
+}
+
+/* Petal hover highlight */
+.petal-segment {
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.petal-segment:hover {
+  filter: brightness(1.25) saturate(1.1);
+  cursor: pointer;
+}
+
+/* ============================================
+   ORNAMENTAL FRAME EFFECTS
+   ============================================ */
+
+.ornamental-frame {
+  position: relative;
+}
+
+.ornamental-frame::before,
+.ornamental-frame::after {
+  content: '';
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border: 2px solid rgba(168, 85, 247, 0.25);
+  pointer-events: none;
+  transition: border-color 0.4s ease;
+}
+
+.ornamental-frame::before {
+  top: -6px;
+  left: -6px;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 16px 0 0 0;
+}
+
+.ornamental-frame::after {
+  bottom: -6px;
+  right: -6px;
+  border-left: none;
+  border-top: none;
+  border-radius: 0 0 16px 0;
+}
+
+/* Frame glow in alchemical mode */
+.alchemical .ornamental-frame::before,
+.alchemical .ornamental-frame::after {
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.15);
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
+.soul-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.soul-scroll::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 4px;
+}
+
+.soul-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.4) 0%, rgba(139, 92, 246, 0.3) 100%);
+  border-radius: 4px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.soul-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.6) 0%, rgba(139, 92, 246, 0.5) 100%);
+}
+
+/* ============================================
+   GOLDEN RATIO REFERENCE CLASSES
+   ============================================ */
+
+/* Use these for consistent φ-based sizing */
+.phi-height-1 { min-height: 200px; }     /* base */
+.phi-height-phi { min-height: 324px; }   /* base × φ */
+.phi-height-phi2 { min-height: 524px; }  /* base × φ² */
+
+/* φ-based spacing */
+.phi-gap { gap: 16px; }                   /* base gap */
+.phi-gap-large { gap: 26px; }             /* gap × φ */
+
+/* φ-based padding */
+.phi-padding { padding: 16px; }
+.phi-padding-large { padding: 26px; }

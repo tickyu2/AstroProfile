@@ -1,0 +1,230 @@
+{
+  "version": "1.0.0",
+  "createdAt": "2025-12-21T00:00:00.000Z",
+  "updatedAt": "2025-12-21T00:00:00.000Z",
+
+  "timing": {
+    "base": {
+      "zone1": 300,
+      "zone2": 900,
+      "zone3": 2000
+    },
+    "minSilenceMs": 80,
+    "vadSampleIntervalMs": 50,
+    "completionMinMs": 2000
+  },
+
+  "behaviorDefaults": {
+    "neutral": {
+      "backchannelFrequency": 0.30,
+      "maxResponseTokens": 220,
+      "style": "balanced",
+      "adviceBias": 0.5,
+      "ttsHints": { "rate": 1.0, "pitch": 1.0, "warmth": 0.5 }
+    },
+    "sad": {
+      "backchannelFrequency": 0.45,
+      "maxResponseTokens": 160,
+      "style": "gentle",
+      "adviceBias": 0.2,
+      "ttsHints": { "rate": 0.92, "pitch": 0.95, "warmth": 0.8 }
+    },
+    "anxious": {
+      "backchannelFrequency": 0.40,
+      "maxResponseTokens": 150,
+      "style": "reassuring",
+      "adviceBias": 0.35,
+      "ttsHints": { "rate": 0.95, "pitch": 0.98, "warmth": 0.7 }
+    },
+    "happy": {
+      "backchannelFrequency": 0.50,
+      "maxResponseTokens": 230,
+      "style": "playful",
+      "adviceBias": 0.6,
+      "ttsHints": { "rate": 1.08, "pitch": 1.05, "warmth": 0.6 }
+    },
+    "excited": {
+      "backchannelFrequency": 0.55,
+      "maxResponseTokens": 250,
+      "style": "enthusiastic",
+      "adviceBias": 0.65,
+      "ttsHints": { "rate": 1.12, "pitch": 1.08, "warmth": 0.5 }
+    },
+    "angry": {
+      "backchannelFrequency": 0.25,
+      "maxResponseTokens": 170,
+      "style": "grounding",
+      "adviceBias": 0.3,
+      "ttsHints": { "rate": 0.98, "pitch": 0.95, "warmth": 0.6 }
+    },
+    "surprised": {
+      "backchannelFrequency": 0.40,
+      "maxResponseTokens": 200,
+      "style": "curious",
+      "adviceBias": 0.5,
+      "ttsHints": { "rate": 1.05, "pitch": 1.03, "warmth": 0.55 }
+    },
+    "disgusted": {
+      "backchannelFrequency": 0.25,
+      "maxResponseTokens": 160,
+      "style": "steady",
+      "adviceBias": 0.4,
+      "ttsHints": { "rate": 0.96, "pitch": 0.97, "warmth": 0.5 }
+    },
+    "fearful": {
+      "backchannelFrequency": 0.45,
+      "maxResponseTokens": 140,
+      "style": "protective",
+      "adviceBias": 0.25,
+      "ttsHints": { "rate": 0.90, "pitch": 0.95, "warmth": 0.85 }
+    },
+    "tender": {
+      "backchannelFrequency": 0.35,
+      "maxResponseTokens": 180,
+      "style": "intimate",
+      "adviceBias": 0.3,
+      "ttsHints": { "rate": 0.94, "pitch": 0.98, "warmth": 0.9 }
+    },
+    "confused": {
+      "backchannelFrequency": 0.35,
+      "maxResponseTokens": 200,
+      "style": "clarifying",
+      "adviceBias": 0.55,
+      "ttsHints": { "rate": 0.95, "pitch": 1.0, "warmth": 0.6 }
+    }
+  },
+
+  "backchannels": {
+    "baseProbabilities": {
+      "MICRO_PAUSE": 0.25,
+      "SHORT_PAUSE": 0.35,
+      "THINKING_PAUSE": 0.55
+    },
+    "emotionBoosts": {
+      "sad": 0.15,
+      "anxious": 0.10,
+      "happy": 0.05,
+      "excited": 0.08,
+      "angry": -0.10,
+      "fearful": 0.12,
+      "tender": 0.05,
+      "confused": 0.08,
+      "neutral": 0.0
+    },
+    "minIntervalMs": 3000,
+    "cueTypes": {
+      "MICRO_PAUSE": ["SOUND"],
+      "SHORT_PAUSE": ["SOUND", "ENCOURAGER"],
+      "THINKING_PAUSE": ["ENCOURAGER", "CONTINUATION"]
+    }
+  },
+
+  "tts": {
+    "defaultProvider": "elevenlabs",
+    "elevenLabs": {
+      "modelId": "eleven_multilingual_v2",
+      "voiceId": null,
+      "baseProfile": {
+        "stability": 0.6,
+        "similarityBoost": 0.75,
+        "style": 0.3
+      },
+      "emotionProfiles": {
+        "neutral": { "stability": 0.6, "similarityBoost": 0.75, "style": 0.3, "rate": 1.0 },
+        "happy": { "stability": 0.5, "similarityBoost": 0.8, "style": 0.7, "rate": 1.08 },
+        "excited": { "stability": 0.45, "similarityBoost": 0.8, "style": 0.8, "rate": 1.12 },
+        "sad": { "stability": 0.7, "similarityBoost": 0.7, "style": 0.35, "rate": 0.92 },
+        "anxious": { "stability": 0.65, "similarityBoost": 0.72, "style": 0.4, "rate": 0.95 },
+        "angry": { "stability": 0.55, "similarityBoost": 0.75, "style": 0.5, "rate": 0.98 },
+        "fearful": { "stability": 0.7, "similarityBoost": 0.7, "style": 0.3, "rate": 0.90 },
+        "tender": { "stability": 0.72, "similarityBoost": 0.78, "style": 0.45, "rate": 0.94 },
+        "confused": { "stability": 0.6, "similarityBoost": 0.72, "style": 0.35, "rate": 0.95 }
+      }
+    }
+  },
+
+  "llm": {
+    "defaultProvider": "groq",
+    "fallbackProvider": "ollama",
+    "maxHistoryTurns": 6,
+    "prompt": {
+      "maxLines": 3,
+      "allowToneMarkers": true,
+      "systemPromptVersion": "1.0"
+    },
+    "models": {
+      "groq": "llama-3.3-70b-versatile",
+      "ollama": "llama3.2"
+    }
+  },
+
+  "learning": {
+    "backchannelLearningRate": 0.02,
+    "responseLengthLearningRate": 0.03,
+    "pauseToleranceLearningRate": 0.02,
+    "adviceLearningRate": 0.02,
+    "maxBias": {
+      "backchannel": 0.3,
+      "responseLength": 0.4,
+      "pauseTolerance": 0.3,
+      "advice": 0.3
+    }
+  },
+
+  "thresholds": {
+    "emotionConfidenceMin": 0.3,
+    "silenceComfortMs": 4000,
+    "interruptDetectionMs": 200,
+    "backchannelOverspokenMs": 500
+  },
+
+  "logging": {
+    "enabled": true,
+    "logPrompts": true,
+    "logAudioPaths": false,
+    "logLevel": "info"
+  },
+
+  "autoTune": {
+    "enabled": true,
+    "sensitivity": 1.0,
+    "consolidationInterval": 20,
+    "minInteractionsForConsolidation": 10,
+    "blendFactor": 0.3
+  },
+
+  "interactionProfiles": {
+    "enabled": true,
+    "emaAlpha": 0.05,
+    "emaAlphaFast": 0.15,
+    "minInteractionsForCluster": 5,
+    "saveDebounceMs": 5000
+  },
+
+  "clusters": {
+    "enabled": true,
+    "blendWeight": 0.25,
+    "availableClusters": [
+      "fast_talker",
+      "slow_thinker",
+      "emotional",
+      "analytical",
+      "storyteller",
+      "minimalist"
+    ]
+  },
+
+  "personalityDrift": {
+    "enabled": true,
+    "driftRate": 0.02,
+    "updateIntervalMs": 1800000,
+    "bounds": {
+      "baseWarmth": { "min": 0.4, "max": 1.0, "default": 0.7 },
+      "basePace": { "min": 0.7, "max": 1.3, "default": 1.0 },
+      "baseResponsiveness": { "min": 0.6, "max": 1.2, "default": 1.0 },
+      "backchannelFrequency": { "min": 0.2, "max": 0.8, "default": 0.5 },
+      "responseLength": { "min": 0.7, "max": 1.3, "default": 1.0 },
+      "emotionalMirroring": { "min": 0.3, "max": 0.9, "default": 0.6 }
+    }
+  }
+}

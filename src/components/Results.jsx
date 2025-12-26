@@ -49,6 +49,9 @@ import SoulDNADisplay from './results/SoulDNADisplay'
 // 🌹 NEW! MBTI ROSE WINDOW - Notre-Dame Masterpiece
 import { MBTIRoseWindow } from './mbti'
 
+// ⚗️ NEW! ENNEAGRAM ALCHEMICAL ROSE
+import { EnneagramTab } from './enneagram'
+
 // ⭐ NEW! WESTERN ZODIAC 36-CUSP SYSTEM - Father Ticky's Model
 import { WesternZodiacSection } from './westernZodiac'
 
@@ -381,6 +384,16 @@ export default function Results() {
                 {activeTab === 'mbti' && (
                     <div className="w-full">
                         <MBTIRoseWindow profile={profile} />
+                    </div>
+                )}
+
+                {/* Enneagram Tab - ALCHEMICAL ROSE ⚗️ */}
+                {activeTab === 'enneagram' && (
+                    <div className="w-full">
+                        <EnneagramTab
+                            profile={profile}
+                            onProfileUpdate={handleRefresh}
+                        />
                     </div>
                 )}
 

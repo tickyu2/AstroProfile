@@ -198,6 +198,52 @@ class BiographyService {
     }
   }
 
+  /**
+   * Answer a neural pathway question inline (from sidebar)
+   * This saves the answer and marks the pathway as resolved in one step
+   *
+   * @param {Object} params
+   * @param {string} params.userId - User ID
+   * @param {string} params.profileId - Profile ID
+   * @param {string} params.questionId - Question ID (or generated ID)
+   * @param {string} params.questionText - The question being answered
+   * @param {string} params.answerText - User's answer
+   * @param {string} params.theme - Theme group of the question
+   * @param {string} params.relatedEventId - Related event ID (optional)
+   * @returns {Promise<Object>} Result with success status
+   */
+  async answerNeuralPathway({
+    userId,
+    profileId,
+    questionId,
+    questionText,
+    answerText,
+    theme,
+    relatedEventId
+  }) {
+    try {
+      this.initialize();
+      const fn = httpsCallable(this.functions, 'answerNeuralPathway');
+      const result = await fn({
+        userId,
+        profileId,
+        questionId,
+        questionText,
+        answerText,
+        theme,
+        relatedEventId
+      });
+
+      // Clear cache so new questions reflect the update
+      this.clearCache(profileId);
+
+      return result.data;
+    } catch (error) {
+      console.error('[Biography] Answer pathway error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   // ============================================================================
   // UTILITIES
   // ============================================================================

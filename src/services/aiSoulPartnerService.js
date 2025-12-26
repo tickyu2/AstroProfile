@@ -333,6 +333,8 @@ export async function sendMessage({
         relationshipStats: memoryContext?.relationshipStats || null,  // Tango Identity System (NEW)
         image,  // Optional image for vision { dataUrl, type }
         storySoFarContext,  // Explicit story context for backend (NEW)
+        conversationId,  // For session cache optimization (NEW)
+        profileId,  // For memory isolation (NEW)
         // Gemini 3 configuration (NEW)
         gemini3Config: {
           thinkingLevel: effectiveThinkingLevel,

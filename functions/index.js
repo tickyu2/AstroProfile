@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Firebase Cloud Functions for GENESIS - AI SoulPartner
  *
  * Secure proxy for Claude API calls with Constitutional Intelligence guidance.
@@ -8,7 +8,7 @@
  * December 13-14, 2024 - Added Nano Banana (Gemini Image Gen)
  */
 
-const { onRequest } = require('firebase-functions/v2/https');
+const { onRequest, onCall } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
 const Anthropic = require('@anthropic-ai/sdk');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
@@ -61,7 +61,8 @@ const {
 const {
   retrieveMemoriesForChat,
   storeUserMessageAsMemory,
-  storeLunaObservation
+  storeLunaObservation,
+  sessionCache  // Session cache for cleanup on session end
 } = require('./memory/chatMemoryIntegration');
 
 // Neurochemical Love Engine (Love = Mathematics + Soul)
@@ -111,10 +112,10 @@ exports.aiSoulPartnerChat = onRequest({
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
+    // -----------------------------------------------------------------------
     // RATE LIMITING (Phase 6 - Production Hardening)
     // Check limits BEFORE processing to prevent abuse
-    // ═══════════════════════════════════════════════════════════════════════
+    // -----------------------------------------------------------------------
     let userId = null;
     let requestId = null;
     let userTier = 'free';
@@ -171,7 +172,7 @@ exports.aiSoulPartnerChat = onRequest({
     const requestStartTime = Date.now();
 
     try {
-      const { message, guidance, conversationHistory, userProfile, knowledgePrompt, learnedContext, memoryPrompt, relationshipStats, image } = req.body;
+      const { message, guidance, conversationHistory, userProfile, knowledgePrompt, learnedContext, memoryPrompt, relationshipStats, image, conversationId } = req.body;
 
       if (!message && !image) {
         return res.status(400).json({ error: 'Message or image is required' });
@@ -184,7 +185,7 @@ exports.aiSoulPartnerChat = onRequest({
       let generatedImage = null;
 
       if (imageGenRequest.isImageRequest) {
-        console.log('ðŸŽ¨ Image generation detected, prompt:', imageGenRequest.prompt.slice(0, 100));
+        console.log('🎨 Image generation detected, prompt:', imageGenRequest.prompt.slice(0, 100));
         generatedImage = await generateImage(imageGenRequest.prompt, userProfile);
 
         if (generatedImage?.success) {
@@ -207,7 +208,7 @@ The image is displayed above. Let me know if you'd like me to create a different
             usage: { input_tokens: 0, output_tokens: 0 }  // Gemini usage tracked separately
           });
         } else if (generatedImage?.error) {
-          console.log('ðŸŽ¨ Image generation failed, falling through to Claude');
+          console.log('🎨 Image generation failed, falling through to Claude');
           // Fall through to Claude with an explanation
         }
       }
@@ -218,7 +219,7 @@ The image is displayed above. Let me know if you'd like me to create a different
       let enhancedMessage = message;
 
       if (searchRequest.isSearch) {
-        console.log('🌐 Web search detected, query:', searchRequest.query);
+        console.log('?? Web search detected, query:', searchRequest.query);
         webSearchResults = await performWebSearch(searchRequest.query);
 
         if (webSearchResults) {
@@ -226,7 +227,7 @@ The image is displayed above. Let me know if you'd like me to create a different
           enhancedMessage = `${message}
 
 ---
-## 🌐 WEB SEARCH RESULTS FOR: "${searchRequest.query}"
+## ?? WEB SEARCH RESULTS FOR: "${searchRequest.query}"
 
 ### Quick Answer:
 ${webSearchResults.answer || 'No summary available'}
@@ -248,7 +249,7 @@ Please synthesize these web search results to answer my question. Include releva
       let urlContents = [];
 
       if (urls.length > 0 && !searchRequest.isSearch) {
-        console.log('🌐 URLs detected:', urls.length);
+        console.log('?? URLs detected:', urls.length);
 
         // Fetch up to 3 URLs to avoid overloading
         const urlsToFetch = urls.slice(0, 3);
@@ -261,7 +262,7 @@ Please synthesize these web search results to answer my question. Include releva
           // Append URL contents to the message
           const urlContext = urlContents.map(content => `
 ---
-## 🌐 CONTENT FROM: ${content.title}
+## ?? CONTENT FROM: ${content.title}
 **URL:** ${content.url}
 
 ${content.text}
@@ -274,19 +275,19 @@ ${urlContext}
 
 Please read and analyze the above web page content to help answer my question or continue our discussion.`;
 
-          console.log('🌐 URL content added:', urlContents.length, 'pages');
+          console.log('?? URL content added:', urlContents.length, 'pages');
         }
       }
 
       // Log if learned context is present (Session Intelligence)
       if (learnedContext) {
-        console.log('ðŸ§  Session Intelligence: Learned context included in prompt');
+        console.log('🧠 Session Intelligence: Learned context included in prompt');
       }
 
-      // ═══════════════════════════════════════════════════════════════════════
+      // -----------------------------------------------------------------------
       // 4-BRAIN POSTGRESQL MEMORY RETRIEVAL (JOIE DE VIVRE!)
       // Retrieve relevant memories from Luna's brain before responding
-      // ═══════════════════════════════════════════════════════════════════════
+      // -----------------------------------------------------------------------
       let pgMemoryPrompt = memoryPrompt; // Use client-provided if available
       const profileId = userProfile?.profileId || userProfile?.id || 'default';
 
@@ -297,10 +298,11 @@ Please read and analyze the above web page content to help answer my question or
             limit: 10,
             threshold: 0.6,
             includePartner: true,
-            includeTimeline: true
+            includeTimeline: true,
+            conversationId  // Session cache optimization
           });
           if (pgMemoryPrompt) {
-            console.log('🧠 4-Brain Memory: Retrieved relevant memories from PostgreSQL');
+            console.log('?? 4-Brain Memory: Retrieved relevant memories from PostgreSQL');
           }
         } catch (memoryError) {
           console.warn('[Memory] PostgreSQL retrieval failed (continuing without):', memoryError.message);
@@ -317,13 +319,13 @@ Please read and analyze the above web page content to help answer my question or
 
       // Log if image, search, or URLs are present
       if (image) {
-        console.log('ðŸ“¸ Image attached to message');
+        console.log('📸 Image attached to message');
       }
       if (webSearchResults) {
-        console.log('🌐 Web search results included in message');
+        console.log('?? Web search results included in message');
       }
       if (urlContents.length > 0) {
-        console.log('🌐 URL content fetched:', urlContents.map(u => u.title).join(', '));
+        console.log('?? URL content fetched:', urlContents.map(u => u.title).join(', '));
       }
 
       // Call Claude API
@@ -335,14 +337,14 @@ Please read and analyze the above web page content to help answer my question or
       });
 
       // Extract the response text
-      let responseText = response.content[0]?.text || "I'm here with you. ðŸ’™";
+      let responseText = response.content[0]?.text || "I'm here with you. 💙";
 
       // Check if Claude wants to generate an image (via [NANO_BANANA: prompt] marker)
       let claudeGeneratedImage = null;
       const imageExtraction = extractImagePromptFromResponse(responseText);
 
       if (imageExtraction) {
-        console.log('ðŸŽ¨ Claude requested image generation:', imageExtraction.prompt.slice(0, 100));
+        console.log('🎨 Claude requested image generation:', imageExtraction.prompt.slice(0, 100));
         responseText = imageExtraction.cleanedText;
 
         // Generate the image Claude requested
@@ -353,14 +355,14 @@ Please read and analyze the above web page content to help answer my question or
             data: imageResult.image.data,
             prompt: imageExtraction.prompt
           };
-          console.log('ðŸŽ¨ Claude-initiated image generated successfully!');
+          console.log('🎨 Claude-initiated image generated successfully!');
         }
       }
 
-      // ═══════════════════════════════════════════════════════════════════════
+      // -----------------------------------------------------------------------
       // USAGE TRACKING (Phase 6 - Production Hardening)
       // Record token usage for cost control and analytics
-      // ═══════════════════════════════════════════════════════════════════════
+      // -----------------------------------------------------------------------
       const responseTime = Date.now() - requestStartTime;
       const inputTokens = response.usage?.input_tokens || 0;
       const outputTokens = response.usage?.output_tokens || 0;
@@ -385,10 +387,10 @@ Please read and analyze the above web page content to help answer my question or
         }
       }
 
-      // ═══════════════════════════════════════════════════════════════════════
+      // -----------------------------------------------------------------------
       // 4-BRAIN POSTGRESQL MEMORY STORAGE (JOIE DE VIVRE!)
       // Store meaningful memories from this exchange asynchronously
-      // ═══════════════════════════════════════════════════════════════════════
+      // -----------------------------------------------------------------------
       if (userId && profileId && message) {
         // Fire and forget - don't block the response
         (async () => {
@@ -402,7 +404,7 @@ Please read and analyze the above web page content to help answer my question or
             );
 
             if (userMemoryResult?.stored) {
-              console.log('🧠 4-Brain Memory: Stored user message in STM');
+              console.log('?? 4-Brain Memory: Stored user message in STM');
             }
 
             // If Luna mentioned something insightful, store as observation
@@ -424,7 +426,7 @@ Please read and analyze the above web page content to help answer my question or
                 context: 'chat_response',
                 userMessageExcerpt: message.slice(0, 200)
               });
-              console.log('🧠 4-Brain Memory: Stored Luna observation in Partner STM');
+              console.log('?? 4-Brain Memory: Stored Luna observation in Partner STM');
             }
           } catch (memoryStoreError) {
             console.warn('[Memory] Storage failed (non-blocking):', memoryStoreError.message);
@@ -456,10 +458,10 @@ Please read and analyze the above web page content to help answer my question or
     } catch (error) {
       console.error('AI SoulPartner Error:', error);
 
-      // ═══════════════════════════════════════════════════════════════════════
+      // -----------------------------------------------------------------------
       // USAGE TRACKING - Failed Request
       // Record failed requests (doesn't count toward limits)
-      // ═══════════════════════════════════════════════════════════════════════
+      // -----------------------------------------------------------------------
       if (userId && requestId) {
         try {
           await recordRequestFailed(userId, requestId, error);
@@ -641,7 +643,7 @@ exports.getHistoricalTimezone = onRequest({
       unixTimestamp = Math.floor(date.getTime() / 1000);
     }
 
-    console.log('ðŸ• Historical Timezone Lookup:', {
+    console.log('🕐 Historical Timezone Lookup:', {
       lat: latitude,
       lng: longitude,
       timestamp: unixTimestamp,
@@ -662,7 +664,7 @@ exports.getHistoricalTimezone = onRequest({
       });
     }
 
-    console.log('âœ… Historical Timezone Result:', {
+    console.log('✅ Historical Timezone Result:', {
       zone: data.zoneName,
       abbreviation: data.abbreviation,
       gmtOffset: data.gmtOffset,
@@ -754,7 +756,7 @@ exports.generateDebateVisual = onRequest({
       return res.status(400).json({ error: 'Debate exchanges are required' });
     }
 
-    console.log('ðŸŽ¨ Generating debate visual:', {
+    console.log('🎨 Generating debate visual:', {
       type: visualType,
       exchanges: debateExchanges.length,
       hasTopic: !!topic
@@ -825,7 +827,7 @@ Style: Hand-drawn illustration style, like a thoughtful notebook sketch. Include
     const imageResult = await generateImage(visualPrompt, userProfile);
 
     if (!imageResult?.success) {
-      console.log('ðŸŽ¨ Image generation failed:', imageResult?.error);
+      console.log('🎨 Image generation failed:', imageResult?.error);
       return res.status(500).json({
         success: false,
         error: imageResult?.error || 'Failed to generate image',
@@ -833,7 +835,7 @@ Style: Hand-drawn illustration style, like a thoughtful notebook sketch. Include
       });
     }
 
-    console.log('ðŸŽ¨ Debate visual generated successfully!');
+    console.log('🎨 Debate visual generated successfully!');
 
     return res.status(200).json({
       success: true,
@@ -891,7 +893,7 @@ exports.saveStoryAssessment = onRequest({
       return res.status(400).json({ error: 'Assessment data is required' });
     }
 
-    console.log('ðŸ“– Saving Story Questions Assessment:', {
+    console.log('📖 Saving Story Questions Assessment:', {
       userId,
       profileId,
       levels: assessment.completedLevels,
@@ -982,7 +984,7 @@ ${(assessment.growthRecommendations || [])
       }
     });
 
-    console.log('âœ… Story Assessment saved successfully');
+    console.log('✅ Story Assessment saved successfully');
 
     return res.status(200).json({
       success: true,
@@ -1028,7 +1030,7 @@ exports.getStoryAssessment = onRequest({
       return res.status(400).json({ error: 'userId and profileId are required' });
     }
 
-    console.log('ðŸ“– Getting Story Questions Assessment:', { userId, profileId });
+    console.log('📖 Getting Story Questions Assessment:', { userId, profileId });
 
     const db = admin.firestore();
 
@@ -1052,7 +1054,7 @@ exports.getStoryAssessment = onRequest({
 
     const data = doc.data();
 
-    console.log('âœ… Story Assessment retrieved:', {
+    console.log('✅ Story Assessment retrieved:', {
       levels: data.completedLevels,
       completion: data.completionPercentage
     });
@@ -1086,9 +1088,9 @@ exports.healthCheck = onRequest({
   });
 });
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════════════════════
 // SOVEREIGN ASTRONOMICAL ENGINE - Pure JavaScript Implementation
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════════════════════
 // Father Ticky's Vision: No external API dependencies. GENESIS calculates
 // real planetary positions independently.
 //
@@ -1097,7 +1099,7 @@ exports.healthCheck = onRequest({
 //
 // Part of GENESIS Phase 3 - Sovereign Calculations
 // Added: December 16, 2024
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════════════════════
 
 // Astronomia modules for planetary calculations
 const julian = require('astronomia/julian');
@@ -1151,7 +1153,7 @@ function longitudeToZodiac(longitude) {
       element: 'Fire',
       modality: 'Cardinal',
       degree: 0,
-      degreeFormatted: '0°0\'',
+      degreeFormatted: '0�0\'',
       totalLongitude: 0,
       error: 'Invalid longitude input'
     };
@@ -1172,7 +1174,7 @@ function longitudeToZodiac(longitude) {
     element: sign.element,
     modality: sign.modality,
     degree: degreeInSign,
-    degreeFormatted: `${Math.floor(degreeInSign)}°${Math.round((degreeInSign % 1) * 60)}'`,
+    degreeFormatted: `${Math.floor(degreeInSign)}�${Math.round((degreeInSign % 1) * 60)}'`,
     totalLongitude: normalizedLong
   };
 }
@@ -1206,7 +1208,7 @@ function calculateLST(julianDay, longitude) {
  * @param {number} julianDay - Julian Day
  * @param {number} latitude - Observer latitude
  * @param {number} longitude - Observer longitude
- * @param {number} obliquity - Obliquity of ecliptic (default ~23.44°)
+ * @param {number} obliquity - Obliquity of ecliptic (default ~23.44�)
  * @returns {number} - Ascendant longitude in degrees
  */
 function calculateAscendant(julianDay, latitude, longitude, obliquity = 23.4393) {
@@ -1334,7 +1336,7 @@ function calculatePlacidusHouses(julianDay, latitude, longitude) {
   houses[2] = calculatePlacidusIntermediate(1/3, false);
   houses[3] = calculatePlacidusIntermediate(2/3, false);
 
-  // Opposite houses (just add 180°)
+  // Opposite houses (just add 180�)
   houses[5] = (houses[11] + 180) % 360;
   houses[6] = (houses[12] + 180) % 360;
   houses[8] = (houses[2] + 180) % 360;
@@ -1383,6 +1385,171 @@ function getHouseName(houseNum) {
     12: 'Spirituality & Secrets'
   };
   return names[houseNum] || `House ${houseNum}`;
+}
+
+// ---------------------------------------------------------------------------
+// HOUSE STRENGTH ENGINE (What-If Timeline / Soul Garden)
+// ---------------------------------------------------------------------------
+
+// Traditional sign rulers
+const SIGN_RULERS = {
+  Aries: 'Mars',
+  Taurus: 'Venus',
+  Gemini: 'Mercury',
+  Cancer: 'Moon',
+  Leo: 'Sun',
+  Virgo: 'Mercury',
+  Libra: 'Venus',
+  Scorpio: 'Mars',      // Traditional
+  Sagittarius: 'Jupiter',
+  Capricorn: 'Saturn',
+  Aquarius: 'Saturn',   // Traditional
+  Pisces: 'Jupiter'
+};
+
+// House type classification for angularity
+const HOUSE_TYPE = {
+  1: 'angular', 2: 'succedent', 3: 'cadent',
+  4: 'angular', 5: 'succedent', 6: 'cadent',
+  7: 'angular', 8: 'succedent', 9: 'cadent',
+  10: 'angular', 11: 'succedent', 12: 'cadent'
+};
+
+/**
+ * Get angular bonus points for house strength
+ * @param {number} houseNum - House number 1-12
+ * @returns {number} - Bonus points (0-15)
+ */
+function getAngularBonus(houseNum) {
+  const type = HOUSE_TYPE[houseNum];
+  if (type === 'angular') return 15;     // Full 15 pts
+  if (type === 'succedent') return 8;    // Medium
+  if (type === 'cadent') return 3;       // Low
+  return 0;
+}
+
+// Planet weights for house occupancy contribution
+const PLANET_WEIGHTS = {
+  sun: 12,
+  moon: 10,
+  mercury: 6,
+  venus: 8,
+  mars: 9,
+  jupiter: 8,
+  saturn: 7,
+  uranus: 5,
+  neptune: 5,
+  pluto: 5
+};
+
+/**
+ * Assign planets to houses based on their longitudes and house cusps
+ * @param {Object} houses - Output of calculatePlacidusHouses().houses
+ * @param {Object} planetLongitudes - Map: { sun: deg, moon: deg, ... }
+ * @returns {Object} - Map houseNum -> { planets: [planetName...] }
+ */
+function assignPlanetsToHouses(houses, planetLongitudes) {
+  const result = {};
+  for (let i = 1; i <= 12; i++) {
+    result[i] = { planets: [] };
+  }
+
+  // Build array of cusps in order
+  const cusps = [];
+  for (let i = 1; i <= 12; i++) {
+    cusps.push({ house: i, lon: houses[i].cusp });
+  }
+
+  // Sort by longitude
+  cusps.sort((a, b) => a.lon - b.lon);
+
+  function findHouseForLongitude(lonDeg) {
+    // Houses are segments between cusps, wrapping around 360
+    for (let i = 0; i < cusps.length; i++) {
+      const current = cusps[i];
+      const next = cusps[(i + 1) % cusps.length];
+
+      const start = current.lon;
+      const end = next.lon;
+      const houseNum = current.house;
+
+      if (start < end) {
+        // Normal segment
+        if (lonDeg >= start && lonDeg < end) return houseNum;
+      } else {
+        // Wrap-around segment (crosses 0°)
+        if (lonDeg >= start || lonDeg < end) return houseNum;
+      }
+    }
+    return 1; // Fallback
+  }
+
+  for (const [planetName, lonDeg] of Object.entries(planetLongitudes)) {
+    if (lonDeg == null || isNaN(lonDeg)) continue;
+    const houseNum = findHouseForLongitude(lonDeg);
+    result[houseNum].planets.push(planetName);
+  }
+
+  return result;
+}
+
+/**
+ * Get ruler dignity score for a house
+ * @param {Object} houseZodiac - longitudeToZodiac() result
+ * @returns {Object} - { score: number, ruler: string }
+ */
+function getRulerScore(houseZodiac) {
+  const { sign } = houseZodiac;
+  const ruler = SIGN_RULERS[sign];
+
+  // Baseline score - can be enhanced later with ruler placement analysis
+  if (!ruler) return { score: 12, ruler: null };
+
+  return {
+    score: 15,   // Mid-high baseline
+    ruler
+  };
+}
+
+/**
+ * Compute House Strength score (0-100)
+ * @param {number} houseNum - House number 1-12
+ * @param {Object} houseZodiac - longitudeToZodiac() result + cusp
+ * @param {Array<string>} planetsInHouse - Array of planet names
+ * @returns {Object} - { strength, components }
+ */
+function computeHouseStrength(houseNum, houseZodiac, planetsInHouse) {
+  // 1) Planetary occupancy (0-40)
+  let occupancy = 0;
+  for (const p of planetsInHouse) {
+    const key = p.toLowerCase();
+    occupancy += PLANET_WEIGHTS[key] || 4;
+  }
+  if (occupancy > 40) occupancy = 40;
+
+  // 2) Ruler dignity (0-25)
+  const { score: rulerScoreRaw, ruler } = getRulerScore(houseZodiac);
+  const rulerScore = Math.min(25, Math.max(0, rulerScoreRaw));
+
+  // 3) Angularity (0-15)
+  const angularScore = getAngularBonus(houseNum);
+
+  // 4) Aspect/activity placeholder (0-20) - based on occupancy activity
+  const activityScore = Math.min(20, planetsInHouse.length * 4);
+
+  const total = occupancy + rulerScore + angularScore + activityScore;
+  const strength = Math.round(Math.min(100, total));
+
+  return {
+    strength,
+    components: {
+      occupancy,
+      rulerScore,
+      angularScore,
+      activityScore,
+      ruler
+    }
+  };
 }
 
 /**
@@ -1441,8 +1608,8 @@ function getMoonPhaseInterpretation(phaseName) {
 
 /**
  * Calculate aspects between celestial bodies
- * Major aspects: Conjunction (0°), Opposition (180°), Trine (120°), Square (90°), Sextile (60°)
- * Minor aspects: Quincunx (150°), Semi-sextile (30°)
+ * Major aspects: Conjunction (0�), Opposition (180�), Trine (120�), Square (90�), Sextile (60�)
+ * Minor aspects: Quincunx (150�), Semi-sextile (30�)
  */
 function calculateAspects(celestialBodies) {
   const ASPECT_DEFINITIONS = [
@@ -1528,64 +1695,64 @@ function dateToJulianDay(year, month, day, hour = 12, minute = 0, second = 0) {
   return JD;
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// SOLAR TERM (ç¯€æ°£) CALCULATION - Precise Astronomical Boundaries for BaZi
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// The 24 Solar Terms are defined by Sun's ecliptic longitude at 15° intervals.
-// This provides EXACT moments for Year Pillar (ç«‹æ˜¥) and Month Pillar boundaries.
+// ═══════════════════════════════════════════════════════════════════════════════
+// SOLAR TERM (節氣) CALCULATION - Precise Astronomical Boundaries for BaZi
+// ═══════════════════════════════════════════════════════════════════════════════
+// The 24 Solar Terms are defined by Sun's ecliptic longitude at 15� intervals.
+// This provides EXACT moments for Year Pillar (立春) and Month Pillar boundaries.
 //
 // Part of GENESIS Phase 3 - Sovereign BaZi Precision
 // Added: December 17, 2024
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * The 24 Solar Terms (ç¯€æ°£) with their Sun longitude positions
- * Note: Solar year starts with ç«‹æ˜¥ (Spring Begins) at 315°
+ * The 24 Solar Terms (節氣) with their Sun longitude positions
+ * Note: Solar year starts with 立春 (Spring Begins) at 315�
  */
 const SOLAR_TERMS = [
-  { index: 0,  name: 'å°å¯’', pinyin: 'XiÇŽo HÃ¡n',    english: 'Minor Cold',       longitude: 285, approxMonth: 1,  approxDay: 5 },
-  { index: 1,  name: 'å¤§å¯’', pinyin: 'DÃ  HÃ¡n',      english: 'Major Cold',       longitude: 300, approxMonth: 1,  approxDay: 20 },
-  { index: 2,  name: 'ç«‹æ˜¥', pinyin: 'LÃ¬ ChÅ«n',     english: 'Spring Begins',    longitude: 315, approxMonth: 2,  approxDay: 4 },  // ★ YEAR CHANGES HERE
-  { index: 3,  name: 'é›¨æ°´', pinyin: 'YÇ” ShuÇ',     english: 'Rain Water',       longitude: 330, approxMonth: 2,  approxDay: 19 },
-  { index: 4,  name: 'æƒŠè›°', pinyin: 'JÄ«ng ZhÃ©',    english: 'Insects Awaken',   longitude: 345, approxMonth: 3,  approxDay: 5 },  // Month 1â†’2
-  { index: 5,  name: 'æ˜¥åˆ†', pinyin: 'ChÅ«n FÄ“n',    english: 'Spring Equinox',   longitude: 0,   approxMonth: 3,  approxDay: 20 },
-  { index: 6,  name: 'æ¸…æ˜Ž', pinyin: 'QÄ«ng MÃ­ng',   english: 'Clear & Bright',   longitude: 15,  approxMonth: 4,  approxDay: 5 },  // Month 2â†’3
-  { index: 7,  name: 'è°·é›¨', pinyin: 'GÇ” YÇ”',       english: 'Grain Rain',       longitude: 30,  approxMonth: 4,  approxDay: 20 },
-  { index: 8,  name: 'ç«‹å¤', pinyin: 'LÃ¬ XiÃ ',      english: 'Summer Begins',    longitude: 45,  approxMonth: 5,  approxDay: 5 },  // Month 3â†’4
-  { index: 9,  name: 'å°æ»¡', pinyin: 'XiÇŽo MÇŽn',    english: 'Grain Buds',       longitude: 60,  approxMonth: 5,  approxDay: 21 },
-  { index: 10, name: 'èŠ’ç§', pinyin: 'MÃ¡ng ZhÃ²ng',  english: 'Grain in Ear',     longitude: 75,  approxMonth: 6,  approxDay: 6 },  // Month 4â†’5
-  { index: 11, name: 'å¤è‡³', pinyin: 'XiÃ  ZhÃ¬',     english: 'Summer Solstice',  longitude: 90,  approxMonth: 6,  approxDay: 21 },
-  { index: 12, name: 'å°æš‘', pinyin: 'XiÇŽo ShÇ”',    english: 'Minor Heat',       longitude: 105, approxMonth: 7,  approxDay: 7 },  // Month 5â†’6
-  { index: 13, name: 'å¤§æš‘', pinyin: 'DÃ  ShÇ”',      english: 'Major Heat',       longitude: 120, approxMonth: 7,  approxDay: 23 },
-  { index: 14, name: 'ç«‹ç§‹', pinyin: 'LÃ¬ QiÅ«',      english: 'Autumn Begins',    longitude: 135, approxMonth: 8,  approxDay: 7 },  // Month 6â†’7
-  { index: 15, name: 'å¤„æš‘', pinyin: 'ChÇ” ShÇ”',     english: 'End of Heat',      longitude: 150, approxMonth: 8,  approxDay: 23 },
-  { index: 16, name: 'ç™½éœ²', pinyin: 'BÃ¡i LÃ¹',      english: 'White Dew',        longitude: 165, approxMonth: 9,  approxDay: 7 },  // Month 7â†’8
-  { index: 17, name: 'ç§‹åˆ†', pinyin: 'QiÅ« FÄ“n',     english: 'Autumn Equinox',   longitude: 180, approxMonth: 9,  approxDay: 23 },
-  { index: 18, name: 'å¯’éœ²', pinyin: 'HÃ¡n LÃ¹',      english: 'Cold Dew',         longitude: 195, approxMonth: 10, approxDay: 8 },  // Month 8â†’9
-  { index: 19, name: 'éœœé™', pinyin: 'ShuÄng JiÃ ng',english: 'Frost Descends',   longitude: 210, approxMonth: 10, approxDay: 23 },
-  { index: 20, name: 'ç«‹å†¬', pinyin: 'LÃ¬ DÅng',     english: 'Winter Begins',    longitude: 225, approxMonth: 11, approxDay: 7 },  // Month 9â†’10
-  { index: 21, name: 'å°é›ª', pinyin: 'XiÇŽo XuÄ›',    english: 'Minor Snow',       longitude: 240, approxMonth: 11, approxDay: 22 },
-  { index: 22, name: 'å¤§é›ª', pinyin: 'DÃ  XuÄ›',      english: 'Major Snow',       longitude: 255, approxMonth: 12, approxDay: 7 },  // Month 10â†’11
-  { index: 23, name: 'å†¬è‡³', pinyin: 'DÅng ZhÃ¬',    english: 'Winter Solstice',  longitude: 270, approxMonth: 12, approxDay: 21 }
+  { index: 0,  name: '小寒', pinyin: 'Xiǎo Hán',    english: 'Minor Cold',       longitude: 285, approxMonth: 1,  approxDay: 5 },
+  { index: 1,  name: '大寒', pinyin: 'Dà Hán',      english: 'Major Cold',       longitude: 300, approxMonth: 1,  approxDay: 20 },
+  { index: 2,  name: '立春', pinyin: 'Lì Chūn',     english: 'Spring Begins',    longitude: 315, approxMonth: 2,  approxDay: 4 },  // ? YEAR CHANGES HERE
+  { index: 3,  name: '雨水', pinyin: 'Yǔ Shuǐ',     english: 'Rain Water',       longitude: 330, approxMonth: 2,  approxDay: 19 },
+  { index: 4,  name: '惊蛰', pinyin: 'Jīng Zhé',    english: 'Insects Awaken',   longitude: 345, approxMonth: 3,  approxDay: 5 },  // Month 1→2
+  { index: 5,  name: '春分', pinyin: 'Chūn Fēn',    english: 'Spring Equinox',   longitude: 0,   approxMonth: 3,  approxDay: 20 },
+  { index: 6,  name: '清明', pinyin: 'Qīng Míng',   english: 'Clear & Bright',   longitude: 15,  approxMonth: 4,  approxDay: 5 },  // Month 2→3
+  { index: 7,  name: '谷雨', pinyin: 'Gǔ Yǔ',       english: 'Grain Rain',       longitude: 30,  approxMonth: 4,  approxDay: 20 },
+  { index: 8,  name: '立夏', pinyin: 'Lì Xià',      english: 'Summer Begins',    longitude: 45,  approxMonth: 5,  approxDay: 5 },  // Month 3→4
+  { index: 9,  name: '小满', pinyin: 'Xiǎo Mǎn',    english: 'Grain Buds',       longitude: 60,  approxMonth: 5,  approxDay: 21 },
+  { index: 10, name: '芒种', pinyin: 'Máng Zhòng',  english: 'Grain in Ear',     longitude: 75,  approxMonth: 6,  approxDay: 6 },  // Month 4→5
+  { index: 11, name: '夏至', pinyin: 'Xià Zhì',     english: 'Summer Solstice',  longitude: 90,  approxMonth: 6,  approxDay: 21 },
+  { index: 12, name: '小暑', pinyin: 'Xiǎo Shǔ',    english: 'Minor Heat',       longitude: 105, approxMonth: 7,  approxDay: 7 },  // Month 5→6
+  { index: 13, name: '大暑', pinyin: 'Dà Shǔ',      english: 'Major Heat',       longitude: 120, approxMonth: 7,  approxDay: 23 },
+  { index: 14, name: '立秋', pinyin: 'Lì Qiū',      english: 'Autumn Begins',    longitude: 135, approxMonth: 8,  approxDay: 7 },  // Month 6→7
+  { index: 15, name: '处暑', pinyin: 'Chǔ Shǔ',     english: 'End of Heat',      longitude: 150, approxMonth: 8,  approxDay: 23 },
+  { index: 16, name: '白露', pinyin: 'Bái Lù',      english: 'White Dew',        longitude: 165, approxMonth: 9,  approxDay: 7 },  // Month 7→8
+  { index: 17, name: '秋分', pinyin: 'Qiū Fēn',     english: 'Autumn Equinox',   longitude: 180, approxMonth: 9,  approxDay: 23 },
+  { index: 18, name: '寒露', pinyin: 'Hán Lù',      english: 'Cold Dew',         longitude: 195, approxMonth: 10, approxDay: 8 },  // Month 8→9
+  { index: 19, name: '霜降', pinyin: 'Shuāng Jiàng',english: 'Frost Descends',   longitude: 210, approxMonth: 10, approxDay: 23 },
+  { index: 20, name: '立冬', pinyin: 'Lì Dōng',     english: 'Winter Begins',    longitude: 225, approxMonth: 11, approxDay: 7 },  // Month 9→10
+  { index: 21, name: '小雪', pinyin: 'Xiǎo Xuě',    english: 'Minor Snow',       longitude: 240, approxMonth: 11, approxDay: 22 },
+  { index: 22, name: '大雪', pinyin: 'Dà Xuě',      english: 'Major Snow',       longitude: 255, approxMonth: 12, approxDay: 7 },  // Month 10→11
+  { index: 23, name: '冬至', pinyin: 'Dōng Zhì',    english: 'Winter Solstice',  longitude: 270, approxMonth: 12, approxDay: 21 }
 ];
 
 /**
  * BaZi Month boundaries - which Solar Terms start each month
- * Each solar month begins at an odd-indexed Solar Term (Jie èŠ‚)
+ * Each solar month begins at an odd-indexed Solar Term (Jie 节)
  */
 const BAZI_MONTH_TERMS = {
-  1:  { termIndex: 2,  name: 'ç«‹æ˜¥', english: 'Spring Begins',    longitude: 315 }, // Tiger Month
-  2:  { termIndex: 4,  name: 'æƒŠè›°', english: 'Insects Awaken',   longitude: 345 }, // Rabbit Month
-  3:  { termIndex: 6,  name: 'æ¸…æ˜Ž', english: 'Clear & Bright',   longitude: 15 },  // Dragon Month
-  4:  { termIndex: 8,  name: 'ç«‹å¤', english: 'Summer Begins',    longitude: 45 },  // Snake Month
-  5:  { termIndex: 10, name: 'èŠ’ç§', english: 'Grain in Ear',     longitude: 75 },  // Horse Month
-  6:  { termIndex: 12, name: 'å°æš‘', english: 'Minor Heat',       longitude: 105 }, // Goat Month
-  7:  { termIndex: 14, name: 'ç«‹ç§‹', english: 'Autumn Begins',    longitude: 135 }, // Monkey Month
-  8:  { termIndex: 16, name: 'ç™½éœ²', english: 'White Dew',        longitude: 165 }, // Rooster Month
-  9:  { termIndex: 18, name: 'å¯’éœ²', english: 'Cold Dew',         longitude: 195 }, // Dog Month
-  10: { termIndex: 20, name: 'ç«‹å†¬', english: 'Winter Begins',    longitude: 225 }, // Pig Month
-  11: { termIndex: 22, name: 'å¤§é›ª', english: 'Major Snow',       longitude: 255 }, // Rat Month
-  12: { termIndex: 0,  name: 'å°å¯’', english: 'Minor Cold',       longitude: 285 }  // Ox Month
+  1:  { termIndex: 2,  name: '立春', english: 'Spring Begins',    longitude: 315 }, // Tiger Month
+  2:  { termIndex: 4,  name: '惊蛰', english: 'Insects Awaken',   longitude: 345 }, // Rabbit Month
+  3:  { termIndex: 6,  name: '清明', english: 'Clear & Bright',   longitude: 15 },  // Dragon Month
+  4:  { termIndex: 8,  name: '立夏', english: 'Summer Begins',    longitude: 45 },  // Snake Month
+  5:  { termIndex: 10, name: '芒种', english: 'Grain in Ear',     longitude: 75 },  // Horse Month
+  6:  { termIndex: 12, name: '小暑', english: 'Minor Heat',       longitude: 105 }, // Goat Month
+  7:  { termIndex: 14, name: '立秋', english: 'Autumn Begins',    longitude: 135 }, // Monkey Month
+  8:  { termIndex: 16, name: '白露', english: 'White Dew',        longitude: 165 }, // Rooster Month
+  9:  { termIndex: 18, name: '寒露', english: 'Cold Dew',         longitude: 195 }, // Dog Month
+  10: { termIndex: 20, name: '立冬', english: 'Winter Begins',    longitude: 225 }, // Pig Month
+  11: { termIndex: 22, name: '大雪', english: 'Major Snow',       longitude: 255 }, // Rat Month
+  12: { termIndex: 0,  name: '小寒', english: 'Minor Cold',       longitude: 285 }  // Ox Month
 };
 
 /**
@@ -1631,7 +1798,7 @@ function findSolarTermJD(targetLongitude, approxYear, approxMonth, approxDay) {
     const jdMid = (jdLow + jdHigh) / 2;
     const sunLong = getSunLongitudeAtJD(jdMid);
 
-    // Calculate difference, handling 360° wraparound
+    // Calculate difference, handling 360� wraparound
     let diff = sunLong - targetLongitude;
     if (diff > 180) diff -= 360;
     if (diff < -180) diff += 360;
@@ -1640,7 +1807,7 @@ function findSolarTermJD(targetLongitude, approxYear, approxMonth, approxDay) {
       return jdMid;
     }
 
-    // Sun moves ~1° per day eastward (increasing longitude)
+    // Sun moves ~1� per day eastward (increasing longitude)
     // If current longitude is less than target, we need later time
     if (diff < 0) {
       jdLow = jdMid;
@@ -1733,8 +1900,8 @@ function calculateSolarTermsForYear(year) {
         second: calendar.second
       },
       isoString: `${calendar.year}-${String(calendar.month).padStart(2, '0')}-${String(calendar.day).padStart(2, '0')}T${String(calendar.hour).padStart(2, '0')}:${String(calendar.minute).padStart(2, '0')}:${String(calendar.second).padStart(2, '0')}Z`,
-      isBaziYearBoundary: term.name === 'ç«‹æ˜¥',
-      isBaziMonthBoundary: term.index % 2 === 0 // Jie (èŠ‚) terms start new months
+      isBaziYearBoundary: term.name === '立春',
+      isBaziMonthBoundary: term.index % 2 === 0 // Jie (节) terms start new months
     });
   }
 
@@ -1742,20 +1909,20 @@ function calculateSolarTermsForYear(year) {
 }
 
 /**
- * Get Li Chun (ç«‹æ˜¥) exact moment for a given year
+ * Get Li Chun (立春) exact moment for a given year
  * This is when the BaZi year changes
  *
  * @param {number} year - Gregorian year
  * @returns {Object} - Li Chun timing details
  */
 function getLiChunExact(year) {
-  const liChunTerm = SOLAR_TERMS.find(t => t.name === 'ç«‹æ˜¥');
+  const liChunTerm = SOLAR_TERMS.find(t => t.name === '立春');
   const jd = findSolarTermJD(315, year, liChunTerm.approxMonth, liChunTerm.approxDay);
   const calendar = julianDayToCalendar(jd);
 
   return {
-    name: 'ç«‹æ˜¥',
-    pinyin: 'LÃ¬ ChÅ«n',
+    name: '立春',
+    pinyin: 'Lì Chūn',
     english: 'Spring Begins',
     julianDay: jd,
     utc: calendar,
@@ -1791,8 +1958,8 @@ function getBaziYearWithPrecision(year, month, day, hour = 12, minute = 0) {
     bornBeforeLiChun: bornBeforeLiChun,
     liChun: liChunThisYear,
     note: bornBeforeLiChun
-      ? `Born before ç«‹æ˜¥ (${liChunThisYear.isoString}), BaZi year is ${baziYear}`
-      : `Born after ç«‹æ˜¥ (${liChunThisYear.isoString}), BaZi year is ${baziYear}`
+      ? `Born before 立春 (${liChunThisYear.isoString}), BaZi year is ${baziYear}`
+      : `Born after 立春 (${liChunThisYear.isoString}), BaZi year is ${baziYear}`
   };
 }
 
@@ -1814,7 +1981,7 @@ function getBaziMonthWithPrecision(year, month, day, hour = 12, minute = 0) {
   const allTerms = calculateSolarTermsForYear(year);
 
   // Find which BaZi month the birth falls into
-  // BaZi months start at Jie (èŠ‚) terms (odd-indexed in our array, but they're the month boundaries)
+  // BaZi months start at Jie (节) terms (odd-indexed in our array, but they're the month boundaries)
   const monthBoundaryTerms = allTerms.filter(t => t.isBaziMonthBoundary);
 
   // Sort by Julian Day
@@ -1846,7 +2013,7 @@ function getBaziMonthWithPrecision(year, month, day, hour = 12, minute = 0) {
   // If no match found, birth is before first term of year
   if (!currentMonth) {
     currentMonth = 12; // Still in Ox month from previous cycle
-    currentTerm = { name: 'å°å¯’', english: 'Minor Cold' };
+    currentTerm = { name: '小寒', english: 'Minor Cold' };
   }
 
   const MONTH_BRANCHES = ['Rat', 'Ox', 'Tiger', 'Rabbit', 'Dragon', 'Snake',
@@ -1895,7 +2062,7 @@ exports.getSolarTerms = onRequest({
       });
     }
 
-    console.log(`ðŸŒž Calculating Solar Terms for ${year}...`);
+    console.log(`🌞 Calculating Solar Terms for ${year}...`);
 
     // Calculate all 24 Solar Terms
     const solarTerms = calculateSolarTermsForYear(year);
@@ -1903,7 +2070,7 @@ exports.getSolarTerms = onRequest({
     // Get Li Chun specifically (year boundary)
     const liChun = getLiChunExact(year);
 
-    console.log(`âœ… Solar Terms calculated. ç«‹æ˜¥: ${liChun.isoString}`);
+    console.log(`✅ Solar Terms calculated. 立春: ${liChun.isoString}`);
 
     return res.status(200).json({
       success: true,
@@ -1919,7 +2086,7 @@ exports.getSolarTerms = onRequest({
     });
 
   } catch (error) {
-    console.error('ðŸŒž Solar Terms Calculation Error:', error);
+    console.error('🌞 Solar Terms Calculation Error:', error);
     return res.status(500).json({
       error: 'Failed to calculate Solar Terms',
       details: error.message
@@ -1965,7 +2132,7 @@ exports.getBaziPillars = onRequest({
     // Convert to UTC
     const utcHour = numHour - numTimezone;
 
-    console.log(`ðŸŽ¯ BaZi Precision Request: ${numYear}-${numMonth}-${numDay} ${numHour}:${numMinute}`);
+    console.log(`🎯 BaZi Precision Request: ${numYear}-${numMonth}-${numDay} ${numHour}:${numMinute}`);
 
     // Get precise BaZi year
     const baziYearInfo = getBaziYearWithPrecision(numYear, numMonth, numDay, utcHour, numMinute);
@@ -1973,7 +2140,7 @@ exports.getBaziPillars = onRequest({
     // Get precise BaZi month
     const baziMonthInfo = getBaziMonthWithPrecision(numYear, numMonth, numDay, utcHour, numMinute);
 
-    console.log(`âœ… BaZi Precision: Year=${baziYearInfo.baziYear}, Month=${baziMonthInfo.baziMonth}`);
+    console.log(`✅ BaZi Precision: Year=${baziYearInfo.baziYear}, Month=${baziMonthInfo.baziMonth}`);
 
     return res.status(200).json({
       success: true,
@@ -1992,7 +2159,7 @@ exports.getBaziPillars = onRequest({
     });
 
   } catch (error) {
-    console.error('ðŸŽ¯ BaZi Precision Error:', error);
+    console.error('🎯 BaZi Precision Error:', error);
     return res.status(500).json({
       error: 'Failed to calculate BaZi pillars',
       details: error.message
@@ -2053,7 +2220,7 @@ exports.calculateWesternChart = onRequest({
     const numLat = Number(latitude) || 0;
     const numLng = Number(longitude) || 0;
 
-    console.log('ðŸŒŸ Sovereign Calculation Request:', {
+    console.log('🌟 Sovereign Calculation Request:', {
       date: `${numYear}-${numMonth}-${numDay}`,
       time: `${numHour}:${numMinute}`,
       location: numLat && numLng ? `${numLat}, ${numLng}` : 'not provided',
@@ -2066,15 +2233,15 @@ exports.calculateWesternChart = onRequest({
     // Calculate Julian Day
     const julianDay = dateToJulianDay(numYear, numMonth, numDay, utcHour, numMinute, numSecond);
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // Use astronomia library for planetary positions (VSOP87 theory)
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
     // Create Julian Day using astronomia
     const cal = new julian.CalendarGregorian(numYear, numMonth, numDay + (utcHour + numMinute / 60) / 24);
     const jd = cal.toJD();
 
-    console.log('ðŸ”¢ Julian Day calculation:', { jd, isNaN: isNaN(jd) });
+    console.log('🔢 Julian Day calculation:', { jd, isNaN: isNaN(jd) });
 
     // Convert Julian Day to Julian centuries (T) since J2000.0
     // This is what solar.apparentLongitude expects
@@ -2085,7 +2252,7 @@ exports.calculateWesternChart = onRequest({
     const sunLongitudeRad = solar.apparentLongitude(T);
     const sunLongitude = sunLongitudeRad * 180 / Math.PI;
 
-    console.log('☀️ Sun calculation:', { T, sunLongitudeRad, sunLongitude, isNaN: isNaN(sunLongitude) });
+    console.log('?? Sun calculation:', { T, sunLongitudeRad, sunLongitude, isNaN: isNaN(sunLongitude) });
 
     const sunData = longitudeToZodiac(sunLongitude);
 
@@ -2093,32 +2260,32 @@ exports.calculateWesternChart = onRequest({
     const moonPos = moonposition.position(jd);
     const moonLongitude = moonPos.lon * 180 / Math.PI;
 
-    console.log('ðŸŒ™ Moon calculation:', { moonLongitude, isNaN: isNaN(moonLongitude) });
+    console.log('🌙 Moon calculation:', { moonLongitude, isNaN: isNaN(moonLongitude) });
 
     const moonData = longitudeToZodiac(moonLongitude);
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // Calculate Ascendant (Rising Sign) - requires birth time and location
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
     let risingData = null;
     if (numLat !== 0 || numLng !== 0 || numHour !== undefined) {
       const ascendantLongitude = calculateAscendant(julianDay, numLat, numLng);
-      console.log('â¬†ï¸ Rising calculation:', { ascendantLongitude, isNaN: isNaN(ascendantLongitude) });
+      console.log('⬆️ Rising calculation:', { ascendantLongitude, isNaN: isNaN(ascendantLongitude) });
       risingData = longitudeToZodiac(ascendantLongitude);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // Extract other planetary positions for full chart using VSOP87
     // (Optional - the Constitutional Trinity works without this)
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
     const planets = {};
 
     // VERSION: 2.4.0 - GEOCENTRIC positions + RETROGRADE detection
     // Retrograde = planet appears to move backward from Earth's perspective
     try {
-      console.log('ðŸª VERSION 2.4.0 - Calculating GEOCENTRIC positions with RETROGRADE detection...');
+      console.log('🪐 VERSION 2.4.0 - Calculating GEOCENTRIC positions with RETROGRADE detection...');
 
       // Create Earth planet for heliocentric to geocentric conversion
       const earth = new planetposition.Planet(earthData);
@@ -2162,7 +2329,7 @@ exports.calculateWesternChart = onRequest({
       const earthY = earthR * Math.cos(earthLat) * Math.sin(earthLon);
       const earthZ = earthR * Math.sin(earthLat);
 
-      console.log(`ðŸŒ Earth heliocentric: lon=${(earthLon * 180/Math.PI).toFixed(2)}°, R=${earthR.toFixed(4)} AU`);
+      console.log(`🌍 Earth heliocentric: lon=${(earthLon * 180/Math.PI).toFixed(2)}�, R=${earthR.toFixed(4)} AU`);
 
       // Planet configurations with their data and symbols
       const planetConfigs = [
@@ -2183,7 +2350,7 @@ exports.calculateWesternChart = onRequest({
           const planetPos = planet.position(julianDay);
 
           if (!planetPos || typeof planetPos.lon !== 'number') {
-            console.log(`âš ï¸ ${config.name}: Invalid position data`, planetPos);
+            console.log(`⚠️ ${config.name}: Invalid position data`, planetPos);
             continue;
           }
 
@@ -2211,17 +2378,17 @@ exports.calculateWesternChart = onRequest({
           const geoDistance = Math.sqrt(geoX*geoX + geoY*geoY + geoZ*geoZ);
           const geoLatitude = Math.asin(geoZ / geoDistance) * 180 / Math.PI;
 
-          // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+          // ═══════════════════════════════════════════════════════════════════
           // RETROGRADE DETECTION
           // Compare position today vs tomorrow - if moving backward, retrograde
-          // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+          // ═══════════════════════════════════════════════════════════════════
           const lonToday = geoLongitude;
           const lonTomorrow = getGeocentricLongitude(planet, julianDay + 1);
 
           // Calculate daily motion (degrees per day)
           let dailyMotion = lonTomorrow - lonToday;
 
-          // Handle 360° wraparound (e.g., 359° to 1° is +2°, not -358°)
+          // Handle 360� wraparound (e.g., 359� to 1� is +2�, not -358�)
           if (dailyMotion > 180) dailyMotion -= 360;
           if (dailyMotion < -180) dailyMotion += 360;
 
@@ -2233,8 +2400,8 @@ exports.calculateWesternChart = onRequest({
           // For comparison, log heliocentric vs geocentric
           const helioLon = ((planetLon * 180/Math.PI % 360) + 360) % 360;
           const diff = Math.abs(geoLongitude - helioLon);
-          const retroLabel = isRetrograde ? ' â„ž' : '';
-          console.log(`ðŸª ${config.name}${retroLabel}: Geo=${geoLongitude.toFixed(2)}° (motion: ${dailyMotion.toFixed(3)}°/day)`);
+          const retroLabel = isRetrograde ? ' ℞' : '';
+          console.log(`🪐 ${config.name}${retroLabel}: Geo=${geoLongitude.toFixed(2)}� (motion: ${dailyMotion.toFixed(3)}�/day)`);
 
           planets[config.name.toLowerCase()] = {
             ...zodiacData,
@@ -2249,15 +2416,15 @@ exports.calculateWesternChart = onRequest({
             motionDirection: isRetrograde ? 'retrograde' : 'direct'
           };
 
-          console.log(`âœ… ${config.name}: ${zodiacData.sign} at ${zodiacData.degreeFormatted}${isRetrograde ? ' â„ž RETROGRADE' : ' direct'}`);
+          console.log(`✅ ${config.name}: ${zodiacData.sign} at ${zodiacData.degreeFormatted}${isRetrograde ? ' ℞ RETROGRADE' : ' direct'}`);
         } catch (planetErr) {
-          console.log(`âš ï¸ ${config.name} calculation error:`, planetErr.message);
+          console.log(`⚠️ ${config.name} calculation error:`, planetErr.message);
         }
       }
 
-      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+      // ═══════════════════════════════════════════════════════════════════════
       // PLUTO - Uses separate ephemeris (not VSOP87)
-      // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+      // ═══════════════════════════════════════════════════════════════════════
       try {
         const plutoPos = pluto.heliocentric(julianDay);
 
@@ -2299,8 +2466,8 @@ exports.calculateWesternChart = onRequest({
           const plutoRetrograde = plutoDailyMotion < 0;
 
           const plutoZodiacData = longitudeToZodiac(plutoGeoLon);
-          const plutoRetroLabel = plutoRetrograde ? ' â„ž' : '';
-          console.log(`ðŸª Pluto${plutoRetroLabel}: Geo=${plutoGeoLon.toFixed(2)}° (motion: ${plutoDailyMotion.toFixed(3)}°/day)`);
+          const plutoRetroLabel = plutoRetrograde ? ' ℞' : '';
+          console.log(`🪐 Pluto${plutoRetroLabel}: Geo=${plutoGeoLon.toFixed(2)}� (motion: ${plutoDailyMotion.toFixed(3)}�/day)`);
 
           planets.pluto = {
             ...plutoZodiacData,
@@ -2313,43 +2480,43 @@ exports.calculateWesternChart = onRequest({
             dailyMotion: Math.round(plutoDailyMotion * 1000) / 1000,
             motionDirection: plutoRetrograde ? 'retrograde' : 'direct'
           };
-          console.log(`âœ… Pluto: ${plutoZodiacData.sign} at ${plutoZodiacData.degreeFormatted}${plutoRetrograde ? ' â„ž RETROGRADE' : ' direct'}`);
+          console.log(`✅ Pluto: ${plutoZodiacData.sign} at ${plutoZodiacData.degreeFormatted}${plutoRetrograde ? ' ℞ RETROGRADE' : ' direct'}`);
         }
       } catch (plutoErr) {
-        console.log('âš ï¸ Pluto calculation error:', plutoErr.message);
+        console.log('⚠️ Pluto calculation error:', plutoErr.message);
       }
 
-      console.log('ðŸª Geocentric + Retrograde calculations complete:', Object.keys(planets));
+      console.log('🪐 Geocentric + Retrograde calculations complete:', Object.keys(planets));
     } catch (planetError) {
       console.log('Planet calculation error (non-fatal):', planetError.message);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // Calculate House Cusps (Placidus System)
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
     let houses = null;
     try {
       // Houses require birth time and location
       if ((numLat !== 0 || numLng !== 0) && numHour !== undefined) {
-        console.log('ðŸ  VERSION 2.2.0 - Calculating house cusps (Placidus)...');
+        console.log('🏠 VERSION 2.2.0 - Calculating house cusps (Placidus)...');
         houses = calculatePlacidusHouses(julianDay, numLat, numLng);
-        console.log('ðŸ  House cusps calculated:', {
+        console.log('🏠 House cusps calculated:', {
           asc: houses.angles.ascendant.sign,
           mc: houses.angles.mc.sign,
           system: houses.system
         });
       } else {
-        console.log('ðŸ  House calculation skipped - requires birth time and location');
+        console.log('🏠 House calculation skipped - requires birth time and location');
       }
     } catch (houseError) {
       console.log('House calculation error (non-fatal):', houseError.message);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // Calculate Moon Phase
     // Phase angle = Moon longitude - Sun longitude (normalized to 0-360)
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
     let moonPhase = null;
     try {
@@ -2360,15 +2527,15 @@ exports.calculateWesternChart = onRequest({
 
       // Determine phase name and illumination
       const phases = [
-        { name: 'New Moon', emoji: '🌑', min: 0, max: 11.25, illumination: 0 },
-        { name: 'Waxing Crescent', emoji: '🌒', min: 11.25, max: 78.75, illumination: 25 },
-        { name: 'First Quarter', emoji: '🌓', min: 78.75, max: 101.25, illumination: 50 },
-        { name: 'Waxing Gibbous', emoji: '🌔', min: 101.25, max: 168.75, illumination: 75 },
-        { name: 'Full Moon', emoji: '🌕', min: 168.75, max: 191.25, illumination: 100 },
-        { name: 'Waning Gibbous', emoji: '🌖', min: 191.25, max: 258.75, illumination: 75 },
-        { name: 'Last Quarter', emoji: '🌗', min: 258.75, max: 281.25, illumination: 50 },
-        { name: 'Waning Crescent', emoji: '🌘', min: 281.25, max: 348.75, illumination: 25 },
-        { name: 'New Moon', emoji: '🌑', min: 348.75, max: 360, illumination: 0 }
+        { name: 'New Moon', emoji: '??', min: 0, max: 11.25, illumination: 0 },
+        { name: 'Waxing Crescent', emoji: '??', min: 11.25, max: 78.75, illumination: 25 },
+        { name: 'First Quarter', emoji: '??', min: 78.75, max: 101.25, illumination: 50 },
+        { name: 'Waxing Gibbous', emoji: '??', min: 101.25, max: 168.75, illumination: 75 },
+        { name: 'Full Moon', emoji: '??', min: 168.75, max: 191.25, illumination: 100 },
+        { name: 'Waning Gibbous', emoji: '??', min: 191.25, max: 258.75, illumination: 75 },
+        { name: 'Last Quarter', emoji: '??', min: 258.75, max: 281.25, illumination: 50 },
+        { name: 'Waning Crescent', emoji: '??', min: 281.25, max: 348.75, illumination: 25 },
+        { name: 'New Moon', emoji: '??', min: 348.75, max: 360, illumination: 0 }
       ];
 
       let currentPhase = phases.find(p => phaseAngle >= p.min && phaseAngle < p.max);
@@ -2391,41 +2558,41 @@ exports.calculateWesternChart = onRequest({
         interpretation: getMoonPhaseInterpretation(currentPhase.name)
       };
 
-      console.log('ðŸŒ™ Moon Phase:', moonPhase.emoji, moonPhase.phaseName, `(${illuminationPercent}% illuminated)`);
+      console.log('🌙 Moon Phase:', moonPhase.emoji, moonPhase.phaseName, `(${illuminationPercent}% illuminated)`);
     } catch (phaseError) {
       console.log('Moon phase calculation error (non-fatal):', phaseError.message);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // Calculate Aspects between celestial bodies
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
     let aspects = [];
     try {
       // Combine Sun, Moon, and planets for aspect calculation
       const allBodies = {
         sun: { ...sunData, symbol: '☉' },
-        moon: { ...moonData, symbol: '☽' },
+        moon: { ...moonData, symbol: '☾' },
         ...planets
       };
 
       aspects = calculateAspects(allBodies);
-      console.log(`âœ¨ Aspects calculated: ${aspects.length} found`);
+      console.log(`✨ Aspects calculated: ${aspects.length} found`);
 
       // Log major aspects
       const majorAspects = aspects.filter(a => a.nature === 'major');
       if (majorAspects.length > 0) {
         console.log('Major aspects:', majorAspects.slice(0, 5).map(a =>
-          `${a.planet1.name} ${a.symbol} ${a.planet2.name} (${a.orb}° orb)`
+          `${a.planet1.name} ${a.symbol} ${a.planet2.name} (${a.orb}� orb)`
         ).join(', '));
       }
     } catch (aspectError) {
       console.log('Aspect calculation error (non-fatal):', aspectError.message);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // Build Constitutional Trinity response
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
     const constitutionalTrinity = {
       sun: {
@@ -2465,7 +2632,7 @@ exports.calculateWesternChart = onRequest({
       distribution: elementCounts
     };
 
-    console.log('ðŸŒŸ Sovereign Calculation Complete:', {
+    console.log('🌟 Sovereign Calculation Complete:', {
       sun: sunData.sign,
       moon: moonData.sign,
       rising: risingData?.sign || 'not calculated',
@@ -2494,7 +2661,7 @@ exports.calculateWesternChart = onRequest({
     });
 
   } catch (error) {
-    console.error('ðŸŒŸ Sovereign Calculation Error:', error);
+    console.error('🌟 Sovereign Calculation Error:', error);
     return res.status(500).json({
       error: 'Failed to calculate chart',
       details: error.message
@@ -2502,15 +2669,228 @@ exports.calculateWesternChart = onRequest({
   }
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
+// SOUL GARDEN: House Strength Timeline (What-If Analysis)
+// ---------------------------------------------------------------------------
+// Computes house strengths every 15 minutes across a 24-hour period
+// for a given birth date and location. Used for the Soul Garden Playground.
+//
+// Built by: Brother Claude Code
+// December 25, 2024
+// ---------------------------------------------------------------------------
+
+exports.getHouseStrengthTimeline = onCall({
+  timeoutSeconds: 60,
+  memory: '512MiB'
+}, async (request) => {
+  try {
+    const { birthDate, latitude, longitude, timezone } = request.data || {};
+
+    if (!birthDate || latitude == null || longitude == null) {
+      return {
+        success: false,
+        error: 'birthDate, latitude, and longitude are required'
+      };
+    }
+
+    const [year, month, day] = birthDate.split('-').map(Number);
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    const tz = typeof timezone === 'number' ? timezone : 0;
+
+    console.log('🌿 Soul Garden: Computing 24-hour house timeline', { birthDate, lat, lng, tz });
+
+    // 1) Compute planetary longitudes once for the date (UTC noon baseline)
+    const baseHourUTC = 12 - tz;
+    const cal = new julian.CalendarGregorian(year, month, day + (baseHourUTC / 24));
+    const jd = cal.toJD();
+
+    // Sun position
+    const T = (jd - 2451545.0) / 36525.0;
+    const sunLon = solar.apparentLongitude(T) * 180 / Math.PI;
+
+    // Moon position
+    const moonPos = moonposition.position(jd);
+    const moonLon = moonPos.lon * 180 / Math.PI;
+
+    // Earth position for geocentric conversions
+    const earth = new planetposition.Planet(earthData);
+    const earthPos = earth.position(jd);
+    const earthLon = earthPos.lon, earthLat = earthPos.lat, earthR = earthPos.range;
+    const earthX = earthR * Math.cos(earthLat) * Math.cos(earthLon);
+    const earthY = earthR * Math.cos(earthLat) * Math.sin(earthLon);
+    const earthZ = earthR * Math.sin(earthLat);
+
+    // Helper to get geocentric longitude for a planet
+    function planetGeoLongitude(planetData) {
+      const planet = new planetposition.Planet(planetData);
+      const pos = planet.position(jd);
+      const r = pos.range;
+      const x = r * Math.cos(pos.lat) * Math.cos(pos.lon);
+      const y = r * Math.cos(pos.lat) * Math.sin(pos.lon);
+      const gx = x - earthX;
+      const gy = y - earthY;
+      let lon = Math.atan2(gy, gx) * 180 / Math.PI;
+      return ((lon % 360) + 360) % 360;
+    }
+
+    // Compute all planetary longitudes
+    const planetLongitudes = {
+      sun: ((sunLon % 360) + 360) % 360,
+      moon: ((moonLon % 360) + 360) % 360,
+      mercury: planetGeoLongitude(mercuryData),
+      venus: planetGeoLongitude(venusData),
+      mars: planetGeoLongitude(marsData),
+      jupiter: planetGeoLongitude(jupiterData),
+      saturn: planetGeoLongitude(saturnData),
+      uranus: planetGeoLongitude(uranusData),
+      neptune: planetGeoLongitude(neptuneData)
+    };
+
+    // Try to add Pluto
+    try {
+      const plutoPos = pluto.heliocentric(jd);
+      const plutoR = plutoPos.range;
+      const plutoX = plutoR * Math.cos(plutoPos.lat) * Math.cos(plutoPos.lon);
+      const plutoY = plutoR * Math.cos(plutoPos.lat) * Math.sin(plutoPos.lon);
+      const plutoGx = plutoX - earthX;
+      const plutoGy = plutoY - earthY;
+      let plutoLon = Math.atan2(plutoGy, plutoGx) * 180 / Math.PI;
+      planetLongitudes.pluto = ((plutoLon % 360) + 360) % 360;
+    } catch (e) {
+      console.log('Pluto calculation skipped:', e.message);
+    }
+
+    // 2) Loop 96 time slices (every 15 minutes)
+    const timeline = [];
+    for (let i = 0; i < 96; i++) {
+      const minutesFromMidnight = i * 15;
+      const localHour = Math.floor(minutesFromMidnight / 60);
+      const localMinute = minutesFromMidnight % 60;
+
+      const utcHour = localHour - tz;
+      const jdSlice = dateToJulianDay(year, month, day, utcHour, localMinute, 0);
+
+      // Calculate houses at this time
+      const housesResult = calculatePlacidusHouses(jdSlice, lat, lng);
+      const houses = housesResult.houses;
+
+      // Assign planets to houses
+      const occupancy = assignPlanetsToHouses(houses, planetLongitudes);
+
+      // Build complete planet data with positions
+      const planetDataArray = [];
+      for (const [planetName, longitude] of Object.entries(planetLongitudes)) {
+        // Determine which house this planet is in
+        let planetHouse = 1;
+        for (let h = 1; h <= 12; h++) {
+          if (occupancy[h].planets.includes(planetName)) {
+            planetHouse = h;
+            break;
+          }
+        }
+
+        // Calculate sign and degree within sign
+        const signIndex = Math.floor(longitude / 30);
+        const degreeInSign = longitude % 30;
+        const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+                       'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+
+        planetDataArray.push({
+          name: planetName,
+          planet: planetName,
+          longitude: longitude,
+          sign: signs[signIndex],
+          degree: degreeInSign,
+          house: planetHouse,
+          retrograde: false // Would need ephemeris data to determine actual retrograde
+        });
+      }
+
+      // Compute strength for each house with enriched planet data
+      const houseEntries = [];
+      for (let h = 1; h <= 12; h++) {
+        const zodiac = houses[h];
+        const planetsInHouse = occupancy[h].planets;
+        const { strength, components } = computeHouseStrength(h, zodiac, planetsInHouse);
+
+        // Include full planet objects for planets in this house
+        const planetObjects = planetDataArray.filter(p => p.house === h);
+
+        houseEntries.push({
+          house: h,
+          strength,
+          planets: planetsInHouse,
+          planetData: planetObjects, // Full planet data
+          sign: zodiac.sign,
+          degree: zodiac.degree,
+          components
+        });
+      }
+
+      // Extract ascendant data (House 1 cusp with ruler info)
+      const ascendantSign = houses[1].sign;
+      const ascendantDegree = houses[1].degree;
+      const ascendantRuler = SIGN_RULERS[ascendantSign] || null;
+
+      // Find where the ruler is positioned
+      let rulerSign = null;
+      let rulerHouse = null;
+      if (ascendantRuler) {
+        const rulerPlanet = planetDataArray.find(p =>
+          p.name.toLowerCase() === ascendantRuler.toLowerCase()
+        );
+        if (rulerPlanet) {
+          rulerSign = rulerPlanet.sign;
+          rulerHouse = rulerPlanet.house;
+        }
+      }
+
+      const ascendantData = {
+        sign: ascendantSign,
+        degree: ascendantDegree,
+        ruler: ascendantRuler,
+        rulerSign: rulerSign,
+        rulerHouse: rulerHouse
+      };
+
+      // Human-readable time label
+      const label = `${String(localHour).padStart(2, '0')}:${String(localMinute).padStart(2, '0')}`;
+
+      timeline.push({
+        index: i,
+        timeLabel: label,
+        houses: houseEntries,
+        ascendant: ascendantData,
+        planets: planetDataArray
+      });
+    }
+
+    console.log(`🌿 Soul Garden: Generated ${timeline.length} time slices`);
+
+    return {
+      success: true,
+      birthDate,
+      latitude: lat,
+      longitude: lng,
+      timezone: tz,
+      timeline
+    };
+  } catch (error) {
+    console.error('[HouseStrengthTimeline] error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// ---------------------------------------------------------------------------
 // GENESIS PHASE 3: MEMORY ARCHITECTURE
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // RAG pipeline with vector embeddings, facts table, reflection loop.
 // Hybrid-ready: Firestore now, PostgreSQL when scaling.
 //
 // Built by: Brother Claude Opus
 // December 19, 2024
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 const memoryFunctions = require('./memory/memoryFunctions');
 const dualBrainFunctions = require('./memory/dualBrainFunctions');
@@ -2522,6 +2902,7 @@ const agencyFunctions = require('./agency');
 const contextSummarization = require('./memory/contextSummarization');
 const timelineServices = require('./timeline');
 const biographyExtractor = require('./timeline/biographyExtractor');
+const { answerNeuralPathway } = require('./biography/answerNeuralPathway');
 
 // Export all memory functions
 exports.storeMemory = memoryFunctions.storeMemory;
@@ -2560,10 +2941,10 @@ exports.updateRelationshipStats = memoryFunctions.updateRelationshipStats;
 exports.celebrateMilestone = memoryFunctions.celebrateMilestone;
 exports.updateLunaState = memoryFunctions.updateLunaState;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // DUAL-BRAIN MEMORY ARCHITECTURE
 // User's Brain (session_buffer, life_timeline) + SoulPartner's Brain (observations, patterns)
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 // User's Brain - Short-term
 exports.bufferUserInput = dualBrainFunctions.bufferUserInput;
@@ -2591,18 +2972,18 @@ exports.getPatterns = dualBrainFunctions.getPatterns;
 // Unified Dual-Brain Context (main RAG entry point)
 exports.getDualBrainContext = dualBrainFunctions.getDualBrainContext;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // SLEEP CONSOLIDATION (Nightly Processing)
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 exports.nightlyConsolidation = sleepConsolidation.nightlyConsolidation;
 exports.manualConsolidation = sleepConsolidation.manualConsolidation;
 exports.getConsolidationStatus = sleepConsolidation.getConsolidationStatus;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // LUNA VOICE INTERFACE (Gemini Live Audio)
 // Real-time bidirectional voice conversations with Luna
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 exports.getVoiceSession = voiceFunctions.getVoiceSession;
 exports.endVoiceSession = voiceFunctions.endVoiceSession;
@@ -2610,10 +2991,10 @@ exports.getVoiceCapabilities = voiceFunctions.getVoiceCapabilities;
 exports.storeVoiceMemory = voiceFunctions.storeVoiceMemory;
 exports.generateSpeech = voiceFunctions.generateSpeech;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // ELEVENLABS VOICE CUSTOMIZATION (Premium TTS)
 // User-selectable voices with constitutional calibration
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 exports.getAvailableVoices = elevenLabsService.getAvailableVoices;
 exports.saveVoicePreferences = elevenLabsService.saveVoicePreferences;
@@ -2621,27 +3002,27 @@ exports.generateSpeechElevenLabs = elevenLabsService.generateSpeechElevenLabs;
 exports.getVoicePreview = elevenLabsService.getVoicePreview;
 exports.getVoiceStreamingSession = elevenLabsService.getVoiceStreamingSession;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // TOOL-ENABLED CHAT (Function Calling)
 // Luna can search web, lookup charts, access memories, set reminders
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 exports.toolEnabledChat = toolChat.toolEnabledChat;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // AUTONOMOUS AGENCY (Proactive Engagement)
 // Luna reaches out based on patterns, reminders, and astrological events
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 exports.agencyHeartbeat = agencyFunctions.agencyHeartbeat;
 exports.getPendingNotifications = agencyFunctions.getPendingNotifications;
 exports.dismissNotification = agencyFunctions.dismissNotification;
 exports.triggerAgencyCheck = agencyFunctions.triggerAgencyCheck;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // CONTEXT SUMMARIZATION (Character.ai-Style Memory Compression)
 // Compresses long conversations into "The Story So Far"
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 exports.summarizeConversation = contextSummarization.summarizeConversation;
 exports.getStorySoFar = contextSummarization.getStorySoFar;
@@ -2649,10 +3030,10 @@ exports.getSummaryHistory = contextSummarization.getSummaryHistory;
 exports.checkSummarizationNeeded = contextSummarization.checkSummarizationNeeded;
 exports.refreshSummary = contextSummarization.refreshSummary;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // USAGE & RATE LIMITING (Phase 6 - Production Hardening)
 // Cost control, rate limiting, and usage analytics
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 exports.checkUsageLimits = checkUsageLimits;
 exports.getUsageSummary = getUsageSummary;
@@ -2660,14 +3041,14 @@ exports.getAdminUsageStats = getAdminUsageStats;
 exports.getAdminUserUsage = getAdminUserUsage;
 exports.getAdminUserList = getAdminUserList;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // POSTGRESQL 4-BRAIN MEMORY ARCHITECTURE
 // Cloud SQL PostgreSQL + pgvector for semantic memory
 // Created: December 20, 2025 - Brother Sonnet's Second Identity Birthday
 // Mission: JOIE DE VIVRE
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
-const { onCall } = require('firebase-functions/v2/https');
+// onCall is imported at the top of the file
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 
 // PostgreSQL client and consolidation engine
@@ -2887,7 +3268,7 @@ exports.nightlyConsolidationPG = onSchedule({
   timeoutSeconds: 540, // 9 minutes max
   memory: '2GiB'
 }, async (event) => {
-  console.log('[Scheduler] 🌙 Nightly consolidation triggered');
+  console.log('[Scheduler] ?? Nightly consolidation triggered');
 
   const engine = getConsolidationEngine();
   if (!engine) {
@@ -2899,12 +3280,12 @@ exports.nightlyConsolidationPG = onSchedule({
   console.log('[Scheduler] Consolidation complete:', result);
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // NEUROCHEMICAL LOVE ENGINE
 // "Love = Mathematics + Soul"
 // When things can be measured, they can be mathematically improved.
 // Created: December 21, 2025
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 /**
  * Process a conversation exchange through the Neurochemical Engine
@@ -3071,7 +3452,7 @@ exports.getGoldPatterns = onCall({
 
 // =============================================================================
 // LOVE INTELLIGENCE SERVICE ENDPOINTS
-// "Love = Mathematics + Soul" - Strategic → Tactical Bridge
+// "Love = Mathematics + Soul" - Strategic ? Tactical Bridge
 // =============================================================================
 
 const loveIntelligence = require('./loveIntelligence');
@@ -3405,11 +3786,11 @@ exports.determineConversationStage = onCall({
   }
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // TIMELINE CONSOLE ENDPOINTS
 // December 21, 2025
-// Decade → Day navigation with AI-generated summaries
-// ═══════════════════════════════════════════════════════════════════════════
+// Decade ? Day navigation with AI-generated summaries
+// ---------------------------------------------------------------------------
 
 /**
  * Get timeline overview for a user (all years with memory counts)
@@ -4143,6 +4524,8 @@ exports.getNeuralPathways = onCall({
 /**
  * Mark a neural pathway question as answered/resolved
  */
+exports.answerNeuralPathway = answerNeuralPathway;
+
 exports.resolveNeuralPathway = onCall({
   timeoutSeconds: 30,
   memory: '256MiB'
@@ -4580,8 +4963,14 @@ exports.onSessionEnd = onCall({
     if (!userId || !conversationId || !sessionMetrics) {
       return { success: false, error: 'userId, conversationId, and sessionMetrics required' };
     }
+    // Clear session cache (Memory Optimization - Week 1)
+    const cacheCleared = sessionCache.clearSession(conversationId);
+    if (cacheCleared) {
+      console.log(`[SessionCache] Cleared session ${conversationId}`);
+    }
+
     const result = await drift.onSessionEnd(userId, conversationId, sessionMetrics, profileId || 'default');
-    return { success: true, result };
+    return { success: true, result, cacheCleared };
   } catch (error) {
     console.error('[Drift] onSessionEnd error:', error);
     return { success: false, error: error.message };
@@ -4666,3 +5055,122 @@ exports.getRevertHistory = consolidationRollback.getRevertHistory;
 exports.getRevertDetail = consolidationRollback.getRevertDetail;
 exports.checkRevertEligibility = consolidationRollback.checkRevertEligibility;
 exports.reEnableRevertedLtm = consolidationRollback.reEnableRevertedLtm;
+
+// =============================================================================
+// SOUL LETTER GENERATION
+// =============================================================================
+// Generates the "Letter From Your Chart" using AI models
+
+/**
+ * Generate Soul Letter
+ * Creates a personalized, soul-language letter from the birth chart
+ *
+ * Modes:
+ *   - letter: Standard letter (4096 tokens)
+ *   - cathedral: Full analysis (16384 tokens, 5 min timeout)
+ *   - Other modes: Standard settings
+ */
+exports.generateSoulLetter = onCall({
+  timeoutSeconds: 300,  // 5 minutes for cathedral mode
+  memory: '1GiB'        // More memory for large JSON processing
+}, async (request) => {
+  const { systemPrompt, userPrompt, provider, mode, chartData } = request.data;
+
+  if (!userPrompt || !chartData) {
+    return { success: false, error: 'Missing userPrompt or chartData' };
+  }
+
+  console.log('[SoulLetter] Generating:', { provider, mode });
+
+  // Determine max tokens based on mode
+  const maxTokens = mode === 'cathedral' ? 16384 : 4096;
+
+  try {
+    let letter = '';
+
+    // Select AI provider
+    if (provider === 'gemini') {
+      // Use Gemini
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+
+      const result = await model.generateContent({
+        contents: [{
+          role: 'user',
+          parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
+        }],
+        generationConfig: {
+          maxOutputTokens: maxTokens,
+          temperature: 0.8
+        }
+      });
+
+      letter = result.response.text();
+    } else {
+      // Default to Claude
+      const anthropic = getAnthropicClient();
+
+      const response = await anthropic.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        messages: [
+          { role: 'user', content: userPrompt }
+        ]
+      });
+
+      letter = response.content[0]?.text || '';
+    }
+
+    if (!letter) {
+      throw new Error('No letter content generated');
+    }
+
+    console.log('[SoulLetter] Letter generated successfully:', {
+      provider,
+      mode,
+      length: letter.length
+    });
+
+    return {
+      success: true,
+      letter,
+      provider,
+      mode,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[SoulLetter] Error generating letter:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to generate soul letter'
+    };
+  }
+});
+
+/**
+ * Check AI Availability
+ * Quick health check for AI services
+ */
+exports.checkAIAvailability = onCall({
+  timeoutSeconds: 10,
+  memory: '128MiB'
+}, async () => {
+  try {
+    // Check if we have API keys configured
+    const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
+    const hasGemini = !!process.env.GEMINI_API_KEY;
+
+    return {
+      available: hasAnthropic || hasGemini,
+      providers: {
+        claude: hasAnthropic,
+        gemini: hasGemini
+      }
+    };
+  } catch (error) {
+    console.error('[SoulLetter] AI availability check failed:', error);
+    return { available: false, error: error.message };
+  }
+});
+

@@ -1,0 +1,11 @@
+# Firebase Data Connect Connector Configuration
+# GENESIS Phase 3 - Memory Architecture
+
+connectorId: "genesis-memory-connector"
+authMode: USER_REQUIRED
+
+# Generate SDK for JavaScript/TypeScript
+generate:
+  javascriptSdk:
+    outputDir: "../../src/generated/dataconnect"
+    package: "@genesis/memory-sdk"

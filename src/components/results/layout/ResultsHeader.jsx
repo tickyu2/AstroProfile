@@ -46,6 +46,12 @@ export default function ResultsHeader({
             gradient: 'from-blue-500 to-indigo-600'
         },
         {
+            id: 'enneagram',
+            label: 'Enneagram',
+            icon: '⚗️',
+            gradient: 'from-purple-500 to-amber-600'
+        },
+        {
             id: 'western',
             label: 'Western',
             icon: '⭐',

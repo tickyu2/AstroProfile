@@ -24,6 +24,7 @@
     "ephemeris": "^2.2.0",
     "firebase-admin": "^11.11.0",
     "firebase-functions": "^6.0.1",
+    "openai": "^6.15.0",
     "pg": "^8.13.1"
   },
   "devDependencies": {
@@ -32,7 +33,9 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/tests/**/*.test.js"],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
     "collectCoverageFrom": [
       "memory/**/*.js",
       "!**/node_modules/**"

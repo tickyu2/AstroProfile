@@ -464,18 +464,23 @@ function analyzeAspect(userCusp, partnerCusp) {
 
 function identifyStrengths(userCusp, partnerCusp) {
   const strengths = [];
-  const breakdown = calculateCuspBreakdown(userCusp, partnerCusp);
-  
-  if (breakdown.element >= 25) {
+
+  // Calculate individual scores directly to avoid infinite recursion
+  // (calculateCuspBreakdown calls identifyStrengths, so we can't call it here)
+  const elementResult = analyzeElementsWithTheory(userCusp, partnerCusp);
+  const qualityResult = analyzeQuality(userCusp, partnerCusp);
+  const rulersResult = analyzeRulers(userCusp, partnerCusp);
+
+  if (elementResult.element >= 25) {
     strengths.push('Strong elemental harmony and natural energy flow');
   }
-  if (breakdown.quality >= 20) {
+  if (qualityResult.quality >= 20) {
     strengths.push('Compatible approaches to action and decision-making');
   }
-  if (breakdown.rulers >= 15) {
+  if (rulersResult.rulers >= 15) {
     strengths.push('Aligned planetary influences and life priorities');
   }
-  
+
   return strengths;
 }
 

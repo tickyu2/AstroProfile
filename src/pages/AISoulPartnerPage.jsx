@@ -21,7 +21,7 @@ import { useConversations } from '../contexts/ConversationsContext';
 // NOTE: KB sync is now handled in InputForm, DiamondProfileForm, and EditPersonModal
 // when profiles are saved. Auto-sync here was causing duplicate documents.
 // import { useKnowledgeBase } from '../contexts/KnowledgeBaseContext';
-import { AISoulPartnerChat, SoulPartnerNotes, AIIdentityPanel, StoryQuestionsAssessment, SoulPartnerKBViewer } from '../components/aiSoulPartner';
+import { AISoulPartnerChat, SoulPartnerNotes, AIIdentityPanel, StoryQuestionsAssessment, SoulPartnerKBViewer, NeuralSidebar } from '../components/aiSoulPartner';
 import DEFAULT_AI_IDENTITY from '../data/aiSoulPartnerIdentity';
 import { saveStoryAssessment, getStoryAssessment } from '../services/aiSoulPartnerService';
 import { useSoulPartner } from '../hooks/useSoulPartner';
@@ -58,6 +58,8 @@ export default function AISoulPartnerPage() {
   const [storyAssessmentPending, setStoryAssessmentPending] = useState(null);
   // Voice Chat state
   const [showVoiceChat, setShowVoiceChat] = useState(false);
+  // Neural Pathways Sidebar state
+  const [showNeuralPanel, setShowNeuralPanel] = useState(false);
   // Reference to chat component for sending messages
   const chatRef = useRef(null);
 
@@ -324,6 +326,16 @@ export default function AISoulPartnerPage() {
               Talk to {soulPartner?.name || 'Luna'}
             </button>
             <button
+              onClick={() => setShowNeuralPanel(!showNeuralPanel)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                showNeuralPanel
+                  ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
+                  : 'bg-amber-600/80 hover:bg-amber-500'
+              }`}
+            >
+              🧠 Neural Q&A
+            </button>
+            <button
               onClick={() => setShowStoryQuestions(true)}
               className="px-3 py-1.5 bg-amber-600/80 hover:bg-amber-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
             >
@@ -361,6 +373,15 @@ export default function AISoulPartnerPage() {
                   ))
                 )}
               </select>
+              {selectedProfileId && (
+                <Link
+                  to={`/customize-soulpartner/${selectedProfileId}`}
+                  className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                  title="Customize SoulPartner"
+                >
+                  Customize
+                </Link>
+              )}
             </div>
 
             <div className="h-4 w-px bg-white/20" />
@@ -423,13 +444,22 @@ export default function AISoulPartnerPage() {
       {/* Main Content - adjust height for header + profile bar */}
       <main className="h-[calc(100vh-108px)] flex">
         {/* Chat area */}
-        <div className={`transition-all duration-300 h-full ${showNotesPanel ? 'flex-1' : 'w-full'}`}>
+        <div className={`transition-all duration-300 h-full ${(showNotesPanel || showNeuralPanel) ? 'flex-1' : 'w-full'}`}>
           <AISoulPartnerChat
             key={selectedProfileId} // Reset chat when profile changes
             userProfile={constitutionalProfile}
             onMessageSend={handleMessageSend}
           />
         </div>
+
+        {/* Neural Pathways Panel */}
+        {showNeuralPanel && (
+          <NeuralSidebar
+            userId={currentUser?.uid}
+            profileId={selectedProfileId}
+            onClose={() => setShowNeuralPanel(false)}
+          />
+        )}
 
         {/* Notes Panel (slide out) */}
         {showNotesPanel && (

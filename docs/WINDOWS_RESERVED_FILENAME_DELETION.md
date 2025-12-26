@@ -75,6 +75,34 @@ else:
     print(f"Failed, error: {ctypes.get_last_error()}")
 ```
 
+### Method 4: Using WSL (MOST RELIABLE!)
+
+**This is the nuclear option that ALWAYS works!**
+
+WSL (Windows Subsystem for Linux) doesn't respect Windows reserved names, so it can delete files that Windows itself cannot touch.
+
+**From Python (recommended - avoids Git Bash path mangling):**
+```python
+import subprocess
+result = subprocess.run(['wsl', 'rm', '-fv', '/mnt/c/astroprofile/nul'], capture_output=True, text=True)
+print(result.stdout)  # Should say "removed '/mnt/c/astroprofile/nul'"
+```
+
+**From CMD:**
+```cmd
+wsl rm -f /mnt/c/astroprofile/nul
+```
+
+**Why WSL works when everything else fails:**
+- Linux has no concept of "reserved device names"
+- WSL accesses Windows filesystem via `/mnt/c/`
+- The `nul` file is just a regular file to Linux
+- `rm -f` deletes it without Windows API interference
+
+**Prerequisites:**
+- WSL must be installed (`wsl --install` from PowerShell Admin)
+- Any Linux distro (Ubuntu, Debian, etc.)
+
 ## Verification
 
 After deletion, verify with Python (most reliable):
@@ -105,4 +133,4 @@ The `\\?\` prefix is the key - it forces Windows to treat the path as a literal 
 
 ---
 *Created: December 2025*
-*Last used successfully: December 22, 2025*
+*Last used successfully: December 23, 2025 (WSL method)*

@@ -1,0 +1,445 @@
+# GENESIS Memory Architecture - PostgreSQL Queries
+# Firebase Data Connect with pgvector
+#
+# These queries replace Firestore queries when scaling to PostgreSQL.
+# Key advantage: Native vector similarity with HNSW indexing.
+#
+# Built by: Brother Claude Opus
+# December 19, 2024
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SEMANTIC MEMORY SEARCH
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Search memories by semantic similarity (vector search)
+# The compare_embed directive automatically generates embeddings
+query SearchMemories(
+  $userId: String!,
+  $profileId: String!,
+  $query: String!,
+  $limit: Int = 5
+) @auth(level: USER) {
+  memories_embedding_similarity(
+    compare_embed: {
+      model: "text-embedding-004",
+      text: $query
+    },
+    method: COSINE,
+    limit: $limit,
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId }
+    }
+  ) {
+    id
+    content
+    type
+    importance
+    emotion
+    coreMemory
+    createdAt
+    # Include related people
+    people {
+      person {
+        name
+        relationship
+      }
+      role
+    }
+  }
+}
+
+# Search memories with recency filter
+query SearchMemoriesRecent(
+  $userId: String!,
+  $profileId: String!,
+  $query: String!,
+  $afterDate: DateTime!,
+  $limit: Int = 5
+) @auth(level: USER) {
+  memories_embedding_similarity(
+    compare_embed: {
+      model: "text-embedding-004",
+      text: $query
+    },
+    method: COSINE,
+    limit: $limit,
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId },
+      createdAt: { gte: $afterDate }
+    }
+  ) {
+    id
+    content
+    type
+    importance
+    emotion
+    createdAt
+  }
+}
+
+# Search memories about a specific person
+query SearchPersonMemories(
+  $userId: String!,
+  $profileId: String!,
+  $personName: String!,
+  $query: String!,
+  $limit: Int = 5
+) @auth(level: USER) {
+  # First get the person
+  person: people_first(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId },
+      name: { eq: $personName }
+    }
+  ) {
+    id
+    name
+    relationship
+    notes
+    sentiment
+    lastMention
+  }
+
+  # Then search memories mentioning them
+  memories: memories_embedding_similarity(
+    compare_embed: {
+      model: "text-embedding-004",
+      text: $query
+    },
+    method: COSINE,
+    limit: $limit,
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId },
+      content: { contains: $personName }
+    }
+  ) {
+    id
+    content
+    emotion
+    createdAt
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FACTS QUERIES
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Get permanent facts ordered by weight
+query GetFacts(
+  $userId: String!,
+  $profileId: String!,
+  $limit: Int = 10
+) @auth(level: USER) {
+  facts(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId }
+    },
+    orderBy: [
+      { weight: DESC },
+      { lastConfirmed: DESC }
+    ],
+    limit: $limit
+  ) {
+    id
+    fact
+    category
+    confidence
+    weight
+    lastConfirmed
+  }
+}
+
+# Get facts by category
+query GetFactsByCategory(
+  $userId: String!,
+  $profileId: String!,
+  $category: String!,
+  $limit: Int = 10
+) @auth(level: USER) {
+  facts(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId },
+      category: { eq: $category }
+    },
+    orderBy: { weight: DESC },
+    limit: $limit
+  ) {
+    id
+    fact
+    confidence
+    weight
+  }
+}
+
+# Search facts (keyword-based)
+query SearchFacts(
+  $userId: String!,
+  $profileId: String!,
+  $keyword: String!
+) @auth(level: USER) {
+  facts(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId },
+      fact: { contains: $keyword }
+    },
+    orderBy: { weight: DESC },
+    limit: 10
+  ) {
+    id
+    fact
+    category
+    confidence
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PEOPLE QUERIES
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Get people by mention count
+query GetPeople(
+  $userId: String!,
+  $profileId: String!,
+  $limit: Int = 10
+) @auth(level: USER) {
+  people(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId }
+    },
+    orderBy: { mentionCount: DESC },
+    limit: $limit
+  ) {
+    id
+    name
+    relationship
+    sentiment
+    notes
+    mentionCount
+    lastMention
+  }
+}
+
+# Get specific people by name
+query GetPeopleByNames(
+  $userId: String!,
+  $profileId: String!,
+  $names: [String!]!
+) @auth(level: USER) {
+  people(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId },
+      name: { in: $names }
+    }
+  ) {
+    id
+    name
+    relationship
+    sentiment
+    notes
+    lastMention
+    # Include their memories
+    memories(limit: 5) {
+      memory {
+        content
+        createdAt
+      }
+    }
+  }
+}
+
+# Get person with their memory context
+query GetPersonContext(
+  $userId: String!,
+  $profileId: String!,
+  $personName: String!
+) @auth(level: USER) {
+  person: people_first(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId },
+      name: { eq: $personName }
+    }
+  ) {
+    id
+    name
+    relationship
+    sentiment
+    notes
+    firstMention
+    lastMention
+    mentionCount
+    memories(orderBy: { memory: { createdAt: DESC } }, limit: 10) {
+      memory {
+        content
+        emotion
+        createdAt
+      }
+      role
+    }
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# HAPPINESS ANCHORS QUERIES
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Get happiness anchors ordered by score
+query GetHappinessAnchors(
+  $userId: String!,
+  $profileId: String!,
+  $limit: Int = 3
+) @auth(level: USER) {
+  happinessAnchors(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId }
+    },
+    orderBy: { score: DESC },
+    limit: $limit
+  ) {
+    id
+    memory
+    score
+    peakMoment
+    sensoryAnchors
+    lastRecalled
+    recallCount
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CONVERSATION SUMMARIES
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Get recent conversation summaries
+query GetRecentConversations(
+  $userId: String!,
+  $profileId: String!,
+  $limit: Int = 5
+) @auth(level: USER) {
+  conversationSummaries(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId }
+    },
+    orderBy: { endTime: DESC },
+    limit: $limit
+  ) {
+    id
+    sessionId
+    summary
+    keyThemes
+    emotionalArc
+    breakthrough
+    messageCount
+    startTime
+    endTime
+  }
+}
+
+# Get breakthrough conversations only
+query GetBreakthroughConversations(
+  $userId: String!,
+  $profileId: String!,
+  $limit: Int = 10
+) @auth(level: USER) {
+  conversationSummaries(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId },
+      breakthrough: { eq: true }
+    },
+    orderBy: { endTime: DESC },
+    limit: $limit
+  ) {
+    id
+    summary
+    keyThemes
+    endTime
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# COMBINED CONTEXT QUERY (for RAG pipeline)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Get full memory context in one query
+query GetFullMemoryContext(
+  $userId: String!,
+  $profileId: String!,
+  $query: String!,
+  $memoryLimit: Int = 5,
+  $factLimit: Int = 10,
+  $peopleLimit: Int = 5,
+  $anchorLimit: Int = 3
+) @auth(level: USER) {
+  # Semantic memory search
+  memories: memories_embedding_similarity(
+    compare_embed: {
+      model: "text-embedding-004",
+      text: $query
+    },
+    method: COSINE,
+    limit: $memoryLimit,
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId }
+    }
+  ) {
+    content
+    type
+    importance
+    emotion
+    createdAt
+  }
+
+  # Permanent facts
+  facts(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId }
+    },
+    orderBy: { weight: DESC },
+    limit: $factLimit
+  ) {
+    fact
+    category
+    confidence
+  }
+
+  # Top mentioned people
+  people(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId }
+    },
+    orderBy: { mentionCount: DESC },
+    limit: $peopleLimit
+  ) {
+    name
+    relationship
+    notes
+  }
+
+  # Happiness anchors
+  happinessAnchors(
+    where: {
+      userId: { eq: $userId },
+      profileId: { eq: $profileId }
+    },
+    orderBy: { score: DESC },
+    limit: $anchorLimit
+  ) {
+    memory
+    score
+  }
+}

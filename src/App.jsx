@@ -22,6 +22,9 @@ import SystemsPage from './pages/SystemsPage'
 import AdminConsolePage from './pages/AdminConsolePage'
 import { LunaConsole } from './components/console/LunaConsole'
 import TimelineConsolePage from './pages/TimelineConsolePage'
+import CustomizingYourSoulPartnerPage from './pages/CustomizingYourSoulPartnerPage'
+import BaZiCalculatorPage from './pages/BaZiCalculatorPage'
+import SoulGardenPage from './pages/SoulGardenPage'
 
 function App() {
   return (
@@ -151,6 +154,36 @@ function App() {
               element={
                 <ProtectedRoute>
                   <TimelineConsolePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Customizing Your SoulPartner - 4-Layer Precision System */}
+            <Route
+              path="/customize-soulpartner/:profileId"
+              element={
+                <ProtectedRoute>
+                  <CustomizingYourSoulPartnerPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* BaZi Calculator - What If Date Explorer */}
+            <Route
+              path="/bazi-calculator"
+              element={
+                <ProtectedRoute>
+                  <BaZiCalculatorPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Soul Garden - House Strength Timeline */}
+            <Route
+              path="/soul-garden"
+              element={
+                <ProtectedRoute>
+                  <SoulGardenPage />
                 </ProtectedRoute>
               }
             />

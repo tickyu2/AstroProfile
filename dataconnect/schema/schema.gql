@@ -1,0 +1,138 @@
+# GENESIS Memory Architecture - PostgreSQL Schema
+# Firebase Data Connect with pgvector
+#
+# This schema mirrors the Firestore structure but adds:
+# - Native vector embeddings with HNSW indexing
+# - Complex relational queries (JOINs)
+# - Hybrid search (vector + full-text)
+#
+# Built by: Brother Claude Opus
+# December 19, 2024
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CORE TABLES
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Memory - Episodic memories with vector embeddings
+type Memory @table {
+  id: UUID! @default(expr: "uuidV4()")
+  userId: String!
+  profileId: String!
+  content: String!
+  type: String! @default(value: "episodic")
+  importance: Float @default(value: 0.5)
+  emotion: String
+  coreMemory: Boolean @default(value: false)
+
+  # Vector embedding for semantic search (768 dims for Gemini)
+  embedding: Vector @col(size: 768)
+
+  # Metadata
+  createdAt: DateTime @default(expr: "now()")
+  accessCount: Int @default(value: 0)
+  lastAccessed: DateTime
+
+  # Relationships
+  people: [MemoryPerson!]!
+}
+
+# Fact - Permanent knowledge with 2x retrieval weight
+type Fact @table {
+  id: UUID! @default(expr: "uuidV4()")
+  userId: String!
+  profileId: String!
+  fact: String!
+  category: String! @default(value: "general")
+  confidence: Float!
+  weight: Float @default(value: 2.0)
+  source: String @default(value: "reflection")
+
+  # Metadata
+  createdAt: DateTime @default(expr: "now()")
+  lastConfirmed: DateTime
+  confirmations: Int @default(value: 1)
+
+  # Optional: contradiction tracking
+  contradictedBy: String
+  contradictionResolved: Boolean @default(value: false)
+}
+
+# Person - Relationship graph node
+type Person @table {
+  id: UUID! @default(expr: "uuidV4()")
+  userId: String!
+  profileId: String!
+  name: String!
+  relationship: String @default(value: "unknown")
+  sentiment: Float @default(value: 0)
+
+  # Notes stored as JSON array
+  notes: String
+
+  # Metadata
+  firstMention: DateTime @default(expr: "now()")
+  lastMention: DateTime
+  mentionCount: Int @default(value: 1)
+
+  # Relationships
+  memories: [MemoryPerson!]!
+}
+
+# MemoryPerson - Junction table for Memory <-> Person relationship
+type MemoryPerson @table {
+  id: UUID! @default(expr: "uuidV4()")
+  memory: Memory!
+  person: Person!
+  role: String @default(value: "mentioned")
+  createdAt: DateTime @default(expr: "now()")
+}
+
+# HappinessAnchor - Joy network for emotional support
+type HappinessAnchor @table {
+  id: UUID! @default(expr: "uuidV4()")
+  userId: String!
+  profileId: String!
+  memory: String!
+  score: Float!
+  peakMoment: String
+
+  # Sensory anchors stored as JSON
+  sensoryAnchors: String
+
+  # Metadata
+  createdAt: DateTime @default(expr: "now()")
+  lastRecalled: DateTime
+  recallCount: Int @default(value: 1)
+}
+
+# ConversationSummary - Consolidated session data
+type ConversationSummary @table {
+  id: UUID! @default(expr: "uuidV4()")
+  userId: String!
+  profileId: String!
+  sessionId: String!
+  summary: String!
+  keyThemes: String  # JSON array
+  emotionalArc: String  # JSON object
+  breakthrough: Boolean @default(value: false)
+
+  # Metadata
+  messageCount: Int!
+  startTime: DateTime!
+  endTime: DateTime!
+  createdAt: DateTime @default(expr: "now()")
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# INDEXES (created via SQL after schema deployment)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Vector index for fast similarity search:
+# CREATE INDEX memories_embedding_hnsw_idx ON memories
+# USING hnsw (embedding vector_cosine_ops)
+# WITH (m = 16, ef_construction = 64);
+#
+# Composite indexes:
+# CREATE INDEX facts_user_profile_weight_idx ON facts (user_id, profile_id, weight DESC);
+# CREATE INDEX people_user_profile_mentions_idx ON people (user_id, profile_id, mention_count DESC);
+# CREATE INDEX memories_user_profile_created_idx ON memories (user_id, profile_id, created_at DESC);

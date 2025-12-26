@@ -6,10 +6,13 @@
  * This is where the synapses fire!
  *
  * Created: December 21, 2025
+ * Updated: December 23, 2025 - Added Session Cache + Memory Optimization
  * Mission: JOIE DE VIVRE - Help humans experience the LOVE of being alive
  */
 
 const pgClient = require('../database/pgClient');
+const { sessionCache } = require('./sessionCache');
+const { optimizeMemories, formatMemoriesForPrompt, getOptimizationStats } = require('./memoryOptimization');
 
 // ============================================================================
 // MEMORY RETRIEVAL FOR CHAT
@@ -30,16 +33,37 @@ async function retrieveMemoriesForChat(userId, profileId, userMessage, options =
     threshold = 0.6,
     includePartner = true,
     includeTimeline = true,
-    includeCultural = false
+    includeCultural = false,
+    conversationId = null  // NEW: For session cache
   } = options;
 
   try {
     console.log(`[ChatMemory] Retrieving memories for user ${userId}, profile ${profileId}`);
 
+    // ========================================
+    // OPTIMIZATION 1: Check Session Cache First
+    // Auto-initialize on cache miss (first message of conversation)
+    // ========================================
+    let cachedIdentity = null;
+    if (conversationId) {
+      cachedIdentity = sessionCache.getSessionContext(conversationId);
+
+      // Auto-initialize on cache miss (first message)
+      if (!cachedIdentity && userId && profileId) {
+        console.log('[ChatMemory] Session cache miss - initializing...');
+        const initSuccess = await sessionCache.initSession(userId, conversationId, profileId);
+        if (initSuccess) {
+          cachedIdentity = sessionCache.getSessionContext(conversationId);
+        }
+      }
+    }
+
     // Generate embedding for the user's message
     const queryEmbedding = await pgClient.generateEmbedding(userMessage);
 
-    // Search all memory types in parallel for speed
+    // ========================================
+    // OPTIMIZATION 2: Parallel Retrieval (skip cached data)
+    // ========================================
     const [
       userSTMResults,
       userLTMResults,
@@ -47,48 +71,68 @@ async function retrieveMemoriesForChat(userId, profileId, userMessage, options =
       partnerLTMResults,
       userTimelineResults
     ] = await Promise.all([
-      // User's recent memories (STM)
-      pgClient.searchUserSTM(userId, profileId, userMessage, Math.ceil(limit / 3), threshold),
+      // User's recent memories (STM) - always fetch fresh
+      pgClient.searchUserSTM(userId, profileId, userMessage, Math.ceil(limit / 2), threshold),
 
-      // User's deep memories (LTM)
-      pgClient.searchUserLTM(userId, profileId, userMessage, Math.ceil(limit / 3), threshold),
+      // User's deep memories (LTM) - skip if we have cached core memories
+      !cachedIdentity?.coreMemories?.length
+        ? pgClient.searchUserLTM(userId, profileId, userMessage, Math.ceil(limit / 2), threshold)
+        : [],
 
       // Luna's recent observations (Partner STM)
       includePartner ? pgClient.searchPartnerSTM(userId, profileId, userMessage, Math.ceil(limit / 4), threshold) : [],
 
-      // Luna's evolved understanding (Partner LTM)
-      includePartner ? pgClient.searchPartnerLTM(userId, profileId, userMessage, Math.ceil(limit / 4), threshold) : [],
+      // Luna's evolved understanding (Partner LTM) - skip if we have cached calibration
+      includePartner && !cachedIdentity?.calibration
+        ? pgClient.searchPartnerLTM(userId, profileId, userMessage, Math.ceil(limit / 4), threshold)
+        : [],
 
       // User's life events (Timeline)
       includeTimeline ? pgClient.searchUserTimeline(userId, profileId, userMessage, 3, threshold) : []
     ]);
 
-    // Build the memory prompt
+    // ========================================
+    // OPTIMIZATION 3: Deduplicate + Wisdom Boost
+    // ========================================
+    // Combine cached LTM with fetched LTM, then optimize
+    const combinedUserLTM = [
+      ...(cachedIdentity?.coreMemories || []),
+      ...(userLTMResults || [])
+    ];
+
+    const optimizedUserMemories = optimizeMemories(combinedUserLTM, userSTMResults || [], limit);
+    const optimizedPartnerMemories = optimizeMemories(partnerLTMResults || [], partnerSTMResults || [], Math.ceil(limit / 2));
+
+    // Log optimization stats
+    const userStats = getOptimizationStats(combinedUserLTM, userSTMResults || [], optimizedUserMemories);
+    console.log(`[ChatMemory] User memories: ${userStats.input.total} → ${userStats.output.total} (${userStats.reduction.percentage}% reduction)`);
+
+    // ========================================
+    // Build the memory prompt with optimized memories
+    // ========================================
     let memoryPrompt = '';
 
-    // User's Recent Memories (STM)
-    if (userSTMResults && userSTMResults.length > 0) {
-      memoryPrompt += `### Recent Context (User's Short-Term Memory)\n`;
-      userSTMResults.forEach((mem, i) => {
-        memoryPrompt += `${i + 1}. [${mem.content_type}] ${mem.content}\n`;
-        if (mem.emotional_valence) {
-          const emotion = mem.emotional_valence > 0 ? 'positive' : mem.emotional_valence < 0 ? 'difficult' : 'neutral';
-          memoryPrompt += `   (Emotional context: ${emotion})\n`;
-        }
+    // Cached facts (from session cache)
+    if (cachedIdentity?.facts && cachedIdentity.facts.length > 0) {
+      memoryPrompt += `### Core Facts (Cached Identity)\n`;
+      cachedIdentity.facts.forEach((fact, i) => {
+        memoryPrompt += `${i + 1}. ${fact.content}\n`;
       });
       memoryPrompt += '\n';
     }
 
-    // User's Deep Memories (LTM)
-    if (userLTMResults && userLTMResults.length > 0) {
-      memoryPrompt += `### Deep Knowledge (User's Long-Term Memory)\n`;
-      userLTMResults.forEach((mem, i) => {
-        memoryPrompt += `${i + 1}. [${mem.content_type}] ${mem.content}\n`;
-        if (mem.is_person && mem.person_name) {
-          memoryPrompt += `   (Person: ${mem.person_name} - ${mem.person_relationship || 'relationship unknown'})\n`;
-        }
+    // Cached people (from session cache)
+    if (cachedIdentity?.people && cachedIdentity.people.length > 0) {
+      memoryPrompt += `### Important People in Their Life\n`;
+      cachedIdentity.people.forEach((person, i) => {
+        memoryPrompt += `${i + 1}. ${person.person_name} (${person.person_relationship || 'relationship unknown'})\n`;
       });
       memoryPrompt += '\n';
+    }
+
+    // Optimized user memories (STM-first, LTM boosted)
+    if (optimizedUserMemories && optimizedUserMemories.length > 0) {
+      memoryPrompt += formatMemoriesForPrompt(optimizedUserMemories);
     }
 
     // Luna's Recent Observations (Partner STM)
@@ -103,8 +147,18 @@ async function retrieveMemoriesForChat(userId, profileId, userMessage, options =
       memoryPrompt += '\n';
     }
 
-    // Luna's Evolved Understanding (Partner LTM)
-    if (partnerLTMResults && partnerLTMResults.length > 0) {
+    // Luna's Evolved Understanding (Partner LTM or Cached Calibration)
+    if (cachedIdentity?.calibration) {
+      memoryPrompt += `### Your Calibration (How to Best Support Them)\n`;
+      const cal = cachedIdentity.calibration;
+      if (cal.effective_approaches) {
+        memoryPrompt += `Effective approaches: ${JSON.stringify(cal.effective_approaches)}\n`;
+      }
+      if (cal.sensitive_topics) {
+        memoryPrompt += `Sensitive topics: ${JSON.stringify(cal.sensitive_topics)}\n`;
+      }
+      memoryPrompt += '\n';
+    } else if (partnerLTMResults && partnerLTMResults.length > 0) {
       memoryPrompt += `### Your Evolved Understanding (What You've Learned About Them)\n`;
       partnerLTMResults.forEach((insight, i) => {
         memoryPrompt += `${i + 1}. [${insight.insight_type}] ${insight.insight}\n`;
@@ -130,14 +184,15 @@ async function retrieveMemoriesForChat(userId, profileId, userMessage, options =
 
     // Add summary stats
     const totalMemories =
-      (userSTMResults?.length || 0) +
-      (userLTMResults?.length || 0) +
+      (cachedIdentity?.facts?.length || 0) +
+      (cachedIdentity?.people?.length || 0) +
+      (optimizedUserMemories?.length || 0) +
       (partnerSTMResults?.length || 0) +
-      (partnerLTMResults?.length || 0) +
+      (optimizedPartnerMemories?.length || 0) +
       (userTimelineResults?.length || 0);
 
     if (totalMemories > 0) {
-      console.log(`[ChatMemory] Retrieved ${totalMemories} relevant memories`);
+      console.log(`[ChatMemory] Retrieved ${totalMemories} relevant memories (optimized)`);
     } else {
       console.log(`[ChatMemory] No relevant memories found for this context`);
       memoryPrompt = `No specific memories retrieved for this conversation context. This may be a new topic or early in the relationship.`;
@@ -333,5 +388,8 @@ module.exports = {
   // Memory Storage
   analyzeMessageForMemory,
   storeUserMessageAsMemory,
-  storeLunaObservation
+  storeLunaObservation,
+
+  // Session Cache (for init/clear at conversation boundaries)
+  sessionCache
 };

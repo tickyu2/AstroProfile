@@ -187,6 +187,48 @@ export default function Dashboard() {
           </p>
         </div>
 
+        {/* BaZi Calculator Card */}
+        <div className="mb-12 bg-gradient-to-r from-indigo-600/20 to-cyan-600/20 backdrop-blur-lg rounded-2xl p-8 border-2 border-indigo-500/30 text-center">
+          <div className="text-5xl mb-4">🧮📅🔮</div>
+          <h3 className="text-3xl font-bold text-white mb-3">
+            BaZi "What If" Calculator
+          </h3>
+          <p className="text-white/70 mb-6 max-w-2xl mx-auto text-lg">
+            Explore historical or future dates! Enter any date range and see the
+            Year, Month, and Day Pillars with their elemental energies.
+          </p>
+          <button
+            onClick={() => navigate('/bazi-calculator')}
+            className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-indigo-500/50"
+          >
+            🧮 Calculate BaZi Pillars 🧮
+          </button>
+          <p className="text-white/50 text-sm mt-4">
+            Year 年柱 • Month 月柱 • Day 日柱
+          </p>
+        </div>
+
+        {/* Soul Garden Card */}
+        <div className="mb-12 bg-gradient-to-r from-emerald-600/20 to-purple-600/20 backdrop-blur-lg rounded-2xl p-8 border-2 border-emerald-500/30 text-center">
+          <div className="text-5xl mb-4">🌿🏠✨</div>
+          <h3 className="text-3xl font-bold text-white mb-3">
+            Soul Garden
+          </h3>
+          <p className="text-white/70 mb-6 max-w-2xl mx-auto text-lg">
+            Explore how house strengths shift throughout the day. Enter any birth date
+            and location to see the 24-hour timeline of cosmic energy flow.
+          </p>
+          <button
+            onClick={() => navigate('/soul-garden')}
+            className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-purple-500 hover:from-emerald-600 hover:to-purple-600 text-white text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-emerald-500/50"
+          >
+            🌿 Enter Soul Garden 🌿
+          </button>
+          <p className="text-white/50 text-sm mt-4">
+            What-If Birth Time Analysis
+          </p>
+        </div>
+
         {/* Profiles Section */}
         {profiles.length === 0 ? (
           /* Empty State */

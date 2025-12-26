@@ -27,9 +27,9 @@ import {
   CulturalContextPanel,
   MemoryList,
   TimelineStats,
-  BiographyTimeline,
-  NeuralPathwaysPanel
+  BiographyTimeline
 } from '../components/timeline';
+import { NeuralSidebar } from '../components/aiSoulPartner';
 
 // Zoom levels
 const ZOOM_LEVELS = ['overview', 'decade', 'year', 'month', 'day'];
@@ -429,20 +429,13 @@ export default function TimelineConsolePage() {
               />
             </div>
 
-            {/* Sidebar with Neural Pathways */}
+            {/* Sidebar with Neural Q&A */}
             <div className="space-y-6">
-              <NeuralPathwaysPanel
+              {/* Neural Q&A Sidebar */}
+              <NeuralSidebar
                 userId={userId}
                 profileId={profileId}
-                onExplore={(pathway) => {
-                  // Navigate to chat with question prepopulated in input
-                  navigate('/ai-soulpartner', {
-                    state: {
-                      profileId,
-                      prefillMessage: pathway.question
-                    }
-                  });
-                }}
+                embedded={true}
               />
 
               {/* Cultural Context (if year selected in memories view) */}

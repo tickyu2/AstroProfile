@@ -13,5 +13,8 @@ export { default as AIIdentityPanel } from './AIIdentityPanel';
 export { default as StoryQuestionsAssessment } from './StoryQuestionsAssessment';
 export { default as SoulPartnerKBViewer } from './SoulPartnerKBViewer';
 
+export { default as NeuralSidebar } from './NeuralSidebar';
+export { default as QuestionCard } from './QuestionCard';
+
 // Default export
 export { AISoulPartnerChat as default } from './AISoulPartnerChat';

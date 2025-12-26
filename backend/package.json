@@ -1,0 +1,34 @@
+{
+  "name": "luna-voice-backend",
+  "version": "1.0.0",
+  "description": "Local voice loop backend for Luna - STT (Whisper.cpp) + LLM (Groq/Ollama)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^5.2.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "meyda": "^5.6.3",
+    "node-fetch": "^3.3.2",
+    "onnxruntime-node": "^1.23.2",
+    "ws": "^8.14.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "config": {
+    "notes": [
+      "GROQ_API_KEY - Get free API key at https://console.groq.com",
+      "GROQ_MODEL - Default: llama-3.1-8b-instant (options: llama-3.1-70b-versatile, mixtral-8x7b-32768)",
+      "OLLAMA_URL - Default: http://localhost:11434",
+      "OLLAMA_MODEL - Default: mistral",
+      "WHISPER_BIN - Path to whisper.cpp binary",
+      "WHISPER_MODEL - Path to whisper model file"
+    ]
+  }
+}
