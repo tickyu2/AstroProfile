@@ -23,6 +23,7 @@ import { ENNEAGRAM_TYPES, scoreToPercentage } from './enneagramData';
 import EnneagramQuestionnaire from './EnneagramQuestionnaire';
 import EnneagramAlchemicalRose from './EnneagramAlchemicalRose';
 import EnneagramTypeCard from './EnneagramTypeCard';
+import TypeComparisonTool from './TypeComparisonTool';
 
 export default function EnneagramTab({ profile, onProfileUpdate }) {
   const { quickSaveProfile } = useProfiles();
@@ -30,6 +31,7 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
   const [isReviewing, setIsReviewing] = useState(false); // Review mode with pre-populated answers
   const [saving, setSaving] = useState(false);
   const [alchemicalMode, setAlchemicalMode] = useState(true);
+  const [showComparisonTool, setShowComparisonTool] = useState(false);
 
   // Get existing enneagram data from profile
   const existingEnneagram = profile?.enneagram;
@@ -283,6 +285,47 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
                 answers={existingEnneagram?.answers || {}}
                 alchemical={alchemicalMode}
               />
+
+              {/* Type Comparison Tool - Expandable Section */}
+              <div className="bg-gradient-to-br from-indigo-950/50 to-purple-950/30 rounded-2xl border border-purple-500/20 overflow-hidden">
+                <button
+                  onClick={() => setShowComparisonTool(!showComparisonTool)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🔍</span>
+                    <div className="text-left">
+                      <h3 className="text-lg font-medium text-white">Type Comparison Tool</h3>
+                      <p className="text-sm text-white/50">Compare any two Enneagram types side by side</p>
+                    </div>
+                  </div>
+                  <motion.span
+                    animate={{ rotate: showComparisonTool ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-white/60 text-xl"
+                  >
+                    ▼
+                  </motion.span>
+                </button>
+
+                <AnimatePresence>
+                  {showComparisonTool && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="border-t border-purple-500/20"
+                    >
+                      <div className="p-6">
+                        <TypeComparisonTool
+                          initialType1={existingEnneagram?.dominantType}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Completion timestamp */}
               {existingEnneagram.completedAt && (
