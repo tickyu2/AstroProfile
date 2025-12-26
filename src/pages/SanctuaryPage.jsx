@@ -48,6 +48,20 @@ const STAGES = {
 };
 
 /**
+ * Result stages that allow navigation (after AI response)
+ */
+const RESULT_STAGES = [STAGES.MIRROR, STAGES.RELEASE, STAGES.INTEGRATION];
+
+/**
+ * Stage labels for display
+ */
+const STAGE_LABELS = {
+  [STAGES.MIRROR]: 'Mirror',
+  [STAGES.RELEASE]: 'Release',
+  [STAGES.INTEGRATION]: 'Integration'
+};
+
+/**
  * Main Sanctuary Page - Manages the full staged journey
  */
 export default function SanctuaryPage() {
@@ -136,6 +150,44 @@ export default function SanctuaryPage() {
     navigate('/dashboard');
   };
 
+  /**
+   * Check if current stage is a result stage (allows navigation)
+   */
+  const isResultStage = RESULT_STAGES.includes(stage);
+
+  /**
+   * Get current index in result stages
+   */
+  const currentResultIndex = RESULT_STAGES.indexOf(stage);
+
+  /**
+   * Navigate to previous result stage
+   */
+  const goToPreviousStage = () => {
+    if (currentResultIndex > 0) {
+      setStage(RESULT_STAGES[currentResultIndex - 1]);
+    }
+  };
+
+  /**
+   * Navigate to next result stage
+   */
+  const goToNextStage = () => {
+    if (currentResultIndex < RESULT_STAGES.length - 1) {
+      setStage(RESULT_STAGES[currentResultIndex + 1]);
+    }
+  };
+
+  /**
+   * Check if can go to previous stage
+   */
+  const canGoPrevious = isResultStage && currentResultIndex > 0;
+
+  /**
+   * Check if can go to next stage
+   */
+  const canGoNext = isResultStage && currentResultIndex < RESULT_STAGES.length - 1;
+
   return (
     <div className="min-h-screen bg-slate-950 relative">
       {/* Navigation buttons - shown after entrance */}
@@ -165,6 +217,77 @@ export default function SanctuaryPage() {
             <span>&#8594;</span>
           </motion.button>
         </div>
+      )}
+
+      {/* Stage Navigation Bar - shown on result stages */}
+      {isResultStage && result && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
+        >
+          <div className="flex items-center gap-3 px-4 py-3 rounded-full bg-slate-900/90 border border-amber-500/30 backdrop-blur-sm shadow-lg shadow-amber-500/10">
+            {/* Previous Button */}
+            <motion.button
+              onClick={goToPreviousStage}
+              disabled={!canGoPrevious}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                canGoPrevious
+                  ? 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
+                  : 'bg-slate-800/50 text-white/30 cursor-not-allowed'
+              }`}
+              whileHover={canGoPrevious ? { scale: 1.05 } : {}}
+              whileTap={canGoPrevious ? { scale: 0.95 } : {}}
+            >
+              <span>&#8592;</span>
+              <span className="hidden sm:inline">
+                {canGoPrevious ? STAGE_LABELS[RESULT_STAGES[currentResultIndex - 1]] : 'Previous'}
+              </span>
+            </motion.button>
+
+            {/* Stage Indicators */}
+            <div className="flex items-center gap-2 px-3">
+              {RESULT_STAGES.map((s, idx) => (
+                <motion.button
+                  key={s}
+                  onClick={() => setStage(s)}
+                  className={`w-3 h-3 rounded-full transition-all ${
+                    stage === s
+                      ? 'bg-amber-400 scale-125'
+                      : 'bg-white/20 hover:bg-white/40'
+                  }`}
+                  whileHover={{ scale: 1.2 }}
+                  title={STAGE_LABELS[s]}
+                />
+              ))}
+            </div>
+
+            {/* Current Stage Label */}
+            <div className="hidden md:block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
+              <span className="text-amber-300 text-xs font-medium">
+                {STAGE_LABELS[stage]}
+              </span>
+            </div>
+
+            {/* Next Button */}
+            <motion.button
+              onClick={goToNextStage}
+              disabled={!canGoNext}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                canGoNext
+                  ? 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
+                  : 'bg-slate-800/50 text-white/30 cursor-not-allowed'
+              }`}
+              whileHover={canGoNext ? { scale: 1.05 } : {}}
+              whileTap={canGoNext ? { scale: 0.95 } : {}}
+            >
+              <span className="hidden sm:inline">
+                {canGoNext ? STAGE_LABELS[RESULT_STAGES[currentResultIndex + 1]] : 'Next'}
+              </span>
+              <span>&#8594;</span>
+            </motion.button>
+          </div>
+        </motion.div>
       )}
 
       {/* Stage Content */}
