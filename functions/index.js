@@ -77,6 +77,9 @@ const adminModule = require('./admin');
 // Soul Confessional - Cathedral's compassionate voice
 const { soulConfessional } = require('./confessional');
 
+// Sanctuary of Self-Recognition - The heart of the Cathedral
+const { selfRecognition } = require('./sanctuary');
+
 admin.initializeApp();
 
 const db = admin.firestore();
@@ -5205,6 +5208,42 @@ exports.soulConfessional = onCall({
     return {
       success: false,
       error: error.message || 'The Cathedral could not respond'
+    };
+  }
+});
+
+/**
+ * selfRecognition - Sanctuary of Self-Recognition
+ *
+ * The most sacred chamber of the Cathedral.
+ * Not more information. Not more sermons. Not more advice.
+ * A place to be recognized, to be met, and to exhale.
+ *
+ * Four Movements:
+ * 1. Arrival - Welcome as you are
+ * 2. Mirror - Recognition of patterns
+ * 3. Release - Permission to feel
+ * 4. Integration - Carrying forward with compassion
+ */
+exports.selfRecognition = onCall({
+  timeoutSeconds: 90,
+  memory: '512MiB'
+}, async (request) => {
+  const { input } = request.data;
+
+  console.log('[Sanctuary] Soul entering the Sanctuary of Self-Recognition...');
+
+  try {
+    const result = await selfRecognition({ input });
+    return {
+      success: true,
+      ...result
+    };
+  } catch (error) {
+    console.error('[Sanctuary] Error:', error.message);
+    return {
+      success: false,
+      error: error.message || 'The Sanctuary could not receive your words'
     };
   }
 });
