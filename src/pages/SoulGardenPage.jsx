@@ -25,9 +25,7 @@ import { HouseStrengthPlayground } from '../components/playground';
 import LocationPicker from '../components/common/LocationPicker';
 import SoulConfessional from '../components/soulGarden/SoulConfessional';
 import TakeHomeGiftPanel from '../components/soulGarden/TakeHomeGiftPanel';
-import SelfRecognitionSanctuary from '../components/sanctuary/SelfRecognitionSanctuary';
 import { submitConfessional, buildConfessionalChart } from '../services/confessionalService';
-import { submitToSanctuary, buildInputFromProfile as buildSanctuaryInput } from '../services/sanctuaryService';
 import { buildTakeHomeToolkit } from '../utils/risingPartingGifts';
 
 // Input mode options
@@ -58,11 +56,6 @@ export default function SoulGardenPage() {
   // Soul Confessional state
   const [confessionalLoading, setConfessionalLoading] = useState(false);
   const [confessionalResponse, setConfessionalResponse] = useState(null);
-
-  // Sanctuary of Self-Recognition state
-  const [sanctuaryLoading, setSanctuaryLoading] = useState(false);
-  const [sanctuaryResult, setSanctuaryResult] = useState(null);
-  const [sanctuaryError, setSanctuaryError] = useState(null);
 
   // Get list of profiles for search
   // Handle both old structure (birth.date) and new structure (birthDate at top level)
@@ -260,40 +253,6 @@ export default function SoulGardenPage() {
   const handleConfessionalClear = useCallback(() => {
     setConfessionalResponse(null);
   }, []);
-
-  // Handle Sanctuary of Self-Recognition submission
-  const handleSanctuarySubmit = useCallback(async (input) => {
-    setSanctuaryLoading(true);
-    setSanctuaryError(null);
-    setSanctuaryResult(null);
-
-    try {
-      const result = await submitToSanctuary(input);
-      setSanctuaryResult(result);
-    } catch (error) {
-      console.error('Sanctuary error:', error);
-      setSanctuaryError(error.message || 'The Sanctuary could not receive your words.');
-    } finally {
-      setSanctuaryLoading(false);
-    }
-  }, []);
-
-  // Clear sanctuary result
-  const handleSanctuaryClear = useCallback(() => {
-    setSanctuaryResult(null);
-    setSanctuaryError(null);
-  }, []);
-
-  // Build initial sanctuary input from selected profile
-  const sanctuaryInitialInput = useMemo(() => {
-    if (inputMode === INPUT_MODES.PROFILE && selectedProfileForSearch) {
-      const fullProfile = profiles?.find(p => p.id === selectedProfileForSearch);
-      if (fullProfile) {
-        return buildSanctuaryInput(fullProfile);
-      }
-    }
-    return null;
-  }, [inputMode, selectedProfileForSearch, profiles]);
 
   // Build Take-Home Toolkit based on selected profile
   const takeHomeToolkit = useMemo(() => {
@@ -667,25 +626,6 @@ export default function SoulGardenPage() {
             loading={confessionalLoading}
             response={confessionalResponse}
             onClear={handleConfessionalClear}
-          />
-        </div>
-
-        {/* Sanctuary of Self-Recognition */}
-        <div className="mt-12">
-          <div className="text-center mb-6">
-            <div className="inline-block px-6 py-2 bg-gradient-to-r from-indigo-900/30 via-purple-900/30 to-indigo-900/30 rounded-full border border-indigo-500/20">
-              <span className="text-indigo-300/80 text-sm tracking-widest uppercase">
-                The Sanctuary
-              </span>
-            </div>
-          </div>
-          <SelfRecognitionSanctuary
-            onSubmit={handleSanctuarySubmit}
-            loading={sanctuaryLoading}
-            result={sanctuaryResult}
-            error={sanctuaryError}
-            onClear={handleSanctuaryClear}
-            initialInput={sanctuaryInitialInput}
           />
         </div>
 

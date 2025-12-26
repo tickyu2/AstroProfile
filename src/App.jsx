@@ -25,6 +25,7 @@ import TimelineConsolePage from './pages/TimelineConsolePage'
 import CustomizingYourSoulPartnerPage from './pages/CustomizingYourSoulPartnerPage'
 import BaZiCalculatorPage from './pages/BaZiCalculatorPage'
 import SoulGardenPage from './pages/SoulGardenPage'
+import SanctuaryPage from './pages/SanctuaryPage'
 
 function App() {
   return (
@@ -184,6 +185,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SoulGardenPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* The Sanctuary of the Unseen Self */}
+            <Route
+              path="/sanctuary"
+              element={
+                <ProtectedRoute>
+                  <SanctuaryPage />
                 </ProtectedRoute>
               }
             />

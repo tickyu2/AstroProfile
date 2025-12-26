@@ -229,6 +229,35 @@ export default function Dashboard() {
           </p>
         </div>
 
+        {/* The Sanctuary of the Unseen Self */}
+        <div className="mb-12 bg-gradient-to-r from-slate-900/60 via-indigo-900/40 to-slate-900/60 backdrop-blur-lg rounded-2xl p-8 border-2 border-amber-500/30 text-center relative overflow-hidden">
+          {/* Subtle glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-400/5 via-transparent to-amber-400/5 pointer-events-none" />
+
+          <div className="relative">
+            <div className="text-5xl mb-4">🕯️✨🕯️</div>
+            <h3 className="text-3xl font-bold text-amber-300 mb-3">
+              The Sanctuary of the Unseen Self
+            </h3>
+            <p className="text-white/60 mb-2 italic max-w-xl mx-auto">
+              "Here, the unseen is welcomed. Here, the unheard is honored."
+            </p>
+            <p className="text-white/70 mb-6 max-w-2xl mx-auto text-lg">
+              Not more information. Not more advice. A sacred chamber where your soul
+              is recognized, met, and allowed to exhale.
+            </p>
+            <button
+              onClick={() => navigate('/sanctuary')}
+              className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-900 text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-amber-500/30"
+            >
+              Enter the Sanctuary
+            </button>
+            <p className="text-white/40 text-sm mt-4">
+              ARRIVAL • MIRROR • RELEASE • INTEGRATION
+            </p>
+          </div>
+        </div>
+
         {/* Profiles Section */}
         {profiles.length === 0 ? (
           /* Empty State */
