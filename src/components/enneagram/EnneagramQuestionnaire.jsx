@@ -38,9 +38,34 @@ const RATING_LABELS = {
   5: 'Very Much Like Me'
 };
 
-export default function EnneagramQuestionnaire({ onComplete, alchemical = true }) {
-  const [answers, setAnswers] = useState({});
-  const [instinctAnswers, setInstinctAnswers] = useState({});
+export default function EnneagramQuestionnaire({ onComplete, alchemical = true, initialAnswers = null }) {
+  // Separate initial answers into type and instinct answers
+  const getInitialTypeAnswers = () => {
+    if (!initialAnswers) return {};
+    const typeAnswers = {};
+    // Type question IDs start with "type_"
+    Object.entries(initialAnswers).forEach(([key, value]) => {
+      if (key.startsWith('type_')) {
+        typeAnswers[key] = value;
+      }
+    });
+    return typeAnswers;
+  };
+
+  const getInitialInstinctAnswers = () => {
+    if (!initialAnswers) return {};
+    const instinctAns = {};
+    // Instinct question IDs start with "sp_", "sx_", or "so_"
+    Object.entries(initialAnswers).forEach(([key, value]) => {
+      if (key.startsWith('sp_') || key.startsWith('sx_') || key.startsWith('so_')) {
+        instinctAns[key] = value;
+      }
+    });
+    return instinctAns;
+  };
+
+  const [answers, setAnswers] = useState(getInitialTypeAnswers);
+  const [instinctAnswers, setInstinctAnswers] = useState(getInitialInstinctAnswers);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const [phase, setPhase] = useState('type'); // 'type' or 'instinct'

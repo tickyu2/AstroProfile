@@ -27,6 +27,7 @@ import EnneagramTypeCard from './EnneagramTypeCard';
 export default function EnneagramTab({ profile, onProfileUpdate }) {
   const { quickSaveProfile } = useProfiles();
   const [isRetaking, setIsRetaking] = useState(false);
+  const [isReviewing, setIsReviewing] = useState(false); // Review mode with pre-populated answers
   const [saving, setSaving] = useState(false);
   const [alchemicalMode, setAlchemicalMode] = useState(true);
 
@@ -34,8 +35,8 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
   const existingEnneagram = profile?.enneagram;
   const hasCompletedAssessment = existingEnneagram && existingEnneagram.dominantType;
 
-  // Show questionnaire if no result or retaking
-  const showQuestionnaire = !hasCompletedAssessment || isRetaking;
+  // Show questionnaire if no result, retaking, or reviewing
+  const showQuestionnaire = !hasCompletedAssessment || isRetaking || isReviewing;
 
   // Handle assessment completion
   const handleComplete = useCallback(async (result, answers = {}) => {
@@ -57,8 +58,9 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
 
       console.log('⚗️ Enneagram saved:', enrichedResult);
 
-      // Exit retake mode
+      // Exit retake/review mode
       setIsRetaking(false);
+      setIsReviewing(false);
 
       // Trigger refresh if callback provided
       if (onProfileUpdate) {
@@ -71,14 +73,22 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
     }
   }, [profile?.id, quickSaveProfile, onProfileUpdate]);
 
-  // Handle retake
-  const handleRetake = useCallback(() => {
-    setIsRetaking(true);
+  // Handle review (edit existing answers)
+  const handleReview = useCallback(() => {
+    setIsReviewing(true);
+    setIsRetaking(false);
   }, []);
 
-  // Handle cancel retake
-  const handleCancelRetake = useCallback(() => {
+  // Handle fresh retake (start from scratch)
+  const handleRetake = useCallback(() => {
+    setIsRetaking(true);
+    setIsReviewing(false);
+  }, []);
+
+  // Handle cancel
+  const handleCancel = useCallback(() => {
     setIsRetaking(false);
+    setIsReviewing(false);
   }, []);
 
   // Get dominant type data for header
@@ -98,7 +108,10 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
             </h2>
             <p className="text-sm text-white/50 mt-1">
               {showQuestionnaire
-                ? 'Discover your core personality type through self-reflection'
+                ? (isReviewing
+                    ? 'Review and edit your previous answers'
+                    : 'Discover your core personality type through self-reflection'
+                  )
                 : `Your SoulPrint: Type ${existingEnneagram?.dominantType} - ${dominantTypeData?.name}`
               }
             </p>
@@ -120,18 +133,26 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
               <span>{alchemicalMode ? 'Alchemical' : 'Contemplative'}</span>
             </button>
 
-            {hasCompletedAssessment && !isRetaking && (
-              <button
-                onClick={handleRetake}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-all"
-              >
-                ↻ Retake Assessment
-              </button>
+            {hasCompletedAssessment && !isRetaking && !isReviewing && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleReview}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition-all"
+                >
+                  📝 Review & Edit
+                </button>
+                <button
+                  onClick={handleRetake}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-all"
+                >
+                  ↻ Start Fresh
+                </button>
+              </div>
             )}
 
-            {isRetaking && (
+            {(isRetaking || isReviewing) && (
               <button
-                onClick={handleCancelRetake}
+                onClick={handleCancel}
                 className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/10 text-white/60 border border-white/20 hover:bg-white/20 transition-all"
               >
                 ✕ Cancel
@@ -158,9 +179,19 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
               exit={{ opacity: 0, y: -20 }}
             >
               <div className="bg-gradient-to-br from-indigo-950/50 to-purple-950/30 rounded-2xl border border-purple-500/20 p-6">
+                {/* Show review mode banner */}
+                {isReviewing && (
+                  <div className="mb-4 p-3 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+                    <p className="text-cyan-300 text-sm flex items-center gap-2">
+                      <span>📝</span>
+                      <span>Review Mode - Your previous answers are pre-filled. Edit any and resubmit.</span>
+                    </p>
+                  </div>
+                )}
                 <EnneagramQuestionnaire
                   onComplete={handleComplete}
                   alchemical={alchemicalMode}
+                  initialAnswers={isReviewing ? existingEnneagram?.answers : undefined}
                 />
               </div>
             </motion.div>
