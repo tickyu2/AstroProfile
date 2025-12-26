@@ -24,6 +24,7 @@ import EnneagramQuestionnaire from './EnneagramQuestionnaire';
 import EnneagramAlchemicalRose from './EnneagramAlchemicalRose';
 import EnneagramTypeCard from './EnneagramTypeCard';
 import TypeComparisonTool from './TypeComparisonTool';
+import SoulQuestionsPanel from './SoulQuestionsPanel';
 
 export default function EnneagramTab({ profile, onProfileUpdate }) {
   const { quickSaveProfile } = useProfiles();
@@ -32,6 +33,7 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
   const [saving, setSaving] = useState(false);
   const [alchemicalMode, setAlchemicalMode] = useState(true);
   const [showComparisonTool, setShowComparisonTool] = useState(false);
+  const [showSoulQuestions, setShowSoulQuestions] = useState(false);
 
   // Get existing enneagram data from profile
   const existingEnneagram = profile?.enneagram;
@@ -320,6 +322,47 @@ export default function EnneagramTab({ profile, onProfileUpdate }) {
                       <div className="p-6">
                         <TypeComparisonTool
                           initialType1={existingEnneagram?.dominantType}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Soul Questions - Expandable Section */}
+              <div className="bg-gradient-to-br from-rose-950/30 to-purple-950/30 rounded-2xl border border-rose-500/20 overflow-hidden">
+                <button
+                  onClick={() => setShowSoulQuestions(!showSoulQuestions)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🌹</span>
+                    <div className="text-left">
+                      <h3 className="text-lg font-medium text-white">Soul Questions</h3>
+                      <p className="text-sm text-white/50">Deep reflection prompts for Type {existingEnneagram?.dominantType}</p>
+                    </div>
+                  </div>
+                  <motion.span
+                    animate={{ rotate: showSoulQuestions ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-white/60 text-xl"
+                  >
+                    ▼
+                  </motion.span>
+                </button>
+
+                <AnimatePresence>
+                  {showSoulQuestions && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="border-t border-rose-500/20"
+                    >
+                      <div className="p-6">
+                        <SoulQuestionsPanel
+                          dominantType={existingEnneagram?.dominantType}
                         />
                       </div>
                     </motion.div>

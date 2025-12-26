@@ -50,6 +50,7 @@ export { default as EnneagramQuestionnaire } from './EnneagramQuestionnaire';
 export { default as EnneagramAlchemicalRose } from './EnneagramAlchemicalRose';
 export { default as EnneagramTypeCard } from './EnneagramTypeCard';
 export { default as TypeComparisonTool } from './TypeComparisonTool';
+export { default as SoulQuestionsPanel } from './SoulQuestionsPanel';
 
 // Data and utilities
 export {
