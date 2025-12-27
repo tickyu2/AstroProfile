@@ -89,7 +89,10 @@
       "Bash(wsl -e rm:*)",
       "Bash(wsl -e ls:*)",
       "Bash(firebase functions:list:*)",
-      "Bash(dir /S /B \"c:\\\\astroprofile\\\\src\")"
+      "Bash(dir /S /B \"c:\\\\astroprofile\\\\src\")",
+      "Bash(unzip:*)",
+      "Bash(A place to be recognized, to be met, and to exhale.\"\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(Here, the soul steps forward and is recognized.\"\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

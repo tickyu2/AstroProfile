@@ -17,7 +17,17 @@
 
 import { generatePsychologicalProfile } from '../utils/psychologicalProfileGenerator';
 import { memoryService } from './memoryService';
-import { conversationCache, payloadToConversationHistory } from './conversationCache';
+import { conversationCache, payloadToConversationHistory, MODALITIES } from './conversationCache';
+
+// SoulProfile Integration (Cathedral Soul Architecture)
+import {
+  getSoulContextForAI,
+  getSoulNarrativeForAI,
+  logBreakthroughToProfile,
+  saveSoulLetterToProfile,
+  incrementConversationCount,
+  syncSanctuaryResult
+} from './soulProfileService';
 import {
   THINKING_LEVELS,
   DEFAULT_THINKING_LEVEL,
@@ -78,6 +88,7 @@ const getApiUrl = () => {
  * @param {string} params.conversationId - Conversation ID for optimized payload (NEW)
  * @param {string} params.thinkingLevel - Gemini 3 thinking level: 'minimal'|'low'|'medium'|'high'|'auto' (NEW)
  * @param {boolean} params.includeThoughts - Include thinking content in response (NEW)
+ * @param {string} params.modality - Conversation modality: 'text' or 'voice' (default: 'text') (NEW)
  * @returns {Promise<Object>} - AI response with metadata including Gemini 3 parts[]
  */
 export async function sendMessage({
@@ -93,7 +104,8 @@ export async function sendMessage({
   useOptimizedPayload = false,
   conversationId = null,
   thinkingLevel = 'auto',
-  includeThoughts = false
+  includeThoughts = false,
+  modality = 'text'  // 'text' or 'voice' - keeps conversations isolated
 }) {
   try {
     // ════════════════════════════════════════════════════════════════════
@@ -149,6 +161,39 @@ export async function sendMessage({
     }
 
     // ════════════════════════════════════════════════════════════════════
+    // SOUL PROFILE RETRIEVAL (Cathedral Soul Architecture)
+    // Load the user's living soul record for deep personalization
+    // ════════════════════════════════════════════════════════════════════
+    let soulNarrative = '';
+    let soulContext = null;
+
+    if (userId && profileId) {
+      try {
+        // Get soul context for AI consumption
+        soulContext = await getSoulContextForAI(userId, {
+          includePatterns: true,
+          includeBreakthroughs: true,
+          includeBiography: true
+        });
+
+        // Only build narrative if soul has depth
+        if (soulContext?.depth?.hasIdentity || soulContext?.depth?.hasPatterns) {
+          soulNarrative = await getSoulNarrativeForAI(userId);
+          console.log('🔮 [SoulProfile] Soul context loaded:', {
+            name: soulContext.name,
+            hasIdentity: soulContext.depth?.hasIdentity,
+            hasPatterns: soulContext.depth?.hasPatterns,
+            hasBiography: soulContext.depth?.hasBiography,
+            soulBurden: soulContext.metrics?.soulBurden || 0,
+            narrativeLength: soulNarrative?.length || 0
+          });
+        }
+      } catch (soulError) {
+        console.warn('⚠️ Soul profile retrieval failed (continuing without):', soulError.message);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
     // CONVERSATION CACHE - 80%+ Token Reduction (Phase 4)
     // ════════════════════════════════════════════════════════════════════
     let optimizedHistory = conversationHistory;
@@ -157,16 +202,19 @@ export async function sendMessage({
 
     if (useOptimizedPayload && profileId) {
       try {
-        // Set messages in cache if not already there
+        // Validate modality
+        const validModality = Object.values(MODALITIES).includes(modality) ? modality : 'text';
+
+        // Set messages in cache if not already there (with modality isolation)
         if (conversationHistory.length > 0) {
-          conversationCache.setMessages(profileId, conversationHistory);
+          conversationCache.setMessages(profileId, conversationHistory, validModality);
         }
 
-        // Build optimized payload
+        // Build optimized payload (isolated by modality)
         const optimizedPayload = await conversationCache.buildOptimizedPayload(
           profileId,
           conversationId,
-          { recentCount: 10, includeStory: true }
+          { recentCount: 10, includeStory: true, modality: validModality }
         );
 
         // Convert to conversation history format
@@ -174,15 +222,16 @@ export async function sendMessage({
         payloadMetrics = optimizedPayload.metrics;
         storySoFarContext = optimizedPayload.storySoFar;
 
-        console.log('📦 [ConversationCache] Token reduction:', {
+        console.log(`📦 [ConversationCache] ${validModality.toUpperCase()} token reduction:`, {
+          modality: validModality,
           before: payloadMetrics.fullPayloadTokens,
           after: payloadMetrics.optimizedTokens,
           saved: payloadMetrics.tokensSaved,
           reduction: `${payloadMetrics.reductionPercent}%`
         });
 
-        // Trigger background summarization if needed
-        conversationCache.maybeTriggersummarization(profileId, conversationId);
+        // Trigger background summarization if needed (modality-specific)
+        conversationCache.maybeTriggersummarization(profileId, conversationId, validModality);
 
       } catch (cacheError) {
         console.warn('⚠️ [ConversationCache] Failed, using full history:', cacheError.message);
@@ -271,6 +320,10 @@ export async function sendMessage({
       hasLearnedContext: !!learnedContext,
       hasMemory: !!memoryPrompt,
       memoryLength: memoryPrompt?.length || 0,
+      // Soul Profile (Cathedral Architecture)
+      hasSoulNarrative: !!soulNarrative,
+      soulNarrativeLength: soulNarrative?.length || 0,
+      soulBurden: soulContext?.metrics?.soulBurden || 0,
       hasImage: !!image,
       // Gemini 3 fields
       thinkingLevel: effectiveThinkingLevel,
@@ -330,11 +383,14 @@ export async function sendMessage({
         knowledgePrompt,  // Pre-built knowledge base prompt
         learnedContext,   // Session Intelligence learned patterns context
         memoryPrompt,     // Memory Architecture context (NEW)
+        soulNarrative,    // Soul Profile context for deep personalization (Cathedral Architecture)
+        soulMetrics: soulContext?.metrics || null,  // Soul burden, emotional capacity, etc.
         relationshipStats: memoryContext?.relationshipStats || null,  // Tango Identity System (NEW)
         image,  // Optional image for vision { dataUrl, type }
         storySoFarContext,  // Explicit story context for backend (NEW)
         conversationId,  // For session cache optimization (NEW)
         profileId,  // For memory isolation (NEW)
+        modality,  // 'text' or 'voice' - for modality isolation (NEW)
         // Gemini 3 configuration (NEW)
         gemini3Config: {
           thinkingLevel: effectiveThinkingLevel,
@@ -442,6 +498,16 @@ export async function sendMessage({
         message,
         data.response
       );
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // SOUL PROFILE UPDATE (Cathedral Soul Architecture)
+    // Increment conversation count to track relationship depth
+    // ════════════════════════════════════════════════════════════════════
+    if (userId && data.response) {
+      // Increment conversation count (non-blocking)
+      incrementConversationCount(userId)
+        .catch(err => console.warn('⚠️ Failed to increment conversation count:', err.message));
     }
 
     return {
@@ -1089,6 +1155,104 @@ export async function getOpusPerspective({
 }
 
 /**
+ * Get DeepSeek's Perspective - Eastern Wisdom + Analytical Precision
+ *
+ * @param {Object} params - Request parameters
+ * @param {string} params.claudeResponse - What Claude said
+ * @param {string} params.geminiResponse - What Gemini said (optional)
+ * @param {string} params.grokResponse - What Grok said (optional)
+ * @param {string} params.userMessage - Original user question
+ * @param {Object} params.userProfile - User's constitutional profile
+ * @param {Array} params.debateHistory - Previous debate exchanges
+ * @param {string} params.customQuestion - User's specific question for DeepSeek
+ * @returns {Promise<Object>} - DeepSeek's response
+ */
+export async function getDeepSeekPerspective({
+  claudeResponse,
+  geminiResponse = '',
+  grokResponse = '',
+  userMessage = '',
+  userProfile = {},
+  debateHistory = [],
+  customQuestion = ''
+}) {
+  // DeepSeek function URL (Cloud Run - 2nd gen)
+  const PRODUCTION_DEEPSEEK_URL = 'https://getdeepseekperspective-sjpjwnbsmq-uc.a.run.app';
+  const EMULATOR_DEEPSEEK_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/getDeepSeekPerspective';
+
+  const getDeepSeekUrl = () => {
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+      return EMULATOR_DEEPSEEK_URL;
+    }
+    return PRODUCTION_DEEPSEEK_URL;
+  };
+
+  try {
+    console.log('🐉 Consulting Brother DeepSeek for perspective:', {
+      hasClaudeResponse: !!claudeResponse,
+      hasGeminiResponse: !!geminiResponse,
+      hasGrokResponse: !!grokResponse,
+      debateExchanges: debateHistory?.length || 0
+    });
+
+    const response = await fetch(getDeepSeekUrl(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        claudeResponse,
+        geminiResponse,
+        grokResponse,
+        userMessage,
+        userProfile: {
+          displayName: userProfile?.displayName || userProfile?.firstName || 'Friend',
+          constitutional: userProfile?.constitutional_identity
+        },
+        debateHistory,
+        customQuestion
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    console.log('✅ DeepSeek perspective received:', {
+      speaker: data.speaker,
+      responseLength: data.response?.length,
+      model: data.model,
+      hasThinking: data.hasThinking
+    });
+
+    return {
+      success: true,
+      text: data.response,
+      speaker: data.speaker || 'Brother DeepSeek',
+      icon: data.icon || '🐉',
+      model: data.model,
+      // DeepSeek-R1 thinking/reasoning process
+      thinking: data.thinking || null,
+      hasThinking: data.hasThinking || false
+    };
+
+  } catch (error) {
+    console.error('❌ DeepSeek Perspective Error:', error);
+
+    return {
+      success: false,
+      text: "Brother DeepSeek is seeking the Middle Way. Try again in a moment.",
+      speaker: 'Brother DeepSeek',
+      icon: '🐉',
+      error: error.message
+    };
+  }
+}
+
+/**
  * Generate Psychological Profile Context for Luna
  *
  * Takes profile data with sovereign chart and generates a formatted
@@ -1417,6 +1581,20 @@ export {
   DEFAULT_LANGUAGE
 } from './languageService';
 
+// ═══════════════════════════════════════════════════════════════════════════
+// SOUL PROFILE EXPORTS (Cathedral Soul Architecture)
+// The living soul record that grows as users interact with the Cathedral
+// ═══════════════════════════════════════════════════════════════════════════
+
+export {
+  getSoulContextForAI,
+  getSoulNarrativeForAI,
+  logBreakthroughToProfile,
+  saveSoulLetterToProfile,
+  incrementConversationCount,
+  syncSanctuaryResult
+} from './soulProfileService';
+
 export default {
   sendMessage,
   sendToolEnabledMessage, // Claude with autonomous tools (AI-driven approach)
@@ -1424,6 +1602,7 @@ export default {
   getSecondOpinion,
   getGrokPerspective,
   getOpusPerspective,
+  getDeepSeekPerspective,
   generateDebateVisual,
   saveStoryAssessment,
   getStoryAssessment,
@@ -1445,5 +1624,14 @@ export default {
   focusReportService,
   // Language Service (Phase 5)
   languageService,
-  SUPPORTED_LANGUAGES
+  SUPPORTED_LANGUAGES,
+  // Modality Isolation (December 2024)
+  MODALITIES,
+  // Soul Profile (Cathedral Soul Architecture)
+  getSoulContextForAI,
+  getSoulNarrativeForAI,
+  logBreakthroughToProfile,
+  saveSoulLetterToProfile,
+  incrementConversationCount,
+  syncSanctuaryResult
 };

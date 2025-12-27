@@ -98,6 +98,14 @@ const SERVICE_CATEGORIES = {
         color: 'from-cyan-500 to-teal-500'
       },
       {
+        name: 'DeepSeek Platform',
+        url: 'https://platform.deepseek.com',
+        description: 'DeepSeek-R1 API, Eastern wisdom AI',
+        icon: '🐉',
+        color: 'from-indigo-500 to-violet-600',
+        highlight: true
+      },
+      {
         name: 'OpenAI Platform',
         url: 'https://platform.openai.com',
         description: 'GPT API, DALL-E, usage stats',
@@ -290,6 +298,7 @@ const AI_TOOLS = [
   { name: 'ChatGPT', url: 'https://chat.openai.com', icon: '💚', color: 'bg-green-500/20 border-green-500/30 text-green-400' },
   { name: 'Gemini', url: 'https://gemini.google.com', icon: '💫', color: 'bg-purple-500/20 border-purple-500/30 text-purple-400' },
   { name: 'Grok', url: 'https://x.com/i/grok', icon: '🌍', color: 'bg-cyan-500/20 border-cyan-500/30 text-cyan-400' },
+  { name: 'DeepSeek', url: 'https://chat.deepseek.com', icon: '🐉', color: 'bg-indigo-500/20 border-indigo-500/30 text-indigo-400' },
   { name: 'Perplexity', url: 'https://perplexity.ai', icon: '🔍', color: 'bg-blue-500/20 border-blue-500/30 text-blue-400' },
   { name: 'Copilot', url: 'https://copilot.microsoft.com', icon: '🤖', color: 'bg-sky-500/20 border-sky-500/30 text-sky-400' },
 ];
@@ -822,7 +831,7 @@ export function SystemsPage() {
             <div className="text-xs text-white/50 mt-1">Development Entries</div>
           </div>
           <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4 text-center">
-            <div className="text-3xl font-bold text-purple-400">3</div>
+            <div className="text-3xl font-bold text-purple-400">5</div>
             <div className="text-xs text-white/50 mt-1">AI Constellation</div>
           </div>
           <div className="bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 rounded-xl p-4 text-center">

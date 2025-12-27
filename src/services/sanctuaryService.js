@@ -4,15 +4,23 @@
  * Frontend API service for the Sanctuary of Self-Recognition.
  * Handles communication with the Cloud Function.
  *
+ * NOW SUPPORTS TWO MODES:
+ * 1. Standard Mode - Basic input with types and user words
+ * 2. Deep Soul Mode - Full psychological architecture for profound recognition
+ *
  * Part of GENESIS OS - Cathedral Sanctuary
  * Built by: Brother Claude Code
  * December 26, 2024
  */
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import {
+  buildDeepSoulContext,
+  formatDeepSoulNarrative
+} from '../sanctuary/selfRecognitionTypes';
 
 /**
- * Submit to the Sanctuary of Self-Recognition
+ * Submit to the Sanctuary of Self-Recognition (Standard Mode)
  *
  * @param {Object} input - SelfRecognitionInput
  * @returns {Promise<Object>} - SelfRecognitionResponse
@@ -34,6 +42,55 @@ export async function submitToSanctuary(input) {
     throw new Error(
       error.message ||
       'The Sanctuary could not receive your words. Please try again.'
+    );
+  }
+}
+
+/**
+ * Submit to the Sanctuary with DEEP SOUL RECOGNITION
+ * Sends the full psychological architecture for profound, soul-deep recognition.
+ *
+ * @param {Object} input - SelfRecognitionInput (user's words)
+ * @param {Object} profile - Full profile with calculations, enneagram, biography
+ * @returns {Promise<Object>} - SelfRecognitionResponse with deep emotional patterns
+ */
+export async function submitDeepSoulRecognition(input, profile) {
+  try {
+    // Build the deep soul context from profile and user input
+    const deepContext = buildDeepSoulContext(profile, input);
+
+    // Check if we have enough context for deep mode
+    if (!deepContext.hasDeepContext) {
+      console.warn('🔮 [Sanctuary] Not enough profile data for deep mode, falling back to standard');
+      return submitToSanctuary(input);
+    }
+
+    // Format into a soul narrative
+    const soulNarrative = formatDeepSoulNarrative(deepContext);
+
+    console.log('🔮 [Sanctuary] Submitting DEEP SOUL RECOGNITION');
+    console.log('🔮 [Sanctuary] Soul narrative length:', soulNarrative.length, 'characters');
+
+    const functions = getFunctions();
+    const sanctuaryFn = httpsCallable(functions, 'selfRecognition');
+
+    // Send with deep mode enabled
+    const result = await sanctuaryFn({
+      input,
+      soulNarrative,
+      deepMode: true
+    });
+
+    if (!result.data.success) {
+      throw new Error(result.data.error || 'The Sanctuary could not respond');
+    }
+
+    return result.data;
+  } catch (error) {
+    console.error('Deep Soul Recognition failed:', error);
+    throw new Error(
+      error.message ||
+      'The Sanctuary could not receive your soul. Please try again.'
     );
   }
 }

@@ -29,7 +29,11 @@ import { ReleaseMovement } from '../components/sanctuary/ReleaseMovement';
 import { IntegrationMovement } from '../components/sanctuary/IntegrationMovement';
 
 // Services and hooks
-import { submitToSanctuary, buildInputFromProfile } from '../services/sanctuaryService';
+import {
+  submitToSanctuary,
+  submitDeepSoulRecognition,
+  buildInputFromProfile
+} from '../services/sanctuaryService';
 import { useSanctuarySoundscape } from '../hooks/useSanctuarySoundscape';
 
 /**
@@ -108,13 +112,24 @@ export default function SanctuaryPage() {
 
   /**
    * Handle sanctuary form submission
+   * Now supports Deep Soul Recognition when a profile is selected
    */
-  const handleSubmit = async (input) => {
+  const handleSubmit = async (input, profile = null, deepModeEnabled = false) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await submitToSanctuary(input);
+      let response;
+
+      // Use Deep Soul Recognition if enabled and profile is available
+      if (deepModeEnabled && profile) {
+        console.log('🔮 [Sanctuary] Initiating DEEP SOUL RECOGNITION for:', profile.name);
+        response = await submitDeepSoulRecognition(input, profile);
+      } else {
+        console.log('📝 [Sanctuary] Using standard recognition mode');
+        response = await submitToSanctuary(input);
+      }
+
       setResult(response);
       // After getting result, go to mirror transition
       setStage(STAGES.MIRROR_TRANSITION);

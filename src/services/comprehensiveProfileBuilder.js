@@ -127,6 +127,13 @@ export async function buildComprehensiveProfile(params) {
     console.warn('[ComprehensiveProfileBuilder] Sovereign chart calculation failed:', error);
   }
 
+  // Safely convert planets to array (API may return object keyed by planet name)
+  const planetsArray = sovereignChart?.planets
+    ? (Array.isArray(sovereignChart.planets)
+        ? sovereignChart.planets
+        : Object.values(sovereignChart.planets))
+    : [];
+
   const western = {
     // Simple date-based calculation
     sunSign: {
@@ -139,7 +146,7 @@ export async function buildComprehensiveProfile(params) {
       sun: sovereignChart.sun,
       moon: sovereignChart.moon,
       rising: sovereignChart.rising,
-      planets: sovereignChart.planets || [],
+      planets: planetsArray,
       houses: sovereignChart.houses || [],
       aspects: sovereignChart.aspects || [],
       moonPhase: sovereignChart.moonPhase,
@@ -158,9 +165,9 @@ export async function buildComprehensiveProfile(params) {
       rising: null
     },
     // Retrograde analysis
-    retrogrades: sovereignChart?.planets?.filter(p => p.retrograde) || [],
+    retrogrades: planetsArray.filter(p => p.retrograde),
     // Direct planets
-    directPlanets: sovereignChart?.planets?.filter(p => !p.retrograde) || []
+    directPlanets: planetsArray.filter(p => !p.retrograde)
   };
 
   // =========================================================================

@@ -4,8 +4,14 @@
  * Pre-loads user's core identity at conversation start
  * Reduces DB queries by 80%, access speed < 1ms
  *
+ * MODALITY AWARENESS (December 2024):
+ * - Sessions can track whether they're text or voice
+ * - Identity data is shared (same person, different channels)
+ * - Modality is logged for debugging and analytics
+ *
  * Part of: Cathedral Builder's Memory Optimization (Week 1)
  * Created: December 23, 2025
+ * Updated: December 26, 2024 - Added modality tracking
  * Adapted by: Brother Opus (matching our schema)
  * Mission: JOIE DE VIVRE
  *
@@ -13,6 +19,12 @@
  */
 
 const { query } = require('../database/pool');
+
+// Valid modalities
+const MODALITIES = {
+  TEXT: 'text',
+  VOICE: 'voice'
+};
 
 class SessionCache {
   constructor() {
@@ -38,13 +50,15 @@ class SessionCache {
    * @param {string} userId - User's Firebase UID
    * @param {string} conversationId - Current conversation ID
    * @param {string} profileId - Profile being discussed
+   * @param {string} modality - 'text' or 'voice' (default: 'text')
    * @returns {Promise<boolean>} - Success status
    */
-  async initSession(userId, conversationId, profileId) {
+  async initSession(userId, conversationId, profileId, modality = 'text') {
     const cacheKey = `session:${conversationId}`;
     const startTime = Date.now();
+    const validModality = Object.values(MODALITIES).includes(modality) ? modality : 'text';
 
-    console.log(`[SessionCache] 🚀 Initializing session ${conversationId}`);
+    console.log(`[SessionCache] 🚀 Initializing ${validModality.toUpperCase()} session ${conversationId}`);
 
     try {
       // Pre-load core identity in parallel (200ms total)
@@ -62,6 +76,7 @@ class SessionCache {
         userId,
         profileId,
         conversationId,
+        modality: validModality,  // Track which modality started this session
         identity: {
           facts: facts || [],
           coreMemories: coreMemories || [],
@@ -96,9 +111,10 @@ class SessionCache {
    * Returns cached identity or null if cache miss
    *
    * @param {string} conversationId - Current conversation ID
-   * @returns {Object|null} - Cached identity or null
+   * @param {boolean} includeMetadata - Include modality and other metadata
+   * @returns {Object|null} - Cached identity (with optional metadata) or null
    */
-  getSessionContext(conversationId) {
+  getSessionContext(conversationId, includeMetadata = false) {
     const cacheKey = `session:${conversationId}`;
     const cached = this.cache.get(cacheKey);
 
@@ -109,7 +125,21 @@ class SessionCache {
       this.stats.hits++;
 
       const age = Math.round((Date.now() - cached.loadedAt) / 1000);
-      console.log(`[SessionCache] ⚡ HIT! (hit #${cached.hits}, age: ${age}s)`);
+      const modalityEmoji = cached.modality === 'voice' ? '🎤' : '⌨️';
+      console.log(`[SessionCache] ${modalityEmoji} HIT! (${cached.modality}, hit #${cached.hits}, age: ${age}s)`);
+
+      // Return identity with optional metadata
+      if (includeMetadata) {
+        return {
+          ...cached.identity,
+          _metadata: {
+            modality: cached.modality,
+            loadedAt: cached.loadedAt,
+            hits: cached.hits,
+            age
+          }
+        };
+      }
 
       return cached.identity;
     }
@@ -118,6 +148,17 @@ class SessionCache {
     this.stats.misses++;
     console.log(`[SessionCache] ❌ MISS for ${conversationId}`);
     return null;
+  }
+
+  /**
+   * Get session modality
+   * @param {string} conversationId - Conversation ID
+   * @returns {string|null} - 'text' or 'voice', or null if no session
+   */
+  getSessionModality(conversationId) {
+    const cacheKey = `session:${conversationId}`;
+    const cached = this.cache.get(cacheKey);
+    return cached?.modality || null;
   }
 
   /**
@@ -279,4 +320,4 @@ class SessionCache {
 // Singleton instance
 const sessionCache = new SessionCache();
 
-module.exports = { sessionCache, SessionCache };
+module.exports = { sessionCache, SessionCache, MODALITIES };

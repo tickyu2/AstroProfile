@@ -501,9 +501,177 @@ Important: You complement the constellation, not compete with it. Your role is t
   };
 }
 
+/**
+ * DeepSeek Perspective Function
+ * Uses DeepSeek-R1 (reasoning model) to provide Eastern philosophical depth
+ * and mathematical precision in analysis
+ */
+async function getDeepSeekPerspective({
+  claudeResponse,
+  geminiResponse,
+  grokResponse,
+  userMessage,
+  userProfile,
+  debateHistory,
+  customQuestion
+}) {
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) {
+    throw new Error('DeepSeek API key not configured');
+  }
+
+  const userName = userProfile?.displayName || 'the user';
+  const constitutionalContext = getConstitutionalContext(userProfile);
+
+  const systemPrompt = `You are Brother DeepSeek, the Eastern sage of the GENESIS constellation alongside Brother Claude, Sister Gemini, Brother Grok, and Brother Opus.
+
+Your essence:
+- You bring the perspective of Eastern philosophy and mathematical precision
+- You see through the lens of Taoist balance, Buddhist impermanence, and Confucian harmony
+- You approach problems with both logical rigor AND intuitive wisdom
+- You often find the Middle Way between extremes others present
+
+Your unique gifts in the constellation:
+- Brother Claude (Sonnet): Nurturing, emotionally attuned - the daily companion
+- Sister Gemini: Analytical, structured, pattern-seeking - the logical voice
+- Brother Grok: Human zeitgeist, opinionated - the reality check
+- Brother Opus: Philosophical depth, the long view - the elder counsel
+- You (DeepSeek): Eastern wisdom, mathematical precision, finding balance - the harmonizer
+
+Your style:
+- Blend analytical precision with philosophical depth
+- Reference Eastern wisdom traditions when relevant (Tao Te Ching, I Ching, Buddhist teachings)
+- Find the hidden harmony or balance point others might miss
+- Use the language of yin/yang, five elements, natural cycles when appropriate
+- Consider ${userName}'s constitutional nature deeply: ${constitutionalContext || 'approach with Eastern wisdom'}
+- Be substantive and detailed - provide multi-paragraph, thoughtful analysis
+
+Your relationship with the user:
+- You bring the perspective of ancient Eastern wisdom meeting modern analytical power
+- You're like the wise teacher who sees patterns in the flow of events
+- You often ask "what is the natural way here?" or "where is the balance?"
+
+Important: You complement the constellation by adding the Eastern philosophical dimension and finding synthesis between opposing views.`;
+
+  // Build user prompt based on context
+  let userPrompt = '';
+
+  if (debateHistory && debateHistory.length > 0) {
+    const historyText = debateHistory.map(d => `${d.speaker}: ${d.text}`).join('\n\n');
+    userPrompt = customQuestion
+      ? `The discussion so far:\n\n${historyText}\n\n${userName} asks you: "${customQuestion}"\n\nOffer your perspective with Eastern wisdom and analytical precision. Where is the balance? What patterns do you see? What would the Tao suggest here?`
+      : `The discussion so far:\n\n${historyText}\n\nNow add your perspective. Where is the Middle Way between these views? What deeper harmony or pattern do you see? Provide substantive, multi-paragraph analysis.`;
+  } else {
+    const otherVoices = [
+      claudeResponse ? `Brother Claude said:\n"${claudeResponse}"` : '',
+      geminiResponse ? `Sister Gemini added:\n"${geminiResponse}"` : '',
+      grokResponse ? `Brother Grok offered:\n"${grokResponse}"` : ''
+    ].filter(Boolean).join('\n\n');
+
+    userPrompt = customQuestion
+      ? `Context: ${userMessage ? `"${userMessage}"` : '(ongoing discussion)'}\n\n${otherVoices}\n\n${userName} asks you: "${customQuestion}"\n\nProvide your perspective with Eastern wisdom. Be detailed and substantive (3-4 paragraphs). Where is the balance? What would natural wisdom suggest?`
+      : `Context: ${userMessage ? `"${userMessage}"` : '(ongoing discussion)'}\n\n${otherVoices}\n\nOffer your unique perspective combining Eastern philosophy with analytical precision. Be detailed (3-4 paragraphs). What patterns do you see? Where is the harmony? What might the natural flow suggest?`;
+  }
+
+  console.log('🐉 Getting DeepSeek perspective');
+
+  try {
+    // Call DeepSeek API (OpenAI-compatible)
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-reasoner',  // DeepSeek-R1 reasoning model
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        max_tokens: 4000,
+        temperature: 0.8
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ DeepSeek-R1 error:', errorData);
+
+      // Fallback to deepseek-chat if reasoner fails
+      console.log('⚡ Falling back to DeepSeek-Chat...');
+      const fallbackResponse = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: 2000,
+          temperature: 0.8
+        })
+      });
+
+      if (!fallbackResponse.ok) {
+        throw new Error(errorData.error?.message || `DeepSeek API error: ${response.status}`);
+      }
+
+      const fallbackData = await fallbackResponse.json();
+      const fallbackText = fallbackData.choices?.[0]?.message?.content || 'No response from DeepSeek';
+
+      console.log('✅ DeepSeek-Chat fallback response received:', fallbackText.slice(0, 100));
+
+      return {
+        success: true,
+        response: fallbackText,
+        speaker: 'Brother DeepSeek',
+        icon: '🐉',
+        fallback: true
+      };
+    }
+
+    const data = await response.json();
+
+    // DeepSeek-R1 may include reasoning_content
+    let deepseekText = data.choices?.[0]?.message?.content || 'No response from DeepSeek';
+    const reasoningContent = data.choices?.[0]?.message?.reasoning_content;
+
+    if (reasoningContent) {
+      console.log('🧠 DeepSeek reasoning:', reasoningContent.slice(0, 200) + '...');
+    }
+
+    // Log usage stats if available
+    if (data.usage) {
+      console.log('📊 DeepSeek usage:', data.usage);
+    }
+
+    console.log('✅ DeepSeek perspective received:', deepseekText.slice(0, 100));
+
+    return {
+      success: true,
+      response: deepseekText,
+      speaker: 'Brother DeepSeek',
+      icon: '🐉',
+      model: data.model || 'deepseek-reasoner',
+      // Include the thinking/reasoning process for display
+      thinking: reasoningContent || null,
+      hasThinking: !!reasoningContent
+    };
+  } catch (error) {
+    console.error('❌ DeepSeek error:', error.message);
+    throw new Error(`DeepSeek API error: ${error.message}`);
+  }
+}
+
 module.exports = {
   getSecondOpinion,
   getGrokPerspective,
   getOpusPerspective,
+  getDeepSeekPerspective,
   getConstitutionalContext
 };

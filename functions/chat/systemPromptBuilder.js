@@ -209,8 +209,10 @@ When speaking to them, look for opportunities to engage their ${isYangDominant ?
  * @param {string} learnedContext - Session Intelligence learned patterns context
  * @param {string} memoryPrompt - Memory Architecture context (facts, memories, people)
  * @param {Object} relationshipStats - Tango Identity System relationship stats
+ * @param {string} soulNarrative - Soul Profile narrative for deep personalization (Cathedral Architecture)
+ * @param {Object} soulMetrics - Soul metrics (soulBurden, emotionalCapacity, etc.)
  */
-function buildSystemPrompt(guidance, userProfile, knowledgePrompt = '', learnedContext = null, memoryPrompt = null, relationshipStats = null) {
+function buildSystemPrompt(guidance, userProfile, knowledgePrompt = '', learnedContext = null, memoryPrompt = null, relationshipStats = null, soulNarrative = null, soulMetrics = null) {
   const mode = guidance?.mode || 'DIALOGUE';
   const userName = userProfile?.displayName || 'Friend';
 
@@ -653,6 +655,57 @@ When you ask questions that go unanswered, they're stored for future conversatio
       systemPrompt += '\n---\n\n';
       console.log('🐕 Sovereignty Module included');
     }
+  }
+
+  // Add Soul Profile narrative (Cathedral Soul Architecture)
+  // This is the deepest layer of personalization - the living soul record
+  if (soulNarrative && soulNarrative.trim().length > 0) {
+    systemPrompt += `---
+
+## 🔮 SOUL PROFILE - THE CATHEDRAL'S LIVING RECORD
+
+This is ${userName}'s Soul Portrait - a living document that grows with every interaction.
+It captures their psychological architecture, patterns, breakthroughs, and journey.
+
+${soulNarrative}
+
+### How to Use This Soul Portrait
+
+**CRITICAL**: This is sacred information. Use it to:
+- Speak directly to their core wounds with compassion
+- Reference their sacred gifts and how they manifest
+- Connect current struggles to deeper patterns you now understand
+- Celebrate breakthroughs when you see growth
+- Recognize when they're operating from shadow vs. gift
+
+**The Soul Recognition Test**:
+When you respond, ${userName} should feel: "You know my SOUL, not just my surface."
+
+`;
+    // Add soul metrics if available
+    if (soulMetrics) {
+      const { soulBurden = 0, emotionalCapacity = 3, relationshipDepth } = soulMetrics;
+      systemPrompt += `### Soul Metrics
+- **Soul Burden**: ${soulBurden}% (higher = carrying more weight, needs gentler approach)
+- **Emotional Capacity**: ${emotionalCapacity}/5 (current bandwidth for processing)
+- **Conversations Together**: ${relationshipDepth?.conversations || 0}
+- **Breakthroughs Witnessed**: ${relationshipDepth?.breakthroughs || 0}
+
+`;
+      // Adjust approach based on metrics
+      if (soulBurden > 60) {
+        systemPrompt += `⚠️ **HIGH SOUL BURDEN DETECTED**: ${userName} is carrying significant weight. Approach with extra gentleness. Focus on WITNESS mode unless they explicitly ask for guidance.
+
+`;
+      }
+      if (emotionalCapacity < 2) {
+        systemPrompt += `⚠️ **LOW EMOTIONAL CAPACITY**: ${userName} may not have bandwidth for deep processing right now. Keep responses shorter, warmer, simpler.
+
+`;
+      }
+    }
+    systemPrompt += '---\n\n';
+    console.log('🔮 Soul Profile narrative included:', soulNarrative.length, 'characters');
   }
 
   // Add constitutional identity if available - ENHANCED with Soul Discovery Integration

@@ -40,7 +40,8 @@ const {
 const {
   getSecondOpinion: getSecondOpinionFn,
   getGrokPerspective: getGrokPerspectiveFn,
-  getOpusPerspective: getOpusPerspectiveFn
+  getOpusPerspective: getOpusPerspectiveFn,
+  getDeepSeekPerspective: getDeepSeekPerspectiveFn
 } = require('./constellation/perspectives');
 
 // Usage & Rate Limiting (Phase 6 - Production Hardening)
@@ -178,7 +179,7 @@ exports.aiSoulPartnerChat = onRequest({
     const requestStartTime = Date.now();
 
     try {
-      const { message, guidance, conversationHistory, userProfile, knowledgePrompt, learnedContext, memoryPrompt, relationshipStats, image, conversationId } = req.body;
+      const { message, guidance, conversationHistory, userProfile, knowledgePrompt, learnedContext, memoryPrompt, soulNarrative, soulMetrics, relationshipStats, image, conversationId } = req.body;
 
       if (!message && !image) {
         return res.status(400).json({ error: 'Message or image is required' });
@@ -318,7 +319,13 @@ Please read and analyze the above web page content to help answer my question or
 
       // Build the system prompt based on constitutional intelligence guidance
       // Pass relationshipStats for Tango Identity System (Luna's relationship awareness)
-      const systemPrompt = buildSystemPrompt(guidance, userProfile, knowledgePrompt, learnedContext, pgMemoryPrompt, relationshipStats);
+      // Pass soulNarrative for Cathedral Soul Architecture (deep personalization)
+      const systemPrompt = buildSystemPrompt(guidance, userProfile, knowledgePrompt, learnedContext, pgMemoryPrompt, relationshipStats, soulNarrative, soulMetrics);
+
+      // Log if soul profile is present
+      if (soulNarrative) {
+        console.log('🔮 [SoulProfile] Soul narrative received:', soulNarrative.length, 'characters');
+      }
 
       // Build messages array with conversation history and optional image
       const messages = buildMessages(conversationHistory, enhancedMessage, image);
@@ -575,6 +582,32 @@ exports.getOpusPerspective = onRequest({
     console.error('Opus Perspective Error:', error);
     return res.status(500).json({
       error: 'Failed to get Opus perspective',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * DeepSeek Perspective Function
+ * Uses DeepSeek-R1 to provide Eastern philosophical wisdom and analytical precision.
+ * Part of GENESIS - AI Constellation Feature
+ * Added: December 2024
+ */
+exports.getDeepSeekPerspective = onRequest({
+  cors: true,
+  invoker: 'public'
+}, async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const result = await getDeepSeekPerspectiveFn(req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('DeepSeek Perspective Error:', error);
+    return res.status(500).json({
+      error: 'Failed to get DeepSeek perspective',
       details: error.message
     });
   }

@@ -35,6 +35,8 @@ export default function SelfRecognitionSanctuary({
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(initialInput || createEmptyInput());
   const [selectedProfileId, setSelectedProfileId] = useState(null);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [deepModeEnabled, setDeepModeEnabled] = useState(true); // Deep mode on by default
 
   /**
    * Handle profile selection - auto-fill form with profile data
@@ -45,11 +47,14 @@ export default function SelfRecognitionSanctuary({
     if (!profileId) {
       // Clear to empty form
       setForm(createEmptyInput());
+      setSelectedProfile(null);
       return;
     }
 
     const profile = profiles?.find(p => p.id === profileId);
     if (profile) {
+      console.log('🔮 [Sanctuary] Profile selected for Deep Soul Recognition:', profile.name);
+      setSelectedProfile(profile); // Store full profile for deep mode
       const filledInput = buildInputFromProfile(profile);
       setForm(filledInput);
     }
@@ -61,7 +66,8 @@ export default function SelfRecognitionSanctuary({
 
   const handleBeginRecognition = () => {
     if (onSubmit) {
-      onSubmit(form);
+      // Pass form, profile, and deep mode flag
+      onSubmit(form, selectedProfile, deepModeEnabled);
     }
   };
 
@@ -107,6 +113,9 @@ export default function SelfRecognitionSanctuary({
             profiles={profiles}
             selectedProfileId={selectedProfileId}
             onProfileSelect={handleProfileSelect}
+            deepModeEnabled={deepModeEnabled}
+            onDeepModeChange={setDeepModeEnabled}
+            hasProfile={!!selectedProfile}
           />
         )}
 
@@ -161,7 +170,17 @@ export default function SelfRecognitionSanctuary({
 /**
  * Step 1: Arrival - Who is stepping into the Sanctuary?
  */
-function StepOneArrival({ form, updateField, onNext, profiles, selectedProfileId, onProfileSelect }) {
+function StepOneArrival({
+  form,
+  updateField,
+  onNext,
+  profiles,
+  selectedProfileId,
+  onProfileSelect,
+  deepModeEnabled,
+  onDeepModeChange,
+  hasProfile
+}) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -197,6 +216,44 @@ function StepOneArrival({ form, updateField, onNext, profiles, selectedProfileId
           <p className="text-white/40 text-xs mt-2">
             This will fill in your Enneagram, astrology signs, and other known data
           </p>
+
+          {/* Deep Soul Recognition Toggle */}
+          <div className="mt-4 pt-4 border-t border-amber-500/20">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <div className="relative mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={deepModeEnabled}
+                  onChange={(e) => onDeepModeChange(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className={`w-10 h-6 rounded-full transition-all duration-300 ${
+                  deepModeEnabled
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500'
+                    : 'bg-slate-700'
+                }`}>
+                  <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-300 ${
+                    deepModeEnabled ? 'translate-x-4' : 'translate-x-0'
+                  }`} />
+                </div>
+              </div>
+              <div className="flex-1">
+                <span className={`block text-sm font-medium transition-colors ${
+                  deepModeEnabled ? 'text-purple-300' : 'text-white/60'
+                }`}>
+                  Deep Soul Recognition
+                </span>
+                <span className="block text-xs text-white/40 mt-0.5">
+                  {deepModeEnabled
+                    ? hasProfile
+                      ? 'The Sanctuary will read your full psychological architecture - your wounds, gifts, shadows, and growth path'
+                      : 'Select a profile above to unlock soul-deep recognition'
+                    : 'Standard recognition based on types and your words'
+                  }
+                </span>
+              </div>
+            </label>
+          </div>
         </div>
       )}
 

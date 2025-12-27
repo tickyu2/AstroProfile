@@ -43,6 +43,7 @@ import { useThreading, THREAD_TYPES } from '../../hooks/useThreading';
 // Luna Voice Integration
 import { VoiceControlPanel, MessageSpeakButton } from '../voice';
 import { useVoice } from '../../hooks/useVoice';
+import VoiceTranscriptPanel from './VoiceTranscriptPanel';
 
 // Fallback responses when API is unavailable
 const FALLBACK_RESPONSES = {
@@ -156,6 +157,13 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
     setIsVoiceEnabled,
     constitution: userConstitution
   } = useVoice({ userProfile });
+
+  // Voice Transcript Panel State
+  const [showVoiceTranscript, setShowVoiceTranscript] = useState(false);
+  const [voiceSessionId, setVoiceSessionId] = useState(null);
+  const [userVoiceTranscripts, setUserVoiceTranscripts] = useState([]);
+  const [lunaVoiceTranscripts, setLunaVoiceTranscripts] = useState([]);
+
   const messagesEndRef = useRef(null);
   const previousConversationRef = useRef(null); // Track previous conversation for pattern extraction
   const inputRef = useRef(null);
@@ -251,6 +259,42 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
 
     initializeSessionIntelligence();
   }, [userProfile?.userId]);
+
+  // Voice Session Management - Start/End session when voice mode toggles
+  useEffect(() => {
+    if (isVoiceEnabled) {
+      // Start new voice session
+      const newSessionId = `voice_${Date.now()}_${userProfile?.id || 'unknown'}`;
+      setVoiceSessionId(newSessionId);
+      setUserVoiceTranscripts([]);
+      setLunaVoiceTranscripts([]);
+      setShowVoiceTranscript(true);
+      console.log('🎤 Voice session started:', newSessionId);
+    } else if (voiceSessionId) {
+      // Voice mode turned off - session will be saved by VoiceTranscriptPanel
+      console.log('🎤 Voice session ended:', voiceSessionId);
+      // Don't clear transcripts immediately - let user review
+      // setShowVoiceTranscript(false); // Keep open for review
+    }
+  }, [isVoiceEnabled, userProfile?.id]);
+
+  // Helper: Add user voice transcript
+  const addUserVoiceTranscript = (text) => {
+    if (!text?.trim()) return;
+    setUserVoiceTranscripts(prev => [...prev, {
+      text: text.trim(),
+      timestamp: Date.now()
+    }]);
+  };
+
+  // Helper: Add Luna voice transcript
+  const addLunaVoiceTranscript = (text) => {
+    if (!text?.trim()) return;
+    setLunaVoiceTranscripts(prev => [...prev, {
+      text: text.trim(),
+      timestamp: Date.now()
+    }]);
+  };
 
   // Extract patterns when switching away from a conversation
   useEffect(() => {
@@ -2228,10 +2272,12 @@ Please create a comprehensive document. Start with a clear title on the first li
     }
   }, [location.state, navigate, location.pathname]);
 
-  // Handle sending a message (optionally with override content)
-  const handleSend = async (overrideContent = null) => {
+  // Handle sending a message (optionally with override content and modality)
+  // modality: 'text' (default) or 'voice' - keeps conversations isolated
+  const handleSend = async (overrideContent = null, modality = 'text') => {
     const messageContent = overrideContent !== null ? overrideContent : inputValue;
-    console.log('🚀 handleSend called, content:', messageContent?.slice(0, 30));
+    const modalityEmoji = modality === 'voice' ? '🎤' : '⌨️';
+    console.log(`${modalityEmoji} handleSend called (${modality}), content:`, messageContent?.slice(0, 30));
 
     if ((!messageContent.trim() && attachedFiles.length === 0 && attachedImages.length === 0) || isTyping) {
       console.log('🚫 Early return - no input or typing');
@@ -2316,8 +2362,14 @@ Please create a comprehensive document. Start with a clear title on the first li
       imageCount: attachedImages.length || null,
       imageNames: attachedImages.length > 0 ? attachedImages.map(img => img.name) : null,
       imagePreview: attachedImages.length > 0 ? `[${attachedImages.length} screenshot${attachedImages.length > 1 ? 's' : ''} attached]` : null, // Don't store full base64 in Firestore - too large
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      modality  // 'text' or 'voice' - for modality isolation
     };
+
+    // Capture user voice transcript if in voice mode
+    if (modality === 'voice' && isVoiceEnabled) {
+      addUserVoiceTranscript(displayText);
+    }
 
     // Add user message to chat (update Firestore or Thread)
     const messagesWithUser = [...messages, userMessage];
@@ -2448,7 +2500,9 @@ Please create a comprehensive document. Start with a clear title on the first li
         sessionId: activeConversationId,
         // Conversation Cache - 80%+ token reduction (Phase 4)
         useOptimizedPayload: messages.length > 10, // Enable when we have enough history
-        conversationId: activeConversationId
+        conversationId: activeConversationId,
+        // Modality Isolation - text and voice conversations stay separate
+        modality
       });
 
       // Log token savings if using optimized payload
@@ -2471,7 +2525,8 @@ Please create a comprehensive document. Start with a clear title on the first li
         fromAPI: response.success,
         // Only store that an image was generated, not the actual data (too large for Firestore)
         hasGeneratedImage: !!response.generatedImage,
-        generatedImagePrompt: response.generatedImage?.prompt || null
+        generatedImagePrompt: response.generatedImage?.prompt || null,
+        modality  // 'text' or 'voice' - for modality isolation
       };
 
       // Create message for local display (with full image data)
@@ -2522,6 +2577,11 @@ Please create a comprehensive document. Start with a clear title on the first li
       // Call parent callback if provided
       onMessageSend?.(userMessage, aiMessageForDisplay, analysis);
 
+      // Capture Luna voice transcript if in voice mode
+      if (modality === 'voice' && isVoiceEnabled) {
+        addLunaVoiceTranscript(response.text);
+      }
+
       // BIOGRAPHICAL EXTRACTION FROM AI RESPONSE (capture deduced facts)
       // The AI often deduces and confirms biographical details (e.g., "Amy born April 1, 2001")
       if (bioUserId && bioProfileId && response.text && response.text.length > 50) {
@@ -2556,7 +2616,8 @@ Please create a comprehensive document. Start with a clear title on the first li
         timestamp: new Date().toISOString(),
         mode: analysis.recommendedMode,
         analysis: analysis,
-        fromAPI: false
+        fromAPI: false,
+        modality  // 'text' or 'voice' - for modality isolation
       };
 
       // Update Firestore or Thread with fallback response
@@ -2573,6 +2634,11 @@ Please create a comprehensive document. Start with a clear title on the first li
       }
       setApiStatus('fallback');
       onMessageSend?.(userMessage, aiMessage, analysis);
+
+      // Capture Luna fallback voice transcript if in voice mode
+      if (modality === 'voice' && isVoiceEnabled) {
+        addLunaVoiceTranscript(aiMessage.text);
+      }
 
     } finally {
       setIsTyping(false);
@@ -2708,6 +2774,21 @@ Please create a comprehensive document. Start with a clear title on the first li
             isEnabled={isVoiceEnabled}
             onToggle={setIsVoiceEnabled}
           />
+
+          {/* Voice Transcript Toggle - Shows when voice is enabled */}
+          {isVoiceEnabled && (
+            <button
+              onClick={() => setShowVoiceTranscript(!showVoiceTranscript)}
+              className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                showVoiceTranscript
+                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                  : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/10'
+              }`}
+            >
+              <span>📜</span>
+              <span>{showVoiceTranscript ? 'Hide Transcript' : 'Show Transcript'}</span>
+            </button>
+          )}
 
           {/* Constitutional Threading Panel - Always visible */}
           <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20 overflow-hidden">
@@ -4985,6 +5066,16 @@ Please create a comprehensive document. Start with a clear title on the first li
           </div>
         </div>
       )}
+
+      {/* Voice Transcript Panel - Floating side-by-side view */}
+      <VoiceTranscriptPanel
+        isOpen={showVoiceTranscript}
+        onClose={() => setShowVoiceTranscript(false)}
+        userTranscripts={userVoiceTranscripts}
+        lunaTranscripts={lunaVoiceTranscripts}
+        sessionId={voiceSessionId}
+        profileId={userProfile?.id}
+      />
     </div>
   );
 }

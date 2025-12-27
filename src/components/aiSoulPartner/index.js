@@ -16,5 +16,9 @@ export { default as SoulPartnerKBViewer } from './SoulPartnerKBViewer';
 export { default as NeuralSidebar } from './NeuralSidebar';
 export { default as QuestionCard } from './QuestionCard';
 
+// Voice Transcript Components
+export { default as VoiceTranscriptPanel } from './VoiceTranscriptPanel';
+export { default as MomentumScrollControl } from './MomentumScrollControl';
+
 // Default export
 export { AISoulPartnerChat as default } from './AISoulPartnerChat';
