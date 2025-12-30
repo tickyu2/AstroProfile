@@ -1,0 +1,89 @@
+.conversation-stats {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s;
+}
+
+.conversation-stats:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.conversation-stats h3 {
+  margin: 0 0 24px 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.stat-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.2s;
+}
+
+.stat-card:last-child {
+  border-bottom: none;
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.03);
+  margin: 0 -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 8px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.stat-value.archetype {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-value.congruence-high {
+  color: #10b981;
+}
+
+.stat-value.congruence-moderate {
+  color: #3b82f6;
+}
+
+.stat-value.congruence-low {
+  color: #ef4444;
+}
+
+.stat-value.complexity-high {
+  color: #f59e0b;
+}
+
+.stat-value.complexity-moderate {
+  color: #3b82f6;
+}
+
+.stat-value.complexity-low {
+  color: #10b981;
+}
+
+.stat-value.performance {
+  color: #06b6d4;
+  font-size: 14px;
+}

@@ -19,6 +19,11 @@ export { default as QuestionCard } from './QuestionCard';
 // Voice Transcript Components
 export { default as VoiceTranscriptPanel } from './VoiceTranscriptPanel';
 export { default as MomentumScrollControl } from './MomentumScrollControl';
+export { default as VoiceSettingsPanel, VOICE_STRATEGIES, VOICE_PROVIDERS } from './VoiceSettingsPanel';
+
+// Speaker Diarization Components
+export { default as MultiSpeakerTranscriptPanel } from './MultiSpeakerTranscriptPanel';
+export { default as DiarizationSessionSetup } from './DiarizationSessionSetup';
 
 // Default export
 export { AISoulPartnerChat as default } from './AISoulPartnerChat';

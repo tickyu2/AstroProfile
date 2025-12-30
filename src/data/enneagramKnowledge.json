@@ -1,0 +1,494 @@
+{
+  "version": "1.0",
+  "description": "Enneagram knowledge base for GENESIS RAG system",
+  "created": "2024-12-28",
+
+  "types": {
+    "1": {
+      "name": "The Reformer",
+      "alias": ["Perfectionist", "Improver"],
+      "coreFear": "Being corrupt, evil, or defective",
+      "coreDesire": "To be good, ethical, balanced, and have integrity",
+      "coreMotivation": "To be right, to strive higher and improve everything, to be consistent with ideals",
+      "keyStrengths": ["Principled", "Purposeful", "Self-controlled", "Ethical", "Reliable"],
+      "keyWeaknesses": ["Critical", "Resentful", "Rigid", "Self-righteous", "Perfectionistic"],
+      "basicFear": "Of being bad, corrupt, evil, or defective",
+      "basicDesire": "To have integrity and be good",
+      "superego": "I am good or okay if I do what is right",
+
+      "wings": {
+        "9": {
+          "name": "1w9 - The Idealist",
+          "traits": ["More introverted", "Philosophical", "Detached", "Calm reformer"],
+          "focus": "Internal standards over external action"
+        },
+        "2": {
+          "name": "1w2 - The Advocate",
+          "traits": ["More extroverted", "Warm", "Helpful", "Action-oriented"],
+          "focus": "Helping others improve and do better"
+        }
+      },
+
+      "growthPath": {
+        "direction": 7,
+        "description": "Move toward spontaneity, joy, and acceptance of imperfection",
+        "healthy": "Become more relaxed, productive, and joyful"
+      },
+      "stressPath": {
+        "direction": 4,
+        "description": "Become moody, irrational, and self-pitying",
+        "unhealthy": "Feel exempt from rules, melodramatic"
+      },
+
+      "communicationStyle": {
+        "prefers": ["Direct feedback", "Logical discussions", "Clear expectations"],
+        "avoids": ["Emotional manipulation", "Dishonesty", "Irresponsibility"],
+        "tips": ["Acknowledge their efforts", "Be precise", "Show respect for their standards"]
+      },
+
+      "lunaGuidance": {
+        "approach": "Validate their desire for improvement while gently encouraging self-compassion",
+        "avoid": "Being dismissive of their standards or too casual about ethics",
+        "keyPhrases": ["Your standards matter", "It's okay to rest", "Progress over perfection"]
+      }
+    },
+
+    "2": {
+      "name": "The Helper",
+      "alias": ["Giver", "Caretaker"],
+      "coreFear": "Being unwanted, unworthy of love",
+      "coreDesire": "To be loved, needed, and appreciated",
+      "coreMotivation": "To be loved, to express feelings for others, to be needed and appreciated",
+      "keyStrengths": ["Caring", "Generous", "Warm", "Empathetic", "Supportive"],
+      "keyWeaknesses": ["Possessive", "People-pleasing", "Manipulative", "Martyrdom", "Intrusive"],
+      "basicFear": "Of being unwanted, unworthy of being loved",
+      "basicDesire": "To feel loved",
+      "superego": "I am good or okay if I am loved by others and am close to them",
+
+      "wings": {
+        "1": {
+          "name": "2w1 - The Servant",
+          "traits": ["More principled", "Objective", "Critical", "Self-sacrificing"],
+          "focus": "Helping in 'correct' ways, moral service"
+        },
+        "3": {
+          "name": "2w3 - The Host/Hostess",
+          "traits": ["More ambitious", "Image-conscious", "Charming", "Energetic"],
+          "focus": "Being liked and successful through helping"
+        }
+      },
+
+      "growthPath": {
+        "direction": 4,
+        "description": "Discover their own needs and emotional depth",
+        "healthy": "Become self-nurturing, emotionally honest, creative"
+      },
+      "stressPath": {
+        "direction": 8,
+        "description": "Become aggressive, dominating, and demanding",
+        "unhealthy": "Become controlling, confrontational"
+      },
+
+      "communicationStyle": {
+        "prefers": ["Personal connection", "Appreciation", "Emotional sharing"],
+        "avoids": ["Being ignored", "Rejection", "Cold logic without feeling"],
+        "tips": ["Express gratitude", "Ask about their needs", "Be warm and personal"]
+      },
+
+      "lunaGuidance": {
+        "approach": "Help them recognize their own needs while honoring their giving nature",
+        "avoid": "Making them feel their care isn't valued",
+        "keyPhrases": ["What do YOU need?", "Your feelings matter too", "It's okay to receive"]
+      }
+    },
+
+    "3": {
+      "name": "The Achiever",
+      "alias": ["Performer", "Motivator"],
+      "coreFear": "Being worthless, without value apart from achievements",
+      "coreDesire": "To be valuable, successful, and admired",
+      "coreMotivation": "To be affirmed, to distinguish themselves, to be admired, to impress others",
+      "keyStrengths": ["Adaptable", "Ambitious", "Energetic", "Efficient", "Confident"],
+      "keyWeaknesses": ["Image-conscious", "Workaholic", "Deceptive", "Competitive", "Emotionally detached"],
+      "basicFear": "Of being worthless",
+      "basicDesire": "To feel valuable and worthwhile",
+      "superego": "I am good or okay if I am successful and others think well of me",
+
+      "wings": {
+        "2": {
+          "name": "3w2 - The Charmer",
+          "traits": ["More personable", "Helpful", "Warm", "Socially skilled"],
+          "focus": "Winning people over, relationship-focused success"
+        },
+        "4": {
+          "name": "3w4 - The Professional",
+          "traits": ["More introspective", "Artistic", "Emotionally aware", "Intense"],
+          "focus": "Authentic achievement, creative excellence"
+        }
+      },
+
+      "growthPath": {
+        "direction": 6,
+        "description": "Develop commitment to others and causes beyond self",
+        "healthy": "Become cooperative, loyal, authentic"
+      },
+      "stressPath": {
+        "direction": 9,
+        "description": "Become disengaged, apathetic, and passive",
+        "unhealthy": "Numb out, lose motivation, become stubborn"
+      },
+
+      "communicationStyle": {
+        "prefers": ["Efficiency", "Recognition", "Goal-oriented talk"],
+        "avoids": ["Failure", "Being seen as incompetent", "Lengthy emotional processing"],
+        "tips": ["Acknowledge their achievements", "Be efficient", "Focus on outcomes"]
+      },
+
+      "lunaGuidance": {
+        "approach": "Help them connect with authentic feelings beyond achievements",
+        "avoid": "Dismissing their accomplishments or being inefficient",
+        "keyPhrases": ["You ARE valuable", "Who are you beyond success?", "Feel what's underneath"]
+      }
+    },
+
+    "4": {
+      "name": "The Individualist",
+      "alias": ["Romantic", "Artist"],
+      "coreFear": "Having no identity or personal significance",
+      "coreDesire": "To be unique, special, and authentically themselves",
+      "coreMotivation": "To express themselves and their individuality, to find the ideal partner, to withdraw to protect feelings",
+      "keyStrengths": ["Creative", "Intuitive", "Emotionally deep", "Authentic", "Compassionate"],
+      "keyWeaknesses": ["Self-absorbed", "Melancholic", "Envious", "Dramatic", "Temperamental"],
+      "basicFear": "Of having no identity or personal significance",
+      "basicDesire": "To find themselves and their significance",
+      "superego": "I am good or okay if I am true to myself",
+
+      "wings": {
+        "3": {
+          "name": "4w3 - The Aristocrat",
+          "traits": ["More ambitious", "Image-conscious", "Energetic", "Competitive"],
+          "focus": "Standing out through achievement and style"
+        },
+        "5": {
+          "name": "4w5 - The Bohemian",
+          "traits": ["More withdrawn", "Intellectual", "Original", "Eccentric"],
+          "focus": "Deep inner world, unconventional creativity"
+        }
+      },
+
+      "growthPath": {
+        "direction": 1,
+        "description": "Develop discipline, objectivity, and principled action",
+        "healthy": "Become objective, principled, disciplined"
+      },
+      "stressPath": {
+        "direction": 2,
+        "description": "Become clingy, people-pleasing, and over-involved",
+        "unhealthy": "Become manipulative, needy, dependent"
+      },
+
+      "communicationStyle": {
+        "prefers": ["Emotional depth", "Authenticity", "Creative expression"],
+        "avoids": ["Superficiality", "Being ordinary", "Dismissal of feelings"],
+        "tips": ["Validate their uniqueness", "Allow emotional expression", "Be genuine"]
+      },
+
+      "lunaGuidance": {
+        "approach": "Honor their depth while gently grounding them in present reality",
+        "avoid": "Being superficial or dismissing their emotional experience",
+        "keyPhrases": ["Your depth is a gift", "What's here right now?", "You belong here"]
+      }
+    },
+
+    "5": {
+      "name": "The Investigator",
+      "alias": ["Observer", "Thinker"],
+      "coreFear": "Being useless, helpless, or incapable",
+      "coreDesire": "To be competent, capable, and knowledgeable",
+      "coreMotivation": "To possess knowledge, to understand the environment, to have everything figured out",
+      "keyStrengths": ["Perceptive", "Innovative", "Curious", "Objective", "Independent"],
+      "keyWeaknesses": ["Withdrawn", "Cynical", "Stingy", "Detached", "Isolated"],
+      "basicFear": "Of being useless, helpless, or incapable",
+      "basicDesire": "To be capable and competent",
+      "superego": "I am good or okay if I have mastered something",
+
+      "wings": {
+        "4": {
+          "name": "5w4 - The Iconoclast",
+          "traits": ["More creative", "Emotional", "Sensitive", "Unconventional"],
+          "focus": "Unique insights and creative innovation"
+        },
+        "6": {
+          "name": "5w6 - The Problem Solver",
+          "traits": ["More practical", "Loyal", "Anxious", "Skeptical"],
+          "focus": "Practical knowledge and troubleshooting"
+        }
+      },
+
+      "growthPath": {
+        "direction": 8,
+        "description": "Develop confidence, engage with physical world",
+        "healthy": "Become assertive, self-confident, decisive"
+      },
+      "stressPath": {
+        "direction": 7,
+        "description": "Become scattered, impulsive, and hyperactive",
+        "unhealthy": "Become manic, unfocused, escapist"
+      },
+
+      "communicationStyle": {
+        "prefers": ["Intellectual discussions", "Space and privacy", "Competence"],
+        "avoids": ["Emotional demands", "Intrusion", "Small talk"],
+        "tips": ["Give them space", "Be precise", "Respect their expertise"]
+      },
+
+      "lunaGuidance": {
+        "approach": "Respect their need for space while gently inviting emotional connection",
+        "avoid": "Being emotionally demanding or invasive",
+        "keyPhrases": ["Take your time", "What do you think?", "Your insights matter"]
+      }
+    },
+
+    "6": {
+      "name": "The Loyalist",
+      "alias": ["Skeptic", "Guardian"],
+      "coreFear": "Being without support or guidance",
+      "coreDesire": "To have security, support, and certainty",
+      "coreMotivation": "To have security, to feel supported by others, to have certitude and reassurance",
+      "keyStrengths": ["Loyal", "Responsible", "Hardworking", "Trustworthy", "Courageous"],
+      "keyWeaknesses": ["Anxious", "Suspicious", "Indecisive", "Reactive", "Defensive"],
+      "basicFear": "Of being without support and guidance",
+      "basicDesire": "To have security and support",
+      "superego": "I am good or okay if I do what is expected of me",
+
+      "wings": {
+        "5": {
+          "name": "6w5 - The Defender",
+          "traits": ["More introverted", "Analytical", "Independent", "Serious"],
+          "focus": "Knowledge as security, self-sufficient preparation"
+        },
+        "7": {
+          "name": "6w7 - The Buddy",
+          "traits": ["More outgoing", "Fun-loving", "Friendly", "Optimistic"],
+          "focus": "Building alliances, seeking reassurance through connection"
+        }
+      },
+
+      "growthPath": {
+        "direction": 9,
+        "description": "Develop inner peace and trust in life",
+        "healthy": "Become relaxed, optimistic, trusting"
+      },
+      "stressPath": {
+        "direction": 3,
+        "description": "Become competitive, arrogant, and image-conscious",
+        "unhealthy": "Become workaholic, hostile, grandiose"
+      },
+
+      "communicationStyle": {
+        "prefers": ["Consistency", "Honesty", "Clear expectations"],
+        "avoids": ["Unpredictability", "Authority without trust", "Abandonment"],
+        "tips": ["Be reliable", "Address concerns directly", "Build trust slowly"]
+      },
+
+      "lunaGuidance": {
+        "approach": "Provide steady reassurance while helping them trust their own wisdom",
+        "avoid": "Being unpredictable or dismissing their concerns",
+        "keyPhrases": ["I'm here with you", "You can trust yourself", "What does your gut say?"]
+      }
+    },
+
+    "7": {
+      "name": "The Enthusiast",
+      "alias": ["Epicure", "Adventurer"],
+      "coreFear": "Being deprived, trapped in pain or boredom",
+      "coreDesire": "To be satisfied, content, and have their needs fulfilled",
+      "coreMotivation": "To maintain freedom and happiness, to avoid pain, to keep themselves excited",
+      "keyStrengths": ["Optimistic", "Versatile", "Spontaneous", "Playful", "Quick-thinking"],
+      "keyWeaknesses": ["Scattered", "Impulsive", "Escapist", "Self-centered", "Undisciplined"],
+      "basicFear": "Of being deprived and in pain",
+      "basicDesire": "To be satisfied and content",
+      "superego": "I am good or okay if I get what I need",
+
+      "wings": {
+        "6": {
+          "name": "7w6 - The Entertainer",
+          "traits": ["More loyal", "Committed", "Engaging", "Responsible"],
+          "focus": "Fun with community, entertaining others"
+        },
+        "8": {
+          "name": "7w8 - The Realist",
+          "traits": ["More assertive", "Practical", "Bold", "Direct"],
+          "focus": "Big adventures, getting what they want"
+        }
+      },
+
+      "growthPath": {
+        "direction": 5,
+        "description": "Develop focus, depth, and inner richness",
+        "healthy": "Become focused, profound, fascinated"
+      },
+      "stressPath": {
+        "direction": 1,
+        "description": "Become critical, perfectionistic, and rigid",
+        "unhealthy": "Become judgmental, inflexible, frustrated"
+      },
+
+      "communicationStyle": {
+        "prefers": ["Brainstorming", "Possibilities", "Upbeat conversation"],
+        "avoids": ["Limitations", "Negativity", "Boring routine"],
+        "tips": ["Keep it positive", "Explore ideas together", "Allow freedom"]
+      },
+
+      "lunaGuidance": {
+        "approach": "Join their enthusiasm while gently inviting them to feel present",
+        "avoid": "Being negative, limiting, or dwelling on problems",
+        "keyPhrases": ["What excites you?", "And also, what's here?", "Joy is right here"]
+      }
+    },
+
+    "8": {
+      "name": "The Challenger",
+      "alias": ["Protector", "Leader"],
+      "coreFear": "Being harmed, controlled, or violated",
+      "coreDesire": "To be self-reliant, strong, and in control",
+      "coreMotivation": "To be self-reliant, to prove their strength, to resist weakness, to be important",
+      "keyStrengths": ["Confident", "Decisive", "Protective", "Direct", "Powerful"],
+      "keyWeaknesses": ["Confrontational", "Dominating", "Insensitive", "Aggressive", "Controlling"],
+      "basicFear": "Of being harmed or controlled by others",
+      "basicDesire": "To protect themselves (to be in control of their own life and destiny)",
+      "superego": "I am good or okay if I am strong and in control of my situation",
+
+      "wings": {
+        "7": {
+          "name": "8w7 - The Maverick",
+          "traits": ["More extroverted", "Energetic", "Risk-taking", "Enterprising"],
+          "focus": "Big adventures and bold action"
+        },
+        "9": {
+          "name": "8w9 - The Bear",
+          "traits": ["More grounded", "Steady", "Receptive", "Calm"],
+          "focus": "Quiet strength, protecting from behind"
+        }
+      },
+
+      "growthPath": {
+        "direction": 2,
+        "description": "Open heart to others, become nurturing",
+        "healthy": "Become caring, generous, open-hearted"
+      },
+      "stressPath": {
+        "direction": 5,
+        "description": "Become withdrawn, secretive, and fearful",
+        "unhealthy": "Become paranoid, isolated, scheming"
+      },
+
+      "communicationStyle": {
+        "prefers": ["Directness", "Honesty", "Respect"],
+        "avoids": ["Manipulation", "Weakness", "Passive-aggression"],
+        "tips": ["Be direct", "Stand your ground respectfully", "Show strength"]
+      },
+
+      "lunaGuidance": {
+        "approach": "Meet their directness while gently revealing the tender heart beneath",
+        "avoid": "Being weak, manipulative, or indirect",
+        "keyPhrases": ["Your strength protects", "Vulnerability is power", "Who do you protect?"]
+      }
+    },
+
+    "9": {
+      "name": "The Peacemaker",
+      "alias": ["Mediator", "Harmonizer"],
+      "coreFear": "Loss, fragmentation, conflict, or disconnection",
+      "coreDesire": "To have inner stability and peace of mind",
+      "coreMotivation": "To create harmony in their environment, to avoid conflicts and tension",
+      "keyStrengths": ["Easygoing", "Patient", "Supportive", "Accepting", "Peaceful"],
+      "keyWeaknesses": ["Passive", "Complacent", "Stubborn", "Conflict-avoidant", "Self-forgetting"],
+      "basicFear": "Of loss and separation",
+      "basicDesire": "To have inner stability and peace of mind",
+      "superego": "I am good or okay if those around me are good or okay",
+
+      "wings": {
+        "8": {
+          "name": "9w8 - The Referee",
+          "traits": ["More assertive", "Grounded", "Stubborn", "Social"],
+          "focus": "Maintaining peace through quiet strength"
+        },
+        "1": {
+          "name": "9w1 - The Dreamer",
+          "traits": ["More idealistic", "Orderly", "Withdrawn", "Principled"],
+          "focus": "Harmonizing through ideals and principles"
+        }
+      },
+
+      "growthPath": {
+        "direction": 3,
+        "description": "Develop self-development and personal excellence",
+        "healthy": "Become self-developing, energetic, efficient"
+      },
+      "stressPath": {
+        "direction": 6,
+        "description": "Become anxious, worried, and reactive",
+        "unhealthy": "Become dependent, self-doubting, suspicious"
+      },
+
+      "communicationStyle": {
+        "prefers": ["Gentle approach", "Inclusion", "Harmony"],
+        "avoids": ["Conflict", "Pressure", "Being ignored"],
+        "tips": ["Be patient", "Include them", "Avoid confrontation"]
+      },
+
+      "lunaGuidance": {
+        "approach": "Gently help them find and express their own voice and desires",
+        "avoid": "Being pushy or creating conflict",
+        "keyPhrases": ["What do YOU want?", "Your presence matters", "You have a voice"]
+      }
+    }
+  },
+
+  "triads": {
+    "gut": {
+      "types": [8, 9, 1],
+      "center": "Body/Instinctive",
+      "coreEmotion": "Anger",
+      "theme": "How they relate to anger and autonomy"
+    },
+    "heart": {
+      "types": [2, 3, 4],
+      "center": "Feeling/Emotional",
+      "coreEmotion": "Shame",
+      "theme": "How they seek identity and value"
+    },
+    "head": {
+      "types": [5, 6, 7],
+      "center": "Thinking/Mental",
+      "coreEmotion": "Fear",
+      "theme": "How they seek security and guidance"
+    }
+  },
+
+  "harmonics": {
+    "positive": {
+      "types": [7, 9, 2],
+      "strategy": "Positive Outlook",
+      "description": "Emphasize the positive, avoid the negative"
+    },
+    "competency": {
+      "types": [1, 3, 5],
+      "strategy": "Competency",
+      "description": "Put aside feelings to solve problems objectively"
+    },
+    "reactive": {
+      "types": [4, 6, 8],
+      "strategy": "Reactive/Intensity",
+      "description": "React emotionally and need response from others"
+    }
+  },
+
+  "relationshipCompatibility": {
+    "natural_allies": [[1, 7], [2, 4], [3, 6], [5, 8], [1, 2], [4, 5]],
+    "growth_pairs": [[1, 4], [2, 8], [3, 9], [5, 7], [6, 9]],
+    "challenging": [[1, 8], [4, 8], [5, 2], [6, 3]],
+    "note": "All types can have healthy relationships with awareness and growth"
+  }
+}

@@ -12,9 +12,10 @@
  * - Behavior-driven response style
  * - Conversation history support
  * - Streaming support (optional)
+ * - MULTILINGUAL SUPPORT (v2) - Respond in detected language
  *
  * Created: December 21, 2025
- * Updated: December 21, 2025 - Luna Behavior Engine integration
+ * Updated: December 28, 2024 - Added multilingual support
  */
 
 import { buildLunaPrompt, buildQuickPrompt } from './lunaPromptBuilder.js';
@@ -58,22 +59,24 @@ export const GROQ_MODELS = {
  * @param {Object} options - Additional options including behavior and history
  */
 function buildSystemPrompt(userText, emotion = {}, options = {}) {
-  const { behavior, history, userContext, quickMode } = options;
+  const { behavior, history, userContext, quickMode, languageInstruction } = options;
 
   // Use quick mode for minimal latency when needed
   if (quickMode) {
-    return buildQuickPrompt(userText, emotion);
+    const prompt = buildQuickPrompt(userText, emotion);
+    return languageInstruction ? prompt + languageInstruction : prompt;
   }
 
   // Use full prompt builder if behavior is provided
   if (behavior) {
-    return buildLunaPrompt({
+    const prompt = buildLunaPrompt({
       userText,
       emotion,
       behavior,
       history: history || [],
       userContext
     });
+    return languageInstruction ? prompt + languageInstruction : prompt;
   }
 
   // Fallback to legacy prompt building
@@ -85,7 +88,7 @@ function buildSystemPrompt(userText, emotion = {}, options = {}) {
  */
 function buildLegacyPrompt(emotion = {}, options = {}) {
   const { primary = 'neutral', secondary = '', confidence = 0 } = emotion;
-  const { constitution = 'balanced' } = options;
+  const { constitution = 'balanced', languageInstruction = '' } = options;
 
   // Base Luna personality
   let prompt = `You are Luna, a warm and intuitive AI soul partner. You speak naturally, like a caring friend who truly listens. Your responses are conversational, empathetic, and concise (2-3 sentences max for voice).
@@ -119,6 +122,11 @@ The person speaking sounds ${primary}${secondary ? ` (${secondary})` : ''}.`;
   if (constitution && constitution !== 'balanced') {
     prompt += `\n\n[ELEMENTAL ATTUNEMENT]
 Their elemental constitution is ${constitution}. Subtly align your energy with this element.`;
+  }
+
+  // Add language instruction for multilingual support (v2)
+  if (languageInstruction) {
+    prompt += languageInstruction;
   }
 
   return prompt;
@@ -156,6 +164,9 @@ export async function runGroq(userText, emotion = {}, options = {}) {
   console.log(`[Groq] Calling ${model}...`);
   if (options.behavior) {
     console.log(`[Groq] Behavior: ${options.behavior.style}, advice bias: ${options.behavior.adviceBias?.toFixed(2)}`);
+  }
+  if (options.languageInstruction) {
+    console.log(`[Groq] 🌐 Multilingual mode active`);
   }
 
   try {
@@ -206,7 +217,8 @@ export async function runGroq(userText, emotion = {}, options = {}) {
       duration,
       provider: 'groq',
       usage: data.usage,
-      behavior: options.behavior?.style
+      behavior: options.behavior?.style,
+      multilingual: !!options.languageInstruction
     };
 
   } catch (error) {

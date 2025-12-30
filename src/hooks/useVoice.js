@@ -11,12 +11,15 @@
  * - Constitution extraction for theming
  * - Voice preferences persistence
  * - Auto-speak for new AI messages (optional)
+ * - Streaming TTS for lower latency progressive playback
  *
  * Created: December 21, 2025
+ * Updated: December 27, 2025 - Added streaming TTS support
  */
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { voicePreferencesService, LUNA_VOICES } from '../services/voicePreferencesService';
+import { streamingTTS } from '../services/streamingTTSService';
 
 /**
  * Custom hook for Luna Voice integration
@@ -25,12 +28,14 @@ import { voicePreferencesService, LUNA_VOICES } from '../services/voicePreferenc
  * @param {Object} options.userProfile - User profile with constitutional data
  * @param {boolean} options.autoSpeak - Auto-speak new AI messages (default: false)
  * @param {string} options.defaultVoice - Default Luna voice profile (default: 'present')
+ * @param {boolean} options.streamingEnabled - Enable streaming TTS for lower latency (default: false)
  * @returns {Object} Voice state and controls
  */
 export function useVoice({
   userProfile,
   autoSpeak = false,
-  defaultVoice = 'present'
+  defaultVoice = 'present',
+  streamingEnabled: initialStreamingEnabled = false
 } = {}) {
   // ═══════════════════════════════════════════════════════════════════════════
   // STATE
@@ -42,6 +47,11 @@ export function useVoice({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentMessageId, setCurrentMessageId] = useState(null);
   const [error, setError] = useState(null);
+
+  // Streaming TTS state
+  const [streamingEnabled, setStreamingEnabled] = useState(initialStreamingEnabled);
+  const [streamingProgress, setStreamingProgress] = useState(null);
+  const [isStreaming, setIsStreaming] = useState(false);
 
   const audioRef = useRef(null);
   const lastSpokenMessageRef = useRef(null);
@@ -94,6 +104,45 @@ export function useVoice({
   }, [volume]);
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // STREAMING TTS SETUP
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  useEffect(() => {
+    // Setup streaming TTS callbacks
+    streamingTTS.setOnProgress((progress) => {
+      setStreamingProgress({
+        current: progress.current,
+        total: progress.total,
+        percent: Math.round((progress.current / progress.total) * 100),
+        currentChunk: progress.chunk
+      });
+    });
+
+    streamingTTS.setOnChunkStart(({ text }) => {
+      setIsStreaming(true);
+      setIsPlaying(true);
+    });
+
+    streamingTTS.setOnComplete(() => {
+      setIsStreaming(false);
+      setIsPlaying(false);
+      setStreamingProgress(null);
+      setCurrentMessageId(null);
+    });
+
+    streamingTTS.setOnError((err) => {
+      console.error('[useVoice] Streaming TTS error:', err);
+      setError(err.message || 'Streaming TTS error');
+      setIsStreaming(false);
+      setIsPlaying(false);
+    });
+
+    return () => {
+      streamingTTS.stop();
+    };
+  }, []);
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // VOICE CONTROLS
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -105,9 +154,25 @@ export function useVoice({
   }, []);
 
   /**
-   * Speak text using Luna's voice
+   * Speak text using Luna's voice (streaming mode if enabled)
+   * Automatically chooses streaming or standard based on settings
    */
   const speak = useCallback(async (text, messageId = null) => {
+    if (!isVoiceEnabled || !text) return;
+
+    // Use streaming if enabled and text is long enough to benefit
+    if (streamingEnabled && text.length > 100) {
+      return streamSpeak(text, messageId);
+    }
+
+    // Standard (non-streaming) TTS
+    return speakStandard(text, messageId);
+  }, [isVoiceEnabled, streamingEnabled]);
+
+  /**
+   * Standard TTS (full generation before playback)
+   */
+  const speakStandard = useCallback(async (text, messageId = null) => {
     if (!isVoiceEnabled || !text) return;
 
     setError(null);
@@ -172,16 +237,59 @@ export function useVoice({
   }, [isVoiceEnabled, profileId, selectedVoice, volume]);
 
   /**
-   * Stop current playback
+   * Streaming TTS - progressive playback with lower latency
+   */
+  const streamSpeak = useCallback(async (text, messageId = null) => {
+    if (!isVoiceEnabled || !text) return;
+
+    setError(null);
+    setCurrentMessageId(messageId);
+    setIsStreaming(true);
+    setIsPlaying(true);
+
+    try {
+      await streamingTTS.streamText(text, profileId, {
+        voiceOverride: selectedVoice,
+        modelOverride: 'turbo' // Use turbo model for faster streaming
+      });
+
+      if (messageId) {
+        lastSpokenMessageRef.current = messageId;
+      }
+    } catch (err) {
+      console.error('[useVoice] Streaming error:', err);
+      setError(err.message);
+      setIsStreaming(false);
+      setIsPlaying(false);
+      setCurrentMessageId(null);
+    }
+  }, [isVoiceEnabled, profileId, selectedVoice]);
+
+  /**
+   * Stop current playback (standard and streaming)
    */
   const stop = useCallback(() => {
+    // Stop standard audio
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
     window.speechSynthesis?.cancel();
+
+    // Stop streaming TTS
+    streamingTTS.stop();
+
     setIsPlaying(false);
+    setIsStreaming(false);
+    setStreamingProgress(null);
     setCurrentMessageId(null);
+  }, []);
+
+  /**
+   * Toggle streaming TTS mode
+   */
+  const toggleStreaming = useCallback(() => {
+    setStreamingEnabled(prev => !prev);
   }, []);
 
   /**
@@ -236,15 +344,26 @@ export function useVoice({
     constitution,
     profileId,
 
+    // Streaming state
+    streamingEnabled,
+    isStreaming,
+    streamingProgress,
+
     // Controls
     toggleVoice,
     setIsVoiceEnabled,
     speak,
+    speakStandard,
+    streamSpeak,
     stop,
     changeVoice,
     setVolume,
     clearError,
     autoSpeakMessage,
+
+    // Streaming controls
+    toggleStreaming,
+    setStreamingEnabled,
 
     // Refs (for advanced use)
     audioRef,

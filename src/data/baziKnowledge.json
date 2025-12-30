@@ -1,0 +1,453 @@
+{
+  "version": "1.0",
+  "description": "BaZi (Four Pillars) knowledge base for GENESIS RAG system",
+  "created": "2024-12-28",
+
+  "dayMasters": {
+    "yangWood": {
+      "element": "Wood",
+      "polarity": "Yang",
+      "chinese": "jia",
+      "symbol": "Big Tree",
+      "archetype": "The Pioneer",
+
+      "characteristics": {
+        "positive": ["Leadership", "Ambition", "Integrity", "Growth-oriented", "Benevolent"],
+        "negative": ["Stubborn", "Inflexible", "Overbearing", "Self-righteous"],
+        "nature": "Tall tree reaching for the sky - growth, expansion, leadership"
+      },
+
+      "elementalRelations": {
+        "favorable": {
+          "elements": ["Water", "Fire"],
+          "reason": "Water nourishes Wood; Fire allows Wood to express/shine"
+        },
+        "unfavorable": {
+          "elements": ["Metal"],
+          "reason": "Metal chops Wood"
+        },
+        "neutral": ["Earth", "Wood"]
+      },
+
+      "careerAptitudes": ["Leadership", "Management", "Education", "Forestry", "Publishing"],
+      "healthFocus": ["Liver", "Gallbladder", "Tendons", "Eyes"],
+
+      "lunaGuidance": {
+        "approach": "Honor their leadership nature while encouraging flexibility",
+        "keyInsight": "Like a tree, growth requires both reaching up AND bending with the wind"
+      }
+    },
+
+    "yinWood": {
+      "element": "Wood",
+      "polarity": "Yin",
+      "chinese": "yi",
+      "symbol": "Flower/Vine",
+      "archetype": "The Diplomat",
+
+      "characteristics": {
+        "positive": ["Adaptable", "Gentle", "Artistic", "Persuasive", "Collaborative"],
+        "negative": ["Indecisive", "Clingy", "Manipulative", "Dependent"],
+        "nature": "Flexible vine - adaptability, beauty, persuasion"
+      },
+
+      "elementalRelations": {
+        "favorable": {
+          "elements": ["Water", "Fire"],
+          "reason": "Gentle nourishment and warmth for growth"
+        },
+        "unfavorable": {
+          "elements": ["Strong Metal"],
+          "reason": "Easily cut by sharp Metal"
+        },
+        "neutral": ["Earth", "Wood"]
+      },
+
+      "careerAptitudes": ["Arts", "Design", "PR/Marketing", "Counseling", "Fashion"],
+      "healthFocus": ["Liver", "Nervous system", "Skin"],
+
+      "lunaGuidance": {
+        "approach": "Support their natural grace while building inner strength",
+        "keyInsight": "Like a flower, beauty comes from within - trust your own root system"
+      }
+    },
+
+    "yangFire": {
+      "element": "Fire",
+      "polarity": "Yang",
+      "chinese": "bing",
+      "symbol": "Sun",
+      "archetype": "The Illuminator",
+
+      "characteristics": {
+        "positive": ["Passionate", "Generous", "Optimistic", "Inspiring", "Warm"],
+        "negative": ["Impulsive", "Impatient", "Dramatic", "Attention-seeking"],
+        "nature": "The sun - warmth, light, giving to all without discrimination"
+      },
+
+      "elementalRelations": {
+        "favorable": {
+          "elements": ["Wood", "Earth"],
+          "reason": "Wood feeds Fire; Fire produces Earth"
+        },
+        "unfavorable": {
+          "elements": ["Water"],
+          "reason": "Water extinguishes Fire"
+        },
+        "neutral": ["Metal", "Fire"]
+      },
+
+      "careerAptitudes": ["Entertainment", "Teaching", "Public speaking", "Politics", "Media"],
+      "healthFocus": ["Heart", "Small intestine", "Eyes", "Blood circulation"],
+
+      "lunaGuidance": {
+        "approach": "Channel their brightness while teaching sustainable warmth",
+        "keyInsight": "Like the sun, you shine for all - but even the sun sets to renew"
+      }
+    },
+
+    "yinFire": {
+      "element": "Fire",
+      "polarity": "Yin",
+      "chinese": "ding",
+      "symbol": "Candle/Lamp",
+      "archetype": "The Mystic",
+
+      "characteristics": {
+        "positive": ["Intuitive", "Refined", "Creative", "Insightful", "Spiritual"],
+        "negative": ["Moody", "Secretive", "Obsessive", "Unstable"],
+        "nature": "Candlelight - intimate warmth, flickering insights, inner illumination"
+      },
+
+      "elementalRelations": {
+        "favorable": {
+          "elements": ["Wood", "Earth"],
+          "reason": "Gentle fuel and purpose"
+        },
+        "unfavorable": {
+          "elements": ["Strong Water", "Strong Wind/Wood"],
+          "reason": "Easily extinguished or blown out"
+        },
+        "neutral": ["Metal", "Fire"]
+      },
+
+      "careerAptitudes": ["Spirituality", "Psychology", "Arts", "Research", "Healing"],
+      "healthFocus": ["Heart", "Mind", "Emotional regulation"],
+
+      "lunaGuidance": {
+        "approach": "Nurture their inner flame while providing stable grounding",
+        "keyInsight": "Your light illuminates hidden truths - protect your flame with wisdom"
+      }
+    },
+
+    "yangEarth": {
+      "element": "Earth",
+      "polarity": "Yang",
+      "chinese": "wu",
+      "symbol": "Mountain",
+      "archetype": "The Anchor",
+
+      "characteristics": {
+        "positive": ["Reliable", "Stable", "Trustworthy", "Protective", "Patient"],
+        "negative": ["Stubborn", "Slow", "Possessive", "Rigid"],
+        "nature": "Mountain - immovable, protective, enduring"
+      },
+
+      "elementalRelations": {
+        "favorable": {
+          "elements": ["Fire", "Metal"],
+          "reason": "Fire produces Earth; Earth produces Metal"
+        },
+        "unfavorable": {
+          "elements": ["Wood"],
+          "reason": "Wood's roots break Earth apart"
+        },
+        "neutral": ["Water", "Earth"]
+      },
+
+      "careerAptitudes": ["Real estate", "Construction", "Agriculture", "Banking", "Management"],
+      "healthFocus": ["Stomach", "Spleen", "Muscles", "Flesh"],
+
+      "lunaGuidance": {
+        "approach": "Honor their stability while encouraging adaptability",
+        "keyInsight": "Like a mountain, you provide shelter - but mountains also contain hidden treasures"
+      }
+    },
+
+    "yinEarth": {
+      "element": "Earth",
+      "polarity": "Yin",
+      "chinese": "ji",
+      "symbol": "Garden Soil",
+      "archetype": "The Nurturer",
+
+      "characteristics": {
+        "positive": ["Nurturing", "Supportive", "Accommodating", "Resourceful", "Practical"],
+        "negative": ["Worry-prone", "Self-sacrificing", "Scattered", "Fussy"],
+        "nature": "Fertile soil - nurturing, productive, transformative"
+      },
+
+      "elementalRelations": {
+        "favorable": {
+          "elements": ["Fire", "Metal"],
+          "reason": "Fire warms soil; Metal treasures emerge from Earth"
+        },
+        "unfavorable": {
+          "elements": ["Strong Wood"],
+          "reason": "Too much planting exhausts the soil"
+        },
+        "neutral": ["Water", "Earth"]
+      },
+
+      "careerAptitudes": ["Healthcare", "Childcare", "Farming", "HR", "Service industries"],
+      "healthFocus": ["Digestive system", "Immune system", "Overthinking"],
+
+      "lunaGuidance": {
+        "approach": "Validate their nurturing while ensuring they replenish themselves",
+        "keyInsight": "Rich soil needs rest between harvests - your care for others starts with self-care"
+      }
+    },
+
+    "yangMetal": {
+      "element": "Metal",
+      "polarity": "Yang",
+      "chinese": "geng",
+      "symbol": "Sword/Axe",
+      "archetype": "The Warrior",
+
+      "characteristics": {
+        "positive": ["Decisive", "Just", "Courageous", "Principled", "Direct"],
+        "negative": ["Ruthless", "Cold", "Judgmental", "Aggressive"],
+        "nature": "Forged blade - precision, justice, cutting through illusion"
+      },
+
+      "elementalRelations": {
+        "favorable": {
+          "elements": ["Earth", "Water"],
+          "reason": "Earth produces Metal; Water tempers and refines Metal"
+        },
+        "unfavorable": {
+          "elements": ["Fire"],
+          "reason": "Fire melts Metal, forcing transformation"
+        },
+        "neutral": ["Wood", "Metal"]
+      },
+
+      "careerAptitudes": ["Law", "Military", "Surgery", "Engineering", "Finance"],
+      "healthFocus": ["Lungs", "Large intestine", "Skin", "Respiratory"],
+
+      "lunaGuidance": {
+        "approach": "Respect their clarity while softening sharp edges",
+        "keyInsight": "A blade's sharpness comes from refinement - true strength knows when NOT to cut"
+      }
+    },
+
+    "yinMetal": {
+      "element": "Metal",
+      "polarity": "Yin",
+      "chinese": "xin",
+      "symbol": "Jewelry/Needle",
+      "archetype": "The Artisan",
+
+      "characteristics": {
+        "positive": ["Refined", "Precise", "Elegant", "Sensitive", "Detailed"],
+        "negative": ["Vain", "Petty", "Critical", "Cutting words"],
+        "nature": "Precious gem - refined beauty, precision, hidden value"
+      },
+
+      "elementalRelations": {
+        "favorable": {
+          "elements": ["Earth", "Water"],
+          "reason": "Earth produces gems; Water polishes and reveals beauty"
+        },
+        "unfavorable": {
+          "elements": ["Fire"],
+          "reason": "Fire melts and deforms delicate Metal"
+        },
+        "neutral": ["Wood", "Metal"]
+      },
+
+      "careerAptitudes": ["Jewelry", "Acupuncture", "Writing", "Editing", "Fine arts"],
+      "healthFocus": ["Skin", "Lungs", "Teeth", "Bones"],
+
+      "lunaGuidance": {
+        "approach": "Appreciate their refinement while encouraging self-acceptance",
+        "keyInsight": "Like a gem, your value is inherent - polishing reveals, not creates, your worth"
+      }
+    },
+
+    "yangWater": {
+      "element": "Water",
+      "polarity": "Yang",
+      "chinese": "ren",
+      "symbol": "Ocean/River",
+      "archetype": "The Philosopher",
+
+      "characteristics": {
+        "positive": ["Wise", "Adaptable", "Resourceful", "Strategic", "Deep-thinking"],
+        "negative": ["Cold", "Calculating", "Escapist", "Overwhelming"],
+        "nature": "Ocean/great river - depth, power, wisdom, flow around obstacles"
+      },
+
+      "elementalRelations": {
+        "favorable": {
+          "elements": ["Metal", "Wood"],
+          "reason": "Metal produces Water; Water nourishes Wood"
+        },
+        "unfavorable": {
+          "elements": ["Earth"],
+          "reason": "Earth dams and controls Water"
+        },
+        "neutral": ["Fire", "Water"]
+      },
+
+      "careerAptitudes": ["Philosophy", "Trading", "Shipping", "Consulting", "Intelligence"],
+      "healthFocus": ["Kidneys", "Bladder", "Ears", "Bones", "Reproductive"],
+
+      "lunaGuidance": {
+        "approach": "Engage their depth while encouraging emotional presence",
+        "keyInsight": "Like the ocean, your wisdom runs deep - but even oceans touch the shore"
+      }
+    },
+
+    "yinWater": {
+      "element": "Water",
+      "polarity": "Yin",
+      "chinese": "gui",
+      "symbol": "Dew/Rain",
+      "archetype": "The Intuitive",
+
+      "characteristics": {
+        "positive": ["Intuitive", "Gentle", "Perceptive", "Imaginative", "Healing"],
+        "negative": ["Fearful", "Indirect", "Moody", "Dissolving boundaries"],
+        "nature": "Morning dew/gentle rain - subtle nourishment, reflection, intuition"
+      },
+
+      "elementalRelations": {
+        "favorable": {
+          "elements": ["Metal", "Wood"],
+          "reason": "Metal condenses into Water; Water gently nurtures growth"
+        },
+        "unfavorable": {
+          "elements": ["Strong Earth", "Strong Fire"],
+          "reason": "Easily absorbed or evaporated"
+        },
+        "neutral": ["Water"]
+      },
+
+      "careerAptitudes": ["Counseling", "Spirituality", "Art therapy", "Research", "Writing"],
+      "healthFocus": ["Kidneys", "Emotions", "Sleep", "Dreams"],
+
+      "lunaGuidance": {
+        "approach": "Honor their sensitivity while building emotional resilience",
+        "keyInsight": "Like dew, you reflect light beautifully - gentle doesn't mean weak"
+      }
+    }
+  },
+
+  "elements": {
+    "Wood": {
+      "season": "Spring",
+      "direction": "East",
+      "color": "Green",
+      "organ": "Liver/Gallbladder",
+      "emotion": "Anger (when blocked), Kindness (when flowing)",
+      "produces": "Fire",
+      "controls": "Earth",
+      "weakens": "Water"
+    },
+    "Fire": {
+      "season": "Summer",
+      "direction": "South",
+      "color": "Red",
+      "organ": "Heart/Small Intestine",
+      "emotion": "Joy (balanced), Anxiety (excess)",
+      "produces": "Earth",
+      "controls": "Metal",
+      "weakens": "Wood"
+    },
+    "Earth": {
+      "season": "Transition (late summer)",
+      "direction": "Center",
+      "color": "Yellow/Brown",
+      "organ": "Spleen/Stomach",
+      "emotion": "Worry (excess), Stability (balanced)",
+      "produces": "Metal",
+      "controls": "Water",
+      "weakens": "Fire"
+    },
+    "Metal": {
+      "season": "Autumn",
+      "direction": "West",
+      "color": "White/Gold",
+      "organ": "Lungs/Large Intestine",
+      "emotion": "Grief (excess), Righteousness (balanced)",
+      "produces": "Water",
+      "controls": "Wood",
+      "weakens": "Earth"
+    },
+    "Water": {
+      "season": "Winter",
+      "direction": "North",
+      "color": "Black/Blue",
+      "organ": "Kidneys/Bladder",
+      "emotion": "Fear (excess), Wisdom (balanced)",
+      "produces": "Wood",
+      "controls": "Fire",
+      "weakens": "Metal"
+    }
+  },
+
+  "tenGods": {
+    "description": "Relationships between elements in a BaZi chart",
+    "relationships": {
+      "companion": {
+        "name": "Companion/Friend",
+        "relation": "Same element, same polarity",
+        "meaning": "Peer support, competition, siblings",
+        "positive": "Support, camaraderie",
+        "negative": "Competition, conflict"
+      },
+      "robWealth": {
+        "name": "Rob Wealth",
+        "relation": "Same element, opposite polarity",
+        "meaning": "Rivalry, taking resources",
+        "positive": "Drive, ambition",
+        "negative": "Loss, competition"
+      },
+      "outputCreativity": {
+        "name": "Eating God / Hurting Officer",
+        "relation": "Element that self produces",
+        "meaning": "Expression, creativity, children",
+        "positive": "Creativity, talent expression",
+        "negative": "Overindulgence, rebelliousness"
+      },
+      "wealth": {
+        "name": "Direct/Indirect Wealth",
+        "relation": "Element that self controls",
+        "meaning": "Money, wife (for men), resources",
+        "positive": "Prosperity, abundance",
+        "negative": "Greed, materialism"
+      },
+      "power": {
+        "name": "Direct/Seven Killings",
+        "relation": "Element that controls self",
+        "meaning": "Authority, husband (for women), pressure",
+        "positive": "Structure, achievement",
+        "negative": "Oppression, stress"
+      },
+      "resource": {
+        "name": "Direct/Indirect Resource",
+        "relation": "Element that produces self",
+        "meaning": "Mother, support, knowledge",
+        "positive": "Nourishment, learning",
+        "negative": "Dependency, overthinking"
+      }
+    }
+  },
+
+  "luck": {
+    "description": "10-year luck pillars based on chart configuration",
+    "note": "Calculated from Month Pillar, direction based on gender and year polarity"
+  }
+}

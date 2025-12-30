@@ -10,11 +10,34 @@
  * - whisper-large-v3 (most accurate)
  * - whisper-large-v3-turbo (faster, still excellent)
  *
+ * LANGUAGE AUTO-DETECTION (v2):
+ * - Whisper automatically detects language when not specified
+ * - Returns detected language in response
+ * - Priority: EN → ZH → ES (per user preferences)
+ *
  * Created: December 21, 2025
+ * Updated: December 28, 2024 - Added language auto-detection
  */
 
 import fs from 'fs';
 import path from 'path';
+
+/**
+ * Supported languages with priority order
+ * Whisper supports 50+ languages, we prioritize these
+ */
+export const SUPPORTED_LANGUAGES = {
+  en: { name: 'English', priority: 1, whisperCode: 'en' },
+  zh: { name: 'Chinese', priority: 2, whisperCode: 'zh' },
+  es: { name: 'Spanish', priority: 3, whisperCode: 'es' },
+  fr: { name: 'French', priority: 4, whisperCode: 'fr' },
+  de: { name: 'German', priority: 5, whisperCode: 'de' },
+  ja: { name: 'Japanese', priority: 6, whisperCode: 'ja' },
+  ko: { name: 'Korean', priority: 7, whisperCode: 'ko' },
+  pt: { name: 'Portuguese', priority: 8, whisperCode: 'pt' },
+  hi: { name: 'Hindi', priority: 9, whisperCode: 'hi' },
+  ar: { name: 'Arabic', priority: 10, whisperCode: 'ar' }
+};
 
 /**
  * Configuration
@@ -23,7 +46,7 @@ const CONFIG = {
   apiKey: process.env.GROQ_API_KEY || '',
   baseUrl: 'https://api.groq.com/openai/v1',
   model: process.env.GROQ_WHISPER_MODEL || 'whisper-large-v3-turbo', // Fast + accurate
-  language: 'en',        // Auto-detect if not specified
+  language: null,        // null = auto-detect language (v2)
   timeout: 30000         // 30s timeout for longer audio
 };
 
@@ -86,14 +109,17 @@ export async function transcribeWithGroqWhisper(audioPath, options = {}) {
       `${model}\r\n`
     );
 
-    // Add language part (optional)
-    if (options.language || CONFIG.language) {
+    // Add language part (optional - omit for auto-detection)
+    // v2: Only set language if explicitly provided, otherwise Whisper auto-detects
+    const requestedLanguage = options.language ?? CONFIG.language;
+    if (requestedLanguage) {
       formParts.push(
         `--${boundary}\r\n` +
         `Content-Disposition: form-data; name="language"\r\n\r\n` +
-        `${options.language || CONFIG.language}\r\n`
+        `${requestedLanguage}\r\n`
       );
     }
+    // When language is null/undefined, Whisper will auto-detect
 
     // Add response format
     formParts.push(
@@ -140,13 +166,20 @@ export async function transcribeWithGroqWhisper(audioPath, options = {}) {
     const data = await response.json();
     const duration = Date.now() - startTime;
 
-    console.log(`[GroqWhisper] Transcribed in ${duration}ms: "${data.text?.substring(0, 50)}..."`);
+    // Get detected language (Whisper returns ISO code)
+    const detectedLanguage = data.language || requestedLanguage || 'en';
+    const languageInfo = SUPPORTED_LANGUAGES[detectedLanguage] || { name: detectedLanguage };
+    const isAutoDetected = !requestedLanguage;
+
+    console.log(`[GroqWhisper] Transcribed in ${duration}ms [${detectedLanguage}${isAutoDetected ? ' auto' : ''}]: "${data.text?.substring(0, 50)}..."`);
 
     return {
       text: data.text || '',
       duration,
       model,
-      language: data.language || CONFIG.language,
+      language: detectedLanguage,
+      languageName: languageInfo.name,
+      isAutoDetected,
       provider: 'groq-whisper'
     };
 

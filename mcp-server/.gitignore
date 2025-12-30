@@ -1,0 +1,27 @@
+# Secrets - NEVER COMMIT
+.env
+firebase-credentials.json
+serviceAccountKey.json
+*.pem
+*.key
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

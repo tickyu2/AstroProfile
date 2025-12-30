@@ -1571,6 +1571,339 @@ export {
 } from './focusReportService';
 
 // ═══════════════════════════════════════════════════════════════════════════
+// CHATGPT PERSPECTIVE (OpenAI o1/o3-mini Deep Thinking)
+// Sister ChatGPT - The Analytical Reasoner
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Get ChatGPT's Perspective - Deep Thinking with o1/o3-mini
+ *
+ * @param {Object} params - Request parameters
+ * @param {string} params.claudeResponse - What Claude said
+ * @param {string} params.geminiResponse - What Gemini said (optional)
+ * @param {string} params.grokResponse - What Grok said (optional)
+ * @param {string} params.userMessage - Original user question
+ * @param {Object} params.userProfile - User's constitutional profile
+ * @param {Array} params.debateHistory - Previous debate exchanges
+ * @param {string} params.customQuestion - User's specific question for ChatGPT
+ * @param {string} params.model - 'o1' | 'o1-mini' | 'o3-mini' (default: 'o3-mini')
+ * @returns {Promise<Object>} - ChatGPT's response
+ */
+export async function getChatGPTPerspective({
+  claudeResponse,
+  geminiResponse = '',
+  grokResponse = '',
+  userMessage = '',
+  userProfile = {},
+  debateHistory = [],
+  customQuestion = '',
+  model = 'o3-mini'
+}) {
+  // ChatGPT function URL (Cloud Run - 2nd gen)
+  const PRODUCTION_CHATGPT_URL = 'https://getchatgptperspective-sjpjwnbsmq-uc.a.run.app';
+  const EMULATOR_CHATGPT_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/getChatGPTPerspective';
+
+  const getChatGPTUrl = () => {
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+      return EMULATOR_CHATGPT_URL;
+    }
+    return PRODUCTION_CHATGPT_URL;
+  };
+
+  try {
+    console.log('🧪 Consulting Sister ChatGPT for perspective:', {
+      hasClaudeResponse: !!claudeResponse,
+      hasGeminiResponse: !!geminiResponse,
+      hasGrokResponse: !!grokResponse,
+      model,
+      debateExchanges: debateHistory?.length || 0
+    });
+
+    const response = await fetch(getChatGPTUrl(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        claudeResponse,
+        geminiResponse,
+        grokResponse,
+        userMessage,
+        userProfile: {
+          displayName: userProfile?.displayName || userProfile?.firstName || 'Friend',
+          constitutional: userProfile?.constitutional_identity
+        },
+        debateHistory,
+        customQuestion,
+        model
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    console.log('✅ ChatGPT perspective received:', {
+      speaker: data.speaker,
+      responseLength: data.response?.length,
+      model: data.model
+    });
+
+    return {
+      success: true,
+      text: data.response,
+      speaker: data.speaker || 'Sister ChatGPT',
+      icon: data.icon || '🧪',
+      model: data.model,
+      usage: data.usage
+    };
+
+  } catch (error) {
+    console.error('❌ ChatGPT Perspective Error:', error);
+
+    return {
+      success: false,
+      text: "Sister ChatGPT is analyzing deeply. Try again in a moment.",
+      speaker: 'Sister ChatGPT',
+      icon: '🧪',
+      error: error.message
+    };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GENESIS IMAGE GENERATION (Stability.ai & Leonardo.ai)
+// Multi-provider AI image generation
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Generate image using Stability.ai (SD3, SDXL, Stable Image Core)
+ *
+ * @param {Object} params - Request parameters
+ * @param {string} params.prompt - Image description
+ * @param {string} params.negativePrompt - What to avoid
+ * @param {string} params.model - 'sd3-large' | 'sd3-medium' | 'sdxl-1.0' | 'stable-image-core'
+ * @param {string} params.aspectRatio - '1:1' | '16:9' | '9:16' | '4:3' | '3:4'
+ * @param {string} params.style - Style preset (photographic, anime, digital-art, etc.)
+ * @param {string} params.outputFormat - 'webp' | 'png' | 'jpeg'
+ * @returns {Promise<Object>} - Generated image data
+ */
+export async function generateStabilityImage({
+  prompt,
+  negativePrompt = '',
+  model = 'sd3-large',
+  aspectRatio = '1:1',
+  style = 'photographic',
+  seed = 0,
+  outputFormat = 'webp'
+}) {
+  const PRODUCTION_URL = 'https://generatestabilityimage-sjpjwnbsmq-uc.a.run.app';
+  const EMULATOR_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/generateStabilityImage';
+
+  const getUrl = () => {
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+      return EMULATOR_URL;
+    }
+    return PRODUCTION_URL;
+  };
+
+  try {
+    console.log('🎨 [Stability.ai] Generating image:', {
+      model,
+      prompt: prompt?.slice(0, 50) + '...',
+      aspectRatio,
+      style
+    });
+
+    const response = await fetch(getUrl(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt,
+        negativePrompt,
+        model,
+        aspectRatio,
+        style,
+        seed,
+        outputFormat
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    console.log('✅ [Stability.ai] Image generated:', {
+      model: data.model,
+      format: data.format
+    });
+
+    return {
+      success: true,
+      image: data.image,  // base64
+      format: data.format,
+      model: data.model,
+      prompt: data.prompt
+    };
+
+  } catch (error) {
+    console.error('❌ [Stability.ai] Error:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * Generate image using Leonardo.ai (Phoenix, Vision XL, Kino XL)
+ *
+ * @param {Object} params - Request parameters
+ * @param {string} params.prompt - Image description
+ * @param {string} params.negativePrompt - What to avoid
+ * @param {string} params.model - 'phoenix' | 'sdxl' | 'kino' | 'vision' | 'anime' | 'creative'
+ * @param {number} params.width - Image width (default: 1024)
+ * @param {number} params.height - Image height (default: 1024)
+ * @param {boolean} params.photoReal - Enable photo-realism
+ * @param {boolean} params.alchemy - Enable alchemy enhancement
+ * @returns {Promise<Object>} - Generated image data
+ */
+export async function generateLeonardoImage({
+  prompt,
+  negativePrompt = '',
+  model = 'phoenix',
+  width = 1024,
+  height = 1024,
+  numImages = 1,
+  guidanceScale = 7,
+  photoReal = false,
+  alchemy = true,
+  stylePreset = null
+}) {
+  const PRODUCTION_URL = 'https://generateleonardoimage-sjpjwnbsmq-uc.a.run.app';
+  const EMULATOR_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/generateLeonardoImage';
+
+  const getUrl = () => {
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+      return EMULATOR_URL;
+    }
+    return PRODUCTION_URL;
+  };
+
+  try {
+    console.log('🎨 [Leonardo.ai] Generating image:', {
+      model,
+      prompt: prompt?.slice(0, 50) + '...',
+      dimensions: `${width}x${height}`,
+      photoReal,
+      alchemy
+    });
+
+    const response = await fetch(getUrl(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt,
+        negativePrompt,
+        model,
+        width,
+        height,
+        numImages,
+        guidanceScale,
+        photoReal,
+        alchemy,
+        stylePreset
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    console.log('✅ [Leonardo.ai] Image generated:', {
+      model: data.model,
+      imagesCount: data.images?.length
+    });
+
+    return {
+      success: true,
+      images: data.images,  // array of URLs
+      model: data.model,
+      generationId: data.generationId,
+      prompt: data.prompt
+    };
+
+  } catch (error) {
+    console.error('❌ [Leonardo.ai] Error:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * Get available Stability.ai style presets
+ */
+export async function getStabilityStyles() {
+  const PRODUCTION_URL = 'https://getstabilitystyles-sjpjwnbsmq-uc.a.run.app';
+  const EMULATOR_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/getStabilityStyles';
+
+  const getUrl = () => {
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+      return EMULATOR_URL;
+    }
+    return PRODUCTION_URL;
+  };
+
+  try {
+    const response = await fetch(getUrl());
+    const data = await response.json();
+    return { success: true, styles: data.styles };
+  } catch (error) {
+    console.error('❌ [Stability.ai] Error fetching styles:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Get available Leonardo.ai models
+ */
+export async function getLeonardoModels() {
+  const PRODUCTION_URL = 'https://getleonardomodels-sjpjwnbsmq-uc.a.run.app';
+  const EMULATOR_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/getLeonardoModels';
+
+  const getUrl = () => {
+    if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+      return EMULATOR_URL;
+    }
+    return PRODUCTION_URL;
+  };
+
+  try {
+    const response = await fetch(getUrl());
+    const data = await response.json();
+    return { success: true, models: data.models };
+  } catch (error) {
+    console.error('❌ [Leonardo.ai] Error fetching models:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // LANGUAGE SERVICE EXPORTS (Phase 5 - Adaptive Localization)
 // Re-export language service for component use
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1603,6 +1936,7 @@ export default {
   getGrokPerspective,
   getOpusPerspective,
   getDeepSeekPerspective,
+  getChatGPTPerspective, // ChatGPT with o1/o3-mini deep thinking (GENESIS)
   generateDebateVisual,
   saveStoryAssessment,
   getStoryAssessment,
@@ -1611,6 +1945,11 @@ export default {
   getCacheMetrics,
   getProfileCacheStats,
   clearConversationCache,
+  // GENESIS Image Generation
+  generateStabilityImage,
+  generateLeonardoImage,
+  getStabilityStyles,
+  getLeonardoModels,
   // Gemini 3
   THINKING_LEVELS,
   DEFAULT_THINKING_LEVEL,

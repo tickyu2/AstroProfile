@@ -1,0 +1,55 @@
+# GENESIS MCP Server - Cloud Build Configuration
+# Automated deployment to Cloud Run (same pattern as voice backend)
+
+steps:
+  # Step 1: Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/genesis-mcp-server:$SHORT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/genesis-mcp-server:latest'
+      - '.'
+
+  # Step 2: Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/genesis-mcp-server:$SHORT_SHA'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/genesis-mcp-server:latest'
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'genesis-mcp-server'
+      - '--image=gcr.io/$PROJECT_ID/genesis-mcp-server:$SHORT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--timeout=60s'
+      - '--max-instances=10'
+      - '--min-instances=0'
+      - '--set-env-vars=NODE_ENV=production,FIREBASE_PROJECT_ID=$PROJECT_ID,MCP_RATE_LIMIT=100,MCP_AUDIT_LOG=true'
+
+# Store images in Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/genesis-mcp-server:$SHORT_SHA'
+  - 'gcr.io/$PROJECT_ID/genesis-mcp-server:latest'
+
+# Build configuration
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+# Timeout for entire build
+timeout: 1200s

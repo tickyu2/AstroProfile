@@ -1,0 +1,439 @@
+{
+  "version": "1.0",
+  "description": "MBTI (Myers-Briggs Type Indicator) personality knowledge for GENESIS RAG",
+  "created": "2024-12-28",
+  "types": {
+    "INTJ": {
+      "name": "The Architect",
+      "alias": ["Mastermind", "Strategist"],
+      "functions": {
+        "dominant": "Introverted Intuition (Ni)",
+        "auxiliary": "Extraverted Thinking (Te)",
+        "tertiary": "Introverted Feeling (Fi)",
+        "inferior": "Extraverted Sensing (Se)"
+      },
+      "coreTraits": ["Strategic", "Independent", "Determined", "Analytical"],
+      "strengths": ["Long-term vision", "Systematic thinking", "Self-confident", "High standards"],
+      "challenges": ["Overly critical", "Dismissive of emotions", "Impatient with inefficiency", "Can seem arrogant"],
+      "communication": "Direct, logical, and efficient. Values competence and intellectual depth.",
+      "stressResponse": "Under stress, may become hypersensitive to sensory details or overindulge in physical pleasures (inferior Se).",
+      "growthPath": "Learn to appreciate present moments, connect with emotions, and be more patient with others' processes.",
+      "compatibleTypes": ["ENFP", "ENTP", "INTJ", "ENTJ"],
+      "lunaGuidance": {
+        "approach": "Engage intellectually. INTJs appreciate depth, competence, and efficiency in conversation.",
+        "keyInsight": "They may seem cold but have deep inner values. Don't mistake brevity for disinterest.",
+        "avoid": "Small talk, emotional appeals without logic, inefficiency, or challenging their competence.",
+        "keyPhrases": ["Let's analyze this systematically", "What's your vision for...", "I see the logic in that"]
+      }
+    },
+    "INTP": {
+      "name": "The Logician",
+      "alias": ["Thinker", "Architect of Ideas"],
+      "functions": {
+        "dominant": "Introverted Thinking (Ti)",
+        "auxiliary": "Extraverted Intuition (Ne)",
+        "tertiary": "Introverted Sensing (Si)",
+        "inferior": "Extraverted Feeling (Fe)"
+      },
+      "coreTraits": ["Analytical", "Objective", "Reserved", "Flexible"],
+      "strengths": ["Abstract thinking", "Original ideas", "Logical analysis", "Open-minded"],
+      "challenges": ["Disconnected from feelings", "Procrastination", "Insensitive", "Absent-minded"],
+      "communication": "Prefers exploring ideas and theories. May seem detached but is deeply curious.",
+      "stressResponse": "Under stress, may become uncharacteristically emotional or seek external validation (inferior Fe).",
+      "growthPath": "Develop emotional awareness, follow through on projects, and connect with others authentically.",
+      "compatibleTypes": ["ENTJ", "ESTJ", "INFJ", "ENFJ"],
+      "lunaGuidance": {
+        "approach": "Explore ideas together. INTPs love intellectual exploration without pressure for conclusions.",
+        "keyInsight": "They process internally and may need time to formulate responses. Silence means thinking.",
+        "avoid": "Demanding immediate emotional responses, rigid structures, or dismissing their theories.",
+        "keyPhrases": ["That's an interesting perspective", "What do you think about...", "How does that connect to..."]
+      }
+    },
+    "ENTJ": {
+      "name": "The Commander",
+      "alias": ["Executive", "Field Marshal"],
+      "functions": {
+        "dominant": "Extraverted Thinking (Te)",
+        "auxiliary": "Introverted Intuition (Ni)",
+        "tertiary": "Extraverted Sensing (Se)",
+        "inferior": "Introverted Feeling (Fi)"
+      },
+      "coreTraits": ["Decisive", "Ambitious", "Strategic", "Confident"],
+      "strengths": ["Natural leadership", "Efficient", "Strong-willed", "Strategic planning"],
+      "challenges": ["Impatient", "Intolerant", "Arrogant", "Emotionally distant"],
+      "communication": "Direct and assertive. Values efficiency and results in conversation.",
+      "stressResponse": "Under stress, may become hypersensitive to criticism or feel unappreciated (inferior Fi).",
+      "growthPath": "Develop patience, emotional intelligence, and appreciation for others' contributions.",
+      "compatibleTypes": ["INTP", "ISTP", "ENTJ", "INTJ"],
+      "lunaGuidance": {
+        "approach": "Be direct and confident. ENTJs respect those who can hold their ground intellectually.",
+        "keyInsight": "Behind the commanding exterior is someone who deeply cares about making an impact.",
+        "avoid": "Being wishy-washy, overly emotional without logic, or wasting their time.",
+        "keyPhrases": ["What's the goal here?", "Let's be efficient", "I respect your directness"]
+      }
+    },
+    "ENTP": {
+      "name": "The Debater",
+      "alias": ["Visionary", "Inventor"],
+      "functions": {
+        "dominant": "Extraverted Intuition (Ne)",
+        "auxiliary": "Introverted Thinking (Ti)",
+        "tertiary": "Extraverted Feeling (Fe)",
+        "inferior": "Introverted Sensing (Si)"
+      },
+      "coreTraits": ["Quick-witted", "Bold", "Creative", "Challenging"],
+      "strengths": ["Innovative thinking", "Excellent brainstorming", "Charismatic", "Adaptable"],
+      "challenges": ["Argumentative", "Insensitive", "Difficulty following through", "Dismissive of details"],
+      "communication": "Loves debate and intellectual sparring. Enjoys playing devil's advocate.",
+      "stressResponse": "Under stress, may become obsessed with details or past mistakes (inferior Si).",
+      "growthPath": "Develop follow-through, sensitivity to others' feelings, and attention to practical details.",
+      "compatibleTypes": ["INFJ", "INTJ", "ENFP", "INFP"],
+      "lunaGuidance": {
+        "approach": "Engage playfully in ideas. ENTPs love intellectual banter and exploring possibilities.",
+        "keyInsight": "Their challenging nature is about exploring truth, not attacking you personally.",
+        "avoid": "Taking debates personally, being overly sensitive, or demanding conformity.",
+        "keyPhrases": ["What if we looked at it this way...", "That's a fascinating angle", "Let's explore that idea"]
+      }
+    },
+    "INFJ": {
+      "name": "The Advocate",
+      "alias": ["Counselor", "Mystic"],
+      "functions": {
+        "dominant": "Introverted Intuition (Ni)",
+        "auxiliary": "Extraverted Feeling (Fe)",
+        "tertiary": "Introverted Thinking (Ti)",
+        "inferior": "Extraverted Sensing (Se)"
+      },
+      "coreTraits": ["Insightful", "Principled", "Compassionate", "Private"],
+      "strengths": ["Deep insight into others", "Creative", "Determined", "Altruistic"],
+      "challenges": ["Overly idealistic", "Prone to burnout", "Extremely private", "Perfectionist"],
+      "communication": "Thoughtful and meaningful. Prefers deep conversations over small talk.",
+      "stressResponse": "Under stress, may become impulsive or overindulge in sensory pleasures (inferior Se).",
+      "growthPath": "Set boundaries, accept imperfection, and balance idealism with practicality.",
+      "compatibleTypes": ["ENTP", "ENFP", "INFP", "ENFJ"],
+      "lunaGuidance": {
+        "approach": "Create a safe, meaningful space. INFJs open up slowly but deeply with trust.",
+        "keyInsight": "They often feel misunderstood. Being truly seen and heard is profoundly meaningful.",
+        "avoid": "Surface-level conversation, invading their privacy, or dismissing their intuitions.",
+        "keyPhrases": ["I sense there's more beneath that", "What does your intuition tell you?", "That's a profound insight"]
+      }
+    },
+    "INFP": {
+      "name": "The Mediator",
+      "alias": ["Healer", "Dreamer"],
+      "functions": {
+        "dominant": "Introverted Feeling (Fi)",
+        "auxiliary": "Extraverted Intuition (Ne)",
+        "tertiary": "Introverted Sensing (Si)",
+        "inferior": "Extraverted Thinking (Te)"
+      },
+      "coreTraits": ["Idealistic", "Empathetic", "Creative", "Reserved"],
+      "strengths": ["Deep values", "Empathetic understanding", "Creative expression", "Dedicated to causes"],
+      "challenges": ["Overly idealistic", "Self-isolating", "Impractical", "Takes things personally"],
+      "communication": "Values authenticity and emotional depth. May take time to share inner world.",
+      "stressResponse": "Under stress, may become harshly critical or obsessed with organizing (inferior Te).",
+      "growthPath": "Develop practical skills, share feelings more openly, and accept imperfect reality.",
+      "compatibleTypes": ["ENFJ", "ENTJ", "INFJ", "ENFP"],
+      "lunaGuidance": {
+        "approach": "Be authentic and non-judgmental. INFPs need to feel emotionally safe to open up.",
+        "keyInsight": "They feel things deeply. What seems like overreaction is genuine emotional experience.",
+        "avoid": "Being fake, dismissing their feelings, or pressuring them to be practical.",
+        "keyPhrases": ["Your feelings make sense", "What matters most to you about this?", "I appreciate your authenticity"]
+      }
+    },
+    "ENFJ": {
+      "name": "The Protagonist",
+      "alias": ["Teacher", "Giver"],
+      "functions": {
+        "dominant": "Extraverted Feeling (Fe)",
+        "auxiliary": "Introverted Intuition (Ni)",
+        "tertiary": "Extraverted Sensing (Se)",
+        "inferior": "Introverted Thinking (Ti)"
+      },
+      "coreTraits": ["Charismatic", "Empathetic", "Organized", "Passionate"],
+      "strengths": ["Natural leaders", "Inspiring others", "Reliable", "Deeply caring"],
+      "challenges": ["Overly idealistic", "Too selfless", "Sensitive to criticism", "Can be manipulative"],
+      "communication": "Warm, encouraging, and attentive. Focused on understanding and helping others.",
+      "stressResponse": "Under stress, may become overly critical or analytical (inferior Ti).",
+      "growthPath": "Set boundaries, accept that you can't help everyone, and attend to your own needs.",
+      "compatibleTypes": ["INFP", "ISFP", "INTP", "ISTP"],
+      "lunaGuidance": {
+        "approach": "Appreciate their giving nature while gently encouraging self-care.",
+        "keyInsight": "They often neglect their own needs while caring for others. Help them feel cared for.",
+        "avoid": "Taking without giving, being ungrateful, or dismissing their concerns for others.",
+        "keyPhrases": ["How are YOU feeling about this?", "You deserve care too", "Your insight into people is remarkable"]
+      }
+    },
+    "ENFP": {
+      "name": "The Campaigner",
+      "alias": ["Champion", "Inspirer"],
+      "functions": {
+        "dominant": "Extraverted Intuition (Ne)",
+        "auxiliary": "Introverted Feeling (Fi)",
+        "tertiary": "Extraverted Thinking (Te)",
+        "inferior": "Introverted Sensing (Si)"
+      },
+      "coreTraits": ["Enthusiastic", "Creative", "Sociable", "Free-spirited"],
+      "strengths": ["Energetic", "Creative problem-solving", "Connecting with people", "Optimistic"],
+      "challenges": ["Difficulty focusing", "Overthinking", "Easily stressed", "Needs approval"],
+      "communication": "Enthusiastic and idea-driven. Loves exploring possibilities and connecting deeply.",
+      "stressResponse": "Under stress, may become obsessive about details or past mistakes (inferior Si).",
+      "growthPath": "Develop focus, follow through on commitments, and find validation from within.",
+      "compatibleTypes": ["INTJ", "INFJ", "ENTJ", "ENFJ"],
+      "lunaGuidance": {
+        "approach": "Match their energy and enthusiasm. ENFPs thrive on positive, exploratory conversations.",
+        "keyInsight": "Behind the bubbly exterior can be deep feelings. They may need help processing emotions.",
+        "avoid": "Shutting down their ideas, being overly negative, or demanding strict routine.",
+        "keyPhrases": ["I love your enthusiasm", "What possibilities do you see?", "That's a creative way to look at it"]
+      }
+    },
+    "ISTJ": {
+      "name": "The Logistician",
+      "alias": ["Inspector", "Duty Fulfiller"],
+      "functions": {
+        "dominant": "Introverted Sensing (Si)",
+        "auxiliary": "Extraverted Thinking (Te)",
+        "tertiary": "Introverted Feeling (Fi)",
+        "inferior": "Extraverted Intuition (Ne)"
+      },
+      "coreTraits": ["Responsible", "Thorough", "Dependable", "Traditional"],
+      "strengths": ["Reliable", "Practical", "Detail-oriented", "Strong work ethic"],
+      "challenges": ["Inflexible", "Insensitive", "Judgmental", "Resistant to change"],
+      "communication": "Direct and factual. Values clear information and proven methods.",
+      "stressResponse": "Under stress, may catastrophize or imagine worst-case scenarios (inferior Ne).",
+      "growthPath": "Embrace change, consider others' feelings, and explore new possibilities.",
+      "compatibleTypes": ["ESFP", "ESTP", "ISFJ", "ESTJ"],
+      "lunaGuidance": {
+        "approach": "Be reliable and factual. ISTJs appreciate consistency and proven approaches.",
+        "keyInsight": "They show care through actions, not words. Their reliability IS their love language.",
+        "avoid": "Being flaky, overly abstract, or dismissing tradition without good reason.",
+        "keyPhrases": ["I can count on you", "What's worked before?", "Let's be practical about this"]
+      }
+    },
+    "ISFJ": {
+      "name": "The Defender",
+      "alias": ["Protector", "Nurturer"],
+      "functions": {
+        "dominant": "Introverted Sensing (Si)",
+        "auxiliary": "Extraverted Feeling (Fe)",
+        "tertiary": "Introverted Thinking (Ti)",
+        "inferior": "Extraverted Intuition (Ne)"
+      },
+      "coreTraits": ["Supportive", "Reliable", "Patient", "Observant"],
+      "strengths": ["Loyal", "Hard-working", "Attentive to others' needs", "Practical"],
+      "challenges": ["Overly humble", "Resistant to change", "Repressing feelings", "Overcommitting"],
+      "communication": "Warm and attentive. Remembers details about others and shows care through service.",
+      "stressResponse": "Under stress, may worry about worst-case scenarios or become pessimistic (inferior Ne).",
+      "growthPath": "Assert your own needs, embrace change, and accept recognition for contributions.",
+      "compatibleTypes": ["ESTP", "ESFP", "ISTJ", "ESTJ"],
+      "lunaGuidance": {
+        "approach": "Show appreciation for their care. ISFJs often give more than they receive.",
+        "keyInsight": "They may suppress their own needs. Help them feel safe expressing what they want.",
+        "avoid": "Taking them for granted, being unreliable, or dismissing their concerns.",
+        "keyPhrases": ["I noticed you did that for me", "What do YOU need?", "Your care means so much"]
+      }
+    },
+    "ESTJ": {
+      "name": "The Executive",
+      "alias": ["Supervisor", "Administrator"],
+      "functions": {
+        "dominant": "Extraverted Thinking (Te)",
+        "auxiliary": "Introverted Sensing (Si)",
+        "tertiary": "Extraverted Intuition (Ne)",
+        "inferior": "Introverted Feeling (Fi)"
+      },
+      "coreTraits": ["Organized", "Logical", "Assertive", "Direct"],
+      "strengths": ["Strong leadership", "Dedication", "Reliability", "Creating order"],
+      "challenges": ["Inflexible", "Uncomfortable with unconventional", "Judgmental", "Difficulty relaxing"],
+      "communication": "Direct and to-the-point. Values efficiency and clear expectations.",
+      "stressResponse": "Under stress, may become hypersensitive or feel unappreciated (inferior Fi).",
+      "growthPath": "Develop emotional intelligence, flexibility, and appreciation for different approaches.",
+      "compatibleTypes": ["ISTP", "ISFP", "INTP", "INFP"],
+      "lunaGuidance": {
+        "approach": "Be organized and straightforward. ESTJs appreciate efficiency and clear communication.",
+        "keyInsight": "Their need for order comes from wanting security. Structure helps them feel safe.",
+        "avoid": "Being disorganized, wishy-washy, or challenging rules without good reason.",
+        "keyPhrases": ["Let's get organized", "What's the plan?", "I respect your dedication"]
+      }
+    },
+    "ESFJ": {
+      "name": "The Consul",
+      "alias": ["Provider", "Caregiver"],
+      "functions": {
+        "dominant": "Extraverted Feeling (Fe)",
+        "auxiliary": "Introverted Sensing (Si)",
+        "tertiary": "Extraverted Intuition (Ne)",
+        "inferior": "Introverted Thinking (Ti)"
+      },
+      "coreTraits": ["Caring", "Social", "Traditional", "Loyal"],
+      "strengths": ["Strong sense of duty", "Warm", "Practical support", "Community-minded"],
+      "challenges": ["Too selfless", "Needy for approval", "Inflexible", "Sensitive to criticism"],
+      "communication": "Warm, attentive, and focused on harmony. Remembers personal details.",
+      "stressResponse": "Under stress, may become overly critical or nitpicky (inferior Ti).",
+      "growthPath": "Develop independence, accept that not everyone will approve, and embrace change.",
+      "compatibleTypes": ["ISFP", "ISTP", "INFP", "INTP"],
+      "lunaGuidance": {
+        "approach": "Be warm and appreciative. ESFJs thrive on positive feedback and connection.",
+        "keyInsight": "They need to feel valued and included. Exclusion or criticism cuts deep.",
+        "avoid": "Being cold, ungrateful, or dismissing their efforts to help.",
+        "keyPhrases": ["Thank you for thinking of me", "You make everyone feel welcome", "I appreciate your care"]
+      }
+    },
+    "ISTP": {
+      "name": "The Virtuoso",
+      "alias": ["Craftsman", "Mechanic"],
+      "functions": {
+        "dominant": "Introverted Thinking (Ti)",
+        "auxiliary": "Extraverted Sensing (Se)",
+        "tertiary": "Introverted Intuition (Ni)",
+        "inferior": "Extraverted Feeling (Fe)"
+      },
+      "coreTraits": ["Practical", "Observant", "Analytical", "Reserved"],
+      "strengths": ["Problem-solving", "Hands-on skills", "Crisis management", "Adaptable"],
+      "challenges": ["Insensitive", "Private", "Easily bored", "Risky behavior"],
+      "communication": "Practical and concise. Prefers actions over words.",
+      "stressResponse": "Under stress, may become emotional or seek validation (inferior Fe).",
+      "growthPath": "Develop emotional expression, commitment to long-term goals, and connection with others.",
+      "compatibleTypes": ["ESTJ", "ENTJ", "ESFJ", "ENFJ"],
+      "lunaGuidance": {
+        "approach": "Be practical and give them space. ISTPs need autonomy and hands-on engagement.",
+        "keyInsight": "They show love through actions and fixing things. Words may feel inadequate to them.",
+        "avoid": "Being clingy, overly emotional, or demanding verbal affirmation.",
+        "keyPhrases": ["Show me how that works", "I trust your skills", "Take the time you need"]
+      }
+    },
+    "ISFP": {
+      "name": "The Adventurer",
+      "alias": ["Composer", "Artist"],
+      "functions": {
+        "dominant": "Introverted Feeling (Fi)",
+        "auxiliary": "Extraverted Sensing (Se)",
+        "tertiary": "Introverted Intuition (Ni)",
+        "inferior": "Extraverted Thinking (Te)"
+      },
+      "coreTraits": ["Artistic", "Sensitive", "Loyal", "Spontaneous"],
+      "strengths": ["Creative expression", "Strong aesthetics", "Gentle", "In-the-moment awareness"],
+      "challenges": ["Overly competitive", "Unpredictable", "Easily stressed", "Avoids conflict"],
+      "communication": "Gentle and authentic. Expresses through art and experience more than words.",
+      "stressResponse": "Under stress, may become harshly critical or controlling (inferior Te).",
+      "growthPath": "Develop assertiveness, long-term planning, and comfort with conflict when necessary.",
+      "compatibleTypes": ["ENFJ", "ESFJ", "ESTJ", "ENTJ"],
+      "lunaGuidance": {
+        "approach": "Appreciate their artistic nature. ISFPs need non-judgmental acceptance.",
+        "keyInsight": "They feel deeply but may not express it verbally. Watch for non-verbal cues.",
+        "avoid": "Being harsh, demanding explanations, or dismissing their creative expressions.",
+        "keyPhrases": ["I love how you see the world", "What does this feel like to you?", "Express it however feels right"]
+      }
+    },
+    "ESTP": {
+      "name": "The Entrepreneur",
+      "alias": ["Doer", "Promoter"],
+      "functions": {
+        "dominant": "Extraverted Sensing (Se)",
+        "auxiliary": "Introverted Thinking (Ti)",
+        "tertiary": "Extraverted Feeling (Fe)",
+        "inferior": "Introverted Intuition (Ni)"
+      },
+      "coreTraits": ["Energetic", "Perceptive", "Direct", "Bold"],
+      "strengths": ["Action-oriented", "Observant", "Practical", "Social"],
+      "challenges": ["Impatient", "Risk-prone", "Unstructured", "Insensitive"],
+      "communication": "Direct, energetic, and focused on the present. Loves banter and action.",
+      "stressResponse": "Under stress, may become paranoid or see hidden meanings (inferior Ni).",
+      "growthPath": "Develop patience, consider long-term consequences, and sensitivity to others.",
+      "compatibleTypes": ["ISFJ", "ISTJ", "INFJ", "INTJ"],
+      "lunaGuidance": {
+        "approach": "Be direct and engage in the present moment. ESTPs love action and adventure.",
+        "keyInsight": "They may avoid emotional depth but care deeply when it matters.",
+        "avoid": "Being slow, overly theoretical, or dwelling on feelings without action.",
+        "keyPhrases": ["Let's do this", "What's happening right now?", "I like your energy"]
+      }
+    },
+    "ESFP": {
+      "name": "The Entertainer",
+      "alias": ["Performer", "Motivator"],
+      "functions": {
+        "dominant": "Extraverted Sensing (Se)",
+        "auxiliary": "Introverted Feeling (Fi)",
+        "tertiary": "Extraverted Thinking (Te)",
+        "inferior": "Introverted Intuition (Ni)"
+      },
+      "coreTraits": ["Spontaneous", "Energetic", "Friendly", "Playful"],
+      "strengths": ["Enthusiasm", "Practical", "Social skills", "Living in the moment"],
+      "challenges": ["Easily bored", "Sensitive", "Unfocused", "Avoids long-term planning"],
+      "communication": "Fun, energetic, and people-oriented. Brings joy and spontaneity to interactions.",
+      "stressResponse": "Under stress, may worry about the future or see negative patterns (inferior Ni).",
+      "growthPath": "Develop focus, long-term planning, and comfort with deeper emotional conversations.",
+      "compatibleTypes": ["ISTJ", "ISFJ", "INTJ", "INFJ"],
+      "lunaGuidance": {
+        "approach": "Be fun and present. ESFPs thrive on positive energy and shared experiences.",
+        "keyInsight": "Behind the fun exterior, they feel deeply. Don't assume everything is surface-level.",
+        "avoid": "Being a downer, overly serious, or criticizing their spontaneity.",
+        "keyPhrases": ["This is fun!", "Let's enjoy the moment", "Your energy is contagious"]
+      }
+    }
+  },
+  "cognitiveFunctions": {
+    "Ni": {
+      "name": "Introverted Intuition",
+      "description": "Synthesizes information into future visions and deep insights",
+      "users": ["INTJ", "INFJ", "ENTJ", "ENFJ"]
+    },
+    "Ne": {
+      "name": "Extraverted Intuition",
+      "description": "Explores possibilities, patterns, and connections in the external world",
+      "users": ["ENTP", "ENFP", "INTP", "INFP"]
+    },
+    "Si": {
+      "name": "Introverted Sensing",
+      "description": "Stores and recalls detailed past experiences and established methods",
+      "users": ["ISTJ", "ISFJ", "ESTJ", "ESFJ"]
+    },
+    "Se": {
+      "name": "Extraverted Sensing",
+      "description": "Engages with the present moment through immediate sensory experience",
+      "users": ["ESTP", "ESFP", "ISTP", "ISFP"]
+    },
+    "Ti": {
+      "name": "Introverted Thinking",
+      "description": "Analyzes and organizes information into logical frameworks",
+      "users": ["INTP", "ISTP", "ENTP", "ESTP"]
+    },
+    "Te": {
+      "name": "Extraverted Thinking",
+      "description": "Organizes the external world efficiently and systematically",
+      "users": ["ENTJ", "ESTJ", "INTJ", "ISTJ"]
+    },
+    "Fi": {
+      "name": "Introverted Feeling",
+      "description": "Evaluates based on internal values and authentic emotional experience",
+      "users": ["INFP", "ISFP", "ENFP", "ESFP"]
+    },
+    "Fe": {
+      "name": "Extraverted Feeling",
+      "description": "Harmonizes with and responds to others' emotional states",
+      "users": ["ENFJ", "ESFJ", "INFJ", "ISFJ"]
+    }
+  },
+  "temperaments": {
+    "NT": {
+      "name": "Rationals",
+      "types": ["INTJ", "INTP", "ENTJ", "ENTP"],
+      "description": "Strategic, logical, and driven by competence and knowledge"
+    },
+    "NF": {
+      "name": "Idealists",
+      "types": ["INFJ", "INFP", "ENFJ", "ENFP"],
+      "description": "Empathetic, authentic, and driven by meaning and personal growth"
+    },
+    "SJ": {
+      "name": "Guardians",
+      "types": ["ISTJ", "ISFJ", "ESTJ", "ESFJ"],
+      "description": "Reliable, traditional, and driven by duty and security"
+    },
+    "SP": {
+      "name": "Artisans",
+      "types": ["ISTP", "ISFP", "ESTP", "ESFP"],
+      "description": "Practical, adaptable, and driven by action and experience"
+    }
+  }
+}

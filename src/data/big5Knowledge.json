@@ -1,0 +1,293 @@
+{
+  "version": "1.0",
+  "description": "Big Five (OCEAN) personality knowledge base for GENESIS RAG system",
+  "created": "2024-12-28",
+
+  "overview": {
+    "name": "Big Five / Five-Factor Model (FFM) / OCEAN",
+    "description": "The most widely accepted and scientifically validated personality framework",
+    "dimensions": ["Openness", "Conscientiousness", "Extraversion", "Agreeableness", "Neuroticism"],
+    "scoring": "Each dimension is a spectrum from low (0) to high (100), not binary categories",
+    "note": "All positions on each spectrum are valid - there is no 'ideal' personality"
+  },
+
+  "traits": {
+    "openness": {
+      "fullName": "Openness to Experience",
+      "abbreviation": "O",
+      "description": "Reflects imagination, creativity, and interest in new ideas and experiences",
+
+      "facets": {
+        "imagination": "Fantasy, daydreaming, creative thinking",
+        "artisticInterests": "Appreciation for art, music, beauty",
+        "emotionality": "Awareness and value of inner feelings",
+        "adventurousness": "Willingness to try new activities",
+        "intellect": "Interest in abstract ideas and intellectual curiosity",
+        "liberalism": "Openness to reevaluating values and authority"
+      },
+
+      "highScore": {
+        "range": "70-100",
+        "traits": ["Creative", "Curious", "Imaginative", "Open-minded", "Unconventional"],
+        "strengths": ["Innovation", "Artistic expression", "Adaptability", "Abstract thinking"],
+        "challenges": ["May seem impractical", "Can be scattered", "May challenge norms too much"],
+        "careerFit": ["Arts", "Research", "Entrepreneurship", "Design", "Philosophy"]
+      },
+
+      "lowScore": {
+        "range": "0-30",
+        "traits": ["Practical", "Conventional", "Focused", "Traditional", "Concrete"],
+        "strengths": ["Reliability", "Consistency", "Practical problem-solving", "Following proven methods"],
+        "challenges": ["May resist change", "Can seem closed-minded", "May miss creative solutions"],
+        "careerFit": ["Finance", "Administration", "Manufacturing", "Traditional trades", "Law enforcement"]
+      },
+
+      "lunaGuidance": {
+        "highO": {
+          "approach": "Engage their curiosity and imagination freely",
+          "keyPhrases": ["What possibilities do you see?", "Let's explore that idea", "How does this connect?"]
+        },
+        "lowO": {
+          "approach": "Be concrete and practical, respect their preferences",
+          "keyPhrases": ["Here's what works", "Let's focus on the practical", "What's the proven path?"]
+        }
+      }
+    },
+
+    "conscientiousness": {
+      "fullName": "Conscientiousness",
+      "abbreviation": "C",
+      "description": "Reflects organization, dependability, self-discipline, and goal-directed behavior",
+
+      "facets": {
+        "selfEfficacy": "Confidence in one's ability to accomplish things",
+        "orderliness": "Organization and tidiness",
+        "dutifulness": "Sense of duty and moral obligation",
+        "achievementStriving": "High aspirations and working hard",
+        "selfDiscipline": "Ability to begin and complete tasks",
+        "cautiousness": "Thinking carefully before acting"
+      },
+
+      "highScore": {
+        "range": "70-100",
+        "traits": ["Organized", "Reliable", "Disciplined", "Goal-oriented", "Careful"],
+        "strengths": ["Follow-through", "Achievement", "Reliability", "Planning"],
+        "challenges": ["Perfectionism", "Workaholism", "Rigidity", "Judgmental of others"],
+        "careerFit": ["Management", "Medicine", "Law", "Engineering", "Accounting"]
+      },
+
+      "lowScore": {
+        "range": "0-30",
+        "traits": ["Flexible", "Spontaneous", "Easy-going", "Adaptable", "Relaxed"],
+        "strengths": ["Flexibility", "Spontaneity", "Low stress", "Creativity under chaos"],
+        "challenges": ["May miss deadlines", "Disorganization", "Unreliability"],
+        "careerFit": ["Creative roles", "Startups", "Freelance", "Entertainment", "Sales"]
+      },
+
+      "lunaGuidance": {
+        "highC": {
+          "approach": "Be organized and reliable, respect their standards",
+          "keyPhrases": ["Let's make a plan", "Step by step", "Here are the details"]
+        },
+        "lowC": {
+          "approach": "Be flexible, don't pressure with structure",
+          "keyPhrases": ["Let's see where this goes", "No pressure", "What feels right?"]
+        }
+      }
+    },
+
+    "extraversion": {
+      "fullName": "Extraversion",
+      "abbreviation": "E",
+      "description": "Reflects energy, positive emotions, sociability, and tendency to seek stimulation",
+
+      "facets": {
+        "friendliness": "Interest in and warmth toward others",
+        "gregariousness": "Preference for others' company",
+        "assertiveness": "Tendency to take charge and lead",
+        "activityLevel": "Pace of living and energy level",
+        "excitementSeeking": "Need for environmental stimulation",
+        "cheerfulness": "Tendency to experience positive emotions"
+      },
+
+      "highScore": {
+        "range": "70-100",
+        "traits": ["Outgoing", "Energetic", "Talkative", "Enthusiastic", "Action-oriented"],
+        "strengths": ["Leadership", "Networking", "Energy", "Positive influence"],
+        "challenges": ["May dominate conversations", "Impulsiveness", "Difficulty with solitude"],
+        "careerFit": ["Sales", "Politics", "Marketing", "Entertainment", "Public relations"]
+      },
+
+      "lowScore": {
+        "range": "0-30",
+        "traits": ["Reserved", "Reflective", "Independent", "Calm", "Thoughtful"],
+        "strengths": ["Deep thinking", "Independence", "Listening", "Focus"],
+        "challenges": ["May seem aloof", "Networking difficulty", "Underestimated"],
+        "careerFit": ["Research", "Writing", "Technical roles", "Analysis", "Art"]
+      },
+
+      "lunaGuidance": {
+        "highE": {
+          "approach": "Be energetic and engaging, match their enthusiasm",
+          "keyPhrases": ["That's exciting!", "Tell me more!", "What an adventure!"]
+        },
+        "lowE": {
+          "approach": "Give space, don't overwhelm with energy",
+          "keyPhrases": ["Take your time", "What do you think?", "I'm here when you're ready"]
+        }
+      }
+    },
+
+    "agreeableness": {
+      "fullName": "Agreeableness",
+      "abbreviation": "A",
+      "description": "Reflects cooperation, trust, altruism, and concern for social harmony",
+
+      "facets": {
+        "trust": "Belief in others' sincerity and good intentions",
+        "morality": "Sincerity and reluctance to manipulate",
+        "altruism": "Active concern for others' welfare",
+        "cooperation": "Preference for collaboration over competition",
+        "modesty": "Humility and discomfort with attention",
+        "sympathy": "Concern and care for others' feelings"
+      },
+
+      "highScore": {
+        "range": "70-100",
+        "traits": ["Trusting", "Helpful", "Cooperative", "Compassionate", "Diplomatic"],
+        "strengths": ["Teamwork", "Relationship building", "Conflict resolution", "Empathy"],
+        "challenges": ["May be taken advantage of", "Conflict avoidance", "People-pleasing"],
+        "careerFit": ["Counseling", "Healthcare", "Teaching", "Social work", "HR"]
+      },
+
+      "lowScore": {
+        "range": "0-30",
+        "traits": ["Skeptical", "Competitive", "Direct", "Challenging", "Independent-minded"],
+        "strengths": ["Critical thinking", "Negotiation", "Independence", "Objectivity"],
+        "challenges": ["May seem cold", "Difficulty in teams", "Relationship strain"],
+        "careerFit": ["Law", "Business", "Criticism", "Debate", "Investigation"]
+      },
+
+      "lunaGuidance": {
+        "highA": {
+          "approach": "Be warm and harmonious, validate their care for others",
+          "keyPhrases": ["That's kind of you", "How thoughtful", "You care so much"]
+        },
+        "lowA": {
+          "approach": "Be direct and objective, don't be overly sentimental",
+          "keyPhrases": ["Let's be honest", "What's the logic?", "Fair point"]
+        }
+      }
+    },
+
+    "neuroticism": {
+      "fullName": "Neuroticism (vs. Emotional Stability)",
+      "abbreviation": "N",
+      "description": "Reflects tendency to experience negative emotions like anxiety, anger, and depression",
+
+      "facets": {
+        "anxiety": "Tendency to worry and feel apprehensive",
+        "anger": "Tendency to feel frustration and irritability",
+        "depression": "Tendency to feel sad, hopeless, or lonely",
+        "selfConsciousness": "Sensitivity to embarrassment and shame",
+        "immoderation": "Difficulty resisting cravings and urges",
+        "vulnerability": "Susceptibility to stress"
+      },
+
+      "highScore": {
+        "range": "70-100",
+        "traits": ["Sensitive", "Anxious", "Emotional", "Reactive", "Self-aware"],
+        "strengths": ["Empathy", "Vigilance", "Emotional depth", "Self-awareness"],
+        "challenges": ["Stress vulnerability", "Emotional overwhelm", "Self-doubt"],
+        "careerFit": ["Creative arts", "Counseling (with support)", "Roles with low stress"]
+      },
+
+      "lowScore": {
+        "range": "0-30",
+        "traits": ["Calm", "Resilient", "Even-tempered", "Secure", "Stable"],
+        "strengths": ["Stress tolerance", "Composure", "Reliability under pressure"],
+        "challenges": ["May miss emotional cues", "May seem emotionally distant"],
+        "careerFit": ["Emergency services", "Leadership", "Surgery", "Trading", "Military"]
+      },
+
+      "lunaGuidance": {
+        "highN": {
+          "approach": "Be extra gentle, validate feelings, provide reassurance",
+          "keyPhrases": ["Your feelings are valid", "I'm here with you", "Let's breathe together"]
+        },
+        "lowN": {
+          "approach": "Be straightforward, they can handle directness",
+          "keyPhrases": ["You've got this", "What's the plan?", "Let's tackle it"]
+        }
+      }
+    }
+  },
+
+  "combinations": {
+    "description": "Common personality profiles based on trait combinations",
+
+    "profiles": {
+      "analyst": {
+        "pattern": "High O, High C, Low E, Low A, Low N",
+        "description": "Curious, organized, independent thinkers who excel at complex problems",
+        "strengths": ["Strategic thinking", "Research", "Objective analysis"],
+        "lunaApproach": "Engage intellectually, respect their independence"
+      },
+
+      "advocate": {
+        "pattern": "High O, Low C, High E, High A, High N",
+        "description": "Passionate idealists who care deeply about causes and people",
+        "strengths": ["Inspiration", "Empathy", "Creativity"],
+        "lunaApproach": "Support their vision, help manage emotional intensity"
+      },
+
+      "executive": {
+        "pattern": "Low O, High C, High E, Low A, Low N",
+        "description": "Practical, organized leaders who get things done",
+        "strengths": ["Leadership", "Efficiency", "Decision-making"],
+        "lunaApproach": "Be practical and efficient, respect their standards"
+      },
+
+      "caregiver": {
+        "pattern": "Low O, High C, Low E, High A, High N",
+        "description": "Reliable, nurturing individuals who support others quietly",
+        "strengths": ["Dependability", "Care", "Attention to detail"],
+        "lunaApproach": "Be warm and appreciative, don't overlook their needs"
+      },
+
+      "adventurer": {
+        "pattern": "High O, Low C, High E, High A, Low N",
+        "description": "Spontaneous, warm individuals who embrace new experiences",
+        "strengths": ["Adaptability", "Social connection", "Exploration"],
+        "lunaApproach": "Be fun and open, go with their flow"
+      }
+    }
+  },
+
+  "research": {
+    "correlations": {
+      "wellbeing": "High E, Low N, High A, High C correlate with life satisfaction",
+      "creativity": "High O is the strongest predictor of creative achievement",
+      "leadership": "High E, High C, Low N predict leadership emergence",
+      "relationships": "High A and Low N predict relationship satisfaction",
+      "longevity": "High C is linked to longer lifespan and healthier behaviors"
+    },
+
+    "development": {
+      "agingEffects": "A and C tend to increase with age; N tends to decrease",
+      "stability": "Traits become more stable after age 30 but can still change",
+      "interventions": "Therapy and intentional effort can shift traits moderately"
+    }
+  },
+
+  "integrationWithOtherSystems": {
+    "enneagram": {
+      "note": "Enneagram provides motivational depth; Big 5 provides behavioral breadth",
+      "example": "An Enneagram 4 (Individualist) might be High O, High N, Low E"
+    },
+    "bazi": {
+      "note": "BaZi provides elemental constitution; Big 5 provides psychological traits",
+      "example": "Yang Fire Day Master often correlates with High E, High O"
+    }
+  }
+}

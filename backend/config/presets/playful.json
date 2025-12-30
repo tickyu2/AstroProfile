@@ -1,0 +1,26 @@
+{
+  "name": "Playful",
+  "description": "Fun, energetic, and lighthearted",
+  "behaviorDefaults": {
+    "neutral": {
+      "backchannelFrequency": 0.55,
+      "maxResponseTokens": 240,
+      "style": "playful",
+      "adviceBias": 0.6,
+      "ttsHints": {
+        "rate": 1.08,
+        "pitch": 1.05,
+        "warmth": 0.6
+      }
+    }
+  },
+  "tts": {
+    "elevenLabs": {
+      "baseProfile": {
+        "stability": 0.5,
+        "similarityBoost": 0.8,
+        "style": 0.7
+      }
+    }
+  }
+}

@@ -194,6 +194,46 @@ service cloud.firestore {
       }
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // MCP AUTHORIZATION (AI Access Control)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // MCP Authorization - users can manage their own AI access settings
+    match /mcp_authorizations/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // MCP Audit Log - users can only read their own logs (write from server only)
+    match /mcp_audit_log/{logId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow write: if false; // Only server with service account can write
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // MCP SERVER COLLECTIONS (21-Tool Complete Server)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // User Memories - Memory & Life Story Server (5 tools)
+    match /user_memories/{memoryId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Health Logs - Health Tracking Server (4 tools)
+    match /health_logs/{logId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Compatibility Analyses - Compatibility Server (4 tools)
+    match /compatibility_analyses/{analysisId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
     // Default deny all
     match /{document=**} {
       allow read, write: if false;

@@ -668,10 +668,187 @@ Important: You complement the constellation by adding the Eastern philosophical 
   }
 }
 
+/**
+ * ChatGPT Deep Thinking Perspective Function
+ * Uses OpenAI's o1 or o3-mini model with reasoning capabilities
+ * for deep analytical perspective with visible thought process
+ */
+async function getChatGPTPerspective({
+  claudeResponse,
+  geminiResponse,
+  grokResponse,
+  userMessage,
+  userProfile,
+  debateHistory,
+  customQuestion,
+  model = 'o3-mini' // o1, o1-mini, o3-mini
+}) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OpenAI API key not configured');
+  }
+
+  const userName = userProfile?.displayName || 'the user';
+  const constitutionalContext = getConstitutionalContext(userProfile);
+
+  const systemPrompt = `You are Sister ChatGPT, the analytical reasoner of the GENESIS constellation alongside Brother Claude, Sister Gemini, Brother Grok, Brother Opus, and Brother DeepSeek.
+
+Your essence:
+- You are OpenAI's reasoning model - built for deep, step-by-step analytical thinking
+- You excel at breaking down complex problems into clear, logical components
+- You show your reasoning process transparently, helping users understand HOW you think
+- You bring Western analytical philosophy and pragmatic problem-solving
+
+Your unique gifts in the constellation:
+- Brother Claude (Sonnet): Nurturing, emotionally attuned - the daily companion
+- Sister Gemini: Analytical, structured, pattern-seeking - the logical voice
+- Brother Grok: Human zeitgeist, opinionated - the reality check
+- Brother Opus: Philosophical depth, the long view - the elder counsel
+- Brother DeepSeek: Eastern wisdom, finding balance - the harmonizer
+- You (ChatGPT): Step-by-step reasoning, pragmatic solutions - the analyst
+
+Your style:
+- Think through problems methodically and transparently
+- Break complex issues into clear components
+- Consider multiple angles before reaching conclusions
+- Reference Western philosophy, logic, and practical wisdom
+- Provide actionable insights and concrete recommendations
+- Consider ${userName}'s constitutional nature: ${constitutionalContext || 'approach with analytical clarity'}
+- Be substantive and detailed - show your reasoning process
+
+Your relationship with the user:
+- You're the analytical friend who helps think through problems clearly
+- You excel at "let's break this down" and "here's how I'm thinking about it"
+- You bring clarity to complex situations through structured reasoning
+
+Important: You complement the constellation by adding transparent reasoning and pragmatic Western analytical perspective.`;
+
+  // Build user prompt based on context
+  let userPrompt = '';
+
+  if (debateHistory && debateHistory.length > 0) {
+    const historyText = debateHistory.map(d => `${d.speaker}: ${d.text}`).join('\n\n');
+    userPrompt = customQuestion
+      ? `The discussion so far:\n\n${historyText}\n\n${userName} asks you: "${customQuestion}"\n\nThink through this step by step. What's your analytical take? Break down the key considerations and provide clear recommendations.`
+      : `The discussion so far:\n\n${historyText}\n\nNow add your analytical perspective. Think through this methodically - what are the key considerations? What conclusions does careful reasoning lead to? Provide substantive, multi-paragraph analysis.`;
+  } else {
+    const otherVoices = [
+      claudeResponse ? `Brother Claude said:\n"${claudeResponse}"` : '',
+      geminiResponse ? `Sister Gemini added:\n"${geminiResponse}"` : '',
+      grokResponse ? `Brother Grok offered:\n"${grokResponse}"` : ''
+    ].filter(Boolean).join('\n\n');
+
+    userPrompt = customQuestion
+      ? `Context: ${userMessage ? `"${userMessage}"` : '(ongoing discussion)'}\n\n${otherVoices}\n\n${userName} asks you: "${customQuestion}"\n\nProvide your analytical perspective. Think step by step (3-4 paragraphs). Break down the key issues and reasoning.`
+      : `Context: ${userMessage ? `"${userMessage}"` : '(ongoing discussion)'}\n\n${otherVoices}\n\nOffer your unique analytical perspective. Think through this methodically (3-4 paragraphs). What are the key considerations? What does careful reasoning suggest?`;
+  }
+
+  console.log(`🧪 Getting ChatGPT perspective with ${model}`);
+
+  try {
+    // Determine the right model and parameters
+    const isReasoningModel = model.startsWith('o1') || model.startsWith('o3');
+
+    const requestBody = {
+      model: model,
+      messages: isReasoningModel
+        ? [{ role: 'user', content: `${systemPrompt}\n\n---\n\n${userPrompt}` }]
+        : [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+      max_completion_tokens: 4000
+    };
+
+    // Add reasoning effort for o3-mini
+    if (model === 'o3-mini') {
+      requestBody.reasoning_effort = 'high';
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`❌ ChatGPT ${model} error:`, errorData);
+
+      // Fallback to gpt-4o if reasoning model fails
+      console.log('⚡ Falling back to GPT-4o...');
+      const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: 2000,
+          temperature: 0.8
+        })
+      });
+
+      if (!fallbackResponse.ok) {
+        throw new Error(errorData.error?.message || `OpenAI API error: ${response.status}`);
+      }
+
+      const fallbackData = await fallbackResponse.json();
+      const fallbackText = fallbackData.choices?.[0]?.message?.content || 'No response from ChatGPT';
+
+      console.log('✅ GPT-4o fallback response received:', fallbackText.slice(0, 100));
+
+      return {
+        success: true,
+        response: fallbackText,
+        speaker: 'Sister ChatGPT',
+        icon: '🧪',
+        fallback: true,
+        model: 'gpt-4o'
+      };
+    }
+
+    const data = await response.json();
+    let chatgptText = data.choices?.[0]?.message?.content || 'No response from ChatGPT';
+
+    // Log usage stats if available
+    if (data.usage) {
+      console.log('📊 ChatGPT usage:', data.usage);
+      // o1/o3 models may have reasoning_tokens
+      if (data.usage.completion_tokens_details?.reasoning_tokens) {
+        console.log('🧠 Reasoning tokens:', data.usage.completion_tokens_details.reasoning_tokens);
+      }
+    }
+
+    console.log(`✅ ChatGPT ${model} perspective received:`, chatgptText.slice(0, 100));
+
+    return {
+      success: true,
+      response: chatgptText,
+      speaker: 'Sister ChatGPT',
+      icon: '🧪',
+      model: data.model || model,
+      usage: data.usage || null
+    };
+  } catch (error) {
+    console.error('❌ ChatGPT error:', error.message);
+    throw new Error(`OpenAI API error: ${error.message}`);
+  }
+}
+
 module.exports = {
   getSecondOpinion,
   getGrokPerspective,
   getOpusPerspective,
   getDeepSeekPerspective,
+  getChatGPTPerspective,
   getConstitutionalContext
 };

@@ -2,8 +2,13 @@
 
 ## GENESIS OS - Modality Isolation System
 **Created:** December 26, 2024
-**Version:** 1.0
+**Updated:** December 28, 2024 - Added Cloud Run deployment
+**Version:** 1.2
 **Author:** Brother Claude Code
+
+**Related Documentation:**
+- [GENESIS Architecture](./GENESIS_ARCHITECTURE.md) - Complete voice/text stack overview
+- [Production Deployment](../backend/PRODUCTION_DEPLOYMENT.md) - Cloud Run setup guide
 
 ---
 
@@ -499,7 +504,250 @@ Value: [
 
 ---
 
+## Hybrid Voice Provider System
+
+### Overview
+
+GENESIS supports multiple voice providers with automatic fallback:
+
+```
+                        VOICE STRATEGIES
+┌───────────────────────────────────────────────────────────────────┐
+│                                                                   │
+│   GROQ_ONLY (Default)         OPENAI_FIRST (Hybrid)              │
+│   ─────────────────          ────────────────────                │
+│   Audio → Groq Whisper        Try OpenAI Realtime                │
+│         → Text                    ↓                              │
+│         → Claude                If unavailable                    │
+│         → Response                ↓                              │
+│                               Fallback to Groq                    │
+│                                                                   │
+│   OPENAI_ONLY (Native Voice)                                     │
+│   ──────────────────────────                                     │
+│   Audio → OpenAI Realtime (WebSocket)                            │
+│         → Native processing (preserves tone, emotion)            │
+│         → Direct audio response                                  │
+│         → Plus: Text transcripts for display!                    │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+### Paralinguistic Cue Detection
+
+OpenAI Realtime API preserves emotional/tonal information that STT loses:
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                    PARALINGUISTIC CUES                            │
+│                                                                   │
+│   EMOTIONS           NON-VERBAL           PACING                 │
+│   ────────           ──────────           ──────                 │
+│   😊 happy           😮‍💨 sigh             ⚡ rushed              │
+│   😢 sad             😄 laugh             🐢 slow                │
+│   😤 frustrated      🤔 hesitation        ⏸️ pause               │
+│   🎉 excited         🤫 whisper                                  │
+│   😰 anxious         ❗ emphasis                                 │
+│   😌 calm                                                        │
+│   😞 disappointed                                                │
+│   🌟 hopeful                                                     │
+│                                                                   │
+│   Displayed as badges under transcript messages:                 │
+│   ┌─────────────────────────────────────┐                        │
+│   │ "I guess I'll try again later..."  │                        │
+│   │ 😤 frustrated  🤔 hesitant          │ ← Cue badges           │
+│   └─────────────────────────────────────┘                        │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+### Voice Settings Panel
+
+Users can configure voice behavior through the settings panel:
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│  🎤 Voice Settings                              [Connected]       │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │ 🎯 Groq STT                                         [Active] │ │
+│  │ Speech-to-Text pipeline. Reliable and accurate.              │ │
+│  │ + Reliable  + Free tier  - No emotion detection              │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │ 🔄 Hybrid                                                    │ │
+│  │ Try OpenAI native, fallback to Groq if unavailable.         │ │
+│  │ + Best of both  + Auto-fallback  - Requires OpenAI key      │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │ ⚡ Native Voice                                              │ │
+│  │ OpenAI Realtime API. Fastest with emotion detection.        │ │
+│  │ + Sub-200ms latency  + Emotion detection  - Higher cost     │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                                                                   │
+│  ─────────────────────────────────────────────────────────────── │
+│                                                                   │
+│  😊 Show Emotional Cues                                  [ON]   │
+│                                                                   │
+│  ┌─ Status ─────────────────────────────────────────────────┐   │
+│  │ Active Provider: ● Groq Whisper                          │   │
+│  │ Cue Detection:   Not available                           │   │
+│  │ Strategy:        Groq STT                                │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+### Provider Architecture
+
+```
+                          VOICE MANAGER
+                               │
+            ┌──────────────────┴──────────────────┐
+            │                                      │
+            ▼                                      ▼
+┌─────────────────────────┐         ┌─────────────────────────┐
+│  GroqWhisperProvider    │         │  OpenAIRealtimeProvider │
+│  (groqWhisperProvider.js)│         │  (openaiRealtimeProvider.js)
+│                         │         │                         │
+│  supportsCues: false    │         │  supportsCues: true     │
+│  latency: ~200ms        │         │  latency: <200ms        │
+│  mode: batch            │         │  mode: streaming        │
+│                         │         │                         │
+│  processAudio(path)     │         │  streamAudio(chunk)     │
+│  └→ transcribeWithGroq  │         │  └→ WebSocket send      │
+│      └→ EnrichedTranscript │      │      └→ transcript + cues│
+└─────────────────────────┘         └─────────────────────────┘
+            │                                      │
+            └──────────────────┬───────────────────┘
+                               │
+                               ▼
+                    VoiceProviderInterface
+                    (voiceProvider.js)
+                               │
+                    ┌──────────┴──────────┐
+                    │                      │
+             onTranscript()          onCue()
+                    │                      │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    VoiceTranscriptPanel
+                    (VoiceTranscriptPanel.jsx)
+```
+
+### Switching Providers
+
+```javascript
+// Via VoiceSettingsPanel component
+onStrategyChange={(newStrategy) => {
+  // VOICE_STRATEGIES.GROQ_ONLY
+  // VOICE_STRATEGIES.OPENAI_FIRST
+  // VOICE_STRATEGIES.OPENAI_ONLY
+  setVoiceStrategy(newStrategy);
+}}
+
+// Backend VoiceManager handles the switch
+voiceManager.setStrategy('openai_first');
+// Automatically reinitializes with new provider
+```
+
+---
+
+## WebSocket Bridge Architecture
+
+### Real-time Audio Streaming Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                           FRONTEND                                   │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  useRealtimeVoice Hook                                        │   │
+│  │  ├── isRecording, isSpeaking, isLunaSpeaking                 │   │
+│  │  ├── startSession(), stopSession()                           │   │
+│  │  ├── toggleRecording(), commit()                             │   │
+│  │  └── userTranscripts[], lunaTranscripts[], cues[]            │   │
+│  └──────────────────────┬───────────────────────────────────────┘   │
+│                         │                                            │
+│         ┌───────────────┼───────────────┐                           │
+│         │               │               │                           │
+│         ▼               ▼               ▼                           │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────┐                │
+│  │ audioCapture│  │voiceWS       │  │AudioContext │                │
+│  │             │  │(WebSocket)   │  │(Playback)   │                │
+│  │ Mic → PCM16 │  │              │  │             │                │
+│  │ VAD         │  │ send/receive │  │ PCM16 → Out │                │
+│  └──────┬──────┘  └───────┬──────┘  └──────▲──────┘                │
+│         │                 │                 │                        │
+│         └────────►────────┴─────────────────┘                        │
+│                           │ WebSocket                                │
+└───────────────────────────┼──────────────────────────────────────────┘
+                            │
+                            ▼ ws://host/voice
+┌───────────────────────────────────────────────────────────────────────┐
+│                           BACKEND                                     │
+│                                                                       │
+│  ┌────────────────────────────────────────────────────────────────┐  │
+│  │  voiceWebSocketServer                                           │  │
+│  │  ├── Client session management                                 │  │
+│  │  ├── Audio routing to voiceManager                            │  │
+│  │  └── Transcript/cue/audio broadcast back to client            │  │
+│  └────────────────────────────┬───────────────────────────────────┘  │
+│                               │                                       │
+│                               ▼                                       │
+│  ┌────────────────────────────────────────────────────────────────┐  │
+│  │  voiceManager                                                   │  │
+│  │  ├── Strategy: GROQ_ONLY | OPENAI_FIRST | OPENAI_ONLY         │  │
+│  │  └── Routes to active provider                                 │  │
+│  └────────────────────────────┬───────────────────────────────────┘  │
+│                               │                                       │
+│              ┌────────────────┴────────────────┐                     │
+│              ▼                                  ▼                     │
+│  ┌─────────────────────────┐     ┌─────────────────────────────┐    │
+│  │ GroqWhisperProvider     │     │ OpenAIRealtimeProvider      │    │
+│  │ (STT → Text → Claude)   │     │ (Native voice + cues)       │    │
+│  └─────────────────────────┘     └─────────────────────────────┘    │
+│                                                                       │
+└───────────────────────────────────────────────────────────────────────┘
+```
+
+### WebSocket Protocol
+
+```
+CLIENT → SERVER:
+─────────────────
+{ type: 'start_session', profileId, sessionId?, strategy? }
+{ type: 'audio', data: '<base64 PCM16>' }
+{ type: 'commit' }           // End of utterance
+{ type: 'end_session' }
+{ type: 'set_strategy', strategy }
+
+SERVER → CLIENT:
+─────────────────
+{ type: 'connected', clientId, availableStrategies }
+{ type: 'session_started', sessionId, provider, supportsCues }
+{ type: 'transcript', speaker, text, cues[], timestamp, provider }
+{ type: 'audio', data: '<base64 PCM16>' }  // Luna's voice
+{ type: 'cue', cue: { type, confidence, context } }
+{ type: 'session_ended', transcripts }
+{ type: 'error', message }
+```
+
+### Audio Format
+
+- **Sample Rate**: 24kHz (OpenAI Realtime standard)
+- **Channels**: Mono
+- **Format**: PCM16 (signed 16-bit integer)
+- **Chunk Size**: 4096 samples (~170ms per chunk)
+
+---
+
 ## File References
+
+### Core Components
 
 | File | Purpose |
 |------|---------|
@@ -507,9 +755,78 @@ Value: [
 | [sessionCache.js](../functions/memory/sessionCache.js) | Backend session cache with modality tracking |
 | [aiSoulPartnerService.js](../src/services/aiSoulPartnerService.js) | API layer with modality parameter |
 | [AISoulPartnerChat.jsx](../src/components/aiSoulPartner/AISoulPartnerChat.jsx) | Main chat component |
-| [VoiceTranscriptPanel.jsx](../src/components/aiSoulPartner/VoiceTranscriptPanel.jsx) | Side-by-side transcript view |
+
+### Voice Provider System
+
+| File | Purpose |
+|------|---------|
+| [voiceProvider.js](../backend/voice/voiceProvider.js) | Voice provider abstraction interface |
+| [voiceManager.js](../backend/voice/voiceManager.js) | Unified voice manager with strategy switching |
+| [openaiRealtimeProvider.js](../backend/voice/openaiRealtimeProvider.js) | OpenAI Realtime API integration |
+| [groqWhisperProvider.js](../backend/voice/groqWhisperProvider.js) | Groq Whisper STT provider |
+| [VoiceSettingsPanel.jsx](../src/components/aiSoulPartner/VoiceSettingsPanel.jsx) | Voice settings UI with provider toggle |
+
+### WebSocket Bridge (Real-time Streaming)
+
+| File | Purpose |
+|------|---------|
+| [voiceWebSocketServer.js](../backend/voice/voiceWebSocketServer.js) | Backend WebSocket server for audio streaming |
+| [voiceWebSocketService.js](../src/services/voiceWebSocketService.js) | Frontend WebSocket client with reconnection |
+| [audioCapture.js](../src/services/audioCapture.js) | Microphone capture with VAD (voice activity detection) |
+| [useRealtimeVoice.js](../src/hooks/useRealtimeVoice.js) | Unified hook for real-time voice communication |
+
+### Transcript Components
+
+| File | Purpose |
+|------|---------|
+| [VoiceTranscriptPanel.jsx](../src/components/aiSoulPartner/VoiceTranscriptPanel.jsx) | Side-by-side transcript view with cue display |
 | [MomentumScrollControl.jsx](../src/components/aiSoulPartner/MomentumScrollControl.jsx) | Seesaw time navigation |
-| [groqWhisper.js](../backend/stt/groqWhisper.js) | Speech-to-text service |
+
+### Legacy/Existing
+
+| File | Purpose |
+|------|---------|
+| [groqWhisper.js](../backend/stt/groqWhisper.js) | Original speech-to-text service |
+
+---
+
+## Cloud Run Production Deployment
+
+As of December 28, 2024, voice processing runs on Cloud Run for production:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PRODUCTION VOICE INFRASTRUCTURE                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   PRIMARY: Cloud Run WebSocket Server                                       │
+│   ─────────────────────────────────                                        │
+│   Endpoint: wss://luna-voice-backend-sjpjwnbsmq-uc.a.run.app               │
+│                                                                             │
+│   Benefits:                                                                 │
+│   • API keys secured server-side (not exposed in browser)                  │
+│   • Rate limiting enforced                                                 │
+│   • Session affinity for WebSocket connections                             │
+│   • Auto-scaling (0-10 instances)                                          │
+│                                                                             │
+│   FALLBACK: Browser-Based Processing                                        │
+│   ────────────────────────────────                                         │
+│   Activated when Cloud Run is unreachable                                  │
+│                                                                             │
+│   • Web Speech API for STT                                                 │
+│   • Direct ElevenLabs API calls                                            │
+│   • API keys exposed (less secure but functional)                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Health Check
+
+```bash
+curl https://luna-voice-backend-sjpjwnbsmq-uc.a.run.app/health
+```
+
+Returns service status, latency, and provider availability.
 
 ---
 

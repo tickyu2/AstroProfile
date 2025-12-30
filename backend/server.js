@@ -39,10 +39,10 @@ import {
   signalUserInterruptedLuna,
   signalBackchannelRejected,
   signalBackchannelAppreciated,
-  signalUserSeemsComfortableWithSilence,
-  processTextSignals,
-  getUserPreferences
+  signalSilenceComfort,
+  processTextSignals
 } from './user/learningSignals.js';
+import { getUserPreferences } from './user/userPreferencesStore.js';
 import { recordBackchannelPlayed, recordBackchannelOverSpoken } from './behavior/sessionBackchannelAdapter.js';
 import { startDebugServer } from './debugServer.js';
 import { startConsoleServer } from './consoleServer.js';
@@ -408,7 +408,7 @@ function handleBehaviorSignal(session, payload) {
     case 'user_comfortable_with_silence':
       // User held long pause without distress
       session.stats.longSilences++;
-      signalUserSeemsComfortableWithSilence(session.userId);
+      signalSilenceComfort(session.userId, data?.silenceDuration || 3000);
       // Auto-tune: calibration signal
       processAutoTuneSignal(session.userId, AUTOTUNE_SIGNALS.USER_COMFORTABLE_WITH_SILENCE, data);
       break;

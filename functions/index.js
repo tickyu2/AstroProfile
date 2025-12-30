@@ -41,7 +41,8 @@ const {
   getSecondOpinion: getSecondOpinionFn,
   getGrokPerspective: getGrokPerspectiveFn,
   getOpusPerspective: getOpusPerspectiveFn,
-  getDeepSeekPerspective: getDeepSeekPerspectiveFn
+  getDeepSeekPerspective: getDeepSeekPerspectiveFn,
+  getChatGPTPerspective: getChatGPTPerspectiveFn
 } = require('./constellation/perspectives');
 
 // Usage & Rate Limiting (Phase 6 - Production Hardening)
@@ -608,6 +609,32 @@ exports.getDeepSeekPerspective = onRequest({
     console.error('DeepSeek Perspective Error:', error);
     return res.status(500).json({
       error: 'Failed to get DeepSeek perspective',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * ChatGPT Deep Thinking Perspective Function
+ * Uses OpenAI's o1/o3-mini for step-by-step reasoning and analytical perspective.
+ * Part of GENESIS - AI Constellation Feature
+ * Added: December 2024
+ */
+exports.getChatGPTPerspective = onRequest({
+  cors: true,
+  invoker: 'public'
+}, async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const result = await getChatGPTPerspectiveFn(req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('ChatGPT Perspective Error:', error);
+    return res.status(500).json({
+      error: 'Failed to get ChatGPT perspective',
       details: error.message
     });
   }
@@ -5280,4 +5307,21 @@ exports.selfRecognition = onCall({
     };
   }
 });
+
+// ---------------------------------------------------------------------------
+// GENESIS - AI IMAGE GENERATION
+// Multi-provider image generation: Stability.ai, Leonardo.ai
+// ---------------------------------------------------------------------------
+
+const stabilityImageGen = require('./image/stabilityImageGen');
+const leonardoImageGen = require('./image/leonardoImageGen');
+
+// Stability.ai (SD3, SDXL, Stable Image Core)
+exports.generateStabilityImage = stabilityImageGen.generateStabilityImage;
+exports.getStabilityStyles = stabilityImageGen.getStabilityStyles;
+
+// Leonardo.ai (Phoenix, Vision XL, Kino XL)
+exports.generateLeonardoImage = leonardoImageGen.generateLeonardoImage;
+exports.getLeonardoModels = leonardoImageGen.getLeonardoModels;
+exports.getLeonardoUsage = leonardoImageGen.getLeonardoUsage;
 

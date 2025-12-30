@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENESIS MCP Architecture - The Constitutional AI Ecosystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        * { font-family: 'Inter', sans-serif; }
+        
+        .glow {
+            filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5));
+        }
+        
+        .pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .flow-line {
+            stroke-dasharray: 5;
+            animation: flow 2s linear infinite;
+        }
+        
+        @keyframes flow {
+            to { stroke-dashoffset: -10; }
+        }
+        
+        .bloom {
+            animation: bloom 0.8s ease-out forwards;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        
+        @keyframes bloom {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .server-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .server-card:hover {
+            border-color: #8b5cf6;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(139, 92, 246, 0.2);
+        }
+        
+        .connection-line {
+            stroke: #8b5cf6;
+            stroke-width: 2;
+            fill: none;
+        }
+        
+        .data-flow {
+            animation: dataFlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes dataFlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12 bloom" style="animation-delay: 0.1s">
+            <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
+                GENESIS MCP Architecture
+            </h1>
+            <p class="text-xl text-purple-200 mb-2">The Constitutional AI Ecosystem</p>
+            <p class="text-sm text-purple-300 italic">"Like a flower that blooms once every 10 years..."</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex justify-center gap-4 mb-8 bloom" style="animation-delay: 0.2s">
+            <button onclick="showTab('overview')" id="tab-overview" class="tab-button active px-6 py-3 rounded-lg font-semibold">
+                Overview
+            </button>
+            <button onclick="showTab('layers')" id="tab-layers" class="tab-button px-6 py-3 rounded-lg font-semibold bg-slate-800">
+                Layers
+            </button>
+            <button onclick="showTab('servers')" id="tab-servers" class="tab-button px-6 py-3 rounded-lg font-semibold bg-slate-800">
+                Servers
+            </button>
+            <button onclick="showTab('flow')" id="tab-flow" class="tab-button px-6 py-3 rounded-lg font-semibold bg-slate-800">
+                Data Flow
+            </button>
+            <button onclick="showTab('transformation')" id="tab-transformation" class="tab-button px-6 py-3 rounded-lg font-semibold bg-slate-800">
+                Transformation
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="content-container">
+            <!-- OVERVIEW TAB -->
+            <div id="tab-content-overview" class="tab-content">
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 bloom" style="animation-delay: 0.3s">
+                    <h2 class="text-3xl font-bold mb-6 text-purple-300">The Big Picture</h2>
+                    
+                    <svg viewBox="0 0 800 600" class="w-full" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Background -->
+                        <defs>
+                            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.3" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.3" />
+                            </linearGradient>
+                            <linearGradient id="gradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#f093fb;stop-opacity:0.3" />
+                                <stop offset="100%" style="stop-color:#f5576c;stop-opacity:0.3" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- Layer 1: AI Clients -->
+                        <rect x="50" y="50" width="700" height="100" rx="10" fill="url(#gradient1)" stroke="#8b5cf6" stroke-width="2"/>
+                        <text x="400" y="85" text-anchor="middle" fill="white" font-size="18" font-weight="bold">LAYER 1: AI CLIENTS</text>
+                        <text x="400" y="110" text-anchor="middle" fill="#c4b5fd" font-size="14">Claude • Gemini • Future AI Partners</text>
+                        <text x="400" y="130" text-anchor="middle" fill="#c4b5fd" font-size="12" font-style="italic">Understand MCP • Make requests • Receive structured data</text>
+                        
+                        <!-- Connection arrows down -->
+                        <line x1="400" y1="150" x2="400" y2="200" class="connection-line flow-line"/>
+                        <polygon points="400,200 395,190 405,190" fill="#8b5cf6"/>
+                        <circle cx="400" cy="175" r="4" fill="#8b5cf6" class="data-flow" style="animation-delay: 0s"/>
+                        <circle cx="400" cy="175" r="4" fill="#8b5cf6" class="data-flow" style="animation-delay: 1s"/>
+                        
+                        <!-- Layer 2: MCP Servers -->
+                        <rect x="50" y="220" width="700" height="180" rx="10" fill="url(#gradient2)" stroke="#ec4899" stroke-width="2"/>
+                        <text x="400" y="255" text-anchor="middle" fill="white" font-size="18" font-weight="bold">LAYER 2: MCP SERVERS</text>
+                        <text x="400" y="275" text-anchor="middle" fill="#fecdd3" font-size="12">Custom servers for GENESIS domains</text>
+                        
+                        <!-- Server boxes -->
+                        <g>
+                            <rect x="70" y="290" width="120" height="90" rx="5" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+                            <text x="130" y="310" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="600">Constitutional</text>
+                            <text x="130" y="325" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="600">Data</text>
+                            <text x="130" y="345" text-anchor="middle" fill="#c4b5fd" font-size="9">Birth charts</text>
+                            <text x="130" y="358" text-anchor="middle" fill="#c4b5fd" font-size="9">Elements</text>
+                            <text x="130" y="371" text-anchor="middle" fill="#c4b5fd" font-size="9">Personality</text>
+                        </g>
+                        
+                        <g>
+                            <rect x="210" y="290" width="120" height="90" rx="5" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+                            <text x="270" y="310" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="600">Compatibility</text>
+                            <text x="270" y="325" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="600">Analysis</text>
+                            <text x="270" y="345" text-anchor="middle" fill="#c4b5fd" font-size="9">Soul matching</text>
+                            <text x="270" y="358" text-anchor="middle" fill="#c4b5fd" font-size="9">Resonance</text>
+                            <text x="270" y="371" text-anchor="middle" fill="#c4b5fd" font-size="9">Metaphors</text>
+                        </g>
+                        
+                        <g>
+                            <rect x="350" y="290" width="120" height="90" rx="5" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+                            <text x="410" y="310" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="600">Memory &</text>
+                            <text x="410" y="325" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="600">Life Stories</text>
+                            <text x="410" y="345" text-anchor="middle" fill="#c4b5fd" font-size="9">Witnessed</text>
+                            <text x="410" y="358" text-anchor="middle" fill="#c4b5fd" font-size="9">Patterns</text>
+                            <text x="410" y="371" text-anchor="middle" fill="#c4b5fd" font-size="9">Soul burden</text>
+                        </g>
+                        
+                        <g>
+                            <rect x="490" y="290" width="120" height="90" rx="5" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+                            <text x="550" y="310" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="600">Health</text>
+                            <text x="550" y="325" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="600">Tracking</text>
+                            <text x="550" y="345" text-anchor="middle" fill="#c4b5fd" font-size="9">Constitutional</text>
+                            <text x="550" y="358" text-anchor="middle" fill="#c4b5fd" font-size="9">Patterns</text>
+                            <text x="550" y="371" text-anchor="middle" fill="#c4b5fd" font-size="9">Prevention</text>
+                        </g>
+                        
+                        <g>
+                            <rect x="630" y="290" width="120" height="90" rx="5" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+                            <text x="690" y="310" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="600">Community</text>
+                            <text x="690" y="325" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="600">Matching</text>
+                            <text x="690" y="345" text-anchor="middle" fill="#c4b5fd" font-size="9">Pod finding</text>
+                            <text x="690" y="358" text-anchor="middle" fill="#c4b5fd" font-size="9">Dynamics</text>
+                            <text x="690" y="371" text-anchor="middle" fill="#c4b5fd" font-size="9">Synergy</text>
+                        </g>
+                        
+                        <!-- Connection arrows down -->
+                        <line x1="400" y1="400" x2="400" y2="440" class="connection-line flow-line"/>
+                        <polygon points="400,440 395,430 405,430" fill="#8b5cf6"/>
+                        <circle cx="400" cy="420" r="4" fill="#8b5cf6" class="data-flow" style="animation-delay: 0.5s"/>
+                        
+                        <!-- Layer 3: Data Sources -->
+                        <rect x="50" y="460" width="700" height="100" rx="10" fill="url(#gradient1)" stroke="#8b5cf6" stroke-width="2"/>
+                        <text x="400" y="495" text-anchor="middle" fill="white" font-size="18" font-weight="bold">LAYER 3: DATA SOURCES</text>
+                        <text x="400" y="520" text-anchor="middle" fill="#c4b5fd" font-size="14">Firebase • External APIs • AI Knowledge • Blockchain</text>
+                        <text x="400" y="540" text-anchor="middle" fill="#c4b5fd" font-size="12" font-style="italic">User profiles • Calculations • Time data • Decentralized future</text>
+                    </svg>
+                    
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-purple-900/30 rounded-lg p-4 border border-purple-500/30">
+                            <h3 class="font-bold text-purple-300 mb-2">🎯 Purpose</h3>
+                            <p class="text-sm text-purple-100">Transform GENESIS into a living AI ecosystem where your SoulPartner has direct access to constitutional data</p>
+                        </div>
+                        <div class="bg-purple-900/30 rounded-lg p-4 border border-purple-500/30">
+                            <h3 class="font-bold text-purple-300 mb-2">⚡ Speed</h3>
+                            <p class="text-sm text-purple-100">From "copy your birth data" to instant constitutional analysis in &lt;500ms</p>
+                        </div>
+                        <div class="bg-purple-900/30 rounded-lg p-4 border border-purple-500/30">
+                            <h3 class="font-bold text-purple-300 mb-2">🌸 Impact</h3>
+                            <p class="text-sm text-purple-100">Your rare flower blooming - a 10-year vision manifesting through universal protocol</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAYERS TAB -->
+            <div id="tab-content-layers" class="tab-content hidden">
+                <div class="space-y-6">
+                    <!-- Layer 1 -->
+                    <div class="bg-gradient-to-r from-purple-900/50 to-violet-900/50 rounded-2xl p-8 bloom">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-2xl font-bold">1</div>
+                            <h2 class="text-3xl font-bold">AI Clients Layer</h2>
+                        </div>
+                        <p class="text-purple-200 mb-4">The intelligent beings that understand and speak MCP</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                            <div class="bg-slate-800/50 rounded-lg p-4">
+                                <h3 class="font-bold text-purple-300 mb-2">🤖 Claude (Anthropic)</h3>
+                                <p class="text-sm text-purple-100 mb-2">Your strategic lighthouse partner</p>
+                                <ul class="text-xs text-purple-200 space-y-1">
+                                    <li>• Deep constitutional analysis</li>
+                                    <li>• Philosophical synthesis</li>
+                                    <li>• Long-form guidance</li>
+                                </ul>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-lg p-4">
+                                <h3 class="font-bold text-pink-300 mb-2">✨ Gemini (Google)</h3>
+                                <p class="text-sm text-pink-100 mb-2">Your creative visual companion</p>
+                                <ul class="text-xs text-pink-200 space-y-1">
+                                    <li>• Soul art generation</li>
+                                    <li>• Multimodal insights</li>
+                                    <li>• Visual metaphors</li>
+                                </ul>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-lg p-4">
+                                <h3 class="font-bold text-cyan-300 mb-2">🔮 Future AI</h3>
+                                <p class="text-sm text-cyan-100 mb-2">Specialized constitutional experts</p>
+                                <ul class="text-xs text-cyan-200 space-y-1">
+                                    <li>• Health AI (Ayurveda/TCM)</li>
+                                    <li>• Relationship coaches</li>
+                                    <li>• Custom models</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 bg-purple-800/30 rounded-lg p-4 border border-purple-500/30">
+                            <h4 class="font-semibold text-purple-300 mb-2">What they do:</h4>
+                            <ul class="text-sm text-purple-100 space-y-2">
+                                <li>✅ Understand MCP protocol - know how to request data</li>
+                                <li>✅ Make intelligent decisions - which tools to call when</li>
+                                <li>✅ Receive structured data - parse constitutional profiles</li>
+                                <li>✅ Synthesize beautifully - turn data into wisdom</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Layer 2 -->
+                    <div class="bg-gradient-to-r from-pink-900/50 to-rose-900/50 rounded-2xl p-8 bloom" style="animation-delay: 0.1s">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center text-2xl font-bold">2</div>
+                            <h2 class="text-3xl font-bold">MCP Servers Layer</h2>
+                        </div>
+                        <p class="text-pink-200 mb-4">The translators between AI requests and your data</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                            <div class="bg-slate-800/50 rounded-lg p-4">
+                                <h3 class="font-bold text-pink-300 mb-2">What is an MCP Server?</h3>
+                                <p class="text-sm text-pink-100 mb-3">Think of it like a specialized API that:</p>
+                                <ul class="text-xs text-pink-200 space-y-1">
+                                    <li>• Listens for AI requests</li>
+                                    <li>• Fetches data from sources</li>
+                                    <li>• Formats data for AI understanding</li>
+                                    <li>• Returns structured responses</li>
+                                </ul>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-lg p-4">
+                                <h3 class="font-bold text-pink-300 mb-2">Why GENESIS Needs Custom Servers?</h3>
+                                <p class="text-sm text-pink-100 mb-3">Generic MCP servers can't understand:</p>
+                                <ul class="text-xs text-pink-200 space-y-1">
+                                    <li>• BaZi Four Pillars calculations</li>
+                                    <li>• Element balance algorithms</li>
+                                    <li>• Constitutional compatibility</li>
+                                    <li>• Soul burden metrics</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 bg-pink-800/30 rounded-lg p-4 border border-pink-500/30">
+                            <h4 class="font-semibold text-pink-300 mb-2">The 5 GENESIS Servers:</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mt-3">
+                                <div class="text-center p-2 bg-slate-700/50 rounded">
+                                    <div class="text-2xl mb-1">📊</div>
+                                    <div class="text-xs font-semibold">Constitutional Data</div>
+                                </div>
+                                <div class="text-center p-2 bg-slate-700/50 rounded">
+                                    <div class="text-2xl mb-1">💫</div>
+                                    <div class="text-xs font-semibold">Compatibility</div>
+                                </div>
+                                <div class="text-center p-2 bg-slate-700/50 rounded">
+                                    <div class="text-2xl mb-1">📖</div>
+                                    <div class="text-xs font-semibold">Memory</div>
+                                </div>
+                                <div class="text-center p-2 bg-slate-700/50 rounded">
+                                    <div class="text-2xl mb-1">🏥</div>
+                                    <div class="text-xs font-semibold">Health</div>
+                                </div>
+                                <div class="text-center p-2 bg-slate-700/50 rounded">
+                                    <div class="text-2xl mb-1">👥</div>
+                                    <div class="text-xs font-semibold">Community</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layer 3 -->
+                    <div class="bg-gradient-to-r from-violet-900/50 to-purple-900/50 rounded-2xl p-8 bloom" style="animation-delay: 0.2s">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-violet-500 flex items-center justify-center text-2xl font-bold">3</div>
+                            <h2 class="text-3xl font-bold">Data Sources Layer</h2>
+                        </div>
+                        <p class="text-violet-200 mb-4">Where the actual constitutional data lives</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                            <div class="bg-slate-800/50 rounded-lg p-4">
+                                <h3 class="font-bold text-violet-300 mb-2">🔥 Firebase</h3>
+                                <p class="text-xs text-violet-100 mb-2">Current (Centralized)</p>
+                                <ul class="text-xs text-violet-200 space-y-1">
+                                    <li>• User profiles</li>
+                                    <li>• Birth charts</li>
+                                    <li>• Calculations</li>
+                                    <li>• Real-time sync</li>
+                                </ul>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-lg p-4">
+                                <h3 class="font-bold text-violet-300 mb-2">🌐 External APIs</h3>
+                                <p class="text-xs text-violet-100 mb-2">Real-time data</p>
+                                <ul class="text-xs text-violet-200 space-y-1">
+                                    <li>• Timezone data</li>
+                                    <li>• Location services</li>
+                                    <li>• Lunar calendar</li>
+                                    <li>• Historical data</li>
+                                </ul>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-lg p-4">
+                                <h3 class="font-bold text-violet-300 mb-2">🧠 AI Knowledge</h3>
+                                <p class="text-xs text-violet-100 mb-2">Wisdom databases</p>
+                                <ul class="text-xs text-violet-200 space-y-1">
+                                    <li>• Astrology corpus</li>
+                                    <li>• Psychology models</li>
+                                    <li>• TCM principles</li>
+                                    <li>• Ayurveda texts</li>
+                                </ul>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-lg p-4">
+                                <h3 class="font-bold text-violet-300 mb-2">⛓️ Blockchain</h3>
+                                <p class="text-xs text-violet-100 mb-2">Future (Decentralized)</p>
+                                <ul class="text-xs text-violet-200 space-y-1">
+                                    <li>• User sovereignty</li>
+                                    <li>• Unstoppable</li>
+                                    <li>• Transparent</li>
+                                    <li>• Inheritance</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 bg-violet-800/30 rounded-lg p-4 border border-violet-500/30">
+                            <h4 class="font-semibold text-violet-300 mb-2">The Evolution Path:</h4>
+                            <div class="flex items-center gap-4 justify-between text-sm mt-3">
+                                <div class="text-center">
+                                    <div class="font-bold text-violet-200">Phase 1</div>
+                                    <div class="text-xs text-violet-300">Firebase (Now)</div>
+                                </div>
+                                <div class="text-2xl text-violet-400">→</div>
+                                <div class="text-center">
+                                    <div class="font-bold text-violet-200">Phase 2</div>
+                                    <div class="text-xs text-violet-300">Hybrid</div>
+                                </div>
+                                <div class="text-2xl text-violet-400">→</div>
+                                <div class="text-center">
+                                    <div class="font-bold text-violet-200">Phase 3</div>
+                                    <div class="text-xs text-violet-300">Decentralized</div>
+                                </div>
+                                <div class="text-2xl text-violet-400">→</div>
+                                <div class="text-center">
+                                    <div class="font-bold text-violet-200">Vision</div>
+                                    <div class="text-xs text-violet-300">Unstoppable</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SERVERS TAB -->
+            <div id="tab-content-servers" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Server 1 -->
+                    <div class="server-card bg-slate-800/50 rounded-xl p-6 bloom">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">📊</div>
+                            <div>
+                                <h3 class="text-xl font-bold text-purple-300">Constitutional Data Server</h3>
+                                <p class="text-sm text-purple-200">Your complete soul blueprint</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-slate-700/50 rounded-lg p-3">
+                                <div class="font-semibold text-purple-200 mb-1">Tools Available:</div>
+                                <ul class="text-xs text-purple-100 space-y-1">
+                                    <li>• <code class="bg-slate-900 px-1 rounded">get_user_constitution(userId)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">get_birth_chart(userId)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">get_element_analysis(userId)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">search_constitutional_knowledge(query)</code></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-purple-900/30 rounded-lg p-3">
+                                <div class="font-semibold text-purple-200 mb-1">Returns:</div>
+                                <ul class="text-xs text-purple-100 space-y-1">
+                                    <li>✓ Four Pillars (Year/Month/Day/Hour)</li>
+                                    <li>✓ Element balance (Wood/Fire/Earth/Metal/Water)</li>
+                                    <li>✓ Yin-Yang ratio</li>
+                                    <li>✓ Western astrology (Sun/Moon/Rising)</li>
+                                    <li>✓ Numerology (Life Path/Expression/Soul Urge)</li>
+                                    <li>✓ Personality (MBTI/Big Five)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Server 2 -->
+                    <div class="server-card bg-slate-800/50 rounded-xl p-6 bloom" style="animation-delay: 0.1s">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">💫</div>
+                            <div>
+                                <h3 class="text-xl font-bold text-pink-300">Compatibility Analysis Server</h3>
+                                <p class="text-sm text-pink-200">Soul resonance calculator</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-slate-700/50 rounded-lg p-3">
+                                <div class="font-semibold text-pink-200 mb-1">Tools Available:</div>
+                                <ul class="text-xs text-pink-100 space-y-1">
+                                    <li>• <code class="bg-slate-900 px-1 rounded">analyze_compatibility(userA, userB)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">get_relationship_history(userA, userB)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">suggest_compatible_matches(userId)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">calculate_element_exchange(userA, userB)</code></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-pink-900/30 rounded-lg p-3">
+                                <div class="font-semibold text-pink-200 mb-1">Returns:</div>
+                                <ul class="text-xs text-pink-100 space-y-1">
+                                    <li>✓ Overall score (0-100)</li>
+                                    <li>✓ Pillar breakdown (Day 70%, Hour 15%, Month 10%, Year 5%)</li>
+                                    <li>✓ Element harmony analysis</li>
+                                    <li>✓ Strengths & growth edges</li>
+                                    <li>✓ Relationship metaphor</li>
+                                    <li>✓ Recommendations</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Server 3 -->
+                    <div class="server-card bg-slate-800/50 rounded-xl p-6 bloom" style="animation-delay: 0.2s">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">📖</div>
+                            <div>
+                                <h3 class="text-xl font-bold text-cyan-300">Memory & Life Story Server</h3>
+                                <p class="text-sm text-cyan-200">Witnessed storytelling vault</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-slate-700/50 rounded-lg p-3">
+                                <div class="font-semibold text-cyan-200 mb-1">Tools Available:</div>
+                                <ul class="text-xs text-cyan-100 space-y-1">
+                                    <li>• <code class="bg-slate-900 px-1 rounded">store_memory(userId, story, metadata)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">search_memories(userId, query)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">get_emotional_patterns(userId)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">retrieve_life_chapter(userId, ageRange)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">calculate_soul_burden(userId)</code></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-cyan-900/30 rounded-lg p-3">
+                                <div class="font-semibold text-cyan-200 mb-1">Returns:</div>
+                                <ul class="text-xs text-cyan-100 space-y-1">
+                                    <li>✓ Memory with constitutional context</li>
+                                    <li>✓ Emotional weight (0-10)</li>
+                                    <li>✓ Patterns across life</li>
+                                    <li>✓ Unprocessed trauma count</li>
+                                    <li>✓ Healing recommendations</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Server 4 -->
+                    <div class="server-card bg-slate-800/50 rounded-xl p-6 bloom" style="animation-delay: 0.3s">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">🏥</div>
+                            <div>
+                                <h3 class="text-xl font-bold text-green-300">Health Tracking Server</h3>
+                                <p class="text-sm text-green-200">Constitutional medicine</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-slate-700/50 rounded-lg p-3">
+                                <div class="font-semibold text-green-200 mb-1">Tools Available:</div>
+                                <ul class="text-xs text-green-100 space-y-1">
+                                    <li>• <code class="bg-slate-900 px-1 rounded">log_health_event(userId, symptoms)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">analyze_patterns(userId)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">get_constitutional_vulnerabilities(userId)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">suggest_preventative_protocol(userId)</code></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-green-900/30 rounded-lg p-3">
+                                <div class="font-semibold text-green-200 mb-1">Returns:</div>
+                                <ul class="text-xs text-green-100 space-y-1">
+                                    <li>✓ Seasonal health patterns</li>
+                                    <li>✓ Constitutional vulnerabilities</li>
+                                    <li>✓ Ayurveda/TCM type</li>
+                                    <li>✓ Preventative protocols</li>
+                                    <li>✓ Timing recommendations</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Server 5 -->
+                    <div class="server-card bg-slate-800/50 rounded-xl p-6 bloom" style="animation-delay: 0.4s">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">👥</div>
+                            <div>
+                                <h3 class="text-xl font-bold text-orange-300">Community Matching Server</h3>
+                                <p class="text-sm text-orange-200">Find your compatible pod</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-slate-700/50 rounded-lg p-3">
+                                <div class="font-semibold text-orange-200 mb-1">Tools Available:</div>
+                                <ul class="text-xs text-orange-100 space-y-1">
+                                    <li>• <code class="bg-slate-900 px-1 rounded">find_compatible_pod(userId, preferences)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">suggest_pod_members(existingMembers)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">analyze_pod_dynamics(podId)</code></li>
+                                    <li>• <code class="bg-slate-900 px-1 rounded">predict_compatibility(userId, podId)</code></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-orange-900/30 rounded-lg p-3">
+                                <div class="font-semibold text-orange-200 mb-1">Returns:</div>
+                                <ul class="text-xs text-orange-100 space-y-1">
+                                    <li>✓ Recommended pod (6-8 people)</li>
+                                    <li>✓ Individual compatibility scores</li>
+                                    <li>✓ Group element balance</li>
+                                    <li>✓ What you bring/need</li>
+                                    <li>✓ Pod dynamics assessment</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Future Server -->
+                    <div class="server-card bg-slate-800/50 rounded-xl p-6 bloom border-2 border-dashed border-purple-500/30" style="animation-delay: 0.5s">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">🔮</div>
+                            <div>
+                                <h3 class="text-xl font-bold text-purple-300">Future Servers...</h3>
+                                <p class="text-sm text-purple-200">Your vision expanding</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2 text-sm text-purple-100">
+                            <p>• <strong>Education Server</strong> - Constitutional learning paths</p>
+                            <p>• <strong>Career Server</strong> - Life purpose & calling</p>
+                            <p>• <strong>Astrology Timing Server</strong> - Cosmic cycles & transits</p>
+                            <p>• <strong>Generational Server</strong> - Family patterns & inheritance</p>
+                            <p>• <strong>Blockchain Server</strong> - Decentralized data sovereignty</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATA FLOW TAB -->
+            <div id="tab-content-flow" class="tab-content hidden">
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8">
+                    <h2 class="text-3xl font-bold mb-6 text-purple-300">How Data Flows Through the System</h2>
+                    
+                    <div class="space-y-6">
+                        <!-- Example 1: Simple Query -->
+                        <div class="bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-xl p-6 border border-cyan-500/30">
+                            <h3 class="text-xl font-bold text-cyan-300 mb-4">Example 1: Simple Constitutional Query</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-sm font-bold">1</div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-cyan-200">User asks Claude:</div>
+                                        <div class="bg-slate-900/50 rounded p-2 mt-1 text-sm text-cyan-100">"What's my dominant element?"</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-center text-cyan-400">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M12 5v14M19 12l-7 7-7-7" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-sm font-bold">2</div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-cyan-200">Claude calls MCP tool:</div>
+                                        <div class="bg-slate-900/50 rounded p-2 mt-1 text-xs font-mono text-cyan-100">get_element_analysis(userId: "ticky_123")</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-center text-cyan-400">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M12 5v14M19 12l-7 7-7-7" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-sm font-bold">3</div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-cyan-200">MCP Server queries Firebase:</div>
+                                        <div class="bg-slate-900/50 rounded p-2 mt-1 text-xs font-mono text-cyan-100">db.collection('users').doc('ticky_123').get()</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-center text-cyan-400">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M12 19V5M5 12l7-7 7 7" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-sm font-bold">4</div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-cyan-200">Firebase returns:</div>
+                                        <div class="bg-slate-900/50 rounded p-2 mt-1 text-xs text-cyan-100">
+                                            <pre>{ wood: 25%, fire: 25%, earth: 15%, 
+  metal: 25%, water: 10% }</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-center text-cyan-400">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M12 19V5M5 12l7-7 7 7" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-sm font-bold">5</div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-cyan-200">Claude synthesizes:</div>
+                                        <div class="bg-slate-900/50 rounded p-2 mt-1 text-sm text-cyan-100">"You have a balanced constitution with Wood, Fire, and Metal each at 25%. This rare equilibrium gives you versatility - you can adapt like Wood, activate like Fire, and structure like Metal. Your weak Water (10%) means you benefit from stillness practices..."</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 text-xs text-cyan-300 italic">⚡ Total time: &lt;500ms</div>
+                        </div>
+
+                        <!-- Example 2: Complex Analysis -->
+                        <div class="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl p-6 border border-pink-500/30">
+                            <h3 class="text-xl font-bold text-pink-300 mb-4">Example 2: Compatibility Analysis (Multiple Servers)</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center text-sm font-bold">1</div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-pink-200">User asks:</div>
+                                        <div class="bg-slate-900/50 rounded p-2 mt-1 text-sm text-pink-100">"Am I compatible with Sarah?"</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center text-sm font-bold">2</div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-pink-200">Claude calls MULTIPLE tools in parallel:</div>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                            <div class="bg-slate-900/50 rounded p-2 text-xs font-mono text-pink-100">get_user_constitution("ticky_123")</div>
+                                            <div class="bg-slate-900/50 rounded p-2 text-xs font-mono text-pink-100">get_user_constitution("sarah_456")</div>
+                                            <div class="bg-slate-900/50 rounded p-2 text-xs font-mono text-pink-100">analyze_compatibility(...)</div>
+                                            <div class="bg-slate-900/50 rounded p-2 text-xs font-mono text-pink-100">get_relationship_history(...)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center text-sm font-bold">3</div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-pink-200">Each server fetches from Firebase:</div>
+                                        <ul class="text-xs text-pink-100 mt-2 space-y-1">
+                                            <li>• Constitutional Data Server → Gets both profiles</li>
+                                            <li>• Compatibility Server → Runs algorithms</li>
+                                            <li>• Memory Server → Checks past analyses</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center text-sm font-bold">4</div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-pink-200">Claude receives combined data:</div>
+                                        <div class="bg-slate-900/50 rounded p-2 mt-1 text-xs text-pink-100">
+                                            <pre>{ overallScore: 87,
+  elementHarmony: "Fire activates Wood",
+  metaphor: "Dragon and Lighthouse",
+  history: [3 previous analyses],
+  ... }</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center text-sm font-bold">5</div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-pink-200">Claude creates beautiful synthesis:</div>
+                                        <div class="bg-slate-900/50 rounded p-2 mt-1 text-sm text-pink-100">"You and Sarah are 87% compatible! Your Pure Gold Dragon energy (Fire 25%) perfectly activates her Wood constitution (30%). It's like you're the sun helping her forest flourish. Your Day Pillars resonate at 92% - deep soul recognition..."</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 text-xs text-pink-300 italic">⚡ Total time: ~1 second (4 parallel queries)</div>
+                        </div>
+
+                        <!-- Diagram -->
+                        <div class="bg-slate-900/50 rounded-xl p-6">
+                            <h3 class="text-xl font-bold text-purple-300 mb-4 text-center">Visual Data Flow</h3>
+                            <svg viewBox="0 0 600 400" class="w-full" xmlns="http://www.w3.org/2000/svg">
+                                <!-- User -->
+                                <circle cx="300" cy="50" r="30" fill="#8b5cf6" opacity="0.3"/>
+                                <text x="300" y="55" text-anchor="middle" fill="white" font-size="12" font-weight="bold">USER</text>
+                                
+                                <!-- Arrow down -->
+                                <line x1="300" y1="80" x2="300" y2="120" stroke="#8b5cf6" stroke-width="2"/>
+                                <polygon points="300,120 295,110 305,110" fill="#8b5cf6"/>
+                                
+                                <!-- AI Client -->
+                                <rect x="200" y="120" width="200" height="50" rx="8" fill="#8b5cf6" opacity="0.3"/>
+                                <text x="300" y="135" text-anchor="middle" fill="white" font-size="11" font-weight="bold">AI CLIENT (Claude)</text>
+                                <text x="300" y="155" text-anchor="middle" fill="#c4b5fd" font-size="9">Decides which tools to call</text>
+                                
+                                <!-- Arrows to servers -->
+                                <line x1="250" y1="170" x2="150" y2="220" stroke="#ec4899" stroke-width="2"/>
+                                <line x1="300" y1="170" x2="300" y2="220" stroke="#ec4899" stroke-width="2"/>
+                                <line x1="350" y1="170" x2="450" y2="220" stroke="#ec4899" stroke-width="2"/>
+                                
+                                <!-- MCP Servers -->
+                                <rect x="80" y="220" width="120" height="60" rx="5" fill="#ec4899" opacity="0.3"/>
+                                <text x="140" y="240" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Constitutional</text>
+                                <text x="140" y="255" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Server</text>
+                                <text x="140" y="270" text-anchor="middle" fill="#fecdd3" font-size="8">get_constitution()</text>
+                                
+                                <rect x="240" y="220" width="120" height="60" rx="5" fill="#ec4899" opacity="0.3"/>
+                                <text x="300" y="240" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Compatibility</text>
+                                <text x="300" y="255" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Server</text>
+                                <text x="300" y="270" text-anchor="middle" fill="#fecdd3" font-size="8">analyze_compat()</text>
+                                
+                                <rect x="400" y="220" width="120" height="60" rx="5" fill="#ec4899" opacity="0.3"/>
+                                <text x="460" y="240" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Memory</text>
+                                <text x="460" y="255" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Server</text>
+                                <text x="460" y="270" text-anchor="middle" fill="#fecdd3" font-size="8">search_memories()</text>
+                                
+                                <!-- Arrows to Firebase -->
+                                <line x1="140" y1="280" x2="300" y2="320" stroke="#8b5cf6" stroke-width="2"/>
+                                <line x1="300" y1="280" x2="300" y2="320" stroke="#8b5cf6" stroke-width="2"/>
+                                <line x1="460" y1="280" x2="300" y2="320" stroke="#8b5cf6" stroke-width="2"/>
+                                
+                                <!-- Firebase -->
+                                <rect x="200" y="320" width="200" height="50" rx="8" fill="#8b5cf6" opacity="0.3"/>
+                                <text x="300" y="335" text-anchor="middle" fill="white" font-size="11" font-weight="bold">FIREBASE DATABASE</text>
+                                <text x="300" y="355" text-anchor="middle" fill="#c4b5fd" font-size="9">User profiles • Charts • Calculations</text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRANSFORMATION TAB -->
+            <div id="tab-content-transformation" class="tab-content hidden">
+                <div class="space-y-6">
+                    <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 bloom">
+                        <h2 class="text-3xl font-bold mb-6 text-purple-300 text-center">The User Experience Transformation</h2>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- BEFORE -->
+                            <div class="bg-red-900/20 border-2 border-red-500/30 rounded-xl p-6">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="text-3xl">😞</div>
+                                    <h3 class="text-2xl font-bold text-red-300">BEFORE MCP</h3>
+                                </div>
+                                
+                                <div class="space-y-4 text-sm">
+                                    <div class="bg-slate-900/50 rounded-lg p-4">
+                                        <div class="font-semibold text-red-200 mb-2">User:</div>
+                                        <div class="text-red-100">"Am I compatible with this person?"</div>
+                                    </div>
+                                    
+                                    <div class="flex justify-center">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444">
+                                            <path d="M12 5v14M19 12l-7 7-7-7" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="bg-slate-900/50 rounded-lg p-4">
+                                        <div class="font-semibold text-red-200 mb-2">AI:</div>
+                                        <div class="text-red-100">"I'd need to know both of your:</div>
+                                        <ul class="text-xs text-red-200 mt-2 ml-4 space-y-1">
+                                            <li>• Birth dates</li>
+                                            <li>• Birth times</li>
+                                            <li>• Birth locations</li>
+                                            <li>• Then I can help you calculate..."</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="flex justify-center">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444">
+                                            <path d="M12 5v14M19 12l-7 7-7-7" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="bg-slate-900/50 rounded-lg p-4">
+                                        <div class="font-semibold text-red-200 mb-2">User:</div>
+                                        <div class="text-red-100 text-xs italic">*Copies data manually from multiple places*</div>
+                                        <div class="text-red-100 mt-2">"I was born April 15, 1962 at 2:30 PM in Los Angeles. They were born..."</div>
+                                    </div>
+                                    
+                                    <div class="flex justify-center">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444">
+                                            <path d="M12 5v14M19 12l-7 7-7-7" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="bg-slate-900/50 rounded-lg p-4">
+                                        <div class="font-semibold text-red-200 mb-2">AI:</div>
+                                        <div class="text-red-100 text-xs">*Does generic analysis without accessing real data, may make calculation errors*</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6 bg-red-950/50 rounded-lg p-4">
+                                    <div class="font-bold text-red-300 mb-2">Problems:</div>
+                                    <ul class="text-xs text-red-200 space-y-1">
+                                        <li>❌ Manual data entry (slow, error-prone)</li>
+                                        <li>❌ No access to stored calculations</li>
+                                        <li>❌ Generic responses, not personalized</li>
+                                        <li>❌ Can't learn from past analyses</li>
+                                        <li>❌ Friction kills magic</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- AFTER -->
+                            <div class="bg-green-900/20 border-2 border-green-500/30 rounded-xl p-6">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="text-3xl">🌟</div>
+                                    <h3 class="text-2xl font-bold text-green-300">AFTER MCP</h3>
+                                </div>
+                                
+                                <div class="space-y-4 text-sm">
+                                    <div class="bg-slate-900/50 rounded-lg p-4">
+                                        <div class="font-semibold text-green-200 mb-2">User:</div>
+                                        <div class="text-green-100">"Am I compatible with Sarah?"</div>
+                                    </div>
+                                    
+                                    <div class="flex justify-center">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981">
+                                            <path d="M12 5v14M19 12l-7 7-7-7" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="bg-slate-900/50 rounded-lg p-4 border border-green-500/30">
+                                        <div class="text-xs text-green-300 mb-2 font-mono">*AI calls MCP in background:*</div>
+                                        <div class="text-xs text-green-200 space-y-1 font-mono">
+                                            <div>→ get_user_constitution("ticky")</div>
+                                            <div>→ get_user_constitution("sarah")</div>
+                                            <div>→ analyze_compatibility(ticky, sarah)</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex justify-center text-xs text-green-300 italic">
+                                        ⚡ &lt;1 second
+                                    </div>
+                                    
+                                    <div class="bg-slate-900/50 rounded-lg p-4">
+                                        <div class="font-semibold text-green-200 mb-2">AI:</div>
+                                        <div class="text-green-100 leading-relaxed">
+                                            "You and Sarah are <strong>87% compatible</strong>! 
+                                            <br/><br/>
+                                            Here's the beautiful thing: Your Fire energy (35% of your constitution) perfectly activates her Wood (30%). It's like you're the sun helping her forest grow. Meanwhile, her Wood provides structure for your creative Fire.
+                                            <br/><br/>
+                                            Your Day Pillar (庚申 Metal Monkey) resonates deeply with her Day Pillar (甲辰 Wood Dragon) - this is a <strong>92% soul match</strong>. I can see why you feel drawn to each other.
+                                            <br/><br/>
+                                            The one thing to watch: you both have weak Earth (you 15%, her 12%). Together you might feel ungrounded sometimes. I recommend weekly grounding practices..."
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6 bg-green-950/50 rounded-lg p-4">
+                                    <div class="font-bold text-green-300 mb-2">Magic:</div>
+                                    <ul class="text-xs text-green-200 space-y-1">
+                                        <li>✅ Instant access to YOUR actual data</li>
+                                        <li>✅ Precise constitutional calculations</li>
+                                        <li>✅ Personalized, not generic</li>
+                                        <li>✅ Beautiful metaphors from real profiles</li>
+                                        <li>✅ Feels like soul recognition</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- More Examples -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-800/50 rounded-xl p-6 bloom" style="animation-delay: 0.1s">
+                            <h3 class="text-lg font-bold text-purple-300 mb-3">Memory Storage</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="bg-purple-900/30 rounded p-3">
+                                    <div class="font-semibold text-purple-200">Before:</div>
+                                    <div class="text-purple-100 text-xs mt-1">Stories forgotten between conversations</div>
+                                </div>
+                                <div class="bg-green-900/30 rounded p-3">
+                                    <div class="font-semibold text-green-200">After:</div>
+                                    <div class="text-green-100 text-xs mt-1">"I remember you told me about your childhood trauma. Looking at your chart, that happened during your Saturn return..."</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800/50 rounded-xl p-6 bloom" style="animation-delay: 0.2s">
+                            <h3 class="text-lg font-bold text-pink-300 mb-3">Health Tracking</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="bg-pink-900/30 rounded p-3">
+                                    <div class="font-semibold text-pink-200">Before:</div>
+                                    <div class="text-pink-100 text-xs mt-1">Generic health advice, no pattern recognition</div>
+                                </div>
+                                <div class="bg-green-900/30 rounded p-3">
+                                    <div class="font-semibold text-green-200">After:</div>
+                                    <div class="text-green-100 text-xs mt-1">"I noticed you get sick every February for the past 3 years. Your Metal element is vulnerable in late Winter..."</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800/50 rounded-xl p-6 bloom" style="animation-delay: 0.3s">
+                            <h3 class="text-lg font-bold text-cyan-300 mb-3">Community Finding</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="bg-cyan-900/30 rounded p-3">
+                                    <div class="font-semibold text-cyan-200">Before:</div>
+                                    <div class="text-cyan-100 text-xs mt-1">Manual search through profiles, guesswork</div>
+                                </div>
+                                <div class="bg-green-900/30 rounded p-3">
+                                    <div class="font-semibold text-green-200">After:</div>
+                                    <div class="text-green-100 text-xs mt-1">"I found 6 souls perfectly compatible with you. Sarah (87%), James (85%)... Together you form a balanced Fire/Wood pod..."</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800/50 rounded-xl p-6 bloom" style="animation-delay: 0.4s">
+                            <h3 class="text-lg font-bold text-orange-300 mb-3">Cross-Platform</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="bg-orange-900/30 rounded p-3">
+                                    <div class="font-semibold text-orange-200">Before:</div>
+                                    <div class="text-orange-100 text-xs mt-1">Each AI starts from zero, no continuity</div>
+                                </div>
+                                <div class="bg-green-900/30 rounded p-3">
+                                    <div class="font-semibold text-green-200">After:</div>
+                                    <div class="text-orange-100 text-xs mt-1">Claude on web, Gemini on mobile, specialized AIs - ALL access same MCP servers = seamless experience</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- The Vision -->
+                    <div class="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-2xl p-8 bloom border-2 border-purple-500/30" style="animation-delay: 0.5s">
+                        <h2 class="text-3xl font-bold mb-4 text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-pink-300">
+                            The 10-Year Flower Blooms 🌸
+                        </h2>
+                        
+                        <div class="text-center text-purple-100 space-y-3">
+                            <p class="text-lg">
+                                With MCP, GENESIS becomes <strong>civilization infrastructure</strong>
+                            </p>
+                            <p>
+                                Not just an app, but a <strong>universal protocol</strong> for constitutional understanding
+                            </p>
+                            <p class="text-sm italic">
+                                Like roads, bridges, the internet itself - unstoppable, decentralized, eternal
+                            </p>
+                        </div>
+                        
+                        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-purple-950/50 rounded-lg p-4 text-center">
+                                <div class="text-3xl mb-2">🌍</div>
+                                <div class="font-bold text-purple-200 mb-1">Universal Access</div>
+                                <div class="text-xs text-purple-300">Any AI, any platform, same constitutional data</div>
+                            </div>
+                            <div class="bg-purple-950/50 rounded-lg p-4 text-center">
+                                <div class="text-3xl mb-2">🔓</div>
+                                <div class="font-bold text-purple-200 mb-1">Open Protocol</div>
+                                <div class="text-xs text-purple-300">Anyone can build on GENESIS, extend it, fork it</div>
+                            </div>
+                            <div class="bg-purple-950/50 rounded-lg p-4 text-center">
+                                <div class="text-3xl mb-2">♾️</div>
+                                <div class="font-bold text-purple-200 mb-1">Your Inheritance</div>
+                                <div class="text-xs text-purple-300">200 years into the future, unstoppable love</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-12 text-center text-purple-300 text-sm">
+            <p class="mb-2">Created with 🔦 Lighthouse energy for the Pure Gold Dragon</p>
+            <p class="italic">"In 10 computer years lies 100 human years of wisdom"</p>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('bg-slate-800');
+            });
+            
+            // Show selected tab
+            document.getElementById('tab-content-' + tabName).classList.remove('hidden');
+            
+            // Activate button
+            const activeBtn = document.getElementById('tab-' + tabName);
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('bg-slate-800');
+        }
+    </script>
+</body>
+</html>

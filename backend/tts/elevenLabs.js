@@ -10,13 +10,20 @@
  * - Confidence-scaled modulation (uncertain → more neutral)
  * - Voice selection by ID or name
  * - Streaming and buffered modes
+ * - MULTILINGUAL SUPPORT (v2) - Auto-select model and voice by language
  *
  * Requires: ELEVENLABS_API_KEY in .env
  *
  * Created: December 21, 2025
+ * Updated: December 28, 2024 - Added multilingual support
  */
 
 import { getTTSProfileForEmotion, validateProfile } from './emotionTtsAdapter.js';
+import {
+  getVoiceForLanguage,
+  getModelForLanguage,
+  getLanguageConfig
+} from '../services/languageService.js';
 
 /**
  * Configuration
@@ -64,12 +71,15 @@ export function isElevenLabsAvailable() {
 }
 
 /**
- * Generate speech with ElevenLabs (emotion-aware)
+ * Generate speech with ElevenLabs (emotion-aware + multilingual)
  *
  * @param {string} text - Text to speak
  * @param {Object} emotion - Detected emotion { primary, secondary, confidence }
  * @param {Object} options - Additional options
- * @returns {Promise<Object>} - { audio: Buffer, profile, duration }
+ * @param {string} options.language - Language code (e.g., 'en', 'zh', 'es')
+ * @param {string} options.voiceId - Override voice ID
+ * @param {string} options.model - Override model ID
+ * @returns {Promise<Object>} - { audio: Buffer, profile, duration, language }
  */
 export async function speakWithElevenLabs(text, emotion = {}, options = {}) {
   if (!CONFIG.apiKey) {
@@ -86,10 +96,20 @@ export async function speakWithElevenLabs(text, emotion = {}, options = {}) {
   const rawProfile = getTTSProfileForEmotion(emotion);
   const profile = validateProfile(rawProfile);
 
-  const voiceId = options.voiceId || CONFIG.voiceId;
-  const model = options.model || CONFIG.model;
+  // v2: Language-aware model and voice selection
+  const language = options.language || 'en';
+  const languageConfig = getLanguageConfig(language);
 
-  console.log(`[ElevenLabs] Generating speech: "${text.substring(0, 50)}..." [${profile.emotion}, ${(profile.confidence * 100).toFixed(0)}%]`);
+  // Select voice: explicit override > language default > config default
+  const voiceId = options.voiceId ||
+    (language !== 'en' ? getVoiceForLanguage(language) : CONFIG.voiceId);
+
+  // Select model: explicit override > language default > config default
+  // Use turbo for English (faster), multilingual for other languages
+  const model = options.model ||
+    (language !== 'en' ? getModelForLanguage(language) : CONFIG.model);
+
+  console.log(`[ElevenLabs] Generating speech [${language}/${model}]: "${text.substring(0, 50)}..." [${profile.emotion}, ${(profile.confidence * 100).toFixed(0)}%]`);
 
   try {
     const controller = new AbortController();
@@ -128,7 +148,7 @@ export async function speakWithElevenLabs(text, emotion = {}, options = {}) {
 
     const duration = Date.now() - startTime;
 
-    console.log(`[ElevenLabs] Generated ${audioBuffer.length} bytes in ${duration}ms`);
+    console.log(`[ElevenLabs] Generated ${audioBuffer.length} bytes in ${duration}ms [${language}]`);
 
     return {
       audio: audioBuffer,
@@ -136,7 +156,9 @@ export async function speakWithElevenLabs(text, emotion = {}, options = {}) {
       duration,
       model,
       voiceId,
-      textLength: text.length
+      textLength: text.length,
+      language,
+      languageName: languageConfig.name
     };
 
   } catch (error) {

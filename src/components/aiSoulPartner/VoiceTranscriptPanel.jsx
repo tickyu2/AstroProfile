@@ -8,9 +8,11 @@
  * - Timestamp markers every minute
  * - Momentum scroll control (seesaw-style time navigation)
  * - 5-day storage persistence
+ * - Paralinguistic cue display (when using OpenAI Realtime)
  *
  * Part of GENESIS OS - Voice Mode Enhancement
  * Created: December 26, 2024
+ * Updated: December 27, 2024 - Added paralinguistic cue display
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -19,6 +21,64 @@ import MomentumScrollControl from './MomentumScrollControl';
 // Storage key for transcript history
 const STORAGE_KEY = 'genesis_voice_transcripts';
 const STORAGE_DAYS = 5;
+
+// Paralinguistic cue display configuration
+// (matches backend voiceProvider.js CUE_DISPLAY)
+const CUE_DISPLAY = {
+  happy: { emoji: '😊', label: 'happy', color: '#22c55e' },
+  sad: { emoji: '😢', label: 'sad', color: '#6366f1' },
+  frustrated: { emoji: '😤', label: 'frustrated', color: '#ef4444' },
+  excited: { emoji: '🎉', label: 'excited', color: '#f59e0b' },
+  anxious: { emoji: '😰', label: 'anxious', color: '#8b5cf6' },
+  calm: { emoji: '😌', label: 'calm', color: '#06b6d4' },
+  disappointed: { emoji: '😞', label: 'disappointed', color: '#64748b' },
+  hopeful: { emoji: '🌟', label: 'hopeful', color: '#eab308' },
+  sigh: { emoji: '😮‍💨', label: 'sigh', color: '#94a3b8' },
+  laugh: { emoji: '😄', label: 'laugh', color: '#22c55e' },
+  hesitation: { emoji: '🤔', label: 'hesitant', color: '#f97316' },
+  whisper: { emoji: '🤫', label: 'whisper', color: '#a855f7' },
+  emphasis: { emoji: '❗', label: 'emphasis', color: '#ef4444' },
+  rushed: { emoji: '⚡', label: 'rushed', color: '#f59e0b' },
+  slow: { emoji: '🐢', label: 'slow', color: '#06b6d4' },
+  pause: { emoji: '⏸️', label: 'pause', color: '#64748b' }
+};
+
+/**
+ * Get cue display info
+ */
+function getCueDisplay(cueType) {
+  return CUE_DISPLAY[cueType] || { emoji: '❓', label: cueType, color: '#64748b' };
+}
+
+/**
+ * Cue Badge Component - displays a single paralinguistic cue
+ */
+function CueBadge({ cue }) {
+  const display = getCueDisplay(cue.type);
+  const confidence = Math.round((cue.confidence || 0.5) * 100);
+
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '2px',
+        padding: '2px 6px',
+        borderRadius: '10px',
+        backgroundColor: `${display.color}20`,
+        border: `1px solid ${display.color}40`,
+        fontSize: '10px',
+        color: display.color,
+        marginRight: '4px',
+        marginBottom: '2px'
+      }}
+      title={`${display.label} (${confidence}% confidence)`}
+    >
+      <span>{display.emoji}</span>
+      <span style={{ opacity: 0.8 }}>{display.label}</span>
+    </span>
+  );
+}
 
 /**
  * Format timestamp for display
@@ -79,7 +139,7 @@ function groupByMinute(messages) {
 /**
  * Transcript Column Component
  */
-function TranscriptColumn({ title, messages, emptyText, isUser }) {
+function TranscriptColumn({ title, messages, emptyText, isUser, showCues = true }) {
   const columnRef = useRef(null);
   const groupedMessages = groupByMinute(messages);
 
@@ -112,12 +172,29 @@ function TranscriptColumn({ title, messages, emptyText, isUser }) {
               {group.messages.map((msg, msgIdx) => (
                 <div
                   key={`${groupIdx}-${msgIdx}`}
-                  style={{
-                    ...styles.message,
-                    ...(isUser ? styles.userMessage : styles.lunaMessage)
-                  }}
+                  style={styles.messageWrapper}
                 >
-                  {msg.text}
+                  {/* Paralinguistic cues (if any) */}
+                  {showCues && msg.cues && msg.cues.length > 0 && (
+                    <div style={styles.cuesContainer}>
+                      {msg.cues
+                        .filter(c => (c.confidence || 0.5) >= 0.6)
+                        .map((cue, cueIdx) => (
+                          <CueBadge key={cueIdx} cue={cue} />
+                        ))
+                      }
+                    </div>
+                  )}
+
+                  {/* Message text */}
+                  <div
+                    style={{
+                      ...styles.message,
+                      ...(isUser ? styles.userMessage : styles.lunaMessage)
+                    }}
+                  >
+                    {msg.text}
+                  </div>
                 </div>
               ))}
             </div>
@@ -137,8 +214,13 @@ export default function VoiceTranscriptPanel({
   userTranscripts = [],
   lunaTranscripts = [],
   sessionId,
-  profileId
+  profileId,
+  provider = 'groq_whisper', // 'groq_whisper' or 'openai_realtime'
+  supportsCues = false, // Whether provider supports paralinguistic cues
+  showCues = true // User preference for showing cues
 }) {
+  // Compute whether to actually display cues (need both provider support and user preference)
+  const displayCues = supportsCues && showCues;
   const [position, setPosition] = useState({ x: 20, y: 100 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -284,6 +366,28 @@ export default function VoiceTranscriptPanel({
         <div style={styles.headerLeft}>
           <span style={styles.headerIcon}>🎙️</span>
           <span style={styles.headerTitle}>Voice Transcript</span>
+          {/* Provider indicator */}
+          <span style={{
+            ...styles.providerBadge,
+            backgroundColor: provider === 'openai_realtime'
+              ? 'rgba(34, 197, 94, 0.2)'
+              : 'rgba(99, 102, 241, 0.2)',
+            color: provider === 'openai_realtime' ? '#22c55e' : '#a5b4fc'
+          }}>
+            {provider === 'openai_realtime' ? '⚡ Native' : '🎯 STT'}
+          </span>
+          {/* Cue capture indicator */}
+          {supportsCues && (
+            <span style={{
+              ...styles.providerBadge,
+              backgroundColor: displayCues
+                ? 'rgba(249, 115, 22, 0.2)'
+                : 'rgba(100, 116, 139, 0.2)',
+              color: displayCues ? '#f97316' : '#64748b'
+            }}>
+              😊 {displayCues ? 'Cues On' : 'Cues Off'}
+            </span>
+          )}
         </div>
 
         <div style={styles.headerRight}>
@@ -330,6 +434,7 @@ export default function VoiceTranscriptPanel({
           messages={filteredUserTranscripts}
           emptyText="Your voice will appear here..."
           isUser={true}
+          showCues={displayCues}
         />
 
         <div style={styles.columnDivider} />
@@ -339,6 +444,7 @@ export default function VoiceTranscriptPanel({
           messages={filteredLunaTranscripts}
           emptyText="Luna's responses will appear here..."
           isUser={false}
+          showCues={displayCues}
         />
       </div>
 
@@ -406,6 +512,14 @@ const styles = {
     color: '#e2e8f0',
     fontSize: '14px',
     fontWeight: '600'
+  },
+
+  providerBadge: {
+    fontSize: '10px',
+    padding: '2px 8px',
+    borderRadius: '10px',
+    fontWeight: '500',
+    marginLeft: '8px'
   },
 
   headerRight: {
@@ -487,6 +601,20 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '4px'
+  },
+
+  messageWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px'
+  },
+
+  cuesContainer: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '2px',
+    marginBottom: '2px',
+    paddingLeft: '4px'
   },
 
   timestampMarker: {

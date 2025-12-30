@@ -7,12 +7,22 @@
  *
  * Created: December 21, 2025
  * Updated: December 23, 2025 - Added Session Cache + Memory Optimization
+ * Updated: December 28, 2024 - Added Knowledge RAG Integration (v2)
  * Mission: JOIE DE VIVRE - Help humans experience the LOVE of being alive
  */
 
 const pgClient = require('../database/pgClient');
 const { sessionCache } = require('./sessionCache');
 const { optimizeMemories, formatMemoriesForPrompt, getOptimizationStats } = require('./memoryOptimization');
+
+// Knowledge RAG integration (v2)
+let knowledgeModule = null;
+try {
+  knowledgeModule = require('../knowledge');
+  console.log('[ChatMemory] ✅ Knowledge RAG module loaded');
+} catch (e) {
+  console.log('[ChatMemory] ℹ️ Knowledge RAG module not available');
+}
 
 // ============================================================================
 // MEMORY RETRIEVAL FOR CHAT
@@ -378,6 +388,96 @@ async function storeLunaObservation(userId, profileId, observation, metadata = {
 }
 
 // ============================================================================
+// KNOWLEDGE RAG INTEGRATION (v2)
+// ============================================================================
+
+/**
+ * Retrieve full context combining personal memory + universal knowledge
+ *
+ * @param {string} userId - The user's Firebase UID
+ * @param {string} profileId - The profile being discussed
+ * @param {string} userMessage - The current user message
+ * @param {Object} options - Additional options
+ * @param {Object} options.userProfile - User's personality profile for knowledge lookup
+ * @param {string} options.mode - 'voice' (<50ms) or 'text' (<500ms)
+ * @returns {Promise<Object>} - { memoryPrompt, knowledgePrompt, fullContext }
+ */
+async function retrieveFullContext(userId, profileId, userMessage, options = {}) {
+  const {
+    userProfile = null,
+    mode = 'text',
+    conversationId = null,
+    includeKnowledge = true,
+    knowledgeTimeout = 400
+  } = options;
+
+  const startTime = Date.now();
+
+  // Parallel retrieval: personal memory + universal knowledge
+  const [memoryPrompt, knowledgeContext] = await Promise.all([
+    // Personal memory (4-brain system)
+    retrieveMemoriesForChat(userId, profileId, userMessage, {
+      ...options,
+      conversationId
+    }),
+
+    // Universal knowledge (Enneagram, BaZi, Big 5)
+    includeKnowledge && knowledgeModule
+      ? knowledgeModule.getKnowledgeContext({
+          query: userMessage,
+          profile: userProfile,
+          mode,
+          timeout: knowledgeTimeout
+        })
+      : { results: [], source: 'disabled' }
+  ]);
+
+  // Build knowledge prompt
+  let knowledgePrompt = '';
+  if (knowledgeContext.results?.length > 0 && knowledgeModule) {
+    knowledgePrompt = knowledgeModule.buildKnowledgePromptContext(knowledgeContext);
+  }
+
+  // Combine into full context
+  const fullContext = [memoryPrompt, knowledgePrompt].filter(Boolean).join('\n');
+
+  const latency = Date.now() - startTime;
+  console.log(`[ChatMemory] Full context retrieved in ${latency}ms (memory + ${knowledgeContext.source || 'no'} knowledge)`);
+
+  return {
+    memoryPrompt,
+    knowledgePrompt,
+    knowledgeSource: knowledgeContext.source,
+    knowledgeResults: knowledgeContext.results?.length || 0,
+    fullContext,
+    latency
+  };
+}
+
+/**
+ * Get knowledge context only (without personal memory)
+ * Useful for quick knowledge lookups in voice mode
+ */
+async function getKnowledgeOnly(query, userProfile = null, mode = 'text') {
+  if (!knowledgeModule) {
+    return { results: [], source: 'unavailable', promptContext: '' };
+  }
+
+  const context = await knowledgeModule.getKnowledgeContext({
+    query,
+    profile: userProfile,
+    mode,
+    timeout: mode === 'voice' ? 50 : 400
+  });
+
+  return {
+    results: context.results,
+    source: context.source,
+    promptContext: knowledgeModule.buildKnowledgePromptContext(context)
+  };
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -385,11 +485,18 @@ module.exports = {
   // Memory Retrieval
   retrieveMemoriesForChat,
 
+  // Full Context (Memory + Knowledge) - v2
+  retrieveFullContext,
+  getKnowledgeOnly,
+
   // Memory Storage
   analyzeMessageForMemory,
   storeUserMessageAsMemory,
   storeLunaObservation,
 
   // Session Cache (for init/clear at conversation boundaries)
-  sessionCache
+  sessionCache,
+
+  // Knowledge module reference
+  knowledgeModule
 };

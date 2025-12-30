@@ -19,6 +19,7 @@ import AISoulPartnerPage from './pages/AISoulPartnerPage'
 import KnowledgeBasePage from './pages/KnowledgeBasePage'
 import ConstitutionalAssessmentPage from './pages/ConstitutionalAssessmentPage'
 import SystemsPage from './pages/SystemsPage'
+import OperationsPage from './pages/OperationsPage'
 import AdminConsolePage from './pages/AdminConsolePage'
 import { LunaConsole } from './components/console/LunaConsole'
 import TimelineConsolePage from './pages/TimelineConsolePage'
@@ -26,6 +27,8 @@ import CustomizingYourSoulPartnerPage from './pages/CustomizingYourSoulPartnerPa
 import BaZiCalculatorPage from './pages/BaZiCalculatorPage'
 import SoulGardenPage from './pages/SoulGardenPage'
 import SanctuaryPage from './pages/SanctuaryPage'
+import TranscriptTesterPage from './pages/TranscriptTesterPage'
+import BrainArchitecturePage from './pages/BrainArchitecturePage'
 
 function App() {
   return (
@@ -131,6 +134,15 @@ function App() {
             />
 
             <Route
+              path="/operations"
+              element={
+                <ProtectedRoute>
+                  <OperationsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/admin"
               element={
                 <ProtectedRoute>
@@ -195,6 +207,26 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SanctuaryPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* GENESIS Transcript Tester - Phase 6 Testing Interface */}
+            <Route
+              path="/transcript-tester"
+              element={
+                <ProtectedRoute>
+                  <TranscriptTesterPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* GENESIS Brain Architecture Wiki */}
+            <Route
+              path="/brain-architecture"
+              element={
+                <ProtectedRoute>
+                  <BrainArchitecturePage />
                 </ProtectedRoute>
               }
             />

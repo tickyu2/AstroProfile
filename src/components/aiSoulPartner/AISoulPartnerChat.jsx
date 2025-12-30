@@ -20,7 +20,7 @@ import { ModeIndicator } from './ModeIndicator';
 import { SoulBurdenMeter } from './SoulBurdenMeter';
 import { EmotionDisplay } from './EmotionDisplay';
 import { EmojiReactionPicker, ReactionDisplay, CONSTITUTIONAL_EMOJIS, QUICK_EMOJIS } from './EmojiReactionPicker';
-import { sendMessage as sendToAI, getSecondOpinion, getGrokPerspective, getOpusPerspective, generateDebateVisual } from '../../services/aiSoulPartnerService';
+import { sendMessage as sendToAI, getSecondOpinion, getGrokPerspective, getOpusPerspective, getDeepSeekPerspective, getChatGPTPerspective, generateDebateVisual, generateStabilityImage, generateLeonardoImage } from '../../services/aiSoulPartnerService';
 
 // Session Intelligence Services (Brunelleschi's Crane)
 import { patternExtraction } from '../../services/patternExtractionService';
@@ -43,7 +43,9 @@ import { useThreading, THREAD_TYPES } from '../../hooks/useThreading';
 // Luna Voice Integration
 import { VoiceControlPanel, MessageSpeakButton } from '../voice';
 import { useVoice } from '../../hooks/useVoice';
+import { useRealtimeVoice, VOICE_STRATEGIES } from '../../hooks/useRealtimeVoice';
 import VoiceTranscriptPanel from './VoiceTranscriptPanel';
+import VoiceSettingsPanel from './VoiceSettingsPanel';
 
 // Fallback responses when API is unavailable
 const FALLBACK_RESPONSES = {
@@ -139,6 +141,7 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
   const [pendingReactionSignal, setPendingReactionSignal] = useState(null); // { emoji, messagePreview, wasAdded }
   // AI Constellation - Second Opinion / Debate
   const [secondOpinions, setSecondOpinions] = useState({}); // { messageId: { text, speaker, loading } }
+  const secondOpinionsRef = useRef({}); // Ref to track latest state for async callbacks
   const [debateMode, setDebateMode] = useState(false); // Global debate mode toggle
   const [activeDebate, setActiveDebate] = useState(null); // { messageId, exchanges: [{ speaker, text }] }
   const [loadingSecondOpinion, setLoadingSecondOpinion] = useState(null); // messageId currently loading
@@ -151,18 +154,95 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
   // Baby Nano - Debate Visualization
   const [debateVisuals, setDebateVisuals] = useState({}); // { messageId: { image, visualType, ... } }
   const [loadingDebateVisual, setLoadingDebateVisual] = useState(null); // messageId currently generating visual
-  // Luna Voice Integration (via useVoice hook)
+  // Luna Voice Integration (via useVoice hook for TTS)
   const {
     isVoiceEnabled,
     setIsVoiceEnabled,
+    speak: speakWithTTS,
+    stop: stopTTS,
+    isPlaying: isTTSPlaying,
     constitution: userConstitution
   } = useVoice({ userProfile });
+
+  // Barge-in state (must be declared before useRealtimeVoice)
+  const [bargeInEnabled, setBargeInEnabled] = useState(true); // Auto-interrupt when user speaks
+
+  // Realtime Voice Integration (via useRealtimeVoice hook for STT/streaming)
+  const {
+    isConnected: isVoiceConnected,
+    isSessionActive: isVoiceSessionActive,
+    isRecording,
+    isListening: isVoiceListening,
+    isSpeaking: isUserSpeaking,
+    isLunaSpeaking,
+    startSession: startVoiceSession,
+    stopSession: stopVoiceSession,
+    startRecording,
+    stopRecording,
+    toggleRecording,
+    commit: commitVoiceInput,
+    provider: voiceProvider,
+    supportsCues: voiceSupportsCues,
+    strategy: voiceStrategy,
+    setStrategy: setVoiceStrategy,
+    userTranscripts: realtimeUserTranscripts,
+    lunaTranscripts: realtimeLunaTranscripts,
+    cues: voiceCues,
+    error: voiceError,
+    clearError: clearVoiceError
+  } = useRealtimeVoice({
+    profileId: userProfile?.id,
+    strategy: VOICE_STRATEGIES.GROQ_ONLY,
+    bargeInEnabled, // Enable barge-in detection
+    onTranscript: (transcript) => {
+      console.log('[Voice] Transcript:', transcript);
+      // Add to local transcripts for the panel
+      if (transcript.speaker === 'user') {
+        setUserVoiceTranscripts(prev => [...prev, transcript]);
+      } else {
+        setLunaVoiceTranscripts(prev => [...prev, transcript]);
+      }
+    },
+    onCue: (cue) => {
+      console.log('[Voice] Cue detected:', cue);
+    },
+    onError: (err) => {
+      console.error('[Voice] Error:', err);
+    },
+    // TTS FOR GROQ PATH: Speak Luna's response using TTS when not using OpenAI native voice
+    onLunaResponse: (text) => {
+      if (isVoiceEnabled && text) {
+        console.log('[Voice] TTS for Groq path - speaking Luna response');
+        speakWithTTS(text);
+      }
+    },
+    // BARGE-IN: Callback when user interrupts Luna
+    onBargeIn: () => {
+      console.log('[Voice] User barged in - interrupted Luna');
+      // Also stop TTS if playing
+      if (isTTSPlaying) {
+        stopTTS();
+      }
+    }
+  });
 
   // Voice Transcript Panel State
   const [showVoiceTranscript, setShowVoiceTranscript] = useState(false);
   const [voiceSessionId, setVoiceSessionId] = useState(null);
   const [userVoiceTranscripts, setUserVoiceTranscripts] = useState([]);
   const [lunaVoiceTranscripts, setLunaVoiceTranscripts] = useState([]);
+
+  // Voice Settings State
+  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+  const [showEmotionalCues, setShowEmotionalCues] = useState(true);
+  // bargeInEnabled state is declared earlier (before useRealtimeVoice hook)
+
+  // Computed voice provider status for UI
+  const voiceProviderStatus = useMemo(() => ({
+    provider: voiceProvider || 'groq_whisper',
+    isConnected: isVoiceConnected,
+    supportsCues: voiceSupportsCues
+  }), [voiceProvider, isVoiceConnected, voiceSupportsCues]);
 
   const messagesEndRef = useRef(null);
   const previousConversationRef = useRef(null); // Track previous conversation for pattern extraction
@@ -260,22 +340,45 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
     initializeSessionIntelligence();
   }, [userProfile?.userId]);
 
+  // Keep secondOpinionsRef in sync for async callbacks (avoid stale closures)
+  useEffect(() => {
+    secondOpinionsRef.current = secondOpinions;
+  }, [secondOpinions]);
+
   // Voice Session Management - Start/End session when voice mode toggles
   useEffect(() => {
-    if (isVoiceEnabled) {
-      // Start new voice session
-      const newSessionId = `voice_${Date.now()}_${userProfile?.id || 'unknown'}`;
-      setVoiceSessionId(newSessionId);
-      setUserVoiceTranscripts([]);
-      setLunaVoiceTranscripts([]);
-      setShowVoiceTranscript(true);
-      console.log('🎤 Voice session started:', newSessionId);
-    } else if (voiceSessionId) {
-      // Voice mode turned off - session will be saved by VoiceTranscriptPanel
-      console.log('🎤 Voice session ended:', voiceSessionId);
-      // Don't clear transcripts immediately - let user review
-      // setShowVoiceTranscript(false); // Keep open for review
-    }
+    const handleVoiceToggle = async () => {
+      if (isVoiceEnabled) {
+        // Start new voice session via realtime hook
+        try {
+          const result = await startVoiceSession();
+          setVoiceSessionId(result?.sessionId || `voice_${Date.now()}_${userProfile?.id || 'unknown'}`);
+          setUserVoiceTranscripts([]);
+          setLunaVoiceTranscripts([]);
+          setShowVoiceTranscript(true);
+          console.log('🎤 Voice session started:', result?.sessionId);
+        } catch (err) {
+          console.error('🎤 Failed to start voice session:', err);
+          // Fallback to local session
+          const fallbackId = `voice_${Date.now()}_${userProfile?.id || 'unknown'}`;
+          setVoiceSessionId(fallbackId);
+          setUserVoiceTranscripts([]);
+          setLunaVoiceTranscripts([]);
+          setShowVoiceTranscript(true);
+        }
+      } else if (voiceSessionId) {
+        // Voice mode turned off - stop session
+        try {
+          await stopVoiceSession();
+          console.log('🎤 Voice session ended:', voiceSessionId);
+        } catch (err) {
+          console.error('🎤 Error stopping voice session:', err);
+        }
+        // Don't clear transcripts immediately - let user review
+      }
+    };
+
+    handleVoiceToggle();
   }, [isVoiceEnabled, userProfile?.id]);
 
   // Helper: Add user voice transcript
@@ -1309,35 +1412,52 @@ ${conversationMessages}
     setSecondOpinionQuestion(''); // Clear question
 
     try {
+      // Use ref to get latest debate history (avoids stale closure)
+      const currentDebateHistory = secondOpinionsRef.current[aiMessage.id]?.debate?.exchanges || [];
+
+      console.log('💫 Calling Gemini with debate history:', {
+        messageId: aiMessage.id,
+        historyLength: currentDebateHistory.length,
+        mode
+      });
+
       const response = await getSecondOpinion({
         claudeResponse: aiMessage.text,
         userMessage: userMessage?.text || '',
         conversationHistory: messages.slice(0, messageIndex),
         userProfile: userProfile,
         debateMode: mode,
-        previousDebate: secondOpinions[aiMessage.id]?.debate?.exchanges || [],
+        previousDebate: currentDebateHistory,
         customQuestion: customQuestion // User's specific question
       });
 
       if (response.success) {
         if (mode === 'debate') {
-          // Get existing debate or start new one
-          const existingDebate = secondOpinions[aiMessage.id]?.debate?.exchanges || [];
-          const newExchanges = existingDebate.length > 0
-            ? [...existingDebate, { speaker: response.speaker, text: response.text, icon: response.icon }]
-            : [
-                { speaker: 'Brother Claude', text: aiMessage.text, icon: '🐷' },
-                { speaker: response.speaker, text: response.text, icon: response.icon }
-              ];
-
           // Store debate in secondOpinions for persistence
-          setSecondOpinions(prev => ({
-            ...prev,
-            [aiMessage.id]: {
-              ...prev[aiMessage.id],
-              debate: { exchanges: newExchanges }
-            }
-          }));
+          // Use functional setState to get LATEST state (avoid stale closure)
+          setSecondOpinions(prev => {
+            const existingDebate = prev[aiMessage.id]?.debate?.exchanges || [];
+            const newExchanges = existingDebate.length > 0
+              ? [...existingDebate, { speaker: response.speaker, text: response.text, icon: response.icon }]
+              : [
+                  { speaker: 'Luna', text: aiMessage.text, icon: '🌙' },
+                  { speaker: response.speaker, text: response.text, icon: response.icon }
+                ];
+
+            console.log('💫 Adding Gemini response to debate:', {
+              existingCount: existingDebate.length,
+              newCount: newExchanges.length,
+              speaker: response.speaker
+            });
+
+            return {
+              ...prev,
+              [aiMessage.id]: {
+                ...prev[aiMessage.id],
+                debate: { exchanges: newExchanges }
+              }
+            };
+          });
 
           // Set active debate to this message (for UI expansion)
           setActiveDebate({ messageId: aiMessage.id });
@@ -1440,7 +1560,8 @@ ${conversationMessages}
 
   // Continue debate - get response from selected AI with optional user guidance
   const handleContinueDebate = async (aiMessage, speaker = 'gemini', userGuidance = '') => {
-    const debate = secondOpinions[aiMessage.id]?.debate;
+    // Use ref to get latest debate (avoids stale closure)
+    const debate = secondOpinionsRef.current[aiMessage.id]?.debate;
     if (!debate) return;
 
     // Capture images before clearing
@@ -1491,7 +1612,8 @@ ${conversationMessages}
 
   // Get Claude's response in the debate context
   const handleClaudeDebateResponse = async (aiMessage, userGuidance = '', images = []) => {
-    const debate = secondOpinions[aiMessage.id]?.debate;
+    // Use ref to get latest debate (avoids stale closure)
+    const debate = secondOpinionsRef.current[aiMessage.id]?.debate;
     if (!debate) return;
 
     setLoadingSecondOpinion(aiMessage.id);
@@ -1552,7 +1674,8 @@ ${conversationMessages}
 
   // Get Grok's response in the debate context
   const handleGrokDebateResponse = async (aiMessage, userGuidance = '', images = []) => {
-    const debate = secondOpinions[aiMessage.id]?.debate;
+    // Use ref to get latest debate (avoids stale closure)
+    const debate = secondOpinionsRef.current[aiMessage.id]?.debate;
     if (!debate) return;
 
     setLoadingSecondOpinion(aiMessage.id);
@@ -1596,7 +1719,8 @@ ${conversationMessages}
 
   // Get Opus's response - the elder sage perspective
   const handleOpusDebateResponse = async (aiMessage, userGuidance = '', images = []) => {
-    const debate = secondOpinions[aiMessage.id]?.debate;
+    // Use ref to get latest debate (avoids stale closure)
+    const debate = secondOpinionsRef.current[aiMessage.id]?.debate;
     if (!debate) return;
 
     setLoadingSecondOpinion(aiMessage.id);
@@ -1939,6 +2063,235 @@ ${conversationMessages}
     console.log('📄 Debate exported to markdown');
   };
 
+  // ========== INLINE AI CONSTELLATION (KISS - Simplified Flow) ==========
+  // Adds AI responses directly to main conversation, no debate panel
+
+  const handleInlineConstellationAI = async (speaker, contextMessage = null) => {
+    // Speaker: 'gemini', 'grok', 'opus', 'claude'
+    // contextMessage: optional specific message to respond to, otherwise uses last AI message
+
+    const targetMessage = contextMessage || messages.filter(m => m.sender === 'ai').pop();
+    if (!targetMessage) {
+      console.warn('[Inline AI] No AI message to respond to');
+      return;
+    }
+
+    setLoadingSecondOpinion(speaker); // Reuse loading state
+
+    try {
+      // Build full conversation history for context
+      const conversationHistory = messages.map(m => ({
+        sender: m.sender === 'user' ? 'user' : (m.sender === 'ai' ? 'Luna' : m.sender),
+        text: m.text,
+        hasImage: m.hasImage,
+        imageCount: m.imageCount
+      }));
+
+      console.log(`💫 [Inline AI] Calling ${speaker} with ${conversationHistory.length} messages`);
+
+      let response;
+      const userName = userProfile?.firstName || userProfile?.displayName || 'Friend';
+
+      if (speaker === 'gemini') {
+        response = await getSecondOpinion({
+          claudeResponse: targetMessage.text,
+          userMessage: '',
+          conversationHistory: messages,
+          userProfile: userProfile,
+          debateMode: 'debate',
+          previousDebate: conversationHistory.map(m => ({
+            speaker: m.sender,
+            text: m.text
+          })),
+          customQuestion: ''
+        });
+      } else if (speaker === 'grok') {
+        response = await getGrokPerspective({
+          claudeResponse: targetMessage.text,
+          geminiResponse: '',
+          userMessage: '',
+          userProfile: userProfile,
+          debateHistory: conversationHistory.map(m => ({
+            speaker: m.sender,
+            text: m.text
+          })),
+          customQuestion: ''
+        });
+      } else if (speaker === 'opus') {
+        response = await getOpusPerspective({
+          claudeResponse: targetMessage.text,
+          geminiResponse: '',
+          grokResponse: '',
+          userMessage: '',
+          userProfile: userProfile,
+          debateHistory: conversationHistory.map(m => ({
+            speaker: m.sender,
+            text: m.text
+          })),
+          conversationContext: '',
+          customQuestion: ''
+        });
+      } else if (speaker === 'deepseek') {
+        response = await getDeepSeekPerspective({
+          claudeResponse: targetMessage.text,
+          geminiResponse: '',
+          grokResponse: '',
+          userMessage: '',
+          userProfile: userProfile,
+          debateHistory: conversationHistory.map(m => ({
+            speaker: m.sender,
+            text: m.text
+          })),
+          customQuestion: ''
+        });
+      } else if (speaker === 'chatgpt') {
+        response = await getChatGPTPerspective({
+          claudeResponse: targetMessage.text,
+          geminiResponse: '',
+          grokResponse: '',
+          userMessage: '',
+          userProfile: userProfile,
+          debateHistory: conversationHistory.map(m => ({
+            speaker: m.sender,
+            text: m.text
+          })),
+          customQuestion: '',
+          model: 'o3-mini' // Default to o3-mini for deep thinking
+        });
+      } else if (speaker === 'claude') {
+        // Use main AI to respond without user typing
+        response = await sendToAI({
+          message: `[CONSTELLATION MODE - Respond to the conversation so far]\n\nProvide your perspective on the discussion. Be concise but insightful.`,
+          guidance: { mode: 'GUIDANCE', tone: 'thoughtful' },
+          conversationHistory: messages,
+          userProfile: userProfile,
+          knowledgePrompt: ''
+        });
+      }
+
+      if (response?.success || response?.text) {
+        // Create new message for the conversation
+        const newMessageId = `constellation_${speaker}_${Date.now()}`;
+        const newMessage = {
+          id: newMessageId,
+          sender: speaker, // 'gemini', 'grok', 'opus', 'claude', 'deepseek', 'chatgpt'
+          text: response.text || response.response,
+          timestamp: new Date().toISOString(),
+          fromConstellation: true,
+          constellationSpeaker: response.speaker || speaker,
+          constellationIcon: speaker === 'gemini' ? '💫' :
+                           speaker === 'grok' ? '🌍' :
+                           speaker === 'opus' ? '🦉' :
+                           speaker === 'deepseek' ? '🐉' :
+                           speaker === 'chatgpt' ? '🧪' : '🐷',
+          // Include thinking/reasoning if available
+          thinking: response.thinking || null,
+          hasThinking: response.hasThinking || false
+        };
+
+        // Add to main messages
+        const updatedMessages = [...messages, newMessage];
+        await updateMessages(updatedMessages);
+
+        console.log(`✅ [Inline AI] ${speaker} response added to conversation`);
+      } else {
+        console.error(`❌ [Inline AI] ${speaker} failed:`, response?.error);
+      }
+    } catch (error) {
+      console.error(`❌ [Inline AI] ${speaker} error:`, error);
+    } finally {
+      setLoadingSecondOpinion(null);
+    }
+  };
+
+  // ========== BABY NANO - INLINE VISUAL GENERATION (KISS) ==========
+  // Generates visualizations based on conversation context (not debate panel)
+  const handleInlineGenerateVisual = async (contextMessage, visualType = 'mindmap') => {
+    // Check cooldown to prevent rate limiting
+    const now = Date.now();
+    const timeSinceLastCall = now - lastBabyNanoCallRef.current;
+    if (timeSinceLastCall < BABY_NANO_COOLDOWN) {
+      const waitTime = Math.ceil((BABY_NANO_COOLDOWN - timeSinceLastCall) / 1000);
+      console.log(`🎨 Baby Nano cooldown: wait ${waitTime}s before next image`);
+      alert(`Baby Nano needs ${waitTime} seconds to rest before creating another image!`);
+      return;
+    }
+    lastBabyNanoCallRef.current = now;
+
+    setLoadingDebateVisual(contextMessage.id);
+
+    try {
+      // Build conversation context from all messages up to and including contextMessage
+      const messageIndex = messages.findIndex(m => m.id === contextMessage.id);
+      const relevantMessages = messages.slice(0, messageIndex + 1);
+
+      // Convert to exchange format for generateDebateVisual
+      const exchanges = relevantMessages
+        .filter(m => m.text)
+        .map(m => {
+          const speakerName = m.sender === 'user' ? 'You' :
+                             m.sender === 'ai' ? 'Luna' :
+                             m.sender === 'gemini' ? 'Sister Gemini' :
+                             m.sender === 'grok' ? 'Brother Grok' :
+                             m.sender === 'opus' ? 'Brother Opus' :
+                             m.sender === 'deepseek' ? 'Brother DeepSeek' :
+                             m.sender === 'chatgpt' ? 'Sister ChatGPT' :
+                             m.sender === 'claude' ? 'Brother Claude' : m.sender;
+          return {
+            speaker: speakerName,
+            text: m.text.slice(0, 500) // Truncate for safety
+          };
+        });
+
+      // Get the topic from the first user message
+      const topic = messages.find(m => m.sender === 'user')?.text?.slice(0, 50) || 'Conversation';
+
+      console.log('🎨 [Baby Nano Inline] Generating visual:', {
+        type: visualType,
+        messageCount: exchanges.length,
+        topic
+      });
+
+      const result = await generateDebateVisual({
+        debateExchanges: exchanges,
+        visualType,
+        topic,
+        userProfile: userProfile
+      });
+
+      if (result.success && result.image) {
+        // Add visual as a new message in the conversation
+        const newMessageId = `babynano_${Date.now()}`;
+        const newMessage = {
+          id: newMessageId,
+          sender: 'babynano',
+          text: `🎨 ${result.visualType || visualType} visualization`,
+          timestamp: new Date().toISOString(),
+          fromConstellation: true,
+          constellationSpeaker: 'Baby Nano',
+          constellationIcon: '🎨',
+          isVisual: true,
+          visualType: result.visualType || visualType,
+          image: result.image,
+          description: result.description
+        };
+
+        const updatedMessages = [...messages, newMessage];
+        await updateMessages(updatedMessages);
+
+        console.log('✅ [Baby Nano Inline] Visual added to conversation');
+      } else {
+        console.error('❌ [Baby Nano Inline] Failed:', result?.error);
+        alert('Failed to generate visualization. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ [Baby Nano Inline] Error:', error);
+      alert('Error generating visualization: ' + error.message);
+    } finally {
+      setLoadingDebateVisual(null);
+    }
+  };
+
   // Clear second opinion for a message
   const handleClearSecondOpinion = (messageId) => {
     setSecondOpinions(prev => {
@@ -1948,6 +2301,86 @@ ${conversationMessages}
     });
     if (activeDebate?.messageId === messageId) {
       setActiveDebate(null);
+    }
+  };
+
+  // ========== GENESIS IMAGE GENERATION (Stability.ai & Leonardo.ai) ==========
+  const handleImageGeneration = async (contextMessage, provider, model) => {
+    // Prevent rate limiting
+    const now = Date.now();
+    const timeSinceLastCall = now - lastBabyNanoCallRef.current;
+    if (timeSinceLastCall < BABY_NANO_COOLDOWN) {
+      const waitTime = Math.ceil((BABY_NANO_COOLDOWN - timeSinceLastCall) / 1000);
+      console.log(`🖼️ Image generation cooldown: wait ${waitTime}s`);
+      alert(`Please wait ${waitTime} seconds before generating another image.`);
+      return;
+    }
+    lastBabyNanoCallRef.current = now;
+
+    setLoadingDebateVisual(contextMessage.id);
+
+    try {
+      // Extract a prompt from the message context
+      // Use the message text as the basis for image generation
+      const messageText = contextMessage.text || '';
+      const prompt = `Create a beautiful, artistic visualization inspired by: "${messageText.slice(0, 200)}"`;
+
+      console.log(`🖼️ [GENESIS] Generating image with ${provider}/${model}:`, prompt.slice(0, 50));
+
+      let result;
+      if (provider === 'stability') {
+        result = await generateStabilityImage({
+          prompt,
+          model,
+          aspectRatio: '1:1',
+          style: 'digital-art'
+        });
+      } else if (provider === 'leonardo') {
+        result = await generateLeonardoImage({
+          prompt,
+          model,
+          width: 1024,
+          height: 1024,
+          alchemy: true
+        });
+      }
+
+      if (result?.success) {
+        // Add generated image as a new message
+        const newMessageId = `genesis_image_${Date.now()}`;
+        const imageData = provider === 'stability'
+          ? result.image  // base64
+          : result.images?.[0];  // URL
+
+        const newMessage = {
+          id: newMessageId,
+          sender: 'genesis',
+          text: `🖼️ Generated with ${provider === 'stability' ? 'Stability.ai' : 'Leonardo.ai'} (${model})`,
+          timestamp: new Date().toISOString(),
+          fromConstellation: true,
+          constellationSpeaker: provider === 'stability' ? 'Stability.ai' : 'Leonardo.ai',
+          constellationIcon: '🖼️',
+          isVisual: true,
+          visualType: 'generated-image',
+          image: imageData,
+          imageProvider: provider,
+          imageModel: model,
+          prompt: prompt
+        };
+
+        const updatedMessages = [...messages, newMessage];
+        await updateMessages(updatedMessages);
+
+        console.log('✅ [GENESIS] Image generated and added to conversation');
+      } else {
+        console.error('❌ [GENESIS] Failed:', result?.error);
+        alert('Failed to generate image. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ [GENESIS] Error:', error);
+      alert('Error generating image: ' + error.message);
+    } finally {
+      setLoadingDebateVisual(null);
     }
   };
 
@@ -2777,17 +3210,99 @@ Please create a comprehensive document. Start with a clear title on the first li
 
           {/* Voice Transcript Toggle - Shows when voice is enabled */}
           {isVoiceEnabled && (
-            <button
-              onClick={() => setShowVoiceTranscript(!showVoiceTranscript)}
-              className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                showVoiceTranscript
-                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                  : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/10'
-              }`}
-            >
-              <span>📜</span>
-              <span>{showVoiceTranscript ? 'Hide Transcript' : 'Show Transcript'}</span>
-            </button>
+            <div className="flex flex-col gap-2">
+              {/* Recording Controls */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    // INTERRUPTION: Stop TTS when user starts recording
+                    if (!isRecording && isTTSPlaying) {
+                      stopTTS();
+                    }
+                    toggleRecording();
+                  }}
+                  className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                    isRecording
+                      ? 'bg-red-500/30 text-red-300 border border-red-500/50 animate-pulse'
+                      : 'bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/30'
+                  }`}
+                >
+                  <span>{isRecording ? '⏹️' : '🎙️'}</span>
+                  <span>{isRecording ? (isUserSpeaking ? 'Speaking...' : 'Recording') : 'Start Recording'}</span>
+                </button>
+                {isRecording && (
+                  <button
+                    onClick={commitVoiceInput}
+                    className="px-4 py-3 rounded-lg text-sm font-medium bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 border border-blue-500/30 transition-all"
+                    title="Send audio (auto-commits on silence)"
+                  >
+                    <span>📤</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Status Row */}
+              <div className="flex gap-2 items-center justify-center text-xs text-white/50">
+                <span className={`w-2 h-2 rounded-full ${isVoiceConnected ? 'bg-green-400' : 'bg-gray-500'}`} />
+                <span>{isVoiceConnected ? 'Connected' : 'Disconnected'}</span>
+                {voiceSupportsCues && <span className="text-orange-400">• Cues Active</span>}
+                {isLunaSpeaking && <span className="text-purple-400">• Luna speaking</span>}
+                {isVoiceListening && <span className="text-cyan-400 animate-pulse">• Listening</span>}
+              </div>
+
+              {/* Barge-in Toggle */}
+              <div className="flex items-center justify-center gap-2 text-xs">
+                <button
+                  onClick={() => setBargeInEnabled(!bargeInEnabled)}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    bargeInEnabled
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                      : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                  }`}
+                  title={bargeInEnabled ? 'Barge-in enabled: Just speak to interrupt Luna' : 'Barge-in disabled: Click to interrupt'}
+                >
+                  <span>{bargeInEnabled ? '🎤 Auto-interrupt ON' : '🔇 Auto-interrupt OFF'}</span>
+                </button>
+              </div>
+
+              {/* Transcript & Settings Buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowVoiceTranscript(!showVoiceTranscript)}
+                  className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                    showVoiceTranscript
+                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                      : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/10'
+                  }`}
+                >
+                  <span>📜</span>
+                  <span>{showVoiceTranscript ? 'Hide Transcript' : 'Transcript'}</span>
+                </button>
+                <button
+                  onClick={() => setShowVoiceSettings(!showVoiceSettings)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center ${
+                    showVoiceSettings
+                      ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
+                      : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/10'
+                  }`}
+                  title="Voice Settings"
+                >
+                  <span>⚙️</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Voice Settings Panel - Collapsible */}
+          {isVoiceEnabled && showVoiceSettings && (
+            <VoiceSettingsPanel
+              strategy={voiceStrategy}
+              onStrategyChange={setVoiceStrategy}
+              showCues={showEmotionalCues}
+              onShowCuesChange={setShowEmotionalCues}
+              providerStatus={voiceProviderStatus}
+              compact={false}
+            />
           )}
 
           {/* Constitutional Threading Panel - Always visible */}
@@ -3662,28 +4177,60 @@ Please create a comprehensive document. Start with a clear title on the first li
             className="p-6 pl-14 space-y-4"
             onMouseUp={handleTextSelection}
           >
-          {messages.map((msg, msgIndex) => (
+          {messages.map((msg, msgIndex) => {
+            // Determine avatar and styling based on sender type
+            const isConstellationAI = ['gemini', 'grok', 'opus', 'claude', 'babynano'].includes(msg.sender);
+            const isUser = msg.sender === 'user';
+            const isLuna = msg.sender === 'ai';
+            const isBabyNano = msg.sender === 'babynano';
+
+            const avatarConfig = {
+              user: { emoji: '🐉', gradient: 'from-blue-500/30 to-cyan-500/30', border: 'border-blue-500/30' },
+              ai: { emoji: '🐀', gradient: 'from-amber-400/30 to-orange-500/30', border: 'border-amber-500/30' },
+              gemini: { emoji: '💫', gradient: 'from-purple-500/30 to-pink-500/30', border: 'border-purple-500/30' },
+              grok: { emoji: '🌍', gradient: 'from-green-500/30 to-emerald-500/30', border: 'border-green-500/30' },
+              opus: { emoji: '🦉', gradient: 'from-indigo-500/30 to-violet-500/30', border: 'border-indigo-500/30' },
+              deepseek: { emoji: '🐉', gradient: 'from-red-500/30 to-orange-500/30', border: 'border-red-500/30' },
+              chatgpt: { emoji: '🧪', gradient: 'from-teal-500/30 to-cyan-500/30', border: 'border-teal-500/30' },
+              claude: { emoji: '🐷', gradient: 'from-orange-500/30 to-red-500/30', border: 'border-orange-500/30' },
+              babynano: { emoji: '🎨', gradient: 'from-rose-500/30 to-orange-500/30', border: 'border-rose-500/30' },
+              genesis: { emoji: '🖼️', gradient: 'from-fuchsia-500/30 to-purple-500/30', border: 'border-fuchsia-500/30' }
+            };
+            const avatar = avatarConfig[msg.sender] || avatarConfig.ai;
+
+            return (
             <div
               key={msg.id}
               ref={el => messageRefs.current[msg.id] = el}
               className={`flex gap-3 animate-slideDown ${
-                msg.sender === 'user' ? 'flex-row-reverse' : ''
+                isUser ? 'flex-row-reverse' : ''
               }`}
             >
               {/* Avatar */}
-              <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-xl ${
-                msg.sender === 'user'
-                  ? 'bg-gradient-to-br from-blue-500/30 to-cyan-500/30 border border-blue-500/30'
-                  : 'bg-gradient-to-br from-amber-400/30 to-orange-500/30 border border-amber-500/30'
-              }`}>
-                {msg.sender === 'user' ? '🐉' : '🐀'}
+              <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-xl bg-gradient-to-br ${avatar.gradient} border ${avatar.border}`}>
+                {avatar.emoji}
               </div>
 
               {/* Message Content */}
-              <div className={`max-w-[70%] ${msg.sender === 'user' ? 'text-right' : ''}`}>
+              <div className={`max-w-[70%] ${isUser ? 'text-right' : ''}`}>
+                {/* Constellation AI label */}
+                {isConstellationAI && (
+                  <div className="text-xs text-white/50 mb-1 flex items-center gap-1">
+                    {avatar.emoji} {
+                      msg.sender === 'gemini' ? 'Sister Gemini' :
+                      msg.sender === 'grok' ? 'Brother Grok' :
+                      msg.sender === 'opus' ? 'Brother Opus' :
+                      msg.sender === 'deepseek' ? 'Brother DeepSeek' :
+                      msg.sender === 'chatgpt' ? 'Sister ChatGPT' :
+                      msg.sender === 'claude' ? 'Brother Claude' :
+                      msg.sender === 'babynano' ? 'Baby Nano' :
+                      msg.sender === 'genesis' ? 'GENESIS Image' : msg.sender
+                    }
+                  </div>
+                )}
                 {/* Timestamp above bubble with star indicator */}
                 {msg.timestamp && (
-                  <div className={`text-xs text-white/30 mb-1 flex items-center gap-1.5 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
+                  <div className={`text-xs text-white/30 mb-1 flex items-center gap-1.5 ${isUser ? 'justify-end' : ''}`}>
                     {/* Star indicator for starred messages */}
                     {msg.starred && (
                       <span className="text-yellow-400 animate-pulse" title="Starred message">⭐</span>
@@ -3757,7 +4304,29 @@ Please create a comprehensive document. Start with a clear title on the first li
                       );
                     })()}
 
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                    {/* Baby Nano Visual Message */}
+                    {isBabyNano && msg.isVisual && msg.image ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-rose-400">
+                          <span>🎨</span>
+                          <span className="font-medium">{msg.visualType || 'visualization'}</span>
+                        </div>
+                        <img
+                          src={`data:${msg.image.mimeType};base64,${msg.image.data}`}
+                          alt={`Visualization: ${msg.visualType}`}
+                          className="w-full max-h-[400px] object-contain rounded-lg border border-white/10 cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => window.open(`data:${msg.image.mimeType};base64,${msg.image.data}`, '_blank')}
+                          title="Click to view full size"
+                        />
+                        {msg.description && (
+                          <p className="text-xs text-white/60 italic">
+                            {msg.description.slice(0, 200)}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                    )}
 
                     {/* Emoji Reactions Display */}
                     {msg.id !== 0 && (
@@ -3892,519 +4461,158 @@ Please create a comprehensive document. Start with a clear title on the first li
                       </button>
                     )}
 
-                    {/* AI Constellation - Quick AI Buttons (only on AI messages) */}
-                    {msg.sender === 'ai' && msg.id !== 0 && (
-                      <>
+                    {/* AI Constellation - Inline AI Buttons (KISS: simple inline flow) */}
+                    {(msg.sender === 'ai' || isConstellationAI) && msg.id !== 0 && (
+                      <div className="flex items-center gap-1 ml-1 pl-1 border-l border-white/10">
                         <button
-                          onClick={() => handleStartDebatePanel(msg)}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-colors bg-pink-500/10 text-pink-400 hover:bg-pink-500/20"
-                          title="Open AI Constellation with full debate panel"
+                          onClick={() => handleInlineConstellationAI('claude', msg)}
+                          disabled={loadingSecondOpinion}
+                          className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-500/10 hover:bg-amber-500/30 text-amber-400 transition-colors disabled:opacity-50"
+                          title="Claude responds inline"
                         >
-                          🎭 Debate
+                          {loadingSecondOpinion === 'claude' ? '💭...' : '🐷 Claude'}
                         </button>
-
-                        {/* Quick AI Access - Named Buttons */}
-                        <div className="flex items-center gap-1 ml-1 pl-1 border-l border-white/10">
+                        <button
+                          onClick={() => handleInlineConstellationAI('gemini', msg)}
+                          disabled={loadingSecondOpinion}
+                          className="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-500/10 hover:bg-purple-500/30 text-purple-400 transition-colors disabled:opacity-50"
+                          title="Gemini responds inline"
+                        >
+                          {loadingSecondOpinion === 'gemini' ? '💭...' : '💫 Gemini'}
+                        </button>
+                        <button
+                          onClick={() => handleInlineConstellationAI('grok', msg)}
+                          disabled={loadingSecondOpinion}
+                          className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-500/10 hover:bg-green-500/30 text-green-400 transition-colors disabled:opacity-50"
+                          title="Grok responds inline"
+                        >
+                          {loadingSecondOpinion === 'grok' ? '💭...' : '🌍 Grok'}
+                        </button>
+                        <button
+                          onClick={() => handleInlineConstellationAI('opus', msg)}
+                          disabled={loadingSecondOpinion}
+                          className="px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 hover:bg-indigo-500/30 text-indigo-300 transition-colors disabled:opacity-50"
+                          title="Opus responds inline"
+                        >
+                          {loadingSecondOpinion === 'opus' ? '💭...' : '🦉 Opus'}
+                        </button>
+                        <button
+                          onClick={() => handleInlineConstellationAI('deepseek', msg)}
+                          disabled={loadingSecondOpinion}
+                          className="px-2 py-0.5 text-xs font-medium rounded-full bg-red-500/10 hover:bg-red-500/30 text-red-400 transition-colors disabled:opacity-50"
+                          title="DeepSeek-R1 Eastern wisdom"
+                        >
+                          {loadingSecondOpinion === 'deepseek' ? '💭...' : '🐉 DeepSeek'}
+                        </button>
+                        <button
+                          onClick={() => handleInlineConstellationAI('chatgpt', msg)}
+                          disabled={loadingSecondOpinion}
+                          className="px-2 py-0.5 text-xs font-medium rounded-full bg-teal-500/10 hover:bg-teal-500/30 text-teal-400 transition-colors disabled:opacity-50"
+                          title="ChatGPT o3-mini deep thinking"
+                        >
+                          {loadingSecondOpinion === 'chatgpt' ? '💭...' : '🧪 ChatGPT'}
+                        </button>
+                        {/* Baby Nano - Visual Generation */}
+                        <div className="relative group">
                           <button
-                            onClick={() => handleQuickAskAI(msg, 'claude')}
-                            disabled={loadingSecondOpinion === msg.id}
-                            className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-500/10 hover:bg-amber-500/30 text-amber-400 transition-colors disabled:opacity-50"
-                            title="Ask Claude Sonnet for perspective"
+                            disabled={loadingDebateVisual === msg.id}
+                            className="px-2 py-0.5 text-xs font-medium rounded-full bg-rose-500/10 hover:bg-rose-500/30 text-rose-400 transition-colors disabled:opacity-50"
+                            title="Generate visualization"
                           >
-                            {loadingSecondOpinion === msg.id ? '...' : 'Sonnet'}
+                            {loadingDebateVisual === msg.id ? '🎨...' : '🎨 Nano'}
                           </button>
-                          <button
-                            onClick={() => handleQuickAskAI(msg, 'gemini')}
-                            disabled={loadingSecondOpinion === msg.id}
-                            className="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-500/10 hover:bg-purple-500/30 text-purple-400 transition-colors disabled:opacity-50"
-                            title="Ask Gemini 3 Pro (Thinking Mode)"
-                          >
-                            {loadingSecondOpinion === msg.id ? '...' : 'Gemini'}
-                          </button>
-                          <button
-                            onClick={() => handleQuickAskAI(msg, 'grok')}
-                            disabled={loadingSecondOpinion === msg.id}
-                            className="px-2 py-0.5 text-xs font-medium rounded-full bg-cyan-500/10 hover:bg-cyan-500/30 text-cyan-400 transition-colors disabled:opacity-50"
-                            title="Ask Grok for human pulse perspective"
-                          >
-                            {loadingSecondOpinion === msg.id ? '...' : 'Grok'}
-                          </button>
-                          <button
-                            onClick={() => handleQuickAskAI(msg, 'opus')}
-                            disabled={loadingSecondOpinion === msg.id}
-                            className="px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 hover:bg-indigo-500/30 text-indigo-300 transition-colors disabled:opacity-50"
-                            title="Ask Claude Opus for elder wisdom"
-                          >
-                            {loadingSecondOpinion === msg.id ? '...' : 'Opus'}
-                          </button>
+                          <div className="absolute bottom-full right-0 mb-1 hidden group-hover:flex flex-col gap-1 bg-slate-800 border border-rose-500/30 rounded-lg p-2 shadow-xl z-50 min-w-[120px]">
+                            <button
+                              onClick={() => handleInlineGenerateVisual(msg, 'mindmap')}
+                              disabled={loadingDebateVisual === msg.id}
+                              className="text-left px-2 py-1 text-xs text-rose-300 hover:bg-rose-500/20 rounded transition-colors"
+                            >
+                              🧠 Mind Map
+                            </button>
+                            <button
+                              onClick={() => handleInlineGenerateVisual(msg, 'flowchart')}
+                              disabled={loadingDebateVisual === msg.id}
+                              className="text-left px-2 py-1 text-xs text-rose-300 hover:bg-rose-500/20 rounded transition-colors"
+                            >
+                              📊 Flowchart
+                            </button>
+                            <button
+                              onClick={() => handleInlineGenerateVisual(msg, 'timeline')}
+                              disabled={loadingDebateVisual === msg.id}
+                              className="text-left px-2 py-1 text-xs text-rose-300 hover:bg-rose-500/20 rounded transition-colors"
+                            >
+                              📅 Timeline
+                            </button>
+                            <button
+                              onClick={() => handleInlineGenerateVisual(msg, 'sketch')}
+                              disabled={loadingDebateVisual === msg.id}
+                              className="text-left px-2 py-1 text-xs text-rose-300 hover:bg-rose-500/20 rounded transition-colors"
+                            >
+                              ✏️ Sketch
+                            </button>
+                            <button
+                              onClick={() => handleInlineGenerateVisual(msg, 'comparison')}
+                              disabled={loadingDebateVisual === msg.id}
+                              className="text-left px-2 py-1 text-xs text-rose-300 hover:bg-rose-500/20 rounded transition-colors"
+                            >
+                              ⚖️ Compare
+                            </button>
+                          </div>
                         </div>
-                      </>
+                        {/* GENESIS Image Generation - Stability & Leonardo */}
+                        <div className="relative group">
+                          <button
+                            disabled={loadingDebateVisual === msg.id}
+                            className="px-2 py-0.5 text-xs font-medium rounded-full bg-fuchsia-500/10 hover:bg-fuchsia-500/30 text-fuchsia-400 transition-colors disabled:opacity-50"
+                            title="Generate AI image from context"
+                          >
+                            🖼️ Image
+                          </button>
+                          <div className="absolute bottom-full right-0 mb-1 hidden group-hover:flex flex-col gap-1 bg-slate-800 border border-fuchsia-500/30 rounded-lg p-2 shadow-xl z-50 min-w-[140px]">
+                            <div className="text-xs text-fuchsia-400/70 px-2 mb-1 border-b border-fuchsia-500/20 pb-1">Stability.ai</div>
+                            <button
+                              onClick={() => handleImageGeneration && handleImageGeneration(msg, 'stability', 'sd3-large')}
+                              disabled={loadingDebateVisual === msg.id}
+                              className="text-left px-2 py-1 text-xs text-fuchsia-300 hover:bg-fuchsia-500/20 rounded transition-colors"
+                            >
+                              ✨ SD3 Large
+                            </button>
+                            <button
+                              onClick={() => handleImageGeneration && handleImageGeneration(msg, 'stability', 'stable-image-core')}
+                              disabled={loadingDebateVisual === msg.id}
+                              className="text-left px-2 py-1 text-xs text-fuchsia-300 hover:bg-fuchsia-500/20 rounded transition-colors"
+                            >
+                              ⚡ Fast Core
+                            </button>
+                            <div className="text-xs text-fuchsia-400/70 px-2 my-1 border-b border-fuchsia-500/20 pb-1 pt-1">Leonardo.ai</div>
+                            <button
+                              onClick={() => handleImageGeneration && handleImageGeneration(msg, 'leonardo', 'phoenix')}
+                              disabled={loadingDebateVisual === msg.id}
+                              className="text-left px-2 py-1 text-xs text-fuchsia-300 hover:bg-fuchsia-500/20 rounded transition-colors"
+                            >
+                              🔥 Phoenix
+                            </button>
+                            <button
+                              onClick={() => handleImageGeneration && handleImageGeneration(msg, 'leonardo', 'kino')}
+                              disabled={loadingDebateVisual === msg.id}
+                              className="text-left px-2 py-1 text-xs text-fuchsia-300 hover:bg-fuchsia-500/20 rounded transition-colors"
+                            >
+                              🎬 Kino XL
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
 
-                {/* Second Opinion Question Input */}
-                {msg.sender === 'ai' && secondOpinionInput === msg.id && (
-                  <div className="mt-2 animate-slideDown">
-                    <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3">
-                      <div className="text-xs text-purple-400 mb-2 flex items-center gap-1">
-                        💫 Ask Sister Gemini about this response:
-                      </div>
 
-                      {/* Quick Prompt Buttons */}
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <button
-                          onClick={() => setSecondOpinionQuestion('Do you agree or disagree with this? What are the pros and cons?')}
-                          className="text-xs px-2 py-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/40"
-                        >
-                          👍👎 Agree/Disagree + Pros & Cons
-                        </button>
-                        <button
-                          onClick={() => setSecondOpinionQuestion('What is missing from this perspective? What else should be considered?')}
-                          className="text-xs px-2 py-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/40"
-                        >
-                          🔍 What's Missing?
-                        </button>
-                        <button
-                          onClick={() => setSecondOpinionQuestion('What are the practical action steps I could take based on this?')}
-                          className="text-xs px-2 py-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/40"
-                        >
-                          🎯 Action Steps
-                        </button>
-                        <button
-                          onClick={() => setSecondOpinionQuestion('How does this apply specifically to my constitutional nature?')}
-                          className="text-xs px-2 py-1 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/40"
-                        >
-                          🌟 For My Constitution
-                        </button>
-                      </div>
 
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={secondOpinionQuestion}
-                          onChange={(e) => setSecondOpinionQuestion(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSubmitSecondOpinionQuestion(msg);
-                            }
-                            if (e.key === 'Escape') {
-                              setSecondOpinionInput(null);
-                              setSecondOpinionQuestion('');
-                            }
-                          }}
-                          placeholder="e.g., What do you think about the golden ratio idea?"
-                          className="flex-1 bg-slate-800/50 border border-purple-500/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
-                          autoFocus
-                        />
-                        <button
-                          onClick={() => handleSubmitSecondOpinionQuestion(msg)}
-                          disabled={loadingSecondOpinion === msg.id}
-                          className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg hover:from-purple-400 hover:to-pink-400 transition-all disabled:opacity-50"
-                        >
-                          Ask
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSecondOpinionInput(null);
-                            setSecondOpinionQuestion('');
-                          }}
-                          className="px-3 py-2 text-white/50 hover:text-white/80 transition-colors"
-                          title="Cancel"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                      <div className="text-xs text-white/40 mt-2">
-                        Press Enter to ask, Escape to cancel. Leave blank for general analysis.
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Second Opinion Display - Sister Gemini's Response */}
-                {msg.sender === 'ai' && secondOpinions[msg.id] && !activeDebate?.messageId && (
-                  <div className="mt-3 animate-slideDown">
-                    <div className="flex gap-3">
-                      <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-lg bg-gradient-to-br from-purple-500/30 to-pink-500/30 border border-purple-500/30">
-                        {secondOpinions[msg.id].icon || '💫'}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-xs text-purple-400 mb-1 flex items-center gap-2">
-                          <span className="font-semibold">{secondOpinions[msg.id].speaker}</span>
-                          <span className="text-purple-400/50">Second Opinion</span>
-                          <div className="ml-auto flex items-center gap-2">
-                            <button
-                              onClick={() => handleCopySecondOpinion(msg.id)}
-                              className="text-purple-400/40 hover:text-purple-400 transition-colors"
-                              title="Copy to clipboard"
-                            >
-                              📋
-                            </button>
-                            <button
-                              onClick={() => handleClearSecondOpinion(msg.id)}
-                              className="text-purple-400/40 hover:text-purple-400 transition-colors"
-                              title="Dismiss"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/20 rounded-xl px-4 py-3">
-                          <p className="text-sm text-white/90 leading-relaxed whitespace-pre-wrap">
-                            {secondOpinions[msg.id].text}
-                          </p>
-                        </div>
-
-                        {/* Conversation Thread - Follow-up messages */}
-                        {secondOpinionConversation[msg.id]?.length > 0 && (
-                          <div className="mt-2 space-y-2 border-l-2 border-purple-500/20 pl-3 ml-2">
-                            {secondOpinionConversation[msg.id].map((convo, idx) => (
-                              <div key={idx} className={`text-sm rounded-lg px-3 py-2 ${
-                                convo.isUser
-                                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-100'
-                                  : 'bg-purple-500/10 border border-purple-500/20 text-white/90'
-                              }`}>
-                                <div className={`text-xs mb-1 ${convo.isUser ? 'text-emerald-400' : 'text-purple-400'}`}>
-                                  {convo.speaker}
-                                </div>
-                                <p className="whitespace-pre-wrap">{convo.text}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-2 mt-2">
-                          <button
-                            onClick={() => setSecondOpinionReply(secondOpinionReply === msg.id ? null : msg.id)}
-                            disabled={loadingSecondOpinion === msg.id}
-                            className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
-                              secondOpinionReply === msg.id
-                                ? 'bg-purple-500/30 text-purple-300 border border-purple-500/40'
-                                : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/20'
-                            }`}
-                          >
-                            💬 Reply to Gemini
-                          </button>
-                          <button
-                            onClick={() => handleCopySecondOpinion(msg.id)}
-                            className="text-xs px-3 py-1.5 bg-slate-700/50 text-white/60 hover:text-white/80 hover:bg-slate-700 rounded-lg transition-colors border border-white/10"
-                          >
-                            📋 Copy
-                          </button>
-                        </div>
-
-                        {/* Reply Input */}
-                        {secondOpinionReply === msg.id && (
-                          <div className="mt-3 animate-slideDown">
-                            <div className="flex gap-2">
-                              <input
-                                type="text"
-                                placeholder="Reply to Sister Gemini..."
-                                className="flex-1 bg-slate-800/50 border border-purple-500/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey && e.target.value.trim()) {
-                                    e.preventDefault();
-                                    handleReplyToSecondOpinion(msg, e.target.value);
-                                    e.target.value = '';
-                                  }
-                                  if (e.key === 'Escape') {
-                                    setSecondOpinionReply(null);
-                                  }
-                                }}
-                                autoFocus
-                              />
-                              <button
-                                onClick={(e) => {
-                                  const input = e.target.previousSibling;
-                                  if (input?.value?.trim()) {
-                                    handleReplyToSecondOpinion(msg, input.value);
-                                    input.value = '';
-                                  }
-                                }}
-                                disabled={loadingSecondOpinion === msg.id}
-                                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg hover:from-purple-400 hover:to-pink-400 transition-all disabled:opacity-50"
-                              >
-                                {loadingSecondOpinion === msg.id ? '💭...' : 'Send'}
-                              </button>
-                            </div>
-                            <div className="text-xs text-white/30 mt-1">
-                              Press Enter to send, Escape to cancel
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* AI Debate Display - Back and forth between Claude and Gemini */}
-                {msg.sender === 'ai' && secondOpinions[msg.id]?.debate?.exchanges?.length > 0 && (
-                  <div className="mt-3 animate-slideDown">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-pink-400 flex items-center gap-1">
-                        🎭 AI Constellation Debate
-                      </span>
-                      <button
-                        onClick={() => setActiveDebate(activeDebate?.messageId === msg.id ? null : { messageId: msg.id })}
-                        className="text-xs text-white/40 hover:text-white/60"
-                      >
-                        {activeDebate?.messageId === msg.id ? '▼ Collapse' : '▶ Expand'}
-                      </button>
-                    </div>
-                    <div className="space-y-3 border-l-2 border-pink-500/30 pl-3">
-                      {secondOpinions[msg.id].debate.exchanges.map((exchange, idx) => (
-                        <div key={idx} className="flex gap-2">
-                          <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-sm ${
-                            exchange.isUser
-                              ? 'bg-emerald-500/30 border border-emerald-500/30'
-                              : exchange.speaker === 'Brother Claude'
-                                ? 'bg-amber-500/30 border border-amber-500/30'
-                                : exchange.speaker === 'Brother Grok'
-                                  ? 'bg-cyan-500/30 border border-cyan-500/30'
-                                  : exchange.speaker === 'Brother Opus'
-                                    ? 'bg-indigo-500/30 border border-indigo-500/30'
-                                    : exchange.speaker === 'Baby Nano'
-                                      ? 'bg-rose-500/30 border border-rose-500/30'
-                                      : 'bg-purple-500/30 border border-purple-500/30'
-                          }`}>
-                            {exchange.icon || (exchange.speaker === 'Brother Claude' ? '🐷' : exchange.speaker === 'Brother Grok' ? '🌍' : exchange.speaker === 'Brother Opus' ? '🦉' : '💫')}
-                          </div>
-                          <div className="flex-1">
-                            <div className={`text-xs mb-0.5 ${
-                              exchange.isUser
-                                ? 'text-emerald-400'
-                                : exchange.speaker === 'Brother Claude'
-                                  ? 'text-amber-400'
-                                  : exchange.speaker === 'Brother Grok'
-                                    ? 'text-cyan-400'
-                                    : exchange.speaker === 'Brother Opus'
-                                      ? 'text-indigo-300'
-                                      : exchange.speaker === 'Baby Nano'
-                                        ? 'text-rose-400'
-                                        : 'text-purple-400'
-                            }`}>
-                              {exchange.speaker}
-                              {exchange.isUser && <span className="text-emerald-400/50 ml-1">(guiding)</span>}
-                            </div>
-                            <div className={`text-sm text-white/90 rounded-lg px-3 py-2 whitespace-pre-wrap ${
-                              exchange.isUser
-                                ? 'bg-emerald-500/20 border-l-4 border-emerald-500 italic'
-                                : exchange.speaker === 'Brother Claude'
-                                  ? 'bg-gradient-to-r from-amber-500/25 to-orange-500/15 border-l-4 border-amber-500'
-                                  : exchange.speaker === 'Brother Grok'
-                                    ? 'bg-gradient-to-r from-cyan-500/25 to-teal-500/15 border-l-4 border-cyan-500'
-                                    : exchange.speaker === 'Brother Opus'
-                                      ? 'bg-gradient-to-r from-indigo-500/25 to-blue-600/15 border-l-4 border-indigo-400'
-                                      : exchange.speaker === 'Baby Nano'
-                                        ? 'bg-gradient-to-r from-rose-500/25 to-orange-500/15 border-l-4 border-rose-500'
-                                        : 'bg-gradient-to-r from-purple-500/25 to-pink-500/15 border-l-4 border-purple-500'
-                            }`}>
-                              {/* Baby Nano Visual Entry */}
-                              {exchange.isVisual && exchange.image ? (
-                                <div>
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-xs text-white/40 bg-white/5 px-1.5 py-0.5 rounded">
-                                      {exchange.visualType}
-                                    </span>
-                                  </div>
-                                  <img
-                                    src={`data:${exchange.image.mimeType};base64,${exchange.image.data}`}
-                                    alt={`Visualization: ${exchange.visualType}`}
-                                    className="w-full max-h-[400px] object-contain rounded-lg border border-white/10 cursor-pointer hover:opacity-90 transition-opacity"
-                                    onClick={() => window.open(`data:${exchange.image.mimeType};base64,${exchange.image.data}`, '_blank')}
-                                    title="Click to view full size"
-                                  />
-                                  {exchange.description && (
-                                    <p className="text-xs text-white/60 mt-2 italic">
-                                      {exchange.description.slice(0, 150)}
-                                    </p>
-                                  )}
-                                </div>
-                              ) : (
-                                <>
-                                  {exchange.text}
-                                  {/* Display attached images in exchange */}
-                                  {exchange.images && exchange.images.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                      {exchange.images.map((img, imgIdx) => (
-                                        <img
-                                          key={imgIdx}
-                                          src={`data:${img.mimeType};base64,${img.data}`}
-                                          alt={`Attached ${imgIdx + 1}`}
-                                          className="max-w-[200px] max-h-[150px] rounded-lg border border-white/20 cursor-pointer hover:opacity-90 transition-opacity"
-                                          onClick={() => window.open(`data:${img.mimeType};base64,${img.data}`, '_blank')}
-                                          title="Click to view full size"
-                                        />
-                                      ))}
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-
-                      {/* Footer with count and export - always visible */}
-                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-pink-500/10">
-                        <div className="text-xs text-white/30">
-                          {secondOpinions[msg.id].debate.exchanges.length} exchanges
-                        </div>
-                        <button
-                          onClick={() => handleExportDebateToMarkdown(msg, secondOpinions[msg.id].debate)}
-                          className="text-xs text-pink-400 hover:text-pink-300 bg-pink-500/10 hover:bg-pink-500/20 px-3 py-1 rounded-lg transition-colors"
-                        >
-                          📄 Export to Markdown
-                        </button>
-                      </div>
-
-                      {/* Debate Control Panel - only when expanded */}
-                      {activeDebate?.messageId === msg.id && (
-                        <div className="mt-4 bg-slate-800/50 border border-pink-500/20 rounded-xl p-3">
-                          {/* User Input */}
-                          <div className="mb-3">
-                            <label className="text-xs text-white/50 mb-1 block">
-                              Guide the debate (optional) - paste images with Ctrl+V:
-                            </label>
-                            <textarea
-                              value={debateUserInput}
-                              onChange={(e) => setDebateUserInput(e.target.value)}
-                              onPaste={handleDebatePaste}
-                              placeholder="e.g., 'Focus on practical implications' or paste a screenshot..."
-                              className="w-full bg-slate-900/50 border border-pink-500/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-pink-500/50 resize-none"
-                              rows={2}
-                              disabled={loadingSecondOpinion === msg.id}
-                            />
-
-                            {/* Attached Images Preview */}
-                            {debateAttachedImages.length > 0 && (
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {debateAttachedImages.map((img, idx) => (
-                                  <div key={idx} className="relative group">
-                                    <img
-                                      src={img.preview}
-                                      alt={`Attached ${idx + 1}`}
-                                      className="w-16 h-16 object-cover rounded-lg border border-pink-500/30"
-                                    />
-                                    <button
-                                      onClick={() => handleRemoveDebateImage(idx)}
-                                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                      title="Remove image"
-                                    >
-                                      ✕
-                                    </button>
-                                  </div>
-                                ))}
-                                <div className="text-xs text-pink-400/60 self-center ml-1">
-                                  {debateAttachedImages.length}/3 images
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Add Comment Only - directly below input */}
-                            {(debateUserInput.trim() || debateAttachedImages.length > 0) && (
-                              <button
-                                onClick={() => handleAddUserCommentToDebate(msg)}
-                                disabled={loadingSecondOpinion === msg.id}
-                                className="w-full mt-2 py-1.5 text-xs text-emerald-400 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-lg transition-colors"
-                              >
-                                ➕ Just Add My Comment (don't ask AI)
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Speaker Selection Buttons */}
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              onClick={() => handleContinueDebate(msg, 'claude', debateUserInput)}
-                              disabled={loadingSecondOpinion === msg.id}
-                              className="flex-1 min-w-[140px] py-2 text-sm font-medium bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-400 border border-amber-500/30 rounded-lg transition-all disabled:opacity-50"
-                            >
-                              {loadingSecondOpinion === msg.id ? '💭...' : '🐷 Ask Brother Claude'}
-                            </button>
-                            <button
-                              onClick={() => handleContinueDebate(msg, 'gemini', debateUserInput)}
-                              disabled={loadingSecondOpinion === msg.id}
-                              className="flex-1 min-w-[140px] py-2 text-sm font-medium bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-400 border border-purple-500/30 rounded-lg transition-all disabled:opacity-50"
-                            >
-                              {loadingSecondOpinion === msg.id ? '💭...' : '💫 Ask Sister Gemini'}
-                            </button>
-                            <button
-                              onClick={() => handleContinueDebate(msg, 'grok', debateUserInput)}
-                              disabled={loadingSecondOpinion === msg.id}
-                              className="flex-1 min-w-[140px] py-2 text-sm font-medium bg-gradient-to-r from-cyan-500/20 to-teal-500/20 hover:from-cyan-500/30 hover:to-teal-500/30 text-cyan-400 border border-cyan-500/30 rounded-lg transition-all disabled:opacity-50"
-                            >
-                              {loadingSecondOpinion === msg.id ? '💭...' : '🌍 Human Pulse (Grok)'}
-                            </button>
-                            <button
-                              onClick={() => handleContinueDebate(msg, 'opus', debateUserInput)}
-                              disabled={loadingSecondOpinion === msg.id}
-                              className="flex-1 min-w-[140px] py-2 text-sm font-medium bg-gradient-to-r from-indigo-500/20 to-blue-600/20 hover:from-indigo-500/30 hover:to-blue-600/30 text-indigo-300 border border-indigo-500/30 rounded-lg transition-all disabled:opacity-50"
-                              title="Summon Brother Opus - Elder sage with deep philosophical wisdom"
-                            >
-                              {loadingSecondOpinion === msg.id ? '💭...' : '🦉 Elder Wisdom (Opus)'}
-                            </button>
-                          </div>
-
-                          {/* Baby Nano - Visual Generation */}
-                          <div className="mt-4 pt-3 border-t border-white/10">
-                            <div className="text-xs text-white/50 mb-2 flex items-center gap-1">
-                              🎨 <span className="font-medium">Baby Nano</span> - Visualize the Debate
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                onClick={() => handleGenerateDebateVisual(msg, 'sketch')}
-                                disabled={loadingDebateVisual === msg.id || loadingSecondOpinion === msg.id}
-                                className="px-3 py-1.5 text-xs bg-gradient-to-r from-rose-500/20 to-orange-500/20 hover:from-rose-500/30 hover:to-orange-500/30 text-rose-400 border border-rose-500/30 rounded-lg transition-all disabled:opacity-50"
-                                title="Create an artistic sketch of the key concepts"
-                              >
-                                {loadingDebateVisual === msg.id ? '🎨...' : '✏️ Sketch It'}
-                              </button>
-                              <button
-                                onClick={() => handleGenerateDebateVisual(msg, 'flowchart')}
-                                disabled={loadingDebateVisual === msg.id || loadingSecondOpinion === msg.id}
-                                className="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-500/20 to-indigo-500/20 hover:from-blue-500/30 hover:to-indigo-500/30 text-blue-400 border border-blue-500/30 rounded-lg transition-all disabled:opacity-50"
-                                title="Create a flowchart showing logical flow"
-                              >
-                                {loadingDebateVisual === msg.id ? '🎨...' : '📊 Flowchart'}
-                              </button>
-                              <button
-                                onClick={() => handleGenerateDebateVisual(msg, 'timeline')}
-                                disabled={loadingDebateVisual === msg.id || loadingSecondOpinion === msg.id}
-                                className="px-3 py-1.5 text-xs bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 text-green-400 border border-green-500/30 rounded-lg transition-all disabled:opacity-50"
-                                title="Create a timeline of the discussion"
-                              >
-                                {loadingDebateVisual === msg.id ? '🎨...' : '📅 Timeline'}
-                              </button>
-                              <button
-                                onClick={() => handleGenerateDebateVisual(msg, 'mindmap')}
-                                disabled={loadingDebateVisual === msg.id || loadingSecondOpinion === msg.id}
-                                className="px-3 py-1.5 text-xs bg-gradient-to-r from-violet-500/20 to-purple-500/20 hover:from-violet-500/30 hover:to-purple-500/30 text-violet-400 border border-violet-500/30 rounded-lg transition-all disabled:opacity-50"
-                                title="Create a mind map of ideas"
-                              >
-                                {loadingDebateVisual === msg.id ? '🎨...' : '🧠 Mind Map'}
-                              </button>
-                              <button
-                                onClick={() => handleGenerateDebateVisual(msg, 'comparison')}
-                                disabled={loadingDebateVisual === msg.id || loadingSecondOpinion === msg.id}
-                                className="px-3 py-1.5 text-xs bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 text-amber-400 border border-amber-500/30 rounded-lg transition-all disabled:opacity-50"
-                                title="Compare perspectives side by side"
-                              >
-                                {loadingDebateVisual === msg.id ? '🎨...' : '⚖️ Compare'}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
-          ))}
+          );
+          })}
+
 
           {/* Typing Indicator */}
           {isTyping && (
@@ -5075,6 +5283,9 @@ Please create a comprehensive document. Start with a clear title on the first li
         lunaTranscripts={lunaVoiceTranscripts}
         sessionId={voiceSessionId}
         profileId={userProfile?.id}
+        provider={voiceProviderStatus.provider}
+        supportsCues={voiceSupportsCues}
+        showCues={showEmotionalCues}
       />
     </div>
   );

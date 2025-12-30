@@ -9,6 +9,7 @@
  * - Conversation history
  * - User's astrological/personality context (optional)
  * - Tone markers for TTS modulation
+ * - PERSONALITY KNOWLEDGE (v2) - Enneagram, BaZi, Big 5 context
  *
  * The prompt guides Luna to respond appropriately:
  * - Sad users get gentle, reflective responses
@@ -17,7 +18,7 @@
  * - Angry users get validating, non-reactive responses
  *
  * Created: December 21, 2025
- * Updated: December 21, 2025 - Added tone marker support
+ * Updated: December 28, 2024 - Added personality knowledge integration
  */
 
 import {
@@ -25,6 +26,8 @@ import {
   getCompatibleTones,
   getToneInstructions
 } from './toneSelector.js';
+
+import { buildVoiceContext } from '../services/knowledgeService.js';
 
 /**
  * Style-to-tone mapping for prompt instructions
@@ -92,6 +95,10 @@ function formatHistory(history, maxTurns = 6) {
  * @param {Object} params.behavior - Behavior profile from LunaBehaviorEngine
  * @param {Array} params.history - Conversation history
  * @param {Object} params.userContext - Optional user info (name, preferences)
+ * @param {Object} params.userProfile - Personality profile for RAG (v2)
+ * @param {number|string} params.userProfile.enneagramType - Enneagram type (1-9)
+ * @param {string} params.userProfile.dayMaster - BaZi day master key
+ * @param {Object} params.userProfile.big5 - Big 5 scores { o, c, e, a, n }
  * @returns {string} Complete prompt for LLM
  */
 export function buildLunaPrompt({
@@ -100,6 +107,7 @@ export function buildLunaPrompt({
   behavior,
   history = [],
   userContext = null,
+  userProfile = null,
   includeToneMarkers = true
 }) {
   const style = behavior?.style || 'balanced';
@@ -137,6 +145,11 @@ export function buildLunaPrompt({
       }\n\n`
     : '';
 
+  // Personality knowledge context (v2 - Enneagram, BaZi, Big 5)
+  const personalityContext = userProfile
+    ? buildVoiceContext(userProfile)
+    : '';
+
   // Build the complete prompt
   return `You are Luna, an emotionally-aware voice companion speaking through audio.
 
@@ -152,7 +165,7 @@ Core guidelines:
 - Avoid starting with "I" too often. Vary your openings.
 - Never explain what you're doing or why. Just speak to them directly.
 - Don't use emojis or special formatting - this is voice output.
-${toneSection}
+${toneSection}${personalityContext}
 ${contextSection}${historySection}
 User just said (transcribed):
 "${userText}"
@@ -163,13 +176,23 @@ Respond as Luna now:`;
 /**
  * Build a minimal prompt for quick responses
  * Used when latency is critical
+ *
+ * @param {string} userText - User's transcribed speech
+ * @param {Object} emotion - Detected emotion
+ * @param {Object} userProfile - Optional personality profile (v2)
  */
-export function buildQuickPrompt(userText, emotion) {
+export function buildQuickPrompt(userText, emotion, userProfile = null) {
   const emotionHint = emotion?.primary
     ? ` (user seems ${emotion.primary})`
     : '';
 
-  return `You are Luna, a warm voice companion. Respond in 1-2 short sentences${emotionHint}.
+  // Quick personality hint (v2)
+  let personalityHint = '';
+  if (userProfile?.enneagramType) {
+    personalityHint = ` [Type ${userProfile.enneagramType}]`;
+  }
+
+  return `You are Luna, a warm voice companion. Respond in 1-2 short sentences${emotionHint}${personalityHint}.
 
 User: "${userText}"
 

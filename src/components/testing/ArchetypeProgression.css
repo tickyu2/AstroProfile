@@ -1,0 +1,94 @@
+.archetype-progression {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.progression-timeline {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  padding: 16px 0;
+}
+
+.progression-timeline::-webkit-scrollbar {
+  height: 6px;
+}
+
+.progression-timeline::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.progression-item {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.archetype-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  border-radius: 12px;
+  min-width: 100px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s;
+}
+
+.archetype-node:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.node-emoji {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.node-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.node-confidence {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.progression-arrow {
+  margin: 0 16px;
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.progression-legend {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legend-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+}
+
+.no-progression {
+  text-align: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}

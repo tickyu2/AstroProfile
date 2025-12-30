@@ -1,0 +1,91 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLOUD BUILD - Luna Voice Backend Deployment
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Deploys the WebSocket server to Cloud Run.
+#
+# Prerequisites:
+#   1. Enable Cloud Run API
+#   2. Enable Cloud Build API
+#   3. Set up secrets in Secret Manager:
+#      - GROQ_API_KEY
+#      - ELEVENLABS_API_KEY
+#      - OPENAI_API_KEY (optional)
+#
+# Deploy manually:
+#   gcloud builds submit --config=deploy/cloudbuild.yaml
+#
+# Set up continuous deployment:
+#   gcloud builds triggers create github \
+#     --repo=your-repo \
+#     --branch-pattern="^main$" \
+#     --build-config=backend/deploy/cloudbuild.yaml
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/${PROJECT_ID}/luna-voice-backend:${BUILD_ID}'
+      - '-t'
+      - 'gcr.io/${PROJECT_ID}/luna-voice-backend:latest'
+      - '-f'
+      - 'deploy/Dockerfile'
+      - '.'
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/${PROJECT_ID}/luna-voice-backend:${BUILD_ID}'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/${PROJECT_ID}/luna-voice-backend:latest'
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'luna-voice-backend'
+      - '--image'
+      - 'gcr.io/${PROJECT_ID}/luna-voice-backend:${BUILD_ID}'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--cpu'
+      - '1'
+      - '--memory'
+      - '512Mi'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--timeout'
+      - '300s'
+      - '--concurrency'
+      - '80'
+      # Session affinity for WebSocket connections
+      - '--session-affinity'
+      # Secrets from Secret Manager
+      - '--set-secrets'
+      - 'GROQ_API_KEY=GROQ_API_KEY:latest,ELEVENLABS_API_KEY=ELEVENLABS_API_KEY:latest'
+
+images:
+  - 'gcr.io/${PROJECT_ID}/luna-voice-backend:${BUILD_ID}'
+  - 'gcr.io/${PROJECT_ID}/luna-voice-backend:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '1200s'

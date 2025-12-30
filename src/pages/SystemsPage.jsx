@@ -19,6 +19,8 @@ import {
   testGroqKey,
   testElevenLabsKey
 } from '../services/apiKeysService';
+import { costTrackingService, COST_RATES } from '../services/costTrackingService';
+import { voiceOptimizationService, VOICE_QUALITY_PRESETS } from '../services/voiceOptimizationService';
 
 // Service categories with links
 const SERVICE_CATEGORIES = {
@@ -487,12 +489,48 @@ export function SystemsPage() {
   const [testingKey, setTestingKey] = useState(null);
   const [testResult, setTestResult] = useState({});
 
-  // Load API key status on mount
+  // Cost tracking state
+  const [costSummary, setCostSummary] = useState(null);
+  const [showCostDetails, setShowCostDetails] = useState(false);
+
+  // Voice optimization state
+  const [voiceSummary, setVoiceSummary] = useState(null);
+  const [selectedVoicePreset, setSelectedVoicePreset] = useState('BALANCED');
+
+  // Load API key status and metrics on mount
   useEffect(() => {
     setKeyStatus(getKeyStatus());
     setGroqKey(getApiKey('groq'));
     setElevenLabsKey(getApiKey('elevenlabs'));
+
+    // Load cost and voice metrics
+    setCostSummary(costTrackingService.getSessionSummary());
+    setVoiceSummary(voiceOptimizationService.getSummary());
+    setSelectedVoicePreset(voiceOptimizationService.currentPreset);
+
+    // Refresh metrics every 30 seconds
+    const interval = setInterval(() => {
+      setCostSummary(costTrackingService.getSessionSummary());
+      setVoiceSummary(voiceOptimizationService.getSummary());
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
+
+  // Handle voice preset change
+  const handleVoicePresetChange = (presetName) => {
+    voiceOptimizationService.setPreset(presetName);
+    setSelectedVoicePreset(presetName);
+    setVoiceSummary(voiceOptimizationService.getSummary());
+  };
+
+  // Reset cost tracking
+  const handleResetCosts = () => {
+    if (window.confirm('Reset all cost tracking data for this session?')) {
+      costTrackingService.resetSession();
+      setCostSummary(costTrackingService.getSessionSummary());
+    }
+  };
 
   // Save and test Groq key
   const handleSaveGroqKey = async () => {
@@ -711,6 +749,213 @@ export function SystemsPage() {
           </div>
         </section>
 
+        {/* GENESIS Cost Dashboard */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <span>💰</span> GENESIS Cost Dashboard
+              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+                Live
+              </span>
+            </h2>
+            <button
+              onClick={handleResetCosts}
+              className="text-xs text-white/50 hover:text-white/80 transition-colors"
+            >
+              Reset Session
+            </button>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-4 mb-4">
+            {/* Session Total */}
+            <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
+              <div className="text-xs text-white/50 mb-1">Session Total</div>
+              <div className="text-2xl font-bold text-green-400">
+                {costSummary?.formattedTotal || '$0.0000'}
+              </div>
+              <div className="text-xs text-white/40 mt-1">{costSummary?.duration || '0 min'}</div>
+            </div>
+
+            {/* Daily Estimate */}
+            <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-xl p-4">
+              <div className="text-xs text-white/50 mb-1">Daily Estimate</div>
+              <div className="text-2xl font-bold text-amber-400">
+                ${costTrackingService.getDailyEstimate().toFixed(2)}
+              </div>
+              <div className="text-xs text-white/40 mt-1">projected</div>
+            </div>
+
+            {/* Monthly Estimate */}
+            <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4">
+              <div className="text-xs text-white/50 mb-1">Monthly Estimate</div>
+              <div className="text-2xl font-bold text-purple-400">
+                ${costTrackingService.getMonthlyEstimate().toFixed(2)}
+              </div>
+              <div className="text-xs text-white/40 mt-1">projected</div>
+            </div>
+
+            {/* API Calls */}
+            <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl p-4">
+              <div className="text-xs text-white/50 mb-1">Total API Calls</div>
+              <div className="text-2xl font-bold text-cyan-400">
+                {costSummary?.byProvider?.reduce((acc, p) => acc + p.calls, 0) || 0}
+              </div>
+              <div className="text-xs text-white/40 mt-1">this session</div>
+            </div>
+          </div>
+
+          {/* Cost by Provider */}
+          {costSummary?.byProvider?.length > 0 && (
+            <div className="bg-slate-800/50 rounded-xl border border-white/5 p-4 mb-4">
+              <div className="text-sm text-white/60 mb-3">Cost by Provider</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {costSummary.byProvider.map(provider => (
+                  <div key={provider.name} className="bg-slate-900/50 rounded-lg p-3">
+                    <div className="text-xs text-white/50">{provider.name}</div>
+                    <div className="text-lg font-semibold text-white">{provider.formatted}</div>
+                    <div className="text-xs text-white/30">{provider.calls} calls</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Toggle detailed view */}
+          <button
+            onClick={() => setShowCostDetails(!showCostDetails)}
+            className="text-sm text-amber-400/80 hover:text-amber-400 transition-colors"
+          >
+            {showCostDetails ? '▼ Hide Details' : '▶ Show Model Details'}
+          </button>
+
+          {showCostDetails && costSummary?.byModel?.length > 0 && (
+            <div className="mt-3 bg-slate-900/50 rounded-xl border border-white/5 p-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-white/50 text-left">
+                    <th className="pb-2">Model</th>
+                    <th className="pb-2">Calls</th>
+                    <th className="pb-2 text-right">Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {costSummary.byModel.map(model => (
+                    <tr key={model.id} className="border-t border-white/5">
+                      <td className="py-2 text-white/80">{model.name}</td>
+                      <td className="py-2 text-white/60">{model.calls}</td>
+                      <td className="py-2 text-right text-green-400">{model.formatted}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* Voice Optimization Dashboard */}
+        <section>
+          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span>🎤</span> Voice Optimization
+            <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
+              {selectedVoicePreset}
+            </span>
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Quality Presets */}
+            <div className="bg-slate-800/50 rounded-xl border border-white/5 p-4">
+              <div className="text-sm text-white/60 mb-3">Quality Presets</div>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(VOICE_QUALITY_PRESETS).map(([key, preset]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleVoicePresetChange(key)}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      selectedVoicePreset === key
+                        ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
+                        : 'bg-slate-900/50 border-white/5 text-white/60 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="font-medium text-sm">{preset.name}</div>
+                    <div className="text-xs text-white/40 mt-0.5">{preset.description}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Latency Metrics */}
+            <div className="bg-slate-800/50 rounded-xl border border-white/5 p-4">
+              <div className="text-sm text-white/60 mb-3">Latency Metrics (avg)</div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-white/60">STT (Speech-to-Text)</span>
+                  <span className="text-sm font-mono text-cyan-400">
+                    {voiceSummary?.averageLatencies?.stt || 0}ms
+                  </span>
+                </div>
+                <div className="w-full bg-slate-700/50 rounded-full h-2">
+                  <div
+                    className="bg-cyan-500 h-2 rounded-full transition-all"
+                    style={{ width: `${Math.min((voiceSummary?.averageLatencies?.stt || 0) / 20, 100)}%` }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-white/60">LLM (Thinking)</span>
+                  <span className="text-sm font-mono text-amber-400">
+                    {voiceSummary?.averageLatencies?.llm || 0}ms
+                  </span>
+                </div>
+                <div className="w-full bg-slate-700/50 rounded-full h-2">
+                  <div
+                    className="bg-amber-500 h-2 rounded-full transition-all"
+                    style={{ width: `${Math.min((voiceSummary?.averageLatencies?.llm || 0) / 30, 100)}%` }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-white/60">TTS (Text-to-Speech)</span>
+                  <span className="text-sm font-mono text-green-400">
+                    {voiceSummary?.averageLatencies?.tts || 0}ms
+                  </span>
+                </div>
+                <div className="w-full bg-slate-700/50 rounded-full h-2">
+                  <div
+                    className="bg-green-500 h-2 rounded-full transition-all"
+                    style={{ width: `${Math.min((voiceSummary?.averageLatencies?.tts || 0) / 10, 100)}%` }}
+                  />
+                </div>
+
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                  <span className="text-sm text-white/80 font-medium">Total Turn</span>
+                  <span className="text-lg font-mono text-purple-400">
+                    {voiceSummary?.averageLatencies?.total || 0}ms
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Current Config */}
+          <div className="mt-4 bg-slate-900/50 rounded-xl border border-white/5 p-4">
+            <div className="text-sm text-white/60 mb-2">Current Configuration</div>
+            <div className="grid md:grid-cols-3 gap-4 text-xs">
+              <div>
+                <span className="text-white/40">STT:</span>{' '}
+                <span className="text-white/80">{voiceSummary?.presetConfig?.stt?.model || 'whisper-large-v3'}</span>
+              </div>
+              <div>
+                <span className="text-white/40">TTS:</span>{' '}
+                <span className="text-white/80">{voiceSummary?.presetConfig?.tts?.model || 'eleven_multilingual_v2'}</span>
+              </div>
+              <div>
+                <span className="text-white/40">LLM Thinking:</span>{' '}
+                <span className="text-white/80">{voiceSummary?.presetConfig?.llm?.thinkingLevel || 'medium'}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Service Categories */}
         <section>
           <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -825,14 +1070,20 @@ export function SystemsPage() {
         </section>
 
         {/* Project Stats */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <section className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-xl p-4 text-center">
             <div className="text-3xl font-bold text-amber-400">{DEVELOPMENT_TIMELINE.length}</div>
             <div className="text-xs text-white/50 mt-1">Development Entries</div>
           </div>
           <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4 text-center">
-            <div className="text-3xl font-bold text-purple-400">5</div>
+            <div className="text-3xl font-bold text-purple-400">7</div>
             <div className="text-xs text-white/50 mt-1">AI Constellation</div>
+            <div className="text-xs text-white/30">Claude, Gemini, Grok, Opus, DeepSeek, ChatGPT, Nano</div>
+          </div>
+          <div className="bg-gradient-to-br from-fuchsia-500/10 to-rose-500/10 border border-fuchsia-500/20 rounded-xl p-4 text-center">
+            <div className="text-3xl font-bold text-fuchsia-400">2</div>
+            <div className="text-xs text-white/50 mt-1">Image Generators</div>
+            <div className="text-xs text-white/30">Stability.ai, Leonardo.ai</div>
           </div>
           <div className="bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 rounded-xl p-4 text-center">
             <div className="text-3xl font-bold text-cyan-400">

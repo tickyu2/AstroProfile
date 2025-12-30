@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "genesis-constitutional": {
+      "command": "node",
+      "args": ["c:/astroprofile/mcp-server/server.js"],
+      "env": {
+        "FIREBASE_PROJECT_ID": "astroprofile-391e6",
+        "GOOGLE_APPLICATION_CREDENTIALS": "c:/astroprofile/mcp-server/firebase-credentials.json",
+        "MCP_RATE_LIMIT": "100",
+        "MCP_AUDIT_LOG": "true",
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}

@@ -34,6 +34,7 @@ import { calculateSovereignChartWithFallback } from './sovereignChartService';
 import { generateEpochs } from '../soulGarden';
 import { getCognitiveStack, getTemperament, getTypeName, generateMBTICode } from '../utils/mbti/mbtiCodeSystem';
 import { ENNEAGRAM_TYPES, ENNEAGRAM_CENTERS } from '../components/enneagram/enneagramData';
+import { getSynthesis, getLunaGuidance, isImplemented } from '../data/mbtiEnneagramSynthesis';
 
 // Initialize Firestore
 const db = getFirestore();
@@ -306,6 +307,40 @@ export async function buildComprehensiveProfile(params) {
   }
 
   // =========================================================================
+  // 9.5. MBTI + ENNEAGRAM SYNTHESIS (if both are present)
+  // =========================================================================
+  let mbtiEnneagramSynthesis = null;
+  if (mbtiType && enneagramResult?.dominantType) {
+    const synthesisData = getSynthesis(mbtiType, enneagramResult.dominantType);
+    if (synthesisData && synthesisData.implemented) {
+      const lunaGuidance = getLunaGuidance(mbtiType, enneagramResult.dominantType);
+      mbtiEnneagramSynthesis = {
+        combination: `${mbtiType.toUpperCase()}-${enneagramResult.dominantType}`,
+        archetype: synthesisData.archetype,
+        frequency: synthesisData.frequency,
+        synthesis: synthesisData.synthesis,
+        cognitiveMotivationDance: synthesisData.cognitive_motivation_dance,
+        strengths: synthesisData.strengths,
+        challenges: synthesisData.challenges,
+        growthPath: synthesisData.growth_path,
+        lunaApproach: lunaGuidance,
+        famousExamples: synthesisData.famous_examples,
+        relationshipStyle: synthesisData.relationship_style,
+        careerFits: synthesisData.career_fits,
+        implemented: true
+      };
+    } else {
+      // Fallback for unimplemented combinations
+      mbtiEnneagramSynthesis = {
+        combination: `${mbtiType.toUpperCase()}-${enneagramResult.dominantType}`,
+        archetype: `${mbtiType.toUpperCase()} + Type ${enneagramResult.dominantType}`,
+        note: 'This is a less common pairing. Luna will provide personalized insights based on your complete profile.',
+        implemented: false
+      };
+    }
+  }
+
+  // =========================================================================
   // 10. LIFE EPOCHS (Saturn cycles, planetary ages)
   // =========================================================================
   const epochChart = {
@@ -371,6 +406,7 @@ export async function buildComprehensiveProfile(params) {
     birthDay,
     mbti,
     enneagram,
+    mbtiEnneagramSynthesis,
     epochs,
 
     // Synthesis for AI prompts
@@ -382,7 +418,8 @@ export async function buildComprehensiveProfile(params) {
       hasBirthTime: !!birthTime && birthTime !== '12:00',
       hasLocation: !!(latitude && longitude),
       hasMBTI: !!mbtiType,
-      hasEnneagram: !!enneagramResult
+      hasEnneagram: !!enneagramResult,
+      hasMBTIEnneagramSynthesis: !!mbtiEnneagramSynthesis?.implemented
     }
   };
 

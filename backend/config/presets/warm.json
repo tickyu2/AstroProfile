@@ -1,0 +1,26 @@
+{
+  "name": "Warm",
+  "description": "Gentle, nurturing, and emotionally supportive",
+  "behaviorDefaults": {
+    "neutral": {
+      "backchannelFrequency": 0.45,
+      "maxResponseTokens": 180,
+      "style": "gentle",
+      "adviceBias": 0.25,
+      "ttsHints": {
+        "rate": 0.94,
+        "pitch": 0.98,
+        "warmth": 0.85
+      }
+    }
+  },
+  "tts": {
+    "elevenLabs": {
+      "baseProfile": {
+        "stability": 0.7,
+        "similarityBoost": 0.78,
+        "style": 0.4
+      }
+    }
+  }
+}
