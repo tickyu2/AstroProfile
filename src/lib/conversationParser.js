@@ -18,6 +18,17 @@ export class ConversationParser {
       .map(line => line.trim())
       .filter(line => line.length > 0);
 
+    // Check if ANY line has a speaker pattern
+    const hasAnyPattern = lines.some(line =>
+      this.userPatterns.test(line) || this.aiPatterns.test(line)
+    );
+
+    // If no patterns found, treat entire text as user input
+    // Split by paragraph (double newline) or sentence-like breaks
+    if (!hasAnyPattern && lines.length > 0) {
+      return this.parseAsUserText(transcript);
+    }
+
     const messages = [];
     let currentSpeaker = null;
     let currentText = '';
@@ -59,6 +70,54 @@ export class ConversationParser {
   }
 
   /**
+   * Parse plain text as user messages
+   * Splits by paragraphs (blank lines) or treats as single message
+   */
+  parseAsUserText(transcript) {
+    const messages = [];
+
+    // Split by double newlines (paragraphs)
+    const paragraphs = transcript
+      .split(/\n\s*\n/)
+      .map(p => p.trim())
+      .filter(p => p.length > 0);
+
+    if (paragraphs.length > 1) {
+      // Multiple paragraphs = multiple user messages
+      paragraphs.forEach((text, index) => {
+        messages.push({
+          speaker: 'user',
+          text: text.replace(/\n/g, ' ').trim(),
+          timestamp: Date.now() + index * 1000
+        });
+      });
+    } else {
+      // Single block of text - could be multiple lines
+      const lines = transcript.split('\n').map(l => l.trim()).filter(l => l);
+
+      if (lines.length > 1) {
+        // Treat each line as a separate user message
+        lines.forEach((text, index) => {
+          messages.push({
+            speaker: 'user',
+            text: text.trim(),
+            timestamp: Date.now() + index * 1000
+          });
+        });
+      } else {
+        // Single line
+        messages.push({
+          speaker: 'user',
+          text: transcript.trim(),
+          timestamp: Date.now()
+        });
+      }
+    }
+
+    return messages;
+  }
+
+  /**
    * Validate transcript format
    */
   validate(transcript) {
@@ -67,7 +126,7 @@ export class ConversationParser {
     if (messages.length === 0) {
       return {
         valid: false,
-        error: 'No messages found. Please use format: "User: message" or "AI: message"'
+        error: 'No text found. Please enter some text or use format: "User: message"'
       };
     }
 
@@ -75,7 +134,7 @@ export class ConversationParser {
     if (!hasUser) {
       return {
         valid: false,
-        error: 'No user messages found. Use "User:" prefix for user messages.'
+        error: 'No user messages found.'
       };
     }
 

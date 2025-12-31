@@ -20,6 +20,7 @@ export function TranscriptTester() {
   const [loadedFileName, setLoadedFileName] = useState(null);
   const [reflection, setReflection] = useState(null);
   const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
+  const [showAnchorInfo, setShowAnchorInfo] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleAnalyze = async () => {
@@ -239,9 +240,124 @@ Please provide your reflection:`;
   return (
     <div className="transcript-tester">
       <div className="tester-header">
-        <h1>GENESIS Transcript Analyzer</h1>
+        <div className="header-title-row">
+          <h1>GENESIS Transcript Analyzer</h1>
+          <button
+            className="btn-anchor-info"
+            onClick={() => setShowAnchorInfo(true)}
+            title="View Happiness Anchor System Architecture"
+          >
+            <span className="anchor-icon">⚓</span>
+            Happiness Anchor
+          </button>
+        </div>
         <p className="subtitle">Test the emotional intelligence engine with real conversations</p>
       </div>
+
+      {/* Happiness Anchor System Modal */}
+      {showAnchorInfo && (
+        <div className="anchor-modal-overlay" onClick={() => setShowAnchorInfo(false)}>
+          <div className="anchor-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="anchor-modal-header">
+              <h2>⚓ Happiness Anchor System</h2>
+              <button className="modal-close" onClick={() => setShowAnchorInfo(false)}>×</button>
+            </div>
+            <div className="anchor-modal-content">
+              <pre className="anchor-diagram">{`
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       HAPPINESS ANCHOR SYSTEM                                │
+│                  "Storing Joy for Dark Days"                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  DETECTION PHASE (during conversation):                                      │
+│  ┌──────────────┐                                                           │
+│  │   GENESIS    │──► Detects JOY signals + Flamebearer archetype            │
+│  │  Archetypes  │    (laughter, excitement, gratitude, celebration)         │
+│  └──────────────┘                                                           │
+│         │                                                                    │
+│         ▼                                                                    │
+│  ┌──────────────────────────────────────────────────────────────────┐       │
+│  │                    JOY MOMENT CAPTURED                            │       │
+│  │  • What triggered the joy (context)                              │       │
+│  │  • User's exact words (emotional resonance)                      │       │
+│  │  • Timestamp + life context                                      │       │
+│  │  • Emotional intensity score (1-10)                              │       │
+│  │  • Associated topics/themes                                      │       │
+│  └──────────────────────────────────────────────────────────────────┘       │
+│         │                                                                    │
+│         ▼                                                                    │
+│  STORAGE PHASE:                                                              │
+│  ┌──────────────────────────────────────────────────────────────────┐       │
+│  │              USER'S LONG-TERM MEMORY (LTM)                        │       │
+│  │  ┌─────────────────────────────────────────────────────────┐     │       │
+│  │  │            HAPPINESS ANCHORS COLLECTION                  │     │       │
+│  │  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐        │     │       │
+│  │  │  │ Anchor1 │ │ Anchor2 │ │ Anchor3 │ │ Anchor4 │  ...   │     │       │
+│  │  │  │ "Got my │ │ "Baby's │ │ "Friend │ │ "Launch │        │     │       │
+│  │  │  │ dream   │ │ first   │ │ reunion"│ │ success"│        │     │       │
+│  │  │  │  job!"  │ │ steps!" │ │         │ │         │        │     │       │
+│  │  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘        │     │       │
+│  │  └─────────────────────────────────────────────────────────┘     │       │
+│  └──────────────────────────────────────────────────────────────────┘       │
+│                                                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  RECALL PHASE (when sadness detected):                                       │
+│  ┌──────────────┐                                                           │
+│  │   GENESIS    │──► Detects SHADOW WORK archetypes                         │
+│  │   Detects    │    (Wounded Healer, Orphan, Exile)                        │
+│  │    Sadness   │                                                           │
+│  └──────────────┘                                                           │
+│         │                                                                    │
+│         ▼                                                                    │
+│  ┌──────────────────────────────────────────────────────────────────┐       │
+│  │                  INTELLIGENT ANCHOR SELECTION                     │       │
+│  │  • Match current pain theme with relevant joy memory              │       │
+│  │  • Consider recency and emotional intensity                       │       │
+│  │  • Avoid repetition (track recently used anchors)                 │       │
+│  │  • Select based on user's response to past recalls                │       │
+│  └──────────────────────────────────────────────────────────────────┘       │
+│         │                                                                    │
+│         ▼                                                                    │
+│  ┌──────────────────────────────────────────────────────────────────┐       │
+│  │                   LUNA'S GENTLE RECALL                            │       │
+│  │                                                                   │       │
+│  │  "I remember when you told me about [anchor context]...           │       │
+│  │   You said: '[user's exact joyful words]'                         │       │
+│  │   That light is still within you."                                │       │
+│  │                                                                   │       │
+│  │  ► Personalized, not generic                                      │       │
+│  │  ► Uses their own words back to them                              │       │
+│  │  ► Connects past joy to present resilience                        │       │
+│  └──────────────────────────────────────────────────────────────────┘       │
+│                                                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  4-BRAIN ARCHITECTURE:                                                       │
+│  ┌─────────────────────┐          ┌─────────────────────┐                   │
+│  │    USER MEMORY      │          │    LUNA MEMORY      │                   │
+│  │  ┌───────┬───────┐  │          │  ┌───────┬───────┐  │                   │
+│  │  │  STM  │  LTM  │  │◄────────►│  │  STM  │  LTM  │  │                   │
+│  │  │(today)│(life) │  │          │  │(conv) │(learn)│  │                   │
+│  │  └───────┴───────┘  │          │  └───────┴───────┘  │                   │
+│  │    Happiness        │          │    Recall           │                   │
+│  │    Anchors HERE     │          │    Patterns         │                   │
+│  └─────────────────────┘          └─────────────────────┘                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+              `}</pre>
+              <div className="anchor-features">
+                <h3>Key Features</h3>
+                <ul>
+                  <li><strong>Auto-Detection:</strong> GENESIS archetypes detect joy (Flamebearer) and sadness (Wounded Healer)</li>
+                  <li><strong>Context-Rich Storage:</strong> Captures user's exact words, emotional intensity, and life context</li>
+                  <li><strong>Intelligent Recall:</strong> Matches current pain themes with relevant past joys</li>
+                  <li><strong>Personalized Response:</strong> Uses user's own words, not generic platitudes</li>
+                  <li><strong>4-Brain Memory:</strong> Stored in User LTM for persistence across sessions</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="tester-layout">
         {/* Input Panel */}
