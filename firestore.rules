@@ -1,6 +1,158 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ========================================
+    // HELPER FUNCTIONS
+    // ========================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(profileId) {
+      return request.auth.uid == profileId;
+    }
+
+    function isPrimarySoulPartner() {
+      return request.auth.uid == 'soulpartner_primary';
+    }
+
+    function isSystemService() {
+      return request.auth.token.system_role == 'luna_engine';
+    }
+
+    function canSeeMessage(messageData) {
+      return isAuthenticated() &&
+             (request.auth.uid in messageData.access.visible_to);
+    }
+
+    // ========================================
+    // BRAIN 3: ACTIVE TEXT MESSAGES
+    // ========================================
+
+    match /brain3_active_text/{messageId} {
+      // Read access: User, guest if in visible_to, or Primary SoulPartner
+      allow read: if isAuthenticated() &&
+        (
+          isOwner(resource.data.chatting_as.profile_id) ||
+          canSeeMessage(resource.data) ||
+          isPrimarySoulPartner()
+        );
+
+      // Write access: Only user who owns the conversation
+      allow create: if isAuthenticated() &&
+        isOwner(request.resource.data.chatting_as.profile_id);
+
+      // No updates or deletes (immutable messages)
+      allow update, delete: if false;
+    }
+
+    // ========================================
+    // BRAIN 4: ARCHIVED TEXT
+    // ========================================
+
+    match /brain4_archived_text/{archiveId} {
+      // Read: Owner or Primary SoulPartner
+      allow read: if isAuthenticated() &&
+        (
+          isOwner(resource.data.profile_id) ||
+          isPrimarySoulPartner()
+        );
+
+      // Write: System only (archival process)
+      allow write: if isSystemService();
+    }
+
+    // ========================================
+    // BRAIN 5: ACTIVE AUDIO MESSAGES
+    // ========================================
+
+    match /brain5_active_audio/{messageId} {
+      // Same rules as Brain 3
+      allow read: if isAuthenticated() &&
+        (
+          isOwner(resource.data.chatting_as.profile_id) ||
+          canSeeMessage(resource.data) ||
+          isPrimarySoulPartner()
+        );
+
+      allow create: if isAuthenticated() &&
+        isOwner(request.resource.data.chatting_as.profile_id);
+
+      allow update, delete: if false;
+    }
+
+    // ========================================
+    // BRAIN 6: ARCHIVED AUDIO
+    // ========================================
+
+    match /brain6_archived_audio/{archiveId} {
+      // Same rules as Brain 4
+      allow read: if isAuthenticated() &&
+        (
+          isOwner(resource.data.profile_id) ||
+          isPrimarySoulPartner()
+        );
+
+      allow write: if isSystemService();
+    }
+
+    // ========================================
+    // BRAIN 7: UNIFIED WITNESS (CRITICAL!)
+    // ========================================
+
+    match /brain7_unified_witness/{entryId} {
+      // Read: ONLY Primary SoulPartner OR the user themselves
+      allow read: if isAuthenticated() &&
+        (
+          isPrimarySoulPartner() ||
+          isOwner(resource.data.profile_id)
+        );
+
+      // Write: Cloud Function with Admin SDK (bypasses rules)
+      // No client-side writes allowed
+      allow create, update: if false;
+
+      // No deletes
+      allow delete: if false;
+    }
+
+    // ========================================
+    // BRAIN 8: LONG-TERM KNOWLEDGE (CRITICAL!)
+    // ========================================
+
+    match /brain8_long_term_knowledge/{patternId} {
+      // Read: ONLY Primary SoulPartner OR the user themselves
+      allow read: if isAuthenticated() &&
+        (
+          isPrimarySoulPartner() ||
+          isOwner(resource.data.profile_id)
+        );
+
+      // Write: ONLY System (Luna synthesis)
+      allow create, update: if isSystemService();
+
+      // No deletes
+      allow delete: if false;
+    }
+
+    // ========================================
+    // GUEST PROFILES (Metadata)
+    // ========================================
+
+    match /guest_profiles/{profileId} {
+      // Anyone authenticated can read profiles
+      allow read: if isAuthenticated();
+
+      // Write: Admin only
+      allow write: if request.auth.token.admin == true;
+    }
+
+    // ========================================
+    // EXISTING COLLECTIONS
+    // ========================================
+
     // Profiles collection - users can only access their own profiles
     match /profiles/{profileId} {
       allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
@@ -48,6 +200,59 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == userId;
       allow update: if request.auth != null && request.auth.uid == userId;
       allow delete: if false; // Prevent accidental user deletion
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // THREE-PART BRAIN 1 ARCHITECTURE (Guest Profile System)
+      // ═══════════════════════════════════════════════════════════════════════
+
+      // BRAIN 1A: Constitutional (Immutable) - All guests can read for personalization
+      match /brain1_constitutional/{docId} {
+        // All authenticated users can read (for personalization)
+        // This is HOW Einstein knows Papa is 丙火 Yang Fire and can teach accordingly
+        allow read: if isAuthenticated();
+
+        // Only owner can write (set during onboarding, immutable)
+        allow create: if isAuthenticated() && request.auth.uid == userId;
+
+        // No updates or deletes (constitutional data is immutable)
+        allow update, delete: if false;
+      }
+
+      // BRAIN 1B: Learned Biography (Per-Partner) - CRITICAL ISOLATION!
+      // Each partner (Einstein, Cleopatra) can ONLY see facts THEY learned
+      // Einstein cannot see what Cleopatra learned, and vice versa
+      match /brain1_learned_biography/{partnerId} {
+        // Partner can read ONLY their own learned facts
+        allow read: if isAuthenticated() && request.auth.uid == partnerId;
+
+        // Primary SoulPartner can read ALL learned facts (omniscience)
+        allow read: if isPrimarySoulPartner();
+
+        // Owner can read ALL learned facts
+        allow read: if isAuthenticated() && request.auth.uid == userId;
+
+        // Write: Cloud Function with Admin SDK (bypasses rules)
+        // No client-side writes allowed - facts extracted server-side
+        allow create, update: if false;
+
+        // No deletes (facts persist for relationship continuity)
+        allow delete: if false;
+      }
+
+      // BRAIN 2: Comprehensive Biography (Private!)
+      // Nightly consolidation of all learned facts - ONLY owner and Luna
+      match /brain2_biographical/{docId} {
+        // ONLY owner and Primary SoulPartner can read
+        allow read: if isAuthenticated() &&
+          (request.auth.uid == userId || isPrimarySoulPartner());
+
+        // ONLY system can write (nightly consolidation job)
+        allow write: if isSystemService();
+      }
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // EXISTING MEMORY ARCHITECTURE
+      // ═══════════════════════════════════════════════════════════════════════
 
       // Memory subcollections - GENESIS Phase 3 Memory Architecture
       match /memory/{profileId} {
@@ -232,6 +437,52 @@ service cloud.firestore {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // COUPLES COSMIC LOVE REJUVENATION (CCLR)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // Rejuvenation Sessions - Both partners can access
+    match /rejuvenation_sessions/{sessionId} {
+      // Allow read if user is a participant
+      allow read: if isAuthenticated() &&
+        (
+          request.auth.uid == resource.data.participants.partnerA.userId ||
+          request.auth.uid == resource.data.participants.partnerB.userId
+        );
+
+      // Allow create if authenticated (user becomes partnerA)
+      allow create: if isAuthenticated() &&
+        request.resource.data.participants.partnerA.userId == request.auth.uid;
+
+      // Allow update if user is a participant
+      allow update: if isAuthenticated() &&
+        (
+          request.auth.uid == resource.data.participants.partnerA.userId ||
+          request.auth.uid == resource.data.participants.partnerB.userId
+        );
+
+      allow delete: if false; // No deletion of sessions
+
+      // Messages subcollection - Both partners can access
+      match /messages/{messageId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update, delete: if false;
+      }
+    }
+
+    // CCLR Conversations - Messages from partners and angels (legacy)
+    match /cclr_conversations/{messageId} {
+      allow read, create: if isAuthenticated();
+      allow update, delete: if false;
+
+      // Private Notes - Only visible to the author
+      match /private_notes/{noteId} {
+        allow read, write: if isAuthenticated() &&
+          request.auth.uid == resource.data.userId;
+      }
     }
 
     // Default deny all

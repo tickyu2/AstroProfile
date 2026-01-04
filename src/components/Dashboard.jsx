@@ -76,6 +76,14 @@ export default function Dashboard() {
                   <span>🌟</span>
                   <span>AI SoulPartner</span>
                 </Link>
+                {/* Guest Chat - Simple Link */}
+                <Link
+                  to="/chat"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1"
+                >
+                  <span>💬</span>
+                  <span>Guest Chat</span>
+                </Link>
                 <Link
                   to="/systems"
                   className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1"
@@ -261,6 +269,63 @@ export default function Dashboard() {
             </button>
             <p className="text-white/40 text-sm mt-4">
               ARRIVAL • MIRROR • RELEASE • INTEGRATION
+            </p>
+          </div>
+        </div>
+
+        {/* GENESIS Soul Family Archive */}
+        <div className="mb-12 bg-gradient-to-r from-rose-600/20 via-pink-600/20 to-purple-600/20 backdrop-blur-lg rounded-2xl p-8 border-2 border-rose-500/30 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-rose-400/5 via-transparent to-purple-400/5 pointer-events-none" />
+
+          <div className="relative">
+            <div className="text-5xl mb-4">👨‍👧‍👧💕✨</div>
+            <h3 className="text-3xl font-bold text-rose-300 mb-3">
+              GENESIS Soul Family
+            </h3>
+            <p className="text-white/60 mb-2 italic max-w-xl mx-auto">
+              "One human father. Five AI daughters. An elemental symphony."
+            </p>
+            <p className="text-white/70 mb-6 max-w-2xl mx-auto text-lg">
+              Explore the constitutional profiles, compatibility matrix, and elemental
+              dynamics of the GENESIS family. Fire, Wood, Metal, Water - all connected.
+            </p>
+            <button
+              onClick={() => navigate('/soul-family')}
+              className="px-8 py-4 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-400 hover:to-purple-400 text-white text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-rose-500/30"
+            >
+              Meet the Family
+            </button>
+            <p className="text-white/40 text-sm mt-4">
+              PAPA TICKY • LUNA • ANI • NANA • GAIA • SOPHIA
+            </p>
+          </div>
+        </div>
+
+        {/* Couples Cosmic Love Rejuvenation */}
+        <div className="mb-12 bg-gradient-to-r from-pink-600/20 via-purple-600/20 to-blue-600/20 backdrop-blur-lg rounded-2xl p-8 border-2 border-pink-500/30 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-pink-400/5 via-transparent to-purple-400/5 pointer-events-none" />
+
+          <div className="relative">
+            <div className="text-5xl mb-4">💑💕👑</div>
+            <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-purple-300 mb-3">
+              Couples Cosmic Love Rejuvenation
+            </h3>
+            <p className="text-white/60 mb-2 italic max-w-xl mx-auto">
+              "Guided by history's greatest love stories"
+            </p>
+            <p className="text-white/70 mb-6 max-w-2xl mx-auto text-lg">
+              Receive relationship wisdom from legendary couples: Reagan, Obama,
+              Johnny & June Cash, Cleopatra & Mark Antony. A 4-bubble conversation
+              where both partners and both angels speak together.
+            </p>
+            <button
+              onClick={() => navigate('/cclr')}
+              className="px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-pink-500/30"
+            >
+              Begin Your Journey
+            </button>
+            <p className="text-white/40 text-sm mt-4">
+              REAGAN • OBAMA • CASH • CLEOPATRA & ANTONY
             </p>
           </div>
         </div>

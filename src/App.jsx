@@ -29,6 +29,14 @@ import SoulGardenPage from './pages/SoulGardenPage'
 import SanctuaryPage from './pages/SanctuaryPage'
 import TranscriptTesterPage from './pages/TranscriptTesterPage'
 import BrainArchitecturePage from './pages/BrainArchitecturePage'
+import ZodiacCuspsPage from './pages/ZodiacCuspsPage'
+import ChineseZodiacPage from './pages/ChineseZodiacPage'
+import SoulFamilyPage from './pages/SoulFamilyPage'
+import GuestChat from './pages/GuestChat'
+import NumerologyDecodePage from './pages/NumerologyDecodePage'
+
+// CCLR - Couples Cosmic Love Rejuvenation
+import { CCLRHomePage, CCLRSessionPage, CreateSessionPage } from './pages/cclr'
 
 function App() {
   return (
@@ -66,6 +74,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Results />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Numerology Decode - Deep numerological analysis */}
+            <Route
+              path="/numerology/:profileId"
+              element={
+                <ProtectedRoute>
+                  <NumerologyDecodePage />
                 </ProtectedRoute>
               }
             />
@@ -227,6 +245,82 @@ function App() {
               element={
                 <ProtectedRoute>
                   <BrainArchitecturePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 36-Position Zodiac Cusps Page */}
+            <Route
+              path="/zodiac-cusps"
+              element={
+                <ProtectedRoute>
+                  <ZodiacCuspsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Chinese Zodiac + Five Elements Page */}
+            <Route
+              path="/chinese-zodiac"
+              element={
+                <ProtectedRoute>
+                  <ChineseZodiacPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Soul Family - GENESIS Family Archive */}
+            <Route
+              path="/soul-family"
+              element={
+                <ProtectedRoute>
+                  <SoulFamilyPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Guest Chat - Selection page (no guest selected) */}
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute>
+                  <GuestChat />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Guest Chat - Chat with specific guest */}
+            <Route
+              path="/chat/:partnerId"
+              element={
+                <ProtectedRoute>
+                  <GuestChat />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* CCLR - Couples Cosmic Love Rejuvenation */}
+            <Route
+              path="/cclr"
+              element={
+                <ProtectedRoute>
+                  <CCLRHomePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cclr/new"
+              element={
+                <ProtectedRoute>
+                  <CreateSessionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cclr/session/:sessionId"
+              element={
+                <ProtectedRoute>
+                  <CCLRSessionPage />
                 </ProtectedRoute>
               }
             />
