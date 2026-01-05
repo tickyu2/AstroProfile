@@ -11,6 +11,7 @@
  */
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import WesternZodiacCompatibility from './WesternZodiacCompatibility';
 import CuspDetailPanel from './CuspDetailPanel';
 import { getCuspDataFromDate, getCuspDisplayName, getSignEmoji } from '../../utils/westernZodiac/cuspCalculator';
@@ -187,6 +188,23 @@ export default function WesternZodiacSection({ birthDate, userName, onSelectMatc
             />
           </div>
         )}
+
+        {/* Browse All 36 Cusps - Link to full page */}
+        <Link
+          to="/zodiac-cusps"
+          className="w-full p-4 mt-4 rounded-lg border-2 border-indigo-500/30 bg-indigo-900/20 hover:bg-indigo-900/40 transition-all duration-300 flex items-center justify-center gap-3 group"
+        >
+          <span className="text-2xl">⭐</span>
+          <div className="text-center">
+            <span className="text-white font-medium group-hover:text-indigo-300 transition-colors">
+              Browse All 36 Cusp Positions
+            </span>
+            <p className="text-xs text-white/50">
+              Copy & paste to Grok/AI for self-discovery
+            </p>
+          </div>
+          <span className="text-white/50 group-hover:text-white transition-colors">→</span>
+        </Link>
 
       </div>
 

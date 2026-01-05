@@ -1440,3 +1440,113 @@
     padding: 1rem;
   }
 }
+
+/* ============================================================================
+   SOULPARTNER SELECTION SECTION
+   ============================================================================ */
+
+.soulpartner-selection-section {
+  margin: 0 2rem 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+}
+
+.selection-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.selection-header h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.selection-header p {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.choose-partner-btn {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.choose-partner-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.chooser-container {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Override some SoulPartnerChooser styles for dark theme */
+.chooser-container .soulpartner-chooser {
+  max-width: 100%;
+}
+
+.chooser-container .bg-white {
+  background: var(--glass-surface) !important;
+}
+
+.chooser-container .dark\:bg-gray-800 {
+  background: var(--glass-surface) !important;
+}
+
+.chooser-container .border-gray-200 {
+  border-color: var(--glass-border) !important;
+}
+
+.chooser-container .text-gray-800 {
+  color: var(--text-primary) !important;
+}
+
+.chooser-container .text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+@media (max-width: 768px) {
+  .soulpartner-selection-section {
+    margin: 0 1rem 1rem;
+    padding: 1rem;
+  }
+
+  .selection-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .chooser-container {
+    padding: 1rem;
+  }
+}

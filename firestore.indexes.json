@@ -1,6 +1,82 @@
 {
   "indexes": [
     {
+      "collectionGroup": "brain3_active_text",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "chatting_as.profile_id", "order": "ASCENDING" },
+        { "fieldPath": "chatting_with.partner_id", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "brain3_active_text",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "chatting_as.profile_id", "order": "ASCENDING" },
+        { "fieldPath": "chatting_with.partner_id", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "brain3_active_text",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "thread_id", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "brain3_active_text",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "access.visible_to", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "brain5_active_audio",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "chatting_as.profile_id", "order": "ASCENDING" },
+        { "fieldPath": "chatting_with.partner_id", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "brain5_active_audio",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "thread_id", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "brain7_unified_witness",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "profile_id", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "brain8_long_term_knowledge",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "profile_id", "order": "ASCENDING" },
+        { "fieldPath": "pattern_type", "order": "ASCENDING" },
+        { "fieldPath": "updated_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "brain1_learned_biography",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "partner_id", "order": "ASCENDING" },
+        { "fieldPath": "last_updated", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "knowledgeBase",
       "queryScope": "COLLECTION",
       "fields": [
@@ -42,27 +118,6 @@
       ]
     },
     {
-      "collectionGroup": "people",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "mentionCount", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "happinessAnchors",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "score", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "memories",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "usage_events",
       "queryScope": "COLLECTION",
       "fields": [
@@ -77,13 +132,6 @@
         { "fieldPath": "type", "order": "ASCENDING" },
         { "fieldPath": "completed", "order": "ASCENDING" },
         { "fieldPath": "timestamp", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "usage_daily",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "date", "order": "DESCENDING" }
       ]
     }
   ],

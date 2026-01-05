@@ -22,7 +22,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfiles } from '../contexts/ProfileContext';
 import { HouseStrengthPlayground } from '../components/playground';
+import HouseTimeMatrix from '../components/playground/HouseTimeMatrix';
 import LocationPicker from '../components/common/LocationPicker';
+import { fetchHouseStrengthTimeline } from '../services/houseStrengthService';
 import SoulConfessional from '../components/soulGarden/SoulConfessional';
 import TakeHomeGiftPanel from '../components/soulGarden/TakeHomeGiftPanel';
 import { submitConfessional, buildConfessionalChart } from '../services/confessionalService';
@@ -52,6 +54,12 @@ export default function SoulGardenPage() {
   // Playground state
   const [showPlayground, setShowPlayground] = useState(false);
   const [specificTime, setSpecificTime] = useState(null); // For exact time calculation
+
+  // Matrix view state
+  const [showMatrix, setShowMatrix] = useState(false);
+  const [matrixTimeline, setMatrixTimeline] = useState([]);
+  const [matrixLoading, setMatrixLoading] = useState(false);
+  const [matrixSelectedIndex, setMatrixSelectedIndex] = useState(0);
 
   // Soul Confessional state
   const [confessionalLoading, setConfessionalLoading] = useState(false);
@@ -201,6 +209,55 @@ export default function SoulGardenPage() {
       setShowPlayground(true);
     }
   }, [activeBirthData]);
+
+  // Handle View Matrix button click - loads timeline for matrix view
+  const handleViewMatrix = useCallback(async () => {
+    if (!activeBirthData?.birthDate || activeBirthData?.latitude == null) {
+      return;
+    }
+
+    // Validate date range (1900-2100 for astronomical calculations)
+    const year = parseInt(activeBirthData.birthDate?.split('-')[0]);
+    if (year < 1900 || year > 2100) {
+      alert('Please use a birth date between 1900 and 2100 for accurate calculations.');
+      return;
+    }
+
+    try {
+      setMatrixLoading(true);
+      console.log('📊 Soul Garden Matrix: Loading timeline...', activeBirthData);
+
+      const data = await fetchHouseStrengthTimeline({
+        birthDate: activeBirthData.birthDate,
+        latitude: activeBirthData.latitude,
+        longitude: activeBirthData.longitude,
+        timezone: activeBirthData.timezone || 0
+      });
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to load timeline');
+      }
+
+      setMatrixTimeline(data.timeline || []);
+      setShowMatrix(true);
+      setMatrixSelectedIndex(0);
+
+      console.log('📊 Soul Garden Matrix: Timeline loaded', {
+        slices: (data.timeline || []).length
+      });
+    } catch (err) {
+      console.error('📊 Soul Garden Matrix Error:', err);
+      const errorMsg = err.message || err.details?.message || 'Unknown error';
+      alert('Failed to load timeline: ' + errorMsg);
+    } finally {
+      setMatrixLoading(false);
+    }
+  }, [activeBirthData]);
+
+  // Handle matrix time selection
+  const handleMatrixTimeSelect = useCallback((index) => {
+    setMatrixSelectedIndex(index);
+  }, []);
 
   // Handle Soul Confessional submission
   const handleConfessionalSubmit = useCallback(async (context) => {
@@ -430,14 +487,21 @@ export default function SoulGardenPage() {
                   </div>
                 )}
 
-                {/* Explore Button */}
+                {/* Explore Buttons */}
                 {selectedProfileData && (
-                  <div className="mt-6 text-center">
+                  <div className="mt-6 text-center flex flex-wrap justify-center gap-3">
                     <button
                       onClick={handleExplore}
                       className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-purple-500 hover:from-emerald-600 hover:to-purple-600 text-white font-bold text-lg rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-emerald-500/30"
                     >
                       🌿 Explore Soul Garden 🌿
+                    </button>
+                    <button
+                      onClick={handleViewMatrix}
+                      disabled={matrixLoading}
+                      className="px-6 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-lg rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {matrixLoading ? '⏳ Loading...' : '📊 View House Matrix'}
                     </button>
                   </div>
                 )}
@@ -527,8 +591,8 @@ export default function SoulGardenPage() {
                   </div>
                 )}
 
-                {/* Explore Button */}
-                <div className="mt-6 text-center">
+                {/* Explore Buttons */}
+                <div className="mt-6 text-center flex flex-wrap justify-center gap-3">
                   <button
                     onClick={handleExplore}
                     disabled={!canExplore}
@@ -542,12 +606,26 @@ export default function SoulGardenPage() {
                   >
                     🌿 Explore Soul Garden 🌿
                   </button>
-                  {!canExplore && (
-                    <p className="text-xs text-white/40 mt-2">
-                      Enter a birth date and location to continue
-                    </p>
-                  )}
+                  <button
+                    onClick={handleViewMatrix}
+                    disabled={!canExplore || matrixLoading}
+                    className={`
+                      px-6 py-4 rounded-xl font-bold text-lg transition-all transform
+                      ${canExplore
+                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white hover:scale-105 shadow-lg shadow-cyan-500/30'
+                        : 'bg-slate-700 text-white/40 cursor-not-allowed'
+                      }
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    `}
+                  >
+                    {matrixLoading ? '⏳ Loading...' : '📊 View House Matrix'}
+                  </button>
                 </div>
+                {!canExplore && (
+                  <p className="text-xs text-white/40 mt-2 text-center">
+                    Enter a birth date and location to continue
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -586,6 +664,48 @@ export default function SoulGardenPage() {
               longitude={activeBirthData.longitude}
               timezone={activeBirthData.timezone}
               specificTime={specificTime || manualTime}
+            />
+          </>
+        )}
+
+        {/* Matrix Section */}
+        {showMatrix && (
+          <>
+            {/* Back to inputs button */}
+            <div className="mb-4 flex items-center flex-wrap gap-2">
+              <button
+                onClick={() => setShowMatrix(false)}
+                className="text-sm text-white/50 hover:text-white transition-colors"
+              >
+                ← Back to Input
+              </button>
+              <span className="text-white/30">|</span>
+              <span className="text-sm text-white/70">
+                {activeBirthData?.name !== 'Manual Entry' && (
+                  <span className="text-purple-400 mr-2">{activeBirthData?.name}</span>
+                )}
+                {activeBirthData?.birthDate}
+              </span>
+              <span className="text-white/30">•</span>
+              <span className="text-sm text-white/50">
+                {activeBirthData?.latitude?.toFixed(2)}°N, {activeBirthData?.longitude?.toFixed(2)}°E
+              </span>
+              <span className="text-white/30">|</span>
+              <button
+                onClick={handleExplore}
+                className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                🌿 Switch to Garden View
+              </button>
+            </div>
+
+            <HouseTimeMatrix
+              timeline={matrixTimeline}
+              birthDate={activeBirthData.birthDate}
+              latitude={activeBirthData.latitude}
+              longitude={activeBirthData.longitude}
+              selectedIndex={matrixSelectedIndex}
+              onTimeSelect={handleMatrixTimeSelect}
             />
           </>
         )}

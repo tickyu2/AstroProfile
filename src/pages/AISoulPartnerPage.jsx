@@ -26,6 +26,8 @@ import DEFAULT_AI_IDENTITY from '../data/aiSoulPartnerIdentity';
 import { saveStoryAssessment, getStoryAssessment } from '../services/aiSoulPartnerService';
 import { useSoulPartner } from '../hooks/useSoulPartner';
 import { VoiceChat } from '../components/voice';
+import { ChatContextSelector, ChatContextSelectorCompact } from '../components/ChatContextSelector';
+import { SOULPARTNER_PRESETS, getSoulPartnerById } from '../data/soulPartnerPresets';
 
 export default function AISoulPartnerPage() {
   const location = useLocation();
@@ -34,10 +36,20 @@ export default function AISoulPartnerPage() {
   const { setActiveProfileId } = useConversations();
 
   // Selected profile state - default to first profile or 'self' type
+  // "Chatting As" - which profile the user represents
   const [selectedProfileId, setSelectedProfileId] = useState(null);
+
+  // "Chatting With" - which SoulPartner or profile they're talking to
+  const [chattingWithId, setChattingWithId] = useState('preset_sonnet');
+  const [chattingWithType, setChattingWithType] = useState('preset'); // 'preset' or 'profile'
 
   // Find selected profile early for SoulPartner generation
   const selectedProfile = profiles.find(p => p.id === selectedProfileId) || profiles[0] || {};
+
+  // Get the "Chatting With" partner data
+  const chattingWithPartner = chattingWithType === 'preset'
+    ? getSoulPartnerById(chattingWithId) || SOULPARTNER_PRESETS['preset_sonnet']
+    : profiles.find(p => p.id === chattingWithId);
 
   // SoulPartner hook - manages the user's personalized AI companion
   // Pass the selected profile so SoulPartner can be generated from user's SoulDNA
@@ -163,7 +175,32 @@ export default function AISoulPartnerPage() {
 
     // Custom AI SoulPartner identity (Luna, etc.)
     // This makes the AI speak AS the user's personalized companion
-    aiIdentity: getIdentityForAPI() || null
+    aiIdentity: getIdentityForAPI() || null,
+
+    // "Chatting With" context - who the AI should speak as
+    chattingWith: {
+      type: chattingWithType,
+      id: chattingWithId,
+      partner: chattingWithPartner,
+      // Build AI identity from the selected partner
+      identity: chattingWithType === 'preset' ? {
+        name: chattingWithPartner?.name || chattingWithPartner?.presetName,
+        title: chattingWithPartner?.title || chattingWithPartner?.archetype,
+        pronouns: chattingWithPartner?.pronouns || 'they/them',
+        soulStory: typeof chattingWithPartner?.soulStory === 'string'
+          ? chattingWithPartner.soulStory
+          : chattingWithPartner?.soulStory?.narrative,
+        personality: chattingWithPartner?.personality?.traits || [],
+        bazi: chattingWithPartner?.bazi,
+        western: chattingWithPartner?.western
+      } : {
+        // Profile-based partner
+        name: chattingWithPartner?.displayName || chattingWithPartner?.firstName,
+        title: `Your ${chattingWithPartner?.relationshipType || 'Connection'}`,
+        bazi: chattingWithPartner?.calculations?.fourPillars,
+        western: chattingWithPartner?.calculations?.western
+      }
+    }
   };
 
   // Handle updating AI notes
@@ -199,6 +236,19 @@ export default function AISoulPartnerPage() {
     } catch (error) {
       console.error('Failed to log out:', error);
     }
+  };
+
+  // Handle "Chatting As" change
+  const handleChattingAsChange = (profileId, profile) => {
+    setSelectedProfileId(profileId);
+    console.log('🔄 Chatting As changed to:', profile?.displayName || profile?.firstName);
+  };
+
+  // Handle "Chatting With" change
+  const handleChattingWithChange = (id, type, item) => {
+    setChattingWithId(id);
+    setChattingWithType(type);
+    console.log('🔄 Chatting With changed to:', item?.name || item?.displayName || item?.firstName, `(${type})`);
   };
 
   // Get display info for selected profile
@@ -313,8 +363,8 @@ export default function AISoulPartnerPage() {
             </h1>
           </div>
 
-          {/* Profile Selector */}
-          <div className="flex items-center gap-4">
+          {/* Action Buttons and Context Selector */}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setShowVoiceChat(true)}
               className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 shadow-lg shadow-purple-500/20"
@@ -323,7 +373,7 @@ export default function AISoulPartnerPage() {
                 <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
                 <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
               </svg>
-              Talk to {soulPartner?.name || 'Luna'}
+              Voice
             </button>
             <button
               onClick={() => setShowNeuralPanel(!showNeuralPanel)}
@@ -333,13 +383,13 @@ export default function AISoulPartnerPage() {
                   : 'bg-amber-600/80 hover:bg-amber-500'
               }`}
             >
-              🧠 Neural Q&A
+              🧠 Neural
             </button>
             <button
               onClick={() => setShowStoryQuestions(true)}
               className="px-3 py-1.5 bg-amber-600/80 hover:bg-amber-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
             >
-              📖 Story Questions
+              📖 Story
               {storyProgress?.responses?.length > 0 && (
                 <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded text-xs">
                   {storyProgress.responses.length}/8
@@ -350,39 +400,8 @@ export default function AISoulPartnerPage() {
               to="/knowledge-base"
               className="px-3 py-1.5 bg-indigo-600/80 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors"
             >
-              📚 Knowledge Base
+              📚 KB
             </Link>
-            <div className="h-4 w-px bg-white/20" />
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-white/40">Chatting as:</span>
-              <select
-                value={selectedProfileId || ''}
-                onChange={(e) => setSelectedProfileId(e.target.value)}
-                className="bg-slate-800/80 border border-white/20 rounded-lg px-3 py-1.5 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer"
-              >
-                {loading ? (
-                  <option>Loading profiles...</option>
-                ) : profiles.length === 0 ? (
-                  <option>No profiles found</option>
-                ) : (
-                  profiles.map(profile => (
-                    <option key={profile.id} value={profile.id}>
-                      {profile.displayName || profile.firstName}
-                      {profile.relationshipType ? ` (${profile.relationshipType})` : ''}
-                    </option>
-                  ))
-                )}
-              </select>
-              {selectedProfileId && (
-                <Link
-                  to={`/customize-soulpartner/${selectedProfileId}`}
-                  className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
-                  title="Customize SoulPartner"
-                >
-                  Customize
-                </Link>
-              )}
-            </div>
 
             <div className="h-4 w-px bg-white/20" />
 
@@ -398,47 +417,60 @@ export default function AISoulPartnerPage() {
           </div>
         </div>
 
-        {/* Selected Profile Info Bar */}
-        {selectedProfile?.id && (
-          <div className="bg-gradient-to-r from-amber-900/20 to-orange-900/20 border-t border-amber-500/20">
-            <div className="max-w-7xl mx-auto px-4 py-2 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-sm font-bold text-white">
-                {selectedInfo.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <div className="text-sm font-medium text-white/90">{selectedInfo.name}</div>
-                {selectedInfo.subtitle && (
-                  <div className="text-xs text-amber-400/70">{selectedInfo.subtitle}</div>
-                )}
-              </div>
-              {selectedProfile.mbti && (
-                <span className="ml-2 px-2 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-300">
-                  {selectedProfile.mbti}
-                </span>
-              )}
-              {/* Timeline link - pass current profile */}
+        {/* Chat Context Selector Bar - "Chatting As" and "Chatting With" */}
+        <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 border-t border-amber-500/20">
+          <div className="max-w-7xl mx-auto px-4 py-2 flex items-center gap-4">
+            {/* Chat Context Selector */}
+            <ChatContextSelector
+              profiles={profiles}
+              selectedChattingAsId={selectedProfileId}
+              selectedChattingWithId={chattingWithId}
+              selectedChattingWithType={chattingWithType}
+              onChattingAsChange={handleChattingAsChange}
+              onChattingWithChange={handleChattingWithChange}
+              loading={loading}
+            />
+
+            {/* Quick Info */}
+            {selectedProfile.mbti && (
+              <span className="px-2 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-300">
+                {selectedProfile.mbti}
+              </span>
+            )}
+
+            {/* Timeline link - pass current profile */}
+            <Link
+              to="/timeline"
+              state={{ profileId: selectedProfileId }}
+              className="px-2 py-0.5 bg-cyan-500/20 border border-cyan-500/30 rounded text-xs text-cyan-300 hover:bg-cyan-500/30 transition-colors flex items-center gap-1"
+            >
+              <span>📅</span>
+              <span>Timeline</span>
+            </Link>
+
+            {/* Customize link */}
+            {selectedProfileId && (
               <Link
-                to="/timeline"
-                state={{ profileId: selectedProfileId }}
-                className="ml-2 px-2 py-0.5 bg-cyan-500/20 border border-cyan-500/30 rounded text-xs text-cyan-300 hover:bg-cyan-500/30 transition-colors flex items-center gap-1"
+                to={`/customize-soulpartner/${selectedProfileId}`}
+                className="px-2 py-0.5 bg-pink-500/20 border border-pink-500/30 rounded text-xs text-pink-300 hover:bg-pink-500/30 transition-colors"
               >
-                <span>📅</span>
-                <span>Timeline</span>
+                Customize
               </Link>
-              {/* Notes button */}
-              <button
-                onClick={() => setShowNotesPanel(!showNotesPanel)}
-                className={`ml-auto px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                  showNotesPanel
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-purple-500/30'
-                }`}
-              >
-                📝 {showNotesPanel ? 'Hide Notes' : 'Soul Notes'}
-              </button>
-            </div>
+            )}
+
+            {/* Notes button */}
+            <button
+              onClick={() => setShowNotesPanel(!showNotesPanel)}
+              className={`ml-auto px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                showNotesPanel
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-purple-500/30'
+              }`}
+            >
+              📝 {showNotesPanel ? 'Hide Notes' : 'Soul Notes'}
+            </button>
           </div>
-        )}
+        </div>
       </header>
 
       {/* Main Content - adjust height for header + profile bar */}

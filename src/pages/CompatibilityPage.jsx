@@ -10,7 +10,7 @@ import { useProfiles } from '../contexts/ProfileContext'
 import CompatibilityAnalysisPanel from '../components/CompatibilityAnalysisPanel'
 import ArchetypeCompatibilityPanel from '../components/ArchetypeCompatibilityPanel'
 import { getChineseZodiac } from '../utils/calculations'
-import { calculateFourPillars } from '../utils/fourPillarsCalculator'
+import { calculateFourPillars } from '../utils/baziCalculator'
 import { calculateTenGods } from '../utils/tenGodsCalculations'
 import { determineArchetypeFromFourPillars } from '../utils/archetypeMapper'
 

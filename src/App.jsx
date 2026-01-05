@@ -34,6 +34,7 @@ import ChineseZodiacPage from './pages/ChineseZodiacPage'
 import SoulFamilyPage from './pages/SoulFamilyPage'
 import GuestChat from './pages/GuestChat'
 import NumerologyDecodePage from './pages/NumerologyDecodePage'
+import WesternAstrologyDecodePage from './pages/WesternAstrologyDecodePage'
 
 // CCLR - Couples Cosmic Love Rejuvenation
 import { CCLRHomePage, CCLRSessionPage, CreateSessionPage } from './pages/cclr'
@@ -84,6 +85,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <NumerologyDecodePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Western Astrology Decode - Deep astrological analysis */}
+            <Route
+              path="/western/:profileId"
+              element={
+                <ProtectedRoute>
+                  <WesternAstrologyDecodePage />
                 </ProtectedRoute>
               }
             />

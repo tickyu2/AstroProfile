@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { calculateBaZi } from '../../utils/baziCalculator';
 import PillarCard from './PillarCard';
 import ElementalRadar from './ElementalRadar';
@@ -100,6 +101,19 @@ const BaZiPanel = ({ birthDate, birthTime, locationData }) => {
         <p style={styles.subtitle}>
           Your Constitutional Blueprint - Calculated with 2000+ Year Precision
         </p>
+
+        {/* Related Tools Navigation */}
+        <div style={styles.toolsNav}>
+          <Link to="/chinese-zodiac" style={styles.toolLink}>
+            🐲 Chinese Zodiac + Elements
+          </Link>
+          <Link to="/zodiac-cusps" style={styles.toolLink}>
+            ♈ Western Cusps
+          </Link>
+          <Link to="/bazi-calculator" style={styles.toolLink}>
+            🧮 BaZi Calculator
+          </Link>
+        </div>
       </div>
       
       {/* Tab Navigation */}
@@ -394,7 +408,30 @@ const styles = {
     color: '#6b7280',
     fontStyle: 'italic'
   },
-  
+
+  toolsNav: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '12px',
+    marginTop: '16px',
+    flexWrap: 'wrap'
+  },
+
+  toolLink: {
+    padding: '8px 16px',
+    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+    border: '1px solid rgba(124, 58, 237, 0.3)',
+    borderRadius: '8px',
+    color: '#7c3aed',
+    fontSize: '13px',
+    fontWeight: '600',
+    textDecoration: 'none',
+    transition: 'all 0.2s',
+    ':hover': {
+      backgroundColor: 'rgba(124, 58, 237, 0.2)'
+    }
+  },
+
   tabs: {
     display: 'flex',
     gap: '8px',

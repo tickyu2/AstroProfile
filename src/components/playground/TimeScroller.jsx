@@ -30,8 +30,7 @@ export default function TimeScroller({ timeline, selectedIndex, onSelect, focuse
   return (
     <div
       ref={scrollRef}
-      className="w-20 border-r border-cyan-500/20 overflow-y-auto scrollbar-thin scrollbar-thumb-cyan-500/30 scrollbar-track-transparent bg-indigo-950/30"
-      style={{ height: '100%' }}
+      className="h-full"
     >
       <div className="sticky top-0 bg-indigo-950/95 backdrop-blur-sm z-10 py-2 px-2 border-b border-cyan-500/20">
         <div className="text-[10px] text-cyan-400/70 uppercase tracking-wider text-center flex items-center justify-center gap-1">

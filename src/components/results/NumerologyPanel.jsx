@@ -1,6 +1,8 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
-export default function NumerologyPanel({ numerology }) {
+export default function NumerologyPanel({ numerology, profileId }) {
+    const navigate = useNavigate()
     const num = numerology || {}
     
     return (
@@ -57,7 +59,11 @@ export default function NumerologyPanel({ numerology }) {
                 </p>
             </div>
 
-            <button className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 text-sm font-bold rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all hover:scale-[1.02] shadow-lg">
+            <button
+                onClick={() => profileId && navigate(`/numerology/${profileId}`)}
+                disabled={!profileId}
+                className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 text-sm font-bold rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all hover:scale-[1.02] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
                 Decode Your Numbers →
             </button>
         </div>

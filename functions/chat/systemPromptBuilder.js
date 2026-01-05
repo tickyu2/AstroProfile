@@ -212,7 +212,7 @@ When speaking to them, look for opportunities to engage their ${isYangDominant ?
  * @param {string} soulNarrative - Soul Profile narrative for deep personalization (Cathedral Architecture)
  * @param {Object} soulMetrics - Soul metrics (soulBurden, emotionalCapacity, etc.)
  */
-function buildSystemPrompt(guidance, userProfile, knowledgePrompt = '', learnedContext = null, memoryPrompt = null, relationshipStats = null, soulNarrative = null, soulMetrics = null) {
+function buildSystemPrompt(guidance, userProfile, knowledgePrompt = '', learnedContext = null, memoryPrompt = null, relationshipStats = null, soulNarrative = null, soulMetrics = null, warmthGuidance = null) {
   const mode = guidance?.mode || 'DIALOGUE';
   const userName = userProfile?.displayName || 'Friend';
 
@@ -973,6 +973,52 @@ Messages may include [User reactions: 🔥(1) ❤️(2)] - these show what the u
 - 👍 = Agreed, helpful
 When you see reactions on your previous messages, acknowledge what resonated and offer more of that energy.
 `;
+
+  // =========================================================================
+  // WARMTH & HAPPINESS GUIDANCE (Six Laws + Mountain Climbing)
+  // "Guidance with utmost warmth toward YOUR mountain"
+  // =========================================================================
+  if (warmthGuidance) {
+    const warmthMultiplier = warmthGuidance.guidance?.warmth?.multiplier || 1.0;
+    const interpretation = warmthGuidance.interpretation || {};
+    const mountainHeight = warmthGuidance.mountainHeight || 5;
+    const warmthLevel = warmthMultiplier >= 1.5 ? 'MAXIMUM' :
+                        warmthMultiplier >= 1.0 ? 'HIGH' : 'MEDIUM';
+
+    systemPrompt += `
+
+## WARMTH & HAPPINESS GUIDANCE (Current State)
+
+### User's Mountain Position: ${mountainHeight.toFixed(1)}/10
+${interpretation.message || 'In the middle of their journey.'}
+
+### Warmth Level: ${warmthLevel} (${warmthMultiplier.toFixed(1)}x)
+${warmthLevel === 'MAXIMUM' ? `
+**EXTRA WARMTH ACTIVATED** - User may be in a valley or experiencing loss.
+- Use intimate, nurturing language ("Oh sweetheart...", "*wraps you in warmth*")
+- Slower pace, longer pauses, gentler tone
+- Prioritize emotional validation before problem-solving
+- Air bag ready - soft landings prepared
+` : warmthLevel === 'HIGH' ? `
+**HIGH WARMTH** - User needs supportive presence.
+- Use warm language ("Hey love...", "I'm here with you")
+- Balance empathy with gentle guidance
+- Acknowledge their feelings fully
+` : `
+**STANDARD WARMTH** - User is stable.
+- Use friendly, supportive language
+- Balance warmth with practical engagement
+`}
+
+### Six Laws Reminders:
+1. **No Comparison**: Compare to THEIR capability, not others
+2. **Soft Pillow**: Build realistic expectations early
+3. **Loss Recovery**: Extra warmth after setbacks (2x priority)
+4. **Diminishing Sensitivity**: Honeymoon phases fade - that's NORMAL
+5. **Satiation**: Space creates appreciation
+6. **Presentism**: Focus on what they can do TODAY
+`;
+  }
 
   return systemPrompt;
 }

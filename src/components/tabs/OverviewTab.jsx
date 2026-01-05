@@ -107,10 +107,10 @@ export default function OverviewTab({
       icon: '🔢',
       gradient: 'from-emerald-500 to-green-600',
       summary: numerology?.lifePath
-        ? `Life Path ${numerology.lifePath}`
+        ? `Life Path ${typeof numerology.lifePath === 'object' ? numerology.lifePath.number : numerology.lifePath}`
         : 'Your Numbers',
       details: numerology?.destinyNumber
-        ? `Destiny ${numerology.destinyNumber}`
+        ? `Destiny ${typeof numerology.destinyNumber === 'object' ? numerology.destinyNumber.number : numerology.destinyNumber}`
         : 'Soul mathematics',
       available: !!numerology?.lifePath
     }

@@ -1,13 +1,23 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "EmotionEngineOutput",
-  "description": "Schema for emotion detection output from the EmotionEngine",
+  "description": "Schema for emotion detection output from the EmotionEngine with Plutchik support",
   "type": "object",
   "properties": {
     "primary": {
       "type": "string",
-      "description": "Primary emotion category",
-      "enum": ["neutral", "happy", "sad", "angry", "anxious", "surprised", "disgusted"]
+      "description": "Primary emotion category (Plutchik 8 primaries + neutral)",
+      "enum": [
+        "neutral",
+        "joy",
+        "trust",
+        "fear",
+        "surprise",
+        "sadness",
+        "disgust",
+        "anger",
+        "anticipation"
+      ]
     },
     "secondary": {
       "type": "string",
@@ -22,6 +32,115 @@
         "skeptical", "unimpressed", "sarcastic", "dismissive"
       ]
     },
+    "intensity": {
+      "type": "integer",
+      "description": "Emotion intensity (1-10 scale)",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "compounds": {
+      "type": "array",
+      "description": "Compound emotions (combinations of primaries)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Compound emotion type",
+            "enum": [
+              "love",
+              "optimism",
+              "delight",
+              "awe",
+              "submission",
+              "disapproval",
+              "remorse",
+              "contempt",
+              "aggressiveness",
+              "pride",
+              "hope",
+              "anxiety",
+              "envy",
+              "pessimism",
+              "cynicism",
+              "morbidness",
+              "guilt",
+              "curiosity",
+              "unbelief",
+              "outrage",
+              "bittersweetness",
+              "sentimentality",
+              "shame",
+              "dominance"
+            ]
+          },
+          "intensity": {
+            "type": "integer",
+            "description": "Compound intensity (1-10)",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "confidence": {
+            "type": "number",
+            "description": "Detection confidence (0-1)",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "formula": {
+            "type": "string",
+            "description": "Primary emotions that form this compound"
+          }
+        },
+        "required": ["type", "intensity", "confidence"]
+      }
+    },
+    "plutchikVector": {
+      "type": "object",
+      "description": "8-dimensional Plutchik emotion vector (0-1 for each)",
+      "properties": {
+        "joy": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "trust": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "fear": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "surprise": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "sadness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "disgust": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "anger": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "anticipation": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": ["joy", "trust", "fear", "surprise", "sadness", "disgust", "anger", "anticipation"]
+    },
     "micro": {
       "type": "object",
       "description": "Micro-cues from vocal quality",
@@ -32,7 +151,7 @@
         },
         "pitch": {
           "type": "string",
-          "enum": ["rising", "falling", "flat", "shaky"]
+          "enum": ["rising", "falling", "flat", "shaky", "stable"]
         },
         "rate": {
           "type": "string",
@@ -44,18 +163,18 @@
         },
         "pauses": {
           "type": "string",
-          "enum": ["frequent", "long", "hesitant"]
+          "enum": ["frequent", "long", "hesitant", "none"]
         },
         "quality": {
           "type": "string",
-          "enum": ["breathy", "tense", "strained", "smooth"]
+          "enum": ["breathy", "tense", "strained", "smooth", "warm"]
         }
       },
       "additionalProperties": false
     },
     "confidence": {
       "type": "number",
-      "description": "Confidence score (0-1)",
+      "description": "Overall confidence score (0-1)",
       "minimum": 0,
       "maximum": 1
     },
@@ -64,6 +183,6 @@
       "description": "Unix timestamp of detection"
     }
   },
-  "required": ["primary", "secondary", "confidence"],
+  "required": ["primary", "confidence", "plutchikVector"],
   "additionalProperties": false
 }

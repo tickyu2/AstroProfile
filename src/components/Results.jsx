@@ -8,7 +8,7 @@ import { useProfiles } from '../contexts/ProfileContext'
 import LoadingSpinner from './layout/LoadingSpinner'
 import { calculateYinYang, getBattleWeights, getBattleMetadata, getChineseZodiac } from '../utils/calculations'
 import { getZodiacProfile } from '../data/chineseZodiacKnowledge'
-import { calculateFourPillars } from '../utils/fourPillarsCalculator'
+import { calculateFourPillars } from '../utils/baziCalculator'
 import { calculateTenGods, getDayMaster, calculatePersonalityTraits, getTopTraits } from '../utils/tenGodsCalculations'
 
 // Layout Components
@@ -76,8 +76,10 @@ export default function Results() {
     const [notesSaved, setNotesSaved] = useState(false)
     const notesRef = useRef(null)
 
-    // Tab navigation state
-    const [activeTab, setActiveTab] = useState('overview')
+    // Tab navigation state - check location state for initial tab
+    const [activeTab, setActiveTab] = useState(
+        location.state?.activeTab || 'overview'
+    )
 
     const handleLogout = async () => {
         try {
@@ -440,6 +442,7 @@ export default function Results() {
                     <div className="max-w-6xl mx-auto px-4 py-8">
                         <NumerologyPanel
                             numerology={numerology}
+                            profileId={profileId}
                         />
                     </div>
                 )}

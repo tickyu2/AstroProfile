@@ -35,7 +35,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from './AuthContext';
-import { calculateFourPillars } from '../utils/fourPillarsCalculator';
+import { calculateFourPillars } from '../utils/baziCalculator';
 import { calculateTenGods, getDayMaster } from '../utils/tenGodsCalculations';
 import { generateSoulDNA, decodeSoulDNA } from '../utils/soulDNAEncoder';
 import { getCompatibilityRankings } from '../utils/mbti/mbtiCompatibilityMatrix';

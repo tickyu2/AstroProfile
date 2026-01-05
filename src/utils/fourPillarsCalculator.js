@@ -110,14 +110,44 @@ const HOUR_STEM_TABLE = {
 // ============================================
 
 /**
+ * Calculate Julian Day Number (JDN) for any date
+ * Standard astronomical formula from Meeus, Jean (1991). Astronomical Algorithms.
+ */
+function calculateJulianDayNumber(year, month, day) {
+  let a = Math.floor((14 - month) / 12);
+  let y = year + 4800 - a;
+  let m = month + 12 * a - 3;
+
+  let jdn = day + Math.floor((153 * m + 2) / 5) + 365 * y +
+            Math.floor(y / 4) - Math.floor(y / 100) +
+            Math.floor(y / 400) - 32045;
+
+  return jdn;
+}
+
+/**
  * Calculate sexagenary cycle index for a given date
- * Base: Jan 1, 1900 = Day 0 = 甲子 (Jiǎ Zǐ)
+ *
+ * CORRECTED December 2024 (Baby Nano verified):
+ * Uses Julian Day Number method: (JDN - 11) % 60
+ * This aligns to the 甲子 (Jia Zi) cycle correctly
+ *
+ * Reference: Jan 1, 1900 = 甲戌 (Jia Xu), Position 10
  */
 function calculateDayIndex(date) {
-  const baseDate = new Date(1900, 0, 1);
-  const daysSinceBase = Math.floor((date - baseDate) / (1000 * 60 * 60 * 24));
-  // Offset 15 empirically verified for correct Day Pillar ✅ FIXED
-  return (daysSinceBase + 15) % 60;
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // JS months are 0-indexed
+  const day = date.getDate();
+
+  const jdn = calculateJulianDayNumber(year, month, day);
+
+  // THE CORRECT FORMULA: (JDN - 11) % 60
+  let index = (jdn - 11) % 60;
+
+  // Handle negative modulo for historical dates
+  if (index < 0) index += 60;
+
+  return index;
 }
 
 /**

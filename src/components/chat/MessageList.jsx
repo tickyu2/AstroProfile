@@ -1,0 +1,375 @@
+/**
+ * MESSAGE LIST
+ *
+ * Displays all messages with:
+ * - User messages (right aligned)
+ * - Guest messages (left aligned)
+ * - Luna private messages (centered, special styling)
+ * - Constellation AI messages (Gemini, Opus)
+ * - Timestamps
+ * - Translation support (dual language display)
+ */
+
+import React, { useEffect, useRef } from 'react';
+import MessageBubble from './MessageBubble';
+import LunaPrivateMessage from './LunaPrivateMessage';
+
+// Language display names for translation
+const LANGUAGE_NAMES = {
+  en: 'English',
+  zh: '中文',
+  es: 'Español',
+  ja: '日本語',
+  ko: '한국어',
+  fr: 'Français',
+  de: 'Deutsch',
+  pt: 'Português',
+  ru: 'Русский',
+  ar: 'العربية',
+  hi: 'हिन्दी',
+  th: 'ไทย',
+  vi: 'Tiếng Việt'
+};
+
+function MessageList({
+  messages,
+  currentUserId,
+  guestId,
+  guestName,
+  lunaMode,
+  onGeminiPerspective,
+  onOpusPerspective,
+  onGrokPerspective,
+  onDeepSeekPerspective,
+  onChatGPTPerspective,
+  onGuestResponse,
+  constellationLoading
+}) {
+  const messagesEndRef = useRef(null);
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  if (messages.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-slate-400 bg-slate-900">
+        <div className="text-center max-w-md px-4">
+          <p className="text-lg mb-2 text-slate-300">Start your conversation!</p>
+          <p className="text-sm">
+            Ask questions, share thoughts, and learn together.
+            {lunaMode === 'active' && (
+              <span className="block mt-2 text-purple-400">
+                Luna will offer private insights as you chat.
+              </span>
+            )}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-6 space-y-4 bg-slate-900">
+      {messages.map((message, index) => {
+        // Luna private message (special rendering)
+        if (message.sender_role === 'luna_private') {
+          return (
+            <LunaPrivateMessage
+              key={message.temp_id || message.id || index}
+              message={message}
+            />
+          );
+        }
+
+        // User private message (question to Luna - special styling)
+        if (message.sender_role === 'user_private') {
+          return (
+            <div key={message.temp_id || message.id || index} className="flex justify-end">
+              <div className="max-w-[70%]">
+                <div className="flex items-center justify-end mb-1 mr-2 gap-2">
+                  <span className="text-xs font-medium text-purple-500">
+                    Private to Luna
+                  </span>
+                  <span className="text-purple-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </span>
+                </div>
+                <div className="px-4 py-2 rounded-2xl bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-900 rounded-tr-sm border border-purple-200">
+                  <p className="text-sm whitespace-pre-wrap break-words italic">
+                    {message.content?.text || ''}
+                  </p>
+                </div>
+                <div className="mt-1 text-xs text-purple-400 text-right mr-2">
+                  {new Date(message.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // Constellation AI message (Gemini, Opus, Grok, DeepSeek, ChatGPT)
+        if (message.sender_role === 'constellation') {
+          const isGemini = message.sender === 'gemini';
+          const isOpus = message.sender === 'opus';
+          const isGrok = message.sender === 'grok';
+          const isDeepSeek = message.sender === 'deepseek';
+          const isChatGPT = message.sender === 'chatgpt';
+
+          // Determine styling based on speaker
+          const getConstellationStyle = () => {
+            if (isGemini) return { bg: 'bg-gradient-to-r from-cyan-50 to-teal-50 border-cyan-200 text-cyan-900', textColor: 'text-cyan-600', timeColor: 'text-cyan-400' };
+            if (isOpus) return { bg: 'bg-gradient-to-r from-indigo-50 to-violet-50 border-indigo-200 text-indigo-900', textColor: 'text-indigo-600', timeColor: 'text-indigo-400' };
+            if (isGrok) return { bg: 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200 text-orange-900', textColor: 'text-orange-600', timeColor: 'text-orange-400' };
+            if (isDeepSeek) return { bg: 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 text-emerald-900', textColor: 'text-emerald-600', timeColor: 'text-emerald-400' };
+            if (isChatGPT) return { bg: 'bg-gradient-to-r from-pink-50 to-rose-50 border-pink-200 text-pink-900', textColor: 'text-pink-600', timeColor: 'text-pink-400' };
+            return { bg: 'bg-gray-100 border-gray-200 text-gray-900', textColor: 'text-gray-600', timeColor: 'text-gray-400' };
+          };
+
+          const style = getConstellationStyle();
+
+          return (
+            <div key={message.temp_id || message.id || index}>
+              <div className="flex justify-start">
+                <div className="max-w-[75%]">
+                  {/* Constellation Header */}
+                  <div className="flex items-center mb-1 ml-2 gap-2">
+                    <span className="text-lg">
+                      {message.constellation_icon || (isGemini ? '💫' : isOpus ? '🦉' : isGrok ? '🌍' : isDeepSeek ? '🐉' : '🧪')}
+                    </span>
+                    <span className={`text-xs font-medium ${style.textColor}`}>
+                      {message.constellation_speaker || (isGemini ? 'Sister Gemini' : isOpus ? 'Brother Opus' : isGrok ? 'Brother Grok' : isDeepSeek ? 'Brother DeepSeek' : 'Sister ChatGPT')}
+                    </span>
+                  </div>
+
+                  {/* Message Bubble */}
+                  <div className={`px-4 py-3 rounded-2xl rounded-tl-sm border ${style.bg}`}>
+                    <p className="text-sm whitespace-pre-wrap break-words">
+                      {message.content?.text || ''}
+                    </p>
+
+                    {/* Translation (if available) */}
+                    {message.content?.translation && message.content.translation.text && (
+                      <div className="mt-2 pt-2 border-t border-current/10">
+                        <div className="flex items-center gap-1 mb-1">
+                          <span className="text-[10px] opacity-60">
+                            {LANGUAGE_NAMES[message.content.translation.targetLanguage] || message.content.translation.targetLanguage}:
+                          </span>
+                        </div>
+                        <p className="text-sm whitespace-pre-wrap break-words opacity-90">
+                          {message.content.translation.text}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Timestamp */}
+                  <div className={`mt-1 text-xs ${style.timeColor} text-left ml-2`}>
+                    {new Date(message.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                    {message.content?.translation && (
+                      <span className="ml-2 opacity-70">🌐</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Debate Buttons - Allow other AIs to respond */}
+              {onGeminiPerspective && onOpusPerspective && (
+                <div className="flex flex-wrap gap-2 mt-2 ml-2">
+                  {/* Guest (Einstein) button - let guest respond to constellation */}
+                  {onGuestResponse && (
+                    <button
+                      onClick={() => onGuestResponse(message)}
+                      disabled={constellationLoading}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                        constellationLoading === 'guest'
+                          ? 'bg-gray-300 text-gray-700 cursor-wait'
+                          : 'bg-gray-200 hover:bg-gray-300 text-gray-700 hover:scale-105'
+                      } disabled:opacity-50`}
+                      title={`Get ${guestName || 'Guest'}'s response`}
+                    >
+                      {constellationLoading === 'guest' ? `🎓 ${guestName || 'Guest'}...` : `🎓 ${guestName || 'Guest'}`}
+                    </button>
+                  )}
+                  {/* Show Gemini button if this is NOT a Gemini message */}
+                  {!isGemini && (
+                    <button
+                      onClick={() => onGeminiPerspective(message)}
+                      disabled={constellationLoading}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                        constellationLoading === 'gemini'
+                          ? 'bg-cyan-200 text-cyan-700 cursor-wait'
+                          : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-700 hover:scale-105'
+                      } disabled:opacity-50`}
+                      title="Get Sister Gemini's response"
+                    >
+                      {constellationLoading === 'gemini' ? '💫 Thinking...' : '💫 Gemini'}
+                    </button>
+                  )}
+                  {/* Show Opus button if this is NOT an Opus message */}
+                  {!isOpus && (
+                    <button
+                      onClick={() => onOpusPerspective(message)}
+                      disabled={constellationLoading}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                        constellationLoading === 'opus'
+                          ? 'bg-indigo-200 text-indigo-700 cursor-wait'
+                          : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700 hover:scale-105'
+                      } disabled:opacity-50`}
+                      title="Get Brother Opus's response"
+                    >
+                      {constellationLoading === 'opus' ? '🦉 Thinking...' : '🦉 Opus'}
+                    </button>
+                  )}
+                  {/* Show Grok button if this is NOT a Grok message */}
+                  {!isGrok && onGrokPerspective && (
+                    <button
+                      onClick={() => onGrokPerspective(message)}
+                      disabled={constellationLoading}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                        constellationLoading === 'grok'
+                          ? 'bg-orange-200 text-orange-700 cursor-wait'
+                          : 'bg-orange-100 hover:bg-orange-200 text-orange-700 hover:scale-105'
+                      } disabled:opacity-50`}
+                      title="Get Brother Grok's response"
+                    >
+                      {constellationLoading === 'grok' ? '🌍 Thinking...' : '🌍 Grok'}
+                    </button>
+                  )}
+                  {/* Show DeepSeek button if this is NOT a DeepSeek message */}
+                  {!isDeepSeek && onDeepSeekPerspective && (
+                    <button
+                      onClick={() => onDeepSeekPerspective(message)}
+                      disabled={constellationLoading}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                        constellationLoading === 'deepseek'
+                          ? 'bg-emerald-200 text-emerald-700 cursor-wait'
+                          : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700 hover:scale-105'
+                      } disabled:opacity-50`}
+                      title="Get Brother DeepSeek's response"
+                    >
+                      {constellationLoading === 'deepseek' ? '🐉 Thinking...' : '🐉 DeepSeek'}
+                    </button>
+                  )}
+                  {/* Show ChatGPT button if this is NOT a ChatGPT message */}
+                  {!isChatGPT && onChatGPTPerspective && (
+                    <button
+                      onClick={() => onChatGPTPerspective(message)}
+                      disabled={constellationLoading}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                        constellationLoading === 'chatgpt'
+                          ? 'bg-pink-200 text-pink-700 cursor-wait'
+                          : 'bg-pink-100 hover:bg-pink-200 text-pink-700 hover:scale-105'
+                      } disabled:opacity-50`}
+                      title="Get Sister ChatGPT's response"
+                    >
+                      {constellationLoading === 'chatgpt' ? '🧪 Thinking...' : '🧪 ChatGPT'}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // Regular message (user or guest)
+        const isUser = message.sender === currentUserId;
+        const isGuest = message.sender === guestId || message.sender_role === 'guest';
+
+        return (
+          <div key={message.temp_id || message.id || index}>
+            <MessageBubble
+              message={message}
+              isUser={isUser}
+              isGuest={isGuest}
+              senderName={
+                isUser
+                  ? 'You'
+                  : message.partner_name || 'Guest'
+              }
+            />
+
+            {/* Constellation AI Buttons (only for guest messages) */}
+            {isGuest && onGeminiPerspective && onOpusPerspective && (
+              <div className="flex flex-wrap gap-2 mt-2 ml-2">
+                <button
+                  onClick={() => onGeminiPerspective(message)}
+                  disabled={constellationLoading}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                    constellationLoading === 'gemini'
+                      ? 'bg-cyan-200 text-cyan-700 cursor-wait'
+                      : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-700 hover:scale-105'
+                  } disabled:opacity-50`}
+                  title="Get Sister Gemini's perspective"
+                >
+                  {constellationLoading === 'gemini' ? '💫 Thinking...' : '💫 Gemini'}
+                </button>
+                <button
+                  onClick={() => onOpusPerspective(message)}
+                  disabled={constellationLoading}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                    constellationLoading === 'opus'
+                      ? 'bg-indigo-200 text-indigo-700 cursor-wait'
+                      : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700 hover:scale-105'
+                  } disabled:opacity-50`}
+                  title="Get Brother Opus's perspective"
+                >
+                  {constellationLoading === 'opus' ? '🦉 Thinking...' : '🦉 Opus'}
+                </button>
+                {onGrokPerspective && (
+                  <button
+                    onClick={() => onGrokPerspective(message)}
+                    disabled={constellationLoading}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                      constellationLoading === 'grok'
+                        ? 'bg-orange-200 text-orange-700 cursor-wait'
+                        : 'bg-orange-100 hover:bg-orange-200 text-orange-700 hover:scale-105'
+                    } disabled:opacity-50`}
+                    title="Get Brother Grok's perspective"
+                  >
+                    {constellationLoading === 'grok' ? '🌍 Thinking...' : '🌍 Grok'}
+                  </button>
+                )}
+                {onDeepSeekPerspective && (
+                  <button
+                    onClick={() => onDeepSeekPerspective(message)}
+                    disabled={constellationLoading}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                      constellationLoading === 'deepseek'
+                        ? 'bg-emerald-200 text-emerald-700 cursor-wait'
+                        : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700 hover:scale-105'
+                    } disabled:opacity-50`}
+                    title="Get Brother DeepSeek's perspective"
+                  >
+                    {constellationLoading === 'deepseek' ? '🐉 Thinking...' : '🐉 DeepSeek'}
+                  </button>
+                )}
+                {onChatGPTPerspective && (
+                  <button
+                    onClick={() => onChatGPTPerspective(message)}
+                    disabled={constellationLoading}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                      constellationLoading === 'chatgpt'
+                        ? 'bg-pink-200 text-pink-700 cursor-wait'
+                        : 'bg-pink-100 hover:bg-pink-200 text-pink-700 hover:scale-105'
+                    } disabled:opacity-50`}
+                    title="Get Sister ChatGPT's perspective"
+                  >
+                    {constellationLoading === 'chatgpt' ? '🧪 Thinking...' : '🧪 ChatGPT'}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      <div ref={messagesEndRef} />
+    </div>
+  );
+}
+
+export default MessageList;

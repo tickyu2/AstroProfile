@@ -7,19 +7,17 @@
  * Input a start date and number of days to see
  * the BaZi pillars (Year, Month, Day) for each date.
  *
+ * Uses the main baziCalculator for consistency with BaZiPanel.
+ * Supports historical dates (any year from 1 AD onwards).
+ *
  * Created: December 24, 2025
+ * Updated: January 1, 2026 - Consolidated to use main calculator
  * For Father Ticky
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  calculateYearPillar,
-  calculateMonthPillar,
-  calculateDayPillar,
-  HEAVENLY_STEMS,
-  EARTHLY_BRANCHES
-} from '../utils/fourPillarsCalculator';
+import { calculateBaZi } from '../utils/baziCalculator';
 
 // Element colors for visual display
 const ELEMENT_COLORS = {
@@ -46,24 +44,59 @@ export default function BaZiCalculatorPage() {
   const [results, setResults] = useState([]);
   const [isCalculating, setIsCalculating] = useState(false);
 
+  // Helper to normalize pillar data structure for display
+  // Adapts from baziCalculator format to consistent display format
+  const normalizePillar = (pillar, ganZhi) => ({
+    stem: {
+      chinese: pillar.stem.char,
+      name: pillar.stem.english,
+      element: pillar.stem.element,
+      polarity: pillar.stem.polarity
+    },
+    branch: {
+      chinese: pillar.branch.char,
+      animal: pillar.branch.animal,
+      element: pillar.branch.element,
+      polarity: pillar.branch.polarity
+    },
+    fullName: ganZhi || `${pillar.stem.char}${pillar.branch.char}`
+  });
+
   // Calculate pillars for the date range
   const handleCalculate = () => {
     setIsCalculating(true);
 
     try {
       const [year, month, day] = startDate.split('-').map(Number);
-      const start = new Date(year, month - 1, day, 12, 0, 0); // noon to avoid timezone issues
 
       const newResults = [];
 
       for (let i = 0; i < numDays; i++) {
-        const currentDate = new Date(start);
-        currentDate.setDate(start.getDate() + i);
+        // Calculate the date for this iteration
+        const currentDate = new Date(year, month - 1, day + i, 12, 0, 0);
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+        const currentDay = currentDate.getDate();
 
-        // Calculate pillars
-        const yearPillar = calculateYearPillar(currentDate);
-        const monthPillar = calculateMonthPillar(currentDate, yearPillar.stem);
-        const dayPillar = calculateDayPillar(currentDate);
+        // Use the main baziCalculator (supports historical dates)
+        const result = calculateBaZi({
+          year: currentYear,
+          month: currentMonth,
+          day: currentDay,
+          hour: 12,
+          minute: 0
+        });
+
+        // Handle calculation errors gracefully
+        if (result.error) {
+          console.warn('Calculation warning for', currentDate, result.message);
+          continue;
+        }
+
+        // Extract and normalize pillars
+        const yearPillar = normalizePillar(result.pillars[0], result.pillars[0].stem.char + result.pillars[0].branch.char);
+        const monthPillar = normalizePillar(result.pillars[1], result.pillars[1].stem.char + result.pillars[1].branch.char);
+        const dayPillar = normalizePillar(result.pillars[2], result.dayMaster.chinese);
 
         newResults.push({
           date: currentDate,
@@ -75,7 +108,8 @@ export default function BaZiCalculatorPage() {
           }),
           yearPillar,
           monthPillar,
-          dayPillar
+          dayPillar,
+          calculationMethod: result.calculationMethod
         });
       }
 
@@ -138,8 +172,19 @@ export default function BaZiCalculatorPage() {
                 🧮 BaZi Calculator
               </h1>
             </div>
-            <div className="text-sm text-slate-400">
-              "What If" Date Explorer
+            <div className="flex items-center gap-4">
+              <Link
+                to="/chinese-zodiac"
+                className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-300 text-sm transition-colors flex items-center gap-2"
+              >
+                🐲 Chinese Zodiac
+              </Link>
+              <Link
+                to="/zodiac-cusps"
+                className="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-purple-300 text-sm transition-colors flex items-center gap-2"
+              >
+                ♈ Western Cusps
+              </Link>
             </div>
           </div>
         </div>
@@ -184,8 +229,8 @@ export default function BaZiCalculatorPage() {
           </div>
 
           <p className="mt-3 text-xs text-slate-500">
-            Enter any date from history (e.g., 1873-03-15) and see the BaZi pillars for that date range.
-            Year pillar changes at Spring Begins (~Feb 4), Month pillar follows Solar Terms.
+            Enter any date from history (1 AD onwards) and see the BaZi pillars for that date range.
+            Uses the same verified calculator as BaZi Panel. Supports unlimited historical dates.
           </p>
         </div>
 

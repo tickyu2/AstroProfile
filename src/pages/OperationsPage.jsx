@@ -642,6 +642,115 @@ export function OperationsPage() {
               </div>
             </div>
           </div>
+
+          {/* NEW: Modular Architecture Docs */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+            {/* Memory Module Architecture */}
+            <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:border-emerald-500/40 rounded-xl p-5 transition-all group">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-2xl">
+                  🗄️
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold group-hover:text-emerald-400 transition-colors">
+                    Memory Module
+                  </h3>
+                  <p className="text-xs text-white/50">8-Brain RAG System</p>
+                </div>
+              </div>
+              <div className="space-y-1 text-xs text-white/60">
+                <div>• stores/ - User's Brain</div>
+                <div>• brain/ - Luna's Brain</div>
+                <div>• personality/ - Evolution</div>
+                <div>• tango/ - Relationship</div>
+              </div>
+              <a
+                href="https://github.com/tickyu2/AstroProfile/blob/main/functions/memory/MEMORY_ARCHITECTURE.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 text-emerald-400 text-xs font-medium group-hover:translate-x-1 transition-transform block"
+              >
+                View Architecture →
+              </a>
+            </div>
+
+            {/* Emotional Engine + Ambient Sounds */}
+            <div className="bg-gradient-to-br from-rose-500/10 to-pink-500/10 border border-rose-500/20 hover:border-rose-500/40 rounded-xl p-5 transition-all group">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center text-2xl">
+                  🎭
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold group-hover:text-rose-400 transition-colors">
+                    Emotional Engine
+                  </h3>
+                  <p className="text-xs text-white/50">Plutchik + Ambient Sounds</p>
+                </div>
+              </div>
+              <div className="space-y-1 text-xs text-white/60">
+                <div>• 8 Primary Emotions</div>
+                <div>• 24 Compound Emotions</div>
+                <div>• Voice-Text Congruence</div>
+                <div>• Ambient Soundscapes</div>
+              </div>
+              <a
+                href="https://github.com/tickyu2/AstroProfile/blob/main/docs/EMOTIONAL_ENGINE_ARCHITECTURE.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 text-rose-400 text-xs font-medium group-hover:translate-x-1 transition-transform block"
+              >
+                View Architecture →
+              </a>
+            </div>
+
+            {/* Ambient Sounds Integration */}
+            <div className="bg-gradient-to-br from-sky-500/10 to-indigo-500/10 border border-sky-500/20 hover:border-sky-500/40 rounded-xl p-5 transition-all group">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-2xl">
+                  🌊
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold group-hover:text-sky-400 transition-colors">
+                    Ambient Sounds
+                  </h3>
+                  <p className="text-xs text-white/50">Emotion → Soundscape</p>
+                </div>
+              </div>
+              <div className="space-y-1 text-xs text-white/60">
+                <div>• 🌊 Ocean waves (grief)</div>
+                <div>• 🌧️ Gentle rain (comfort)</div>
+                <div>• 🔥 Campfire (connection)</div>
+                <div>• 🐦 Birds (joy)</div>
+              </div>
+              <div className="mt-3 text-sky-400 text-xs font-medium">
+                Integrated with Emotional Engine
+              </div>
+            </div>
+
+            {/* Warmth & Happiness Module */}
+            <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:border-amber-500/40 rounded-xl p-5 transition-all group">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-2xl">
+                  🔥
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold group-hover:text-amber-400 transition-colors">
+                    Warmth & Happiness
+                  </h3>
+                  <p className="text-xs text-white/50">Six Laws + Mountain</p>
+                </div>
+              </div>
+              <div className="space-y-1 text-xs text-white/60">
+                <div>• 📊 Six Laws of Happiness</div>
+                <div>• 🏔️ Mountain Climbing</div>
+                <div>• 🔥 2x Warmth on Loss</div>
+                <div>• 💛 Guided Action Advice</div>
+              </div>
+              <div className="mt-3 text-amber-400 text-xs font-medium">
+                53/53 Tests Passing
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* System Architecture Diagrams */}
@@ -1071,10 +1180,147 @@ export function OperationsPage() {
               </pre>
             </div>
 
+            {/* Ambient Sounds Integration */}
+            <div className="bg-slate-800/50 rounded-xl border border-white/5 p-6">
+              <h3 className="text-sm font-medium text-white/80 mb-4 flex items-center gap-2">
+                <span className="text-sky-400">08</span> Ambient Sounds Integration (Emotion → Soundscape)
+              </h3>
+              <pre className="text-xs text-white/70 font-mono overflow-x-auto">
+{`┌─────────────────────────────────────────────────────────────────────────────┐
+│                    AMBIENT SOUNDS INTEGRATION                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  USER MESSAGE                                                                │
+│       │                                                                      │
+│       ▼                                                                      │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ PlutchikEmotionDetector.detectAllEmotions(text, voiceProsody)        │  │
+│  │ Returns: { primary, intensity, plutchikVector, compounds }           │  │
+│  └──────────────────────────────┬────────────────────────────────────────┘  │
+│                                 │                                            │
+│                                 ▼                                            │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ EmotionalEngineOrchestrator.analyzeComplete(userId, input)           │  │
+│  │ Returns: { combined, affectionState, responseGuidance }              │  │
+│  └──────────────────────────────┬────────────────────────────────────────┘  │
+│                                 │                                            │
+│                                 ▼                                            │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ selectAmbientSoundscape(primaryEmotion, intensity, valence)          │  │
+│  │                                                                       │  │
+│  │   ┌─────────────────────────────────────────────────────────────┐    │  │
+│  │   │ EMOTION → SOUNDSCAPE MAPPING                                │    │  │
+│  │   ├─────────────────────────────────────────────────────────────┤    │  │
+│  │   │ sadness (high)  → 🌊 oceanWaves    "hold heavy emotions"    │    │  │
+│  │   │ sadness (low)   → 🌧️ gentleRain   "comfort, introspection" │    │  │
+│  │   │ fear/anxiety    → 🍃 softBreeze    "grounding, calm"        │    │  │
+│  │   │ joy             → 🐦 distantBirds  "uplifting, hopeful"     │    │  │
+│  │   │ trust/love      → 🔥 campfire      "warm, intimate"         │    │  │
+│  │   │ anger           → 🌲 deepForest    "grounding, stable"      │    │  │
+│  │   │ anticipation    → 💧 gentleStream  "flowing, forward"       │    │  │
+│  │   │ neutral         → 💧 gentleStream  "calm, default"          │    │  │
+│  │   └─────────────────────────────────────────────────────────────┘    │  │
+│  │                                                                       │  │
+│  │ Returns: { recommended, alternatives, intensity, reason }            │  │
+│  └──────────────────────────────┬────────────────────────────────────────┘  │
+│                                 │                                            │
+│                                 ▼                                            │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ responseGuidance.ambientSoundscape = {                                │  │
+│  │   recommended: 'oceanWaves',                                          │  │
+│  │   alternatives: ['gentleRain'],                                       │  │
+│  │   intensity: 0.35,           // Volume 20-40% (never overwhelming)    │  │
+│  │   reason: 'Deep, rhythmic waves to hold heavy emotions'               │  │
+│  │ }                                                                     │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  USER CONTROLS:                                                              │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐       │
+│  │  ON / OFF    │ │   VOLUME     │ │   BLOCK      │ │    AUTO      │       │
+│  │   Toggle     │ │  0-40% max   │ │ Soundscapes  │ │  Transition  │       │
+│  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘       │
+│                                                                              │
+│  "Gentle yet show presence" - like nature itself, always there              │
+│                                but never overwhelming                        │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘`}
+              </pre>
+            </div>
+
+            {/* Warmth & Happiness Module */}
+            <div className="bg-slate-800/50 rounded-xl border border-white/5 p-6">
+              <h3 className="text-sm font-medium text-white/80 mb-4 flex items-center gap-2">
+                <span className="text-amber-400">09</span> Warmth & Happiness Module (Six Laws + Mountain Climbing)
+              </h3>
+              <pre className="text-xs text-white/70 font-mono overflow-x-auto">
+{`┌─────────────────────────────────────────────────────────────────────────────┐
+│                   WARMTH & HAPPINESS MODULE                                  │
+│                "Guidance with Utmost Warmth Toward YOUR Mountain"            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  📊 SIX LAWS OF HAPPINESS (Baucells & Sarin 2012)                            │
+│  ─────────────────────────────────────────────────                           │
+│                                                                              │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │ 1. RELATIVE COMPARISON (40%)     │ H = Reality - Expectations       │   │
+│  │    "YOUR mountain, not others'"  │                                   │   │
+│  ├──────────────────────────────────┼───────────────────────────────────┤   │
+│  │ 2. MOTION OF EXPECTATION         │ Rising = hurts, Lowering = helps  │   │
+│  │    "Build soft pillow early"     │ ↑15% pain, ↓10% relief            │   │
+│  ├──────────────────────────────────┼───────────────────────────────────┤   │
+│  │ 3. AVERSION TO LOSS (λ=2.25)     │ Losses hurt 2-3x more than gains  │   │
+│  │    "💛💛💛 Extra warmth on loss" │ → 2x Warmth Multiplier activated  │   │
+│  ├──────────────────────────────────┼───────────────────────────────────┤   │
+│  │ 4. DIMINISHING SENSITIVITY       │ First kiss > 100th kiss           │   │
+│  │    "Honeymoon → Depth = NORMAL"  │ log(R+1) dampening                │   │
+│  ├──────────────────────────────────┼───────────────────────────────────┤   │
+│  │ 5. SATIATION                     │ Daily climbs = diminishing joy    │   │
+│  │    "Cool-down builds desire"     │ Space creates appreciation        │   │
+│  ├──────────────────────────────────┼───────────────────────────────────┤   │
+│  │ 6. PRESENTISM                    │ Right now > yesterday > tomorrow  │   │
+│  │    "What can you do TODAY?"      │ Present action with probabilities │   │
+│  └──────────────────────────────────┴───────────────────────────────────┘   │
+│                                                                              │
+│  🏔️ MOUNTAIN CLIMBING PHILOSOPHY                                             │
+│  ────────────────────────────────                                            │
+│                                                                              │
+│  Summit (10)    🏔️ ═══ Peak happiness - CELEBRATE FULLY!                     │
+│        ▲                                                                     │
+│  High (7-9)     🌄 ═══ Excellent view - Great progress!                      │
+│        │                                                                     │
+│  Midpoint (5-6) ⛰️ ═══ STILL SUCCESS! Good view below! Be PROUD!             │
+│        │                                                                     │
+│  Basecamp (3-4) 🏕️ ═══ You began the climb - COURAGE!                        │
+│        │                                                                     │
+│  Valley (0-2)   💛 ═══ Air bag ready (soft pillow) + 2x WARMTH               │
+│                                                                              │
+│  🔥 WARMTH MULTIPLIER                                                         │
+│  ────────────────────                                                        │
+│                                                                              │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                          │
+│  │   MEDIUM    │  │    HIGH     │  │   MAXIMUM   │                          │
+│  │  0.7-1.0x   │  │   1.0-1.5x  │  │   1.5-3.0x  │                          │
+│  │   "Hey,"    │  │ "Hey love," │  │"Oh sweetheart"│                        │
+│  │  Baseline   │  │   Normal    │  │ Valley/Loss │                          │
+│  └─────────────┘  └─────────────┘  └─────────────┘                          │
+│                                                                              │
+│  OUTPUT: responseGuidance.warmthHappiness = {                                │
+│    mountainHeight: 6.5,                                                      │
+│    interpretation: { level: 'midpoint', celebration: 'MEDIUM' },             │
+│    guidance: { evaluation, softPillow, lossPreparation, actionAdvice, ... }, │
+│    lossRecoveryActive: false                                                 │
+│  }                                                                           │
+│                                                                              │
+│  ✅ 53/53 Tests Passing                                                       │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘`}
+              </pre>
+            </div>
+
             {/* Luna Response Strategy */}
             <div className="bg-slate-800/50 rounded-xl border border-white/5 p-6">
               <h3 className="text-sm font-medium text-white/80 mb-4 flex items-center gap-2">
-                <span className="text-pink-400">08</span> Luna Response Strategy Matrix
+                <span className="text-pink-400">10</span> Luna Response Strategy Matrix
               </h3>
               <pre className="text-xs text-white/70 font-mono overflow-x-auto">
 {`┌─────────────────────────────────────────────────────────────────────────────┐

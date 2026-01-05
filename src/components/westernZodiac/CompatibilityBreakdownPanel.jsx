@@ -263,13 +263,13 @@ const CompatibilityBreakdownPanel = ({ userCusp, partnerCusp, score }) => {
               {/* Rulers */}
               <ScoreBar
                 label="Planetary Rulers"
-                detail={`${breakdown.userRulers?.join(', ')} + ${breakdown.partnerRulers?.join(', ')}`}
+                detail={`${Array.isArray(breakdown.userRulers) ? breakdown.userRulers.join(', ') : (breakdown.userRulers || '—')} + ${Array.isArray(breakdown.partnerRulers) ? breakdown.partnerRulers.join(', ') : (breakdown.partnerRulers || '—')}`}
                 score={breakdown.rulers}
                 maxScore={20}
                 color="yellow"
                 explanation={breakdown.rulersExplanation}
-                userLabel={breakdown.userRulers?.join(', ') || '—'}
-                partnerLabel={breakdown.partnerRulers?.join(', ') || '—'}
+                userLabel={Array.isArray(breakdown.userRulers) ? breakdown.userRulers.join(', ') : (breakdown.userRulers || '—')}
+                partnerLabel={Array.isArray(breakdown.partnerRulers) ? breakdown.partnerRulers.join(', ') : (breakdown.partnerRulers || '—')}
                 userContribution={breakdown.userRulersContribution}
                 partnerContribution={breakdown.partnerRulersContribution}
                 interaction={breakdown.rulersInteraction}

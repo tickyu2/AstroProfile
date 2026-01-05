@@ -310,16 +310,119 @@ function calculateBaZiInternal(birthData) {
 }
 
 /**
- * Legacy format for compatibility
+ * Legacy format wrapper - returns structure compatible with old fourPillarsCalculator
+ * Used by: Results.jsx, CompatibilityPage.jsx, etc.
  */
 export function calculateBaZiLegacy(birthDate, birthTime, locationData) {
   const year = birthDate.getFullYear();
   const month = birthDate.getMonth() + 1; // JS months are 0-indexed
   const day = birthDate.getDate();
-  
-  const [hour = 12, minute = 0] = birthTime.split(':').map(Number);
-  
-  return calculateBaZi({ year, month, day, hour, minute });
+
+  const [hour = 12, minute = 0] = (birthTime || '12:00').split(':').map(Number);
+
+  const result = calculateBaZi({ year, month, day, hour, minute });
+
+  // Handle calculation errors
+  if (result.error) {
+    return null;
+  }
+
+  // Convert pillars array to object format expected by legacy consumers
+  const yearPillar = result.pillars[0];
+  const monthPillar = result.pillars[1];
+  const dayPillar = result.pillars[2];
+  const hourPillar = result.pillars[3];
+
+  // Convert to legacy pillar format
+  // pillar.stem and pillar.branch already have index properties from baziEngine
+  const convertPillar = (pillar) => ({
+    stem: {
+      index: pillar.stem.index || 0,
+      chinese: pillar.stem.char,
+      pinyin: pillar.stem.pinyin || '',
+      element: pillar.stem.element,
+      polarity: pillar.stem.polarity,
+      name: pillar.stem.english
+    },
+    branch: {
+      index: pillar.branch.index || 0,
+      chinese: pillar.branch.char,
+      pinyin: pillar.branch.pinyin || '',
+      animal: pillar.branch.animal,
+      element: pillar.branch.element,
+      polarity: pillar.branch.polarity
+    },
+    fullName: `${pillar.stem.char}${pillar.branch.char}`,
+    englishName: `${pillar.stem.english} ${pillar.branch.animal}`
+  });
+
+  const legacyPillars = {
+    year: convertPillar(yearPillar),
+    month: convertPillar(monthPillar),
+    day: convertPillar(dayPillar),
+    hour: convertPillar(hourPillar)
+  };
+
+  // Calculate element counts in legacy format
+  const elements = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+  result.pillars.forEach(pillar => {
+    elements[pillar.stem.element] += 2;
+    elements[pillar.branch.element] += 1;
+  });
+
+  // Calculate yin/yang in legacy format
+  let yinCount = 0, yangCount = 0;
+  result.pillars.forEach(pillar => {
+    if (pillar.stem.polarity === 'Yin') yinCount += 2; else yangCount += 2;
+    if (pillar.branch.polarity === 'Yin') yinCount += 1; else yangCount += 1;
+  });
+  const totalCount = yinCount + yangCount;
+
+  return {
+    birthDate: {
+      gregorian: birthDate.toISOString(),
+      formatted: birthDate.toLocaleString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      })
+    },
+    location: locationData || { latitude: 0, longitude: 0 },
+    pillars: legacyPillars,
+    traditional: {
+      display: `${legacyPillars.hour.fullName} ${legacyPillars.day.fullName} ${legacyPillars.month.fullName} ${legacyPillars.year.fullName}`,
+      english: `Hour: ${legacyPillars.hour.englishName} | Day: ${legacyPillars.day.englishName} | Month: ${legacyPillars.month.englishName} | Year: ${legacyPillars.year.englishName}`
+    },
+    dayMaster: {
+      stem: legacyPillars.day.stem,
+      description: `Your core self is ${legacyPillars.day.stem.name} (${legacyPillars.day.stem.chinese})`
+    },
+    elementalBalance: {
+      elements,
+      strongestElement: Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b),
+      weakestElement: Object.keys(elements).reduce((a, b) => elements[a] < elements[b] ? a : b)
+    },
+    yinYangBalance: {
+      yin: yinCount,
+      yang: yangCount,
+      yinPercentage: Math.round((yinCount / totalCount) * 100),
+      yangPercentage: Math.round((yangCount / totalCount) * 100),
+      balance: Math.abs(yinCount - yangCount) <= 2 ? 'Balanced' :
+               yinCount > yangCount ? 'Yin-dominant' : 'Yang-dominant'
+    },
+    interpretation: {
+      essence: `Your soul essence (Day Master) is ${legacyPillars.day.stem.name}, shaped by ${legacyPillars.year.branch.animal} ancestral energy, absorbing ${legacyPillars.month.branch.animal} seasonal influence, with ${legacyPillars.hour.branch.animal} private nature.`,
+      constitution: `${legacyPillars.day.stem.element} soul operating in a ${Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b)}-dominant elemental environment.`
+    },
+    // Also include new format data for gradual migration
+    _newFormat: result
+  };
+}
+
+/**
+ * Drop-in replacement for old fourPillarsCalculator.calculateFourPillars
+ */
+export function calculateFourPillars(birthDate, birthTime, locationData) {
+  return calculateBaZiLegacy(birthDate, birthTime, locationData);
 }
 
 /**

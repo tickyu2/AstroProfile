@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getZodiacSecrets, SECTION_TITLES } from '../../data/westernZodiacContent'
 import { useProfiles } from '../../contexts/ProfileContext'
 
@@ -68,6 +69,7 @@ const retrogradeInterpretations = {
 }
 
 export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalculate }) {
+    const navigate = useNavigate()
     const western = westZodiac || {}
     const [secretsUnlocked, setSecretsUnlocked] = useState(false)
     const [isRecalculating, setIsRecalculating] = useState(false)
@@ -375,12 +377,23 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
                 </p>
             </div>
 
-            <button
-                onClick={toggleSecrets}
-                className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 text-sm font-bold rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all hover:scale-[1.02] shadow-lg"
-            >
-                {secretsUnlocked ? `✨ Hide ${western.sign} Secrets ✨` : `🔓 Unlock ${western.sign} Secrets →`}
-            </button>
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+                <button
+                    onClick={toggleSecrets}
+                    className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 text-sm font-bold rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all hover:scale-[1.02] shadow-lg"
+                >
+                    {secretsUnlocked ? `✨ Hide Secrets` : `🔓 Secrets →`}
+                </button>
+                {profileId && hasSovereignData && (
+                    <button
+                        onClick={() => navigate(`/western/${profileId}`)}
+                        className="flex-1 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all hover:scale-[1.02] shadow-lg"
+                    >
+                        🧠 AI Decode →
+                    </button>
+                )}
+            </div>
 
             {/* 🪞 SOUL MIRROR - Expandable Secrets Section */}
             {secretsUnlocked && secrets && (

@@ -1,0 +1,505 @@
+{
+  "zodiacSigns": [
+    {
+      "name": "Rat",
+      "chinese": "鼠",
+      "pinyin": "Shǔ",
+      "emoji": "🐀",
+      "years": [1924, 1936, 1948, 1960, 1972, 1984, 1996, 2008, 2020, 2032],
+      "fixedElement": "Water",
+      "yinYang": "Yang",
+      "season": "Winter",
+      "month": "December",
+      "hours": "11pm - 1am",
+      "direction": "North",
+      "luckyNumbers": [2, 3],
+      "luckyColors": ["blue", "gold", "green"],
+      "characteristics": [
+        "Quick-witted and resourceful",
+        "Versatile and adaptable",
+        "Clever at business and finance",
+        "Sociable with a wide network",
+        "Charming and ambitious"
+      ],
+      "strengths": [
+        "Intelligence and problem-solving",
+        "Thriftiness and accumulating wealth",
+        "Adaptability to any situation",
+        "Strong intuition about opportunities"
+      ],
+      "challenges": [
+        "Can be overly critical of others",
+        "Tendency toward stubbornness",
+        "May appear opportunistic",
+        "Sometimes lacks perseverance for long projects"
+      ],
+      "bestCompatibility": ["Dragon", "Monkey", "Ox"],
+      "worstCompatibility": ["Horse", "Rooster"],
+      "summary": "The Rat is the first animal in the Chinese zodiac, symbolizing new beginnings, cleverness, and resourcefulness. Those born under this sign are known for their sharp minds, quick thinking, and ability to turn any situation to their advantage."
+    },
+    {
+      "name": "Ox",
+      "chinese": "牛",
+      "pinyin": "Niú",
+      "emoji": "🐂",
+      "years": [1925, 1937, 1949, 1961, 1973, 1985, 1997, 2009, 2021, 2033],
+      "fixedElement": "Earth",
+      "yinYang": "Yin",
+      "season": "Winter",
+      "month": "January",
+      "hours": "1am - 3am",
+      "direction": "North-Northeast",
+      "luckyNumbers": [1, 4],
+      "luckyColors": ["blue", "yellow", "green"],
+      "characteristics": [
+        "Diligent and dependable",
+        "Strong and determined",
+        "Patient with steady progress",
+        "Traditional and conservative values",
+        "Honest and straightforward"
+      ],
+      "strengths": [
+        "Unwavering determination",
+        "Reliable and trustworthy",
+        "Strong work ethic",
+        "Practical problem-solving"
+      ],
+      "challenges": [
+        "Can be stubborn to a fault",
+        "Slow to change or adapt",
+        "May appear distant or cold",
+        "Difficulty expressing emotions"
+      ],
+      "bestCompatibility": ["Rat", "Snake", "Rooster"],
+      "worstCompatibility": ["Tiger", "Dragon", "Horse", "Goat"],
+      "summary": "The Ox represents diligence, perseverance, and honesty. People born in the Year of the Ox are known for their patience, reliability, and strong sense of responsibility. They achieve success through hard work rather than luck."
+    },
+    {
+      "name": "Tiger",
+      "chinese": "虎",
+      "pinyin": "Hǔ",
+      "emoji": "🐅",
+      "years": [1926, 1938, 1950, 1962, 1974, 1986, 1998, 2010, 2022, 2034],
+      "fixedElement": "Wood",
+      "yinYang": "Yang",
+      "season": "Winter/Spring",
+      "month": "February",
+      "hours": "3am - 5am",
+      "direction": "East-Northeast",
+      "luckyNumbers": [1, 3, 4],
+      "luckyColors": ["blue", "gray", "orange"],
+      "characteristics": [
+        "Brave and competitive",
+        "Confident and charming",
+        "Natural leader",
+        "Unpredictable and adventurous",
+        "Passionate about causes"
+      ],
+      "strengths": [
+        "Courage to face any challenge",
+        "Natural charisma and leadership",
+        "Protective of loved ones",
+        "Quick to take action"
+      ],
+      "challenges": [
+        "Impulsive decision-making",
+        "Can be aggressive or domineering",
+        "Difficulty with authority",
+        "Restless and easily bored"
+      ],
+      "bestCompatibility": ["Dragon", "Horse", "Pig"],
+      "worstCompatibility": ["Ox", "Tiger", "Snake", "Monkey"],
+      "summary": "The Tiger symbolizes power, passion, and daring. Those born under this sign are natural leaders who face challenges head-on. Their courage and magnetic personality draw others to them, though their unpredictability can be both exciting and challenging."
+    },
+    {
+      "name": "Rabbit",
+      "chinese": "兔",
+      "pinyin": "Tù",
+      "emoji": "🐇",
+      "years": [1927, 1939, 1951, 1963, 1975, 1987, 1999, 2011, 2023, 2035],
+      "fixedElement": "Wood",
+      "yinYang": "Yin",
+      "season": "Spring",
+      "month": "March",
+      "hours": "5am - 7am",
+      "direction": "East",
+      "luckyNumbers": [3, 4, 6],
+      "luckyColors": ["red", "pink", "purple", "blue"],
+      "characteristics": [
+        "Gentle and elegant",
+        "Quiet but perceptive",
+        "Artistic and refined taste",
+        "Peace-loving and diplomatic",
+        "Compassionate and sensitive"
+      ],
+      "strengths": [
+        "Excellent negotiation skills",
+        "Refined aesthetic sense",
+        "Ability to avoid conflicts",
+        "Strong intuition about people"
+      ],
+      "challenges": [
+        "Can be overly cautious",
+        "May avoid necessary confrontation",
+        "Prone to mood swings",
+        "Can appear detached or aloof"
+      ],
+      "bestCompatibility": ["Goat", "Monkey", "Dog", "Pig"],
+      "worstCompatibility": ["Snake", "Rooster"],
+      "summary": "The Rabbit represents elegance, mercy, and good fortune. Those born under this sign possess refined tastes, diplomatic skills, and a gentle nature. They prefer harmony and use their intelligence to navigate around obstacles rather than through them."
+    },
+    {
+      "name": "Dragon",
+      "chinese": "龍",
+      "pinyin": "Lóng",
+      "emoji": "🐲",
+      "years": [1928, 1940, 1952, 1964, 1976, 1988, 2000, 2012, 2024, 2036],
+      "fixedElement": "Earth",
+      "yinYang": "Yang",
+      "season": "Spring",
+      "month": "April",
+      "hours": "7am - 9am",
+      "direction": "East-Southeast",
+      "luckyNumbers": [1, 6, 7],
+      "luckyColors": ["gold", "silver", "grayish white"],
+      "characteristics": [
+        "Confident and ambitious",
+        "Energetic and passionate",
+        "Natural leader with vision",
+        "Talented and intelligent",
+        "Fearless and pioneering"
+      ],
+      "strengths": [
+        "Exceptional charisma",
+        "Ability to inspire others",
+        "Courage to pursue dreams",
+        "Natural luck and good fortune"
+      ],
+      "challenges": [
+        "Can be arrogant or domineering",
+        "Intolerant of criticism",
+        "May overestimate abilities",
+        "Difficulty accepting failure"
+      ],
+      "bestCompatibility": ["Rat", "Tiger", "Snake"],
+      "worstCompatibility": ["Ox", "Goat", "Dog"],
+      "summary": "The Dragon is the most revered sign in Chinese astrology, symbolizing power, nobility, and good fortune. Dragons are born leaders with natural charisma and the courage to pursue their grandest visions. In Chinese culture, the Dragon year is considered the luckiest for births."
+    },
+    {
+      "name": "Snake",
+      "chinese": "蛇",
+      "pinyin": "Shé",
+      "emoji": "🐍",
+      "years": [1929, 1941, 1953, 1965, 1977, 1989, 2001, 2013, 2025, 2037],
+      "fixedElement": "Fire",
+      "yinYang": "Yin",
+      "season": "Spring/Summer",
+      "month": "May",
+      "hours": "9am - 11am",
+      "direction": "South-Southeast",
+      "luckyNumbers": [2, 8, 9],
+      "luckyColors": ["black", "red", "yellow"],
+      "characteristics": [
+        "Wise and intuitive",
+        "Graceful and sophisticated",
+        "Private and mysterious",
+        "Determined and focused",
+        "Elegant in manner"
+      ],
+      "strengths": [
+        "Deep wisdom and insight",
+        "Excellent at reading people",
+        "Patient strategist",
+        "Refined and cultured"
+      ],
+      "challenges": [
+        "Can be secretive or suspicious",
+        "Tendency toward jealousy",
+        "May be overly materialistic",
+        "Difficulty trusting others"
+      ],
+      "bestCompatibility": ["Dragon", "Rooster"],
+      "worstCompatibility": ["Tiger", "Rabbit", "Snake", "Goat", "Pig"],
+      "summary": "The Snake represents wisdom, intuition, and elegance. Those born under this sign possess deep insight into human nature and prefer to work behind the scenes. Their mysterious nature and refined taste make them fascinating but hard to know truly."
+    },
+    {
+      "name": "Horse",
+      "chinese": "馬",
+      "pinyin": "Mǎ",
+      "emoji": "🐴",
+      "years": [1930, 1942, 1954, 1966, 1978, 1990, 2002, 2014, 2026, 2038],
+      "fixedElement": "Fire",
+      "yinYang": "Yang",
+      "season": "Summer",
+      "month": "June",
+      "hours": "11am - 1pm",
+      "direction": "South",
+      "luckyNumbers": [2, 3, 7],
+      "luckyColors": ["yellow", "green"],
+      "characteristics": [
+        "Energetic and free-spirited",
+        "Warm-hearted and cheerful",
+        "Independent and self-reliant",
+        "Quick-thinking and witty",
+        "Love of travel and adventure"
+      ],
+      "strengths": [
+        "Infectious enthusiasm",
+        "Quick to act on opportunities",
+        "Natural popularity",
+        "Adaptability to new situations"
+      ],
+      "challenges": [
+        "Impatience with slow progress",
+        "Can be self-centered",
+        "Difficulty with commitment",
+        "Prone to mood swings"
+      ],
+      "bestCompatibility": ["Tiger", "Goat", "Rabbit"],
+      "worstCompatibility": ["Rat", "Ox", "Rooster", "Horse"],
+      "summary": "The Horse symbolizes freedom, energy, and adventure. Those born under this sign love their independence and thrive on new experiences. Their warmth and enthusiasm make them popular, though their need for freedom can challenge relationships."
+    },
+    {
+      "name": "Goat",
+      "chinese": "羊",
+      "pinyin": "Yáng",
+      "emoji": "🐐",
+      "years": [1931, 1943, 1955, 1967, 1979, 1991, 2003, 2015, 2027, 2039],
+      "fixedElement": "Earth",
+      "yinYang": "Yin",
+      "season": "Summer",
+      "month": "July",
+      "hours": "1pm - 3pm",
+      "direction": "South-Southwest",
+      "luckyNumbers": [2, 7],
+      "luckyColors": ["brown", "red", "purple"],
+      "characteristics": [
+        "Gentle and compassionate",
+        "Creative and artistic",
+        "Peace-loving and kind",
+        "Romantic and dreamy",
+        "Dependent on loved ones"
+      ],
+      "strengths": [
+        "Artistic talent and creativity",
+        "Empathy and understanding",
+        "Graceful in social situations",
+        "Strong sense of aesthetics"
+      ],
+      "challenges": [
+        "Can be overly dependent",
+        "Tendency toward pessimism",
+        "May lack practicality",
+        "Difficulty with criticism"
+      ],
+      "bestCompatibility": ["Rabbit", "Horse", "Pig"],
+      "worstCompatibility": ["Ox", "Tiger", "Dog"],
+      "summary": "The Goat (also called Sheep or Ram) represents creativity, peace, and artistic expression. Those born under this sign are gentle souls with rich inner lives. They bring beauty and harmony to their surroundings but need emotional support from loved ones."
+    },
+    {
+      "name": "Monkey",
+      "chinese": "猴",
+      "pinyin": "Hóu",
+      "emoji": "🐒",
+      "years": [1932, 1944, 1956, 1968, 1980, 1992, 2004, 2016, 2028, 2040],
+      "fixedElement": "Metal",
+      "yinYang": "Yang",
+      "season": "Summer/Autumn",
+      "month": "August",
+      "hours": "3pm - 5pm",
+      "direction": "West-Southwest",
+      "luckyNumbers": [4, 9],
+      "luckyColors": ["white", "blue", "gold"],
+      "characteristics": [
+        "Clever and inventive",
+        "Playful and witty",
+        "Curious about everything",
+        "Versatile problem-solver",
+        "Charming and magnetic"
+      ],
+      "strengths": [
+        "Quick learning ability",
+        "Creative problem-solving",
+        "Excellent memory",
+        "Natural entertainer"
+      ],
+      "challenges": [
+        "Can be mischievous or tricky",
+        "Easily bored with routine",
+        "May lack persistence",
+        "Tendency to manipulate"
+      ],
+      "bestCompatibility": ["Rat", "Dragon", "Snake"],
+      "worstCompatibility": ["Tiger", "Pig"],
+      "summary": "The Monkey symbolizes cleverness, innovation, and wit. Those born under this sign are natural problem-solvers who approach life with curiosity and playfulness. Their quick minds and charming personalities make them engaging companions."
+    },
+    {
+      "name": "Rooster",
+      "chinese": "雞",
+      "pinyin": "Jī",
+      "emoji": "🐓",
+      "years": [1933, 1945, 1957, 1969, 1981, 1993, 2005, 2017, 2029, 2041],
+      "fixedElement": "Metal",
+      "yinYang": "Yin",
+      "season": "Autumn",
+      "month": "September",
+      "hours": "5pm - 7pm",
+      "direction": "West",
+      "luckyNumbers": [5, 7, 8],
+      "luckyColors": ["gold", "brown", "yellow"],
+      "characteristics": [
+        "Hardworking and capable",
+        "Observant and precise",
+        "Confident and outspoken",
+        "Honest and straightforward",
+        "Well-dressed and proud"
+      ],
+      "strengths": [
+        "Excellent attention to detail",
+        "Strong work ethic",
+        "Courage to speak truth",
+        "Loyalty to principles"
+      ],
+      "challenges": [
+        "Can be overly critical",
+        "Tendency toward boasting",
+        "May appear insensitive",
+        "Difficulty accepting other views"
+      ],
+      "bestCompatibility": ["Ox", "Snake"],
+      "worstCompatibility": ["Rat", "Rabbit", "Horse", "Rooster", "Dog"],
+      "summary": "The Rooster represents confidence, punctuality, and honesty. Those born under this sign are hardworking, observant, and take pride in their appearance and achievements. Their directness and attention to detail make them reliable but sometimes challenging."
+    },
+    {
+      "name": "Dog",
+      "chinese": "狗",
+      "pinyin": "Gǒu",
+      "emoji": "🐕",
+      "years": [1934, 1946, 1958, 1970, 1982, 1994, 2006, 2018, 2030, 2042],
+      "fixedElement": "Earth",
+      "yinYang": "Yang",
+      "season": "Autumn",
+      "month": "October",
+      "hours": "7pm - 9pm",
+      "direction": "West-Northwest",
+      "luckyNumbers": [3, 4, 9],
+      "luckyColors": ["red", "green", "purple"],
+      "characteristics": [
+        "Loyal and faithful",
+        "Honest and just",
+        "Courageous and protective",
+        "Cautious and conservative",
+        "Strong sense of duty"
+      ],
+      "strengths": [
+        "Unwavering loyalty",
+        "Strong moral compass",
+        "Protective of loved ones",
+        "Reliable and trustworthy"
+      ],
+      "challenges": [
+        "Can be overly anxious",
+        "Tendency toward pessimism",
+        "May be judgmental",
+        "Difficulty with change"
+      ],
+      "bestCompatibility": ["Rabbit", "Tiger", "Horse"],
+      "worstCompatibility": ["Dragon", "Goat", "Rooster"],
+      "summary": "The Dog symbolizes loyalty, honesty, and protection. Those born under this sign are the most faithful friends and partners, with a strong sense of justice and duty. They may worry too much, but their hearts are always in the right place."
+    },
+    {
+      "name": "Pig",
+      "chinese": "豬",
+      "pinyin": "Zhū",
+      "emoji": "🐷",
+      "years": [1935, 1947, 1959, 1971, 1983, 1995, 2007, 2019, 2031, 2043],
+      "fixedElement": "Water",
+      "yinYang": "Yin",
+      "season": "Autumn/Winter",
+      "month": "November",
+      "hours": "9pm - 11pm",
+      "direction": "North-Northwest",
+      "luckyNumbers": [2, 5, 8],
+      "luckyColors": ["yellow", "gray", "brown", "gold"],
+      "characteristics": [
+        "Generous and compassionate",
+        "Diligent and sincere",
+        "Calm and level-headed",
+        "Easygoing and tolerant",
+        "Enjoys life's pleasures"
+      ],
+      "strengths": [
+        "Genuine kindness to all",
+        "Strong concentration ability",
+        "Peaceful presence",
+        "Ability to enjoy life"
+      ],
+      "challenges": [
+        "Can be naive or trusting",
+        "Tendency toward indulgence",
+        "May avoid confrontation",
+        "Easily taken advantage of"
+      ],
+      "bestCompatibility": ["Tiger", "Rabbit", "Goat"],
+      "worstCompatibility": ["Snake", "Monkey"],
+      "summary": "The Pig represents wealth, good fortune, and honesty. Those born under this sign are known for their generous hearts, calm demeanor, and genuine kindness. They enjoy life's pleasures and bring peace and abundance to those around them."
+    }
+  ],
+  "fiveElements": {
+    "Wood": {
+      "chinese": "木",
+      "pinyin": "Mù",
+      "emoji": "🌳",
+      "color": "Green",
+      "season": "Spring",
+      "direction": "East",
+      "energy": "Growth, creativity, flexibility",
+      "personality": "Adds creativity, compassion, and growth-oriented energy. Makes the sign more adaptable and nurturing.",
+      "keywords": ["creative", "compassionate", "expansive", "flexible", "nurturing"]
+    },
+    "Fire": {
+      "chinese": "火",
+      "pinyin": "Huǒ",
+      "emoji": "🔥",
+      "color": "Red",
+      "season": "Summer",
+      "direction": "South",
+      "energy": "Passion, enthusiasm, leadership",
+      "personality": "Intensifies passion, ambition, and charisma. Makes the sign more dynamic and inspiring but potentially volatile.",
+      "keywords": ["passionate", "ambitious", "charismatic", "energetic", "inspiring"]
+    },
+    "Earth": {
+      "chinese": "土",
+      "pinyin": "Tǔ",
+      "emoji": "🏔️",
+      "color": "Yellow/Brown",
+      "season": "Late Summer",
+      "direction": "Center",
+      "energy": "Stability, practicality, reliability",
+      "personality": "Grounds the sign with stability and practicality. Makes them more reliable and nurturing but potentially stubborn.",
+      "keywords": ["stable", "practical", "reliable", "nurturing", "grounded"]
+    },
+    "Metal": {
+      "chinese": "金",
+      "pinyin": "Jīn",
+      "emoji": "⚔️",
+      "color": "White/Gold",
+      "season": "Autumn",
+      "direction": "West",
+      "energy": "Discipline, strength, determination",
+      "personality": "Adds precision, determination, and righteousness. Makes the sign more focused and principled but potentially rigid.",
+      "keywords": ["precise", "determined", "righteous", "focused", "disciplined"]
+    },
+    "Water": {
+      "chinese": "水",
+      "pinyin": "Shuǐ",
+      "emoji": "💧",
+      "color": "Black/Blue",
+      "season": "Winter",
+      "direction": "North",
+      "energy": "Wisdom, intuition, adaptability",
+      "personality": "Brings depth, intuition, and emotional intelligence. Makes the sign more perceptive and fluid but potentially indecisive.",
+      "keywords": ["wise", "intuitive", "adaptable", "perceptive", "deep"]
+    }
+  }
+}

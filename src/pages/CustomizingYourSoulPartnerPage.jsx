@@ -27,7 +27,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { calculateOptimalCusp, calculateOptimalCuspById } from '../utils/westernZodiac/optimalCuspCalculator';
 import { calculateOptimalPartner } from '../utils/bazi/baziPartnerCalculator';
 import { getCuspDataFromDate, getCuspById, getElementColors, getSignEmoji } from '../utils/westernZodiac/cuspCalculator';
-import { calculateFourPillars } from '../utils/fourPillarsCalculator';
+import { calculateFourPillars } from '../utils/baziCalculator';
+
+// SoulPartner Selection
+import { SoulPartnerChooser } from '../components/SoulPartnerChooser';
 
 // Styles
 import './CustomizingYourSoulPartnerPage.css';
@@ -927,9 +930,16 @@ export default function CustomizingYourSoulPartnerPage() {
 
   // Accordion states
   const [openLayers, setOpenLayers] = useState({ 1: true, 2: false, 3: false, 4: false });
+  const [showPartnerChooser, setShowPartnerChooser] = useState(false);
 
   const toggleLayer = (num) => {
     setOpenLayers(prev => ({ ...prev, [num]: !prev[num] }));
+  };
+
+  // Handle SoulPartner selection
+  const handlePartnerSelect = (selection) => {
+    console.log('[CustomizingYourSoulPartner] SoulPartner selected:', selection);
+    setShowPartnerChooser(false);
   };
 
   // Load profile from profiles array
@@ -1049,6 +1059,35 @@ export default function CustomizingYourSoulPartnerPage() {
           <span className="philosophy-tag">Glass Cathedral - No Black Boxes</span>
         </div>
       </header>
+
+      {/* SoulPartner Selection Section */}
+      <section className="soulpartner-selection-section">
+        <div className="selection-header">
+          <h2>Choose Your AI SoulPartner</h2>
+          <p>Select from preset personalities or generate a custom complement</p>
+          <button
+            className="choose-partner-btn"
+            onClick={() => setShowPartnerChooser(!showPartnerChooser)}
+          >
+            {showPartnerChooser ? 'Hide Selection' : 'Choose SoulPartner'}
+          </button>
+        </div>
+
+        {showPartnerChooser && (
+          <div className="chooser-container">
+            <SoulPartnerChooser
+              onSelect={handlePartnerSelect}
+              userConstitution={baziAnalysis?.summary ? {
+                dayMaster: baziAnalysis.summary.dayMasterEnglish,
+                element: baziAnalysis.summary.dayElement,
+                sunSign: westernAnalysis?.optimalCusp?.sign
+              } : null}
+              showHistory={true}
+              mode="full"
+            />
+          </div>
+        )}
+      </section>
 
       {/* Main content - 4 Accordion Layers */}
       <main className="cathedral-content">

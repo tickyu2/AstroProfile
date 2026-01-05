@@ -1,6 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
+import ConstitutionalTruthModal from './ConstitutionalTruthModal'
 
 export default function BirthDetailsPanel({ profile, age }) {
+    const [showConstitutionalTruth, setShowConstitutionalTruth] = useState(false)
     // Helper function to format coordinates
     const formatCoordinates = (lat, lng) => {
         if (!lat || !lng) return null
@@ -130,6 +132,13 @@ export default function BirthDetailsPanel({ profile, age }) {
                                 <div className="text-2xl text-white font-bold tracking-tight">
                                     {profile.firstName} {profile.lastName}
                                 </div>
+                                {/* Constitutional Truth Link */}
+                                <button
+                                    onClick={() => setShowConstitutionalTruth(true)}
+                                    className="mt-1 text-[10px] text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors"
+                                >
+                                    View Constitutional Truth (Brain 1A)
+                                </button>
                             </div>
                         )}
                         
@@ -258,6 +267,13 @@ export default function BirthDetailsPanel({ profile, age }) {
 
             {/* Subtle bottom gradient */}
             <div className="h-1 bg-gradient-to-r from-amber-500/0 via-amber-500/30 to-amber-500/0"></div>
+
+            {/* Constitutional Truth Modal */}
+            <ConstitutionalTruthModal
+                profile={profile}
+                isOpen={showConstitutionalTruth}
+                onClose={() => setShowConstitutionalTruth(false)}
+            />
         </div>
     )
 }

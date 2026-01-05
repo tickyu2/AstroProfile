@@ -31,6 +31,7 @@ import {
   getBaziPillarsWithPrecision,
   checkSolarTermBoundary
 } from '../services/sovereignSolarTermService'
+import { populateConstitution } from '../services/constitutionService'
 
 const ProfileContext = createContext({})
 
@@ -338,7 +339,13 @@ export function ProfileProvider({ children }) {
         updatedAt: serverTimestamp()
       })
 
-      return { id: docRef.id, ...profileData }
+      // Populate Brain 1A constitution (pre-computed for AI)
+      const createdProfile = { id: docRef.id, ...profileData }
+      populateConstitution(createdProfile).catch(err => {
+        console.warn('Brain 1A population failed (non-blocking):', err)
+      })
+
+      return createdProfile
     } catch (err) {
       setError(err.message)
       throw err
@@ -489,6 +496,12 @@ export function ProfileProvider({ children }) {
         updatedAt: new Date()
       }
       console.log('✅ [ProfileContext] Profile updated, returning for KB sync:', updatedProfile.displayName || updatedProfile.firstName)
+
+      // Populate Brain 1A constitution (re-compute on updates)
+      populateConstitution(updatedProfile).catch(err => {
+        console.warn('Brain 1A population failed (non-blocking):', err)
+      })
+
       return updatedProfile
     } catch (err) {
       setError(err.message)
@@ -771,6 +784,13 @@ export function ProfileProvider({ children }) {
       })
 
       console.log('✅ [recalculateSovereignData] Profile updated successfully!')
+
+      // Populate Brain 1A constitution (re-compute after sovereign recalculation)
+      const updatedProfile = { ...profile, id: profileId, calculations: { western: sovereignData } }
+      populateConstitution(updatedProfile).catch(err => {
+        console.warn('Brain 1A population failed (non-blocking):', err)
+      })
+
       return { success: true, profileId }
     } catch (err) {
       console.error('❌ [recalculateSovereignData] Error:', err)

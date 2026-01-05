@@ -19,6 +19,7 @@ import { useConversations } from '../../contexts/ConversationsContext';
 import { ModeIndicator } from './ModeIndicator';
 import { SoulBurdenMeter } from './SoulBurdenMeter';
 import { EmotionDisplay } from './EmotionDisplay';
+import { WarmthHappinessDisplay } from './WarmthHappinessDisplay';
 import { EmojiReactionPicker, ReactionDisplay, CONSTITUTIONAL_EMOJIS, QUICK_EMOJIS } from './EmojiReactionPicker';
 import { sendMessage as sendToAI, getSecondOpinion, getGrokPerspective, getOpusPerspective, getDeepSeekPerspective, getChatGPTPerspective, generateDebateVisual, generateStabilityImage, generateLeonardoImage } from '../../services/aiSoulPartnerService';
 
@@ -135,6 +136,7 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
   const [proactiveGreeting, setProactiveGreeting] = useState(null); // Session Intelligence greeting
   const [relationshipSummary, setRelationshipSummary] = useState(null); // Relationship depth from learned patterns
   const [learnedContext, setLearnedContext] = useState(null); // Cached learned context for system prompt
+  const [warmthHappiness, setWarmthHappiness] = useState(null); // Warmth & Happiness state (Six Laws + Mountain Climbing)
   const [generatedImagesCache, setGeneratedImagesCache] = useState({}); // Nano Banana images by message ID (session only)
   const [showInputEmojiPicker, setShowInputEmojiPicker] = useState(false); // Emoji picker for message input
   const [inputEmojiCategory, setInputEmojiCategory] = useState('universal'); // Active emoji category
@@ -2717,6 +2719,82 @@ Please create a comprehensive document. Start with a clear title on the first li
       return;
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // /luna COMMAND - Query Documentation Database
+    // ═══════════════════════════════════════════════════════════════════════
+    if (messageContent.trim().toLowerCase().startsWith('/luna ')) {
+      const query = messageContent.trim().slice(6).trim(); // Remove '/luna '
+      if (!query) {
+        alert('Please provide a query after /luna. Example: /luna What is the voice turn-taking system?');
+        return;
+      }
+
+      console.log('📚 /luna command detected, query:', query);
+      setIsTyping(true);
+      setInputValue('');
+
+      // Add user query to chat
+      const userMessage = {
+        id: Date.now(),
+        sender: 'user',
+        text: `/luna ${query}`,
+        timestamp: new Date().toISOString(),
+        isLunaCommand: true
+      };
+
+      const messagesWithUser = [...messages, userMessage];
+      await updateMessages(messagesWithUser);
+
+      try {
+        // Call searchDocumentation Cloud Function
+        const functions = getFunctions();
+        const searchDocs = httpsCallable(functions, 'searchDocumentation');
+        const result = await searchDocs({ query, limit: 5 });
+
+        let responseText = '';
+        if (result.data?.success && result.data?.results?.length > 0) {
+          const docs = result.data.results;
+          responseText = `📚 **Documentation Search Results for: "${query}"**\n\n`;
+
+          docs.forEach((doc, i) => {
+            const similarity = Math.round((doc.similarity || 0) * 100);
+            responseText += `**${i + 1}. ${doc.title}** (${doc.filename})\n`;
+            responseText += `📂 Category: ${doc.category} | 🎯 Relevance: ${similarity}%\n`;
+            responseText += `${doc.content}\n\n---\n\n`;
+          });
+
+          responseText += `\n*Found ${docs.length} relevant sections. Ask me to explain any of these in detail!*`;
+        } else {
+          responseText = `📚 No documentation found for "${query}". Try different keywords or check the docs/ folder.`;
+        }
+
+        // Add Luna's response
+        const lunaResponse = {
+          id: Date.now() + 1,
+          sender: 'luna',
+          text: responseText,
+          timestamp: new Date().toISOString(),
+          isDocumentation: true,
+          searchQuery: query
+        };
+
+        await updateMessages([...messagesWithUser, lunaResponse]);
+
+      } catch (error) {
+        console.error('❌ /luna search error:', error);
+        const errorResponse = {
+          id: Date.now() + 1,
+          sender: 'luna',
+          text: `📚 Documentation search failed: ${error.message}. The searchDocumentation function may not be deployed.`,
+          timestamp: new Date().toISOString()
+        };
+        await updateMessages([...messagesWithUser, errorResponse]);
+      } finally {
+        setIsTyping(false);
+      }
+      return; // Exit early - don't continue with normal message flow
+    }
+
     // Ensure we have an active conversation before sending
     let targetConvId = activeConversationId;
     if (!targetConvId) {
@@ -3003,6 +3081,16 @@ Please create a comprehensive document. Start with a clear title on the first li
 
       setApiStatus(response.success ? 'connected' : 'fallback');
 
+      // Update Warmth & Happiness state (Six Laws + Mountain Climbing)
+      if (response.warmthHappiness) {
+        setWarmthHappiness(response.warmthHappiness);
+        console.log('💛 [Warmth] Updated:', {
+          mountain: response.warmthHappiness.mountainHeight?.toFixed(1),
+          warmth: response.warmthHappiness.warmthMultiplier?.toFixed(1) + 'x',
+          level: response.warmthHappiness.interpretation?.level
+        });
+      }
+
       if (!response.success) {
         console.warn('⚠️ Using fallback response:', response.error);
       }
@@ -3146,6 +3234,14 @@ Please create a comprehensive document. Start with a clear title on the first li
             <EmotionDisplay
               emotions={currentState.lastAnalysis.emotions}
               intensity={currentState.lastAnalysis.intensity}
+            />
+          )}
+
+          {/* Warmth & Happiness Display (Six Laws + Mountain Climbing) */}
+          {warmthHappiness && (
+            <WarmthHappinessDisplay
+              warmthHappiness={warmthHappiness}
+              compact={false}
             />
           )}
 

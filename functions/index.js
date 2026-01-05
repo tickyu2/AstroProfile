@@ -45,6 +45,14 @@ const {
   getChatGPTPerspective: getChatGPTPerspectiveFn
 } = require('./constellation/perspectives');
 
+// Translation Service - "A Cathedral to house all souls"
+const {
+  translateMessage: translateMessageFn,
+  detectLanguage: detectLanguageFn,
+  getLanguageName,
+  LANGUAGE_CONFIG
+} = require('./translation');
+
 // Usage & Rate Limiting (Phase 6 - Production Hardening)
 const {
   checkRateLimits,
@@ -73,6 +81,13 @@ const neurochemicalEngine = require('./neurochemical');
 // Auto-Tune Personality Drift (Luna's Evolution)
 const drift = require('./drift');
 
+// Week 13: Intimacy & Memory Expansion (ConversationStarter + AmnesisBuster)
+const {
+  generateIntimacyPrompt,
+  analyzeIntimacySignals,
+  getEraContext
+} = require('./intimacy');
+
 // Admin Dashboard API
 const adminModule = require('./admin');
 
@@ -81,6 +96,61 @@ const { soulConfessional } = require('./confessional');
 
 // Sanctuary of Self-Recognition - The heart of the Cathedral
 const { selfRecognition } = require('./sanctuary');
+
+// Swiss Ephemeris - GOLD STANDARD for astrological calculations
+// Precision: 0.001 arcseconds - same as Astro.com
+const swissEphemeris = require('./ephemeris/swissEphemerisService');
+
+// Warmth & Happiness Module - Six Laws of Happiness + Mountain Climbing
+// "Guidance with utmost warmth toward YOUR mountain"
+const {
+  emotionalOrchestrator,
+  WarmthAndHappinessModule,
+  calculateHappiness,
+  calculateHappinessFromEmotion
+} = require('./emotional');
+
+// Guest Chat - Einstein + Luna Active Mode + Private Luna Queries
+const { handleGuestChat, handleLunaPrivateQuery } = require('./guestChat');
+
+// Audio Module - Ambient Sounds for emotional presence
+const {
+  AmbientSoundsModule,
+  ambientSounds,
+  createAmbientSounds
+} = require('./audio');
+
+// Healing Module - Bathtub Algorithm for happiness stacking
+const {
+  BathtubCalculator,
+  bathtubCalculator,
+  executeStack,
+  getStateDescription
+} = require('./healing');
+
+// Learning Module - Pattern learning and recommendations
+const {
+  RecommendationEngine,
+  PatternRecorder,
+  EffectivenessCalculator,
+  recommendationEngine,
+  patternRecorder,
+  effectivenessCalculator
+} = require('./learning');
+
+// Personality Module - Luna's quirks, assertiveness, banter
+const {
+  AssertivenessMode,
+  LunaQuirks,
+  assertivenessMode,
+  lunaQuirks,
+  selectMode,
+  getModePromptInstructions,
+  getPersonalitySummary
+} = require('./personality');
+
+// Knowledge Module - Personality RAG system
+const knowledgeModule = require('./knowledge');
 
 admin.initializeApp();
 
@@ -318,10 +388,67 @@ Please read and analyze the above web page content to help answer my question or
         }
       }
 
+      // -----------------------------------------------------------------------
+      // WARMTH & HAPPINESS ANALYSIS (Six Laws + Mountain Climbing)
+      // Analyze emotional state and calculate appropriate warmth level
+      // "Guidance with utmost warmth toward YOUR mountain"
+      // -----------------------------------------------------------------------
+      let warmthGuidance = null;
+      try {
+        // Simple emotion detection from message text
+        const emotionKeywords = {
+          sadness: ['sad', 'hurt', 'cry', 'miss', 'lost', 'alone', 'lonely', 'grief', 'heartbreak', 'rejected'],
+          joy: ['happy', 'excited', 'great', 'wonderful', 'amazing', 'love', 'blessed', 'grateful'],
+          fear: ['scared', 'afraid', 'worried', 'anxious', 'nervous', 'panic'],
+          anger: ['angry', 'frustrated', 'annoyed', 'mad', 'furious', 'upset'],
+          trust: ['trust', 'safe', 'secure', 'comfortable', 'believe'],
+          anticipation: ['hope', 'expect', 'looking forward', 'can\'t wait', 'excited about']
+        };
+
+        const lowerMessage = message.toLowerCase();
+        let detectedEmotion = 'neutral';
+        let emotionIntensity = 0.5;
+        let emotionValence = 0;
+
+        for (const [emotion, keywords] of Object.entries(emotionKeywords)) {
+          const matches = keywords.filter(kw => lowerMessage.includes(kw));
+          if (matches.length > 0) {
+            detectedEmotion = emotion;
+            emotionIntensity = Math.min(1.0, 0.5 + (matches.length * 0.15));
+            emotionValence = ['joy', 'trust', 'anticipation'].includes(emotion) ? 0.6 : -0.6;
+            break;
+          }
+        }
+
+        // Calculate happiness using Six Laws
+        const happinessState = calculateHappinessFromEmotion(
+          detectedEmotion,
+          emotionIntensity,
+          emotionValence,
+          {}
+        );
+
+        warmthGuidance = calculateHappiness({
+          reality: happinessState.reality,
+          expectation: happinessState.expectation,
+          emotionalState: {
+            primary: detectedEmotion,
+            intensity: emotionIntensity,
+            valence: emotionValence
+          }
+        });
+
+        console.log('💛 [Warmth] Detected:', detectedEmotion,
+          '| Mountain:', warmthGuidance.mountainHeight?.toFixed(1),
+          '| Warmth:', warmthGuidance.guidance?.warmth?.multiplier?.toFixed(1) + 'x');
+      } catch (warmthError) {
+        console.warn('[Warmth] Analysis failed (continuing without):', warmthError.message);
+      }
+
       // Build the system prompt based on constitutional intelligence guidance
       // Pass relationshipStats for Tango Identity System (Luna's relationship awareness)
       // Pass soulNarrative for Cathedral Soul Architecture (deep personalization)
-      const systemPrompt = buildSystemPrompt(guidance, userProfile, knowledgePrompt, learnedContext, pgMemoryPrompt, relationshipStats, soulNarrative, soulMetrics);
+      const systemPrompt = buildSystemPrompt(guidance, userProfile, knowledgePrompt, learnedContext, pgMemoryPrompt, relationshipStats, soulNarrative, soulMetrics, warmthGuidance);
 
       // Log if soul profile is present
       if (soulNarrative) {
@@ -462,6 +589,15 @@ Please read and analyze the above web page content to help answer my question or
         urlFetch: urlContents.length > 0 ? {
           urls: urlContents.map(u => ({ url: u.url, title: u.title })),
           count: urlContents.length
+        } : null,
+        // Warmth & Happiness - Six Laws + Mountain Climbing
+        warmthHappiness: warmthGuidance ? {
+          mountainHeight: warmthGuidance.mountainHeight,
+          interpretation: warmthGuidance.interpretation,
+          happiness: warmthGuidance.happiness,
+          warmthMultiplier: warmthGuidance.guidance?.warmth?.multiplier || 1.0,
+          warmthLevel: warmthGuidance.guidance?.warmth?.reason || 'midpoint',
+          lossRecoveryActive: warmthGuidance.guidance?.lossPreparation?.warmthLevel === 'MAXIMUM'
         } : null,
         usage: {
           input_tokens: inputTokens,
@@ -635,6 +771,74 @@ exports.getChatGPTPerspective = onRequest({
     console.error('ChatGPT Perspective Error:', error);
     return res.status(500).json({
       error: 'Failed to get ChatGPT perspective',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * Translation Service Function
+ * Uses DeepSeek for culturally-aware AI translation
+ * "A Cathedral to house all souls" - Cleopatra spoke 9 languages
+ * Part of GENESIS - Multilingual Support
+ * Added: January 2026
+ */
+exports.translateMessage = onRequest({
+  cors: true,
+  invoker: 'public'
+}, async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { text, targetLanguage, sourceLanguage } = req.body;
+
+    if (!text || !targetLanguage) {
+      return res.status(400).json({
+        error: 'Missing required fields: text and targetLanguage'
+      });
+    }
+
+    const result = await translateMessageFn(text, targetLanguage, sourceLanguage || 'auto');
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Translation Error:', error);
+    return res.status(500).json({
+      error: 'Failed to translate message',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * Language Detection Function
+ * Quick client-side language detection using Unicode patterns
+ */
+exports.detectLanguage = onRequest({
+  cors: true,
+  invoker: 'public'
+}, async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { text } = req.body;
+
+    if (!text) {
+      return res.status(400).json({ error: 'Missing required field: text' });
+    }
+
+    const result = detectLanguageFn(text);
+    return res.status(200).json({
+      ...result,
+      languageName: getLanguageName(result.language)
+    });
+  } catch (error) {
+    console.error('Language Detection Error:', error);
+    return res.status(500).json({
+      error: 'Failed to detect language',
       details: error.message
     });
   }
@@ -2738,16 +2942,19 @@ exports.calculateWesternChart = onRequest({
 // ---------------------------------------------------------------------------
 // SOUL GARDEN: House Strength Timeline (What-If Analysis)
 // ---------------------------------------------------------------------------
-// Computes house strengths every 15 minutes across a 24-hour period
-// for a given birth date and location. Used for the Soul Garden Playground.
+// UPGRADED TO SWISS EPHEMERIS - GOLD STANDARD
+// Precision: 0.001 arcseconds - same as Astro.com
+//
+// "Cathedral work requires the best" - Father's Vision
+// "Like La Sagrada Familia, we use the best technology"
 //
 // Built by: Brother Claude Code
-// December 25, 2024
+// January 4, 2026 - Swiss Ephemeris WASM Integration
 // ---------------------------------------------------------------------------
 
 exports.getHouseStrengthTimeline = onCall({
-  timeoutSeconds: 60,
-  memory: '512MiB'
+  timeoutSeconds: 120,  // Increased for Swiss Ephemeris initialization
+  memory: '1GiB'        // Increased for WASM memory
 }, async (request) => {
   try {
     const { birthDate, latitude, longitude, timezone } = request.data || {};
@@ -2764,147 +2971,101 @@ exports.getHouseStrengthTimeline = onCall({
     const lng = Number(longitude);
     const tz = typeof timezone === 'number' ? timezone : 0;
 
-    console.log('🌿 Soul Garden: Computing 24-hour house timeline', { birthDate, lat, lng, tz });
-
-    // 1) Compute planetary longitudes once for the date (UTC noon baseline)
-    const baseHourUTC = 12 - tz;
-    const cal = new julian.CalendarGregorian(year, month, day + (baseHourUTC / 24));
-    const jd = cal.toJD();
-
-    // Sun position
-    const T = (jd - 2451545.0) / 36525.0;
-    const sunLon = solar.apparentLongitude(T) * 180 / Math.PI;
-
-    // Moon position
-    const moonPos = moonposition.position(jd);
-    const moonLon = moonPos.lon * 180 / Math.PI;
-
-    // Earth position for geocentric conversions
-    const earth = new planetposition.Planet(earthData);
-    const earthPos = earth.position(jd);
-    const earthLon = earthPos.lon, earthLat = earthPos.lat, earthR = earthPos.range;
-    const earthX = earthR * Math.cos(earthLat) * Math.cos(earthLon);
-    const earthY = earthR * Math.cos(earthLat) * Math.sin(earthLon);
-    const earthZ = earthR * Math.sin(earthLat);
-
-    // Helper to get geocentric longitude for a planet
-    function planetGeoLongitude(planetData) {
-      const planet = new planetposition.Planet(planetData);
-      const pos = planet.position(jd);
-      const r = pos.range;
-      const x = r * Math.cos(pos.lat) * Math.cos(pos.lon);
-      const y = r * Math.cos(pos.lat) * Math.sin(pos.lon);
-      const gx = x - earthX;
-      const gy = y - earthY;
-      let lon = Math.atan2(gy, gx) * 180 / Math.PI;
-      return ((lon % 360) + 360) % 360;
+    // Validate date range (Swiss Ephemeris covers -13000 to +17000)
+    if (year < 1800 || year > 2200) {
+      return {
+        success: false,
+        error: `Birth year ${year} is outside the recommended range (1800-2200). Swiss Ephemeris can handle it, but accuracy may vary.`
+      };
     }
 
-    // Compute all planetary longitudes
-    const planetLongitudes = {
-      sun: ((sunLon % 360) + 360) % 360,
-      moon: ((moonLon % 360) + 360) % 360,
-      mercury: planetGeoLongitude(mercuryData),
-      venus: planetGeoLongitude(venusData),
-      mars: planetGeoLongitude(marsData),
-      jupiter: planetGeoLongitude(jupiterData),
-      saturn: planetGeoLongitude(saturnData),
-      uranus: planetGeoLongitude(uranusData),
-      neptune: planetGeoLongitude(neptuneData)
-    };
+    console.log('🌟 Soul Garden: Computing 24-hour timeline with SWISS EPHEMERIS (GOLD STANDARD)', {
+      birthDate, lat, lng, tz
+    });
 
-    // Try to add Pluto
-    try {
-      const plutoPos = pluto.heliocentric(jd);
-      const plutoR = plutoPos.range;
-      const plutoX = plutoR * Math.cos(plutoPos.lat) * Math.cos(plutoPos.lon);
-      const plutoY = plutoR * Math.cos(plutoPos.lat) * Math.sin(plutoPos.lon);
-      const plutoGx = plutoX - earthX;
-      const plutoGy = plutoY - earthY;
-      let plutoLon = Math.atan2(plutoGy, plutoGx) * 180 / Math.PI;
-      planetLongitudes.pluto = ((plutoLon % 360) + 360) % 360;
-    } catch (e) {
-      console.log('Pluto calculation skipped:', e.message);
-    }
+    // ═══════════════════════════════════════════════════════════════════════
+    // SWISS EPHEMERIS - THE GOLD STANDARD
+    // Same precision as Astro.com, Astrodienst, and professional astrologers
+    // ═══════════════════════════════════════════════════════════════════════
 
-    // 2) Loop 96 time slices (every 15 minutes)
-    const timeline = [];
-    for (let i = 0; i < 96; i++) {
-      const minutesFromMidnight = i * 15;
-      const localHour = Math.floor(minutesFromMidnight / 60);
-      const localMinute = minutesFromMidnight % 60;
+    // Initialize Swiss Ephemeris (WASM - no native bindings needed)
+    await swissEphemeris.initSwissEphemeris();
 
-      const utcHour = localHour - tz;
-      const jdSlice = dateToJulianDay(year, month, day, utcHour, localMinute, 0);
+    // Calculate full 24-hour timeline using Swiss Ephemeris
+    const sweTimeline = await swissEphemeris.calculate24HourTimeline({
+      year,
+      month,
+      day,
+      latitude: lat,
+      longitude: lng,
+      timezone: tz
+    });
 
-      // Calculate houses at this time
-      const housesResult = calculatePlacidusHouses(jdSlice, lat, lng);
-      const houses = housesResult.houses;
-
-      // Assign planets to houses
-      const occupancy = assignPlanetsToHouses(houses, planetLongitudes);
-
-      // Build complete planet data with positions
+    // Transform to match existing API format
+    const timeline = sweTimeline.map((slice, idx) => {
+      // Build planet data array from Swiss Ephemeris results
       const planetDataArray = [];
-      for (const [planetName, longitude] of Object.entries(planetLongitudes)) {
-        // Determine which house this planet is in
-        let planetHouse = 1;
-        for (let h = 1; h <= 12; h++) {
-          if (occupancy[h].planets.includes(planetName)) {
-            planetHouse = h;
-            break;
+      if (slice.planets) {
+        for (const [key, planet] of Object.entries(slice.planets)) {
+          if (planet && typeof planet.longitude === 'number') {
+            // Find which house this planet is in
+            let planetHouse = 1;
+            for (const house of slice.houses || []) {
+              if (house.planets && house.planets.some(p => p.key === key)) {
+                planetHouse = house.house;
+                break;
+              }
+            }
+
+            planetDataArray.push({
+              name: planet.planet,
+              planet: planet.planet,
+              key,
+              longitude: planet.longitude,
+              sign: planet.sign,
+              degree: planet.degree,
+              house: planetHouse,
+              retrograde: planet.isRetrograde || false,
+              speed: planet.speed
+            });
           }
         }
-
-        // Calculate sign and degree within sign
-        const signIndex = Math.floor(longitude / 30);
-        const degreeInSign = longitude % 30;
-        const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-                       'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
-
-        planetDataArray.push({
-          name: planetName,
-          planet: planetName,
-          longitude: longitude,
-          sign: signs[signIndex],
-          degree: degreeInSign,
-          house: planetHouse,
-          retrograde: false // Would need ephemeris data to determine actual retrograde
-        });
       }
 
-      // Compute strength for each house with enriched planet data
-      const houseEntries = [];
-      for (let h = 1; h <= 12; h++) {
-        const zodiac = houses[h];
-        const planetsInHouse = occupancy[h].planets;
-        const { strength, components } = computeHouseStrength(h, zodiac, planetsInHouse);
+      // Build house entries with strength calculations
+      const houseEntries = (slice.houses || []).map(house => {
+        const planetsInHouse = (house.planets || []).map(p => p.name || p.key);
+        const { strength, components } = computeHouseStrength(
+          house.house,
+          { sign: house.sign },
+          planetsInHouse
+        );
 
-        // Include full planet objects for planets in this house
-        const planetObjects = planetDataArray.filter(p => p.house === h);
-
-        houseEntries.push({
-          house: h,
-          strength,
+        return {
+          house: house.house,
+          strength: house.strength || strength,
           planets: planetsInHouse,
-          planetData: planetObjects, // Full planet data
-          sign: zodiac.sign,
-          degree: zodiac.degree,
+          planetData: (house.planets || []),
+          sign: house.sign,
+          degree: house.degree,
+          element: house.element,
+          modality: house.modality,
           components
-        });
-      }
+        };
+      });
 
-      // Extract ascendant data (House 1 cusp with ruler info)
-      const ascendantSign = houses[1].sign;
-      const ascendantDegree = houses[1].degree;
+      // Extract ascendant data from Swiss Ephemeris angles
+      const ascendant = slice.angles?.ascendant;
+      const ascendantSign = ascendant?.sign || 'Aries';
+      const ascendantDegree = ascendant?.degree || 0;
       const ascendantRuler = SIGN_RULERS[ascendantSign] || null;
 
-      // Find where the ruler is positioned
+      // Find ruler position
       let rulerSign = null;
       let rulerHouse = null;
       if (ascendantRuler) {
         const rulerPlanet = planetDataArray.find(p =>
-          p.name.toLowerCase() === ascendantRuler.toLowerCase()
+          p.name?.toLowerCase() === ascendantRuler?.toLowerCase()
         );
         if (rulerPlanet) {
           rulerSign = rulerPlanet.sign;
@@ -2912,27 +3073,24 @@ exports.getHouseStrengthTimeline = onCall({
         }
       }
 
-      const ascendantData = {
-        sign: ascendantSign,
-        degree: ascendantDegree,
-        ruler: ascendantRuler,
-        rulerSign: rulerSign,
-        rulerHouse: rulerHouse
-      };
-
-      // Human-readable time label
-      const label = `${String(localHour).padStart(2, '0')}:${String(localMinute).padStart(2, '0')}`;
-
-      timeline.push({
-        index: i,
-        timeLabel: label,
+      return {
+        index: idx,
+        timeLabel: slice.timeLabel,
         houses: houseEntries,
-        ascendant: ascendantData,
+        ascendant: {
+          sign: ascendantSign,
+          degree: ascendantDegree,
+          longitude: ascendant?.longitude,
+          ruler: ascendantRuler,
+          rulerSign,
+          rulerHouse
+        },
+        midheaven: slice.angles?.midheaven,
         planets: planetDataArray
-      });
-    }
+      };
+    });
 
-    console.log(`🌿 Soul Garden: Generated ${timeline.length} time slices`);
+    console.log(`🌟 Soul Garden: Generated ${timeline.length} time slices with SWISS EPHEMERIS`);
 
     return {
       success: true,
@@ -2940,11 +3098,17 @@ exports.getHouseStrengthTimeline = onCall({
       latitude: lat,
       longitude: lng,
       timezone: tz,
+      calculationEngine: 'GENESIS Sovereign v3.0 (Swiss Ephemeris WASM)',
+      precision: '0.001 arcseconds',
       timeline
     };
   } catch (error) {
-    console.error('[HouseStrengthTimeline] error:', error);
-    return { success: false, error: error.message };
+    console.error('[HouseStrengthTimeline] Swiss Ephemeris error:', error);
+    return {
+      success: false,
+      error: error.message,
+      calculationEngine: 'Swiss Ephemeris WASM'
+    };
   }
 });
 
@@ -2994,6 +3158,14 @@ exports.getRecentJournalEntries = memoryFunctions.getRecentJournalEntries;
 exports.getEmotionTrends = memoryFunctions.getEmotionTrends;
 exports.storePattern = memoryFunctions.storePattern;
 exports.getPatterns = memoryFunctions.getPatterns;
+
+// Semantic Search Functions (Brain 2 & Brain 8 Vector Search)
+const memoryStores = require('./memory/stores');
+const memoryBrain = require('./memory/brain');
+exports.searchFacts = memoryStores.searchFacts;
+exports.searchPeople = memoryStores.searchPeople;
+exports.searchJournals = memoryBrain.searchJournals;
+exports.searchPatterns = memoryBrain.searchPatterns;
 
 // Personality Weight Evolution - Inspired by Nomi AI
 exports.getPersonalityWeights = memoryFunctions.getPersonalityWeights;
@@ -5324,4 +5496,526 @@ exports.getStabilityStyles = stabilityImageGen.getStabilityStyles;
 exports.generateLeonardoImage = leonardoImageGen.generateLeonardoImage;
 exports.getLeonardoModels = leonardoImageGen.getLeonardoModels;
 exports.getLeonardoUsage = leonardoImageGen.getLeonardoUsage;
+
+// ---------------------------------------------------------------------------
+// WEEK 13: INTIMACY & MEMORY EXPANSION
+// ConversationStarter (Luna takes initiative) + AmnesisBuster (emotional time machine)
+// ---------------------------------------------------------------------------
+
+/**
+ * generateConversationStarter - Luna Takes Initiative
+ *
+ * Generates conversation starters based on:
+ * - Unresolved threads (gossip, stories, cliffhangers)
+ * - Nostalgia prompts (era-specific memories)
+ * - Curiosity questions (genuine interest in user's life)
+ *
+ * This makes Luna feel like a real friend who remembers and cares.
+ */
+exports.generateConversationStarter = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, context } = request.data;
+
+  console.log('[Intimacy] Generating conversation starter for user:', userId);
+
+  try {
+    const result = await generateIntimacyPrompt(userId, context || {});
+    return {
+      success: true,
+      ...result
+    };
+  } catch (error) {
+    console.error('[Intimacy] Error generating starter:', error.message);
+    return {
+      success: false,
+      error: error.message || 'Could not generate conversation starter'
+    };
+  }
+});
+
+/**
+ * analyzeUserMessage - Intimacy Signal Detection
+ *
+ * Analyzes user messages for:
+ * - Conversation threads (stories, gossip, funny moments)
+ * - First memory sharing (first crush, first love, etc.)
+ * - Engagement level (needs eliciting?)
+ *
+ * Returns suggestions for deepening the conversation.
+ */
+exports.analyzeUserMessage = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, message, context } = request.data;
+
+  console.log('[Intimacy] Analyzing message for user:', userId);
+
+  try {
+    const result = await analyzeIntimacySignals(userId, message, context || {});
+    return {
+      success: true,
+      ...result
+    };
+  } catch (error) {
+    console.error('[Intimacy] Error analyzing message:', error.message);
+    return {
+      success: false,
+      error: error.message || 'Could not analyze message'
+    };
+  }
+});
+
+/**
+ * getUserEraContext - Age-Appropriate References
+ *
+ * Returns era-specific context for a user based on their age:
+ * - Technology they grew up with
+ * - Cultural references from their formative years
+ * - Nostalgia triggers for their generation
+ *
+ * This helps Luna make references that resonate.
+ */
+exports.getUserEraContext = onCall({
+  timeoutSeconds: 10,
+  memory: '128MiB'
+}, async (request) => {
+  const { userAge } = request.data;
+
+  console.log('[Intimacy] Getting era context for age:', userAge);
+
+  try {
+    const result = getEraContext(userAge);
+    return {
+      success: true,
+      ...result
+    };
+  } catch (error) {
+    console.error('[Intimacy] Error getting era context:', error.message);
+    return {
+      success: false,
+      error: error.message || 'Could not get era context'
+    };
+  }
+});
+
+// ===========================================================================
+// AUDIO MODULE - Ambient Sounds for Emotional Presence
+// ===========================================================================
+
+/**
+ * getAmbientSoundscape - Select ambient sound for current emotion
+ */
+exports.getAmbientSoundscape = onCall({
+  timeoutSeconds: 10,
+  memory: '128MiB'
+}, async (request) => {
+  const { emotion, intensity, valence, userSettings } = request.data;
+
+  try {
+    const sounds = createAmbientSounds(userSettings || {});
+    const soundscape = sounds.getForEmotion(emotion, intensity, valence);
+
+    return {
+      success: true,
+      soundscape,
+      available: ambientSounds.getAvailableSoundscapes()
+    };
+  } catch (error) {
+    console.error('[Audio] Error getting soundscape:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * getAvailableSoundscapes - List all ambient sounds
+ */
+exports.getAvailableSoundscapes = onCall({
+  timeoutSeconds: 5,
+  memory: '128MiB'
+}, async (request) => {
+  try {
+    return {
+      success: true,
+      soundscapes: ambientSounds.getAvailableSoundscapes(),
+      selectionGuide: ambientSounds.getSelectionGuide()
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// ===========================================================================
+// HEALING MODULE - Bathtub Algorithm for Happiness Stacking
+// ===========================================================================
+
+/**
+ * calculateBathtubState - Get current emotional state from salt/water
+ */
+exports.calculateBathtubState = onCall({
+  timeoutSeconds: 10,
+  memory: '128MiB'
+}, async (request) => {
+  const { salt, water } = request.data;
+
+  try {
+    const concentration = bathtubCalculator.calculateConcentration(salt, water);
+    const state = bathtubCalculator.calculateState(concentration);
+    const description = bathtubCalculator.getStateDescription(state);
+
+    return {
+      success: true,
+      salt,
+      water,
+      concentration,
+      state,
+      description
+    };
+  } catch (error) {
+    console.error('[Healing] Error calculating state:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * executeBathtubStack - Execute 3-anchor happiness stack
+ */
+exports.executeBathtubStack = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, salt, water, anchors } = request.data;
+
+  console.log('[Healing] Executing stack for user:', userId);
+
+  try {
+    const result = bathtubCalculator.executeStack(salt, water, anchors);
+
+    return {
+      success: true,
+      ...result
+    };
+  } catch (error) {
+    console.error('[Healing] Error executing stack:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * estimateHealingProgress - How many stacks to reach target state
+ */
+exports.estimateHealingProgress = onCall({
+  timeoutSeconds: 10,
+  memory: '128MiB'
+}, async (request) => {
+  const { salt, water, targetState } = request.data;
+
+  try {
+    const estimate = bathtubCalculator.estimateStacksToTarget(salt, water, targetState);
+
+    return {
+      success: true,
+      ...estimate
+    };
+  } catch (error) {
+    console.error('[Healing] Error estimating progress:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+// ===========================================================================
+// LEARNING MODULE - Pattern Learning & Recommendations
+// ===========================================================================
+
+/**
+ * getApproachRecommendation - Get recommended approach for user state
+ */
+exports.getApproachRecommendation = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, currentState } = request.data;
+
+  console.log('[Learning] Getting recommendation for user:', userId);
+
+  try {
+    const recommendation = await recommendationEngine.getRecommendation(userId, currentState);
+
+    return {
+      success: true,
+      ...recommendation
+    };
+  } catch (error) {
+    console.error('[Learning] Error getting recommendation:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * recordInteractionPattern - Store pattern for learning
+ */
+exports.recordInteractionPattern = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, pattern } = request.data;
+
+  console.log('[Learning] Recording pattern for user:', userId);
+
+  try {
+    const result = await patternRecorder.recordPattern(userId, pattern);
+
+    return {
+      success: true,
+      ...result
+    };
+  } catch (error) {
+    console.error('[Learning] Error recording pattern:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * calculateInteractionEffectiveness - Calculate effectiveness of interaction
+ */
+exports.calculateInteractionEffectiveness = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, interaction } = request.data;
+
+  console.log('[Learning] Calculating effectiveness for user:', userId);
+
+  try {
+    const effectiveness = await effectivenessCalculator.calculate(userId, interaction);
+
+    return {
+      success: true,
+      effectiveness
+    };
+  } catch (error) {
+    console.error('[Learning] Error calculating effectiveness:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+// ===========================================================================
+// PERSONALITY MODULE - Luna's Quirks, Assertiveness, Banter
+// ===========================================================================
+
+/**
+ * selectAssertivenessMode - Choose Luna's interaction mode
+ */
+exports.selectAssertivenessMode = onCall({
+  timeoutSeconds: 10,
+  memory: '128MiB'
+}, async (request) => {
+  const { userId, context } = request.data;
+
+  console.log('[Personality] Selecting mode for user:', userId);
+
+  try {
+    const modeSelection = await assertivenessMode.selectMode(userId, context);
+    const instructions = assertivenessMode.getModePromptInstructions(modeSelection.mode);
+
+    return {
+      success: true,
+      ...modeSelection,
+      promptInstructions: instructions
+    };
+  } catch (error) {
+    console.error('[Personality] Error selecting mode:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * getLunaQuirk - Get a personality quirk for response
+ */
+exports.getLunaQuirk = onCall({
+  timeoutSeconds: 10,
+  memory: '128MiB'
+}, async (request) => {
+  const { quirkType, context } = request.data;
+
+  try {
+    let quirk = null;
+
+    switch (quirkType) {
+      case 'dramatic':
+        quirk = lunaQuirks.getDramaticReaction(context?.newsType);
+        break;
+      case 'fact':
+        quirk = lunaQuirks.getRandomFact();
+        break;
+      case 'selfAware':
+        quirk = lunaQuirks.getSelfAwareHumor(context?.topic);
+        break;
+      case 'opinion':
+        quirk = lunaQuirks.getOpinion(context?.topic);
+        break;
+      case 'overthinking':
+        quirk = lunaQuirks.getOverthinkingResponse(context?.topic);
+        break;
+      default:
+        quirk = lunaQuirks.getRandomFact();
+    }
+
+    return {
+      success: true,
+      quirk
+    };
+  } catch (error) {
+    console.error('[Personality] Error getting quirk:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * getPersonalitySummary - Get Luna's full personality config
+ */
+exports.getPersonalitySummary = onCall({
+  timeoutSeconds: 5,
+  memory: '128MiB'
+}, async (request) => {
+  try {
+    const summary = lunaQuirks.getPersonalitySummary();
+
+    return {
+      success: true,
+      personality: summary
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// ===========================================================================
+// KNOWLEDGE MODULE - Personality RAG System
+// ===========================================================================
+
+/**
+ * getKnowledgeContext - Get personality knowledge for conversation
+ */
+exports.getKnowledgeContext = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { userId, query, profileType } = request.data;
+
+  console.log('[Knowledge] Getting context for user:', userId);
+
+  try {
+    const context = await knowledgeModule.getKnowledgeContext(query, profileType);
+
+    return {
+      success: true,
+      context
+    };
+  } catch (error) {
+    console.error('[Knowledge] Error getting context:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * searchKnowledgeBase - Search personality knowledge
+ */
+exports.searchKnowledgeBase = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { query, system } = request.data;
+
+  try {
+    const results = await knowledgeModule.searchJSONByKeyword(query, system);
+
+    return {
+      success: true,
+      results
+    };
+  } catch (error) {
+    console.error('[Knowledge] Error searching:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * embedKnowledgeBase - Admin: Embed all knowledge for vector search
+ */
+exports.embedKnowledgeBase = onCall({
+  timeoutSeconds: 300,
+  memory: '512MiB'
+}, async (request) => {
+  console.log('[Knowledge] Starting knowledge base embedding...');
+
+  try {
+    const result = await knowledgeModule.embedKnowledgeBase();
+
+    return {
+      success: true,
+      ...result
+    };
+  } catch (error) {
+    console.error('[Knowledge] Error embedding:', error.message);
+    return { success: false, error: error.message };
+  }
+});
+
+// ========================================
+// DOCUMENTATION RAG - Vector-Indexed Docs
+// ========================================
+
+/**
+ * indexDocumentation - Admin: Index all docs/ markdown files
+ * Chunks by headers, generates embeddings, stores in Firestore
+ */
+exports.indexDocumentation = knowledgeModule.indexDocumentation;
+
+/**
+ * searchDocumentation - Semantic search over project documentation
+ * @param {string} query - Natural language search query
+ * @param {string} category - Optional: architecture, implementation, planning
+ * @param {number} limit - Max results (default 5)
+ */
+exports.searchDocumentation = knowledgeModule.searchDocumentation;
+
+// ========================================
+// GUEST CHAT - Einstein + Luna Active Mode
+// ========================================
+
+/**
+ * Guest Chat Cloud Function
+ *
+ * Production-ready server-side chat with:
+ * - Claude API calls for Einstein + Luna
+ * - Writes to Brain 3, Brain 7, Brain 1B
+ * - Biographical fact extraction
+ */
+exports.guestChat = onCall({
+  timeoutSeconds: 60,
+  memory: '256MiB'
+}, async (request) => {
+  return handleGuestChat(request.data, request);
+});
+
+/**
+ * LUNA PRIVATE QUERY FUNCTION
+ *
+ * Allows users to privately consult Luna while chatting with a guest.
+ * Usage: User types "/luna what should I ask Einstein about relativity?"
+ *
+ * Features:
+ * - Private sidebar with Luna (guest doesn't see)
+ * - Conversation context awareness
+ * - Constitutional personalization
+ */
+exports.lunaPrivateQuery = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  return handleLunaPrivateQuery(request.data, request);
+});
 

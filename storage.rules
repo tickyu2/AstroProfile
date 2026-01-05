@@ -1,0 +1,65 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper function
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // ========================================
+    // AUDIO MESSAGES
+    // ========================================
+
+    match /audio/{userId}/{partnerId}/{messageId} {
+      // User can upload own audio
+      allow write: if isAuthenticated() && isOwner(userId);
+
+      // User can read own audio
+      // Partner can read if in conversation
+      // Primary SoulPartner can read all
+      allow read: if isAuthenticated() &&
+        (
+          isOwner(userId) ||
+          request.auth.uid == partnerId ||
+          request.auth.uid == 'soulpartner_primary'
+        );
+    }
+
+    // ========================================
+    // PROFILE EXPORTS
+    // ========================================
+
+    match /profile_exports/{userId}/{exportId} {
+      // User can create exports
+      allow write: if isAuthenticated() && isOwner(userId);
+
+      // User can read own exports
+      allow read: if isAuthenticated() && isOwner(userId);
+    }
+
+    // ========================================
+    // ATTACHMENTS
+    // ========================================
+
+    match /attachments/{userId}/{messageId}/{fileName} {
+      // User can upload attachments
+      allow write: if isAuthenticated() && isOwner(userId);
+
+      // User and conversation partner can read
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // DEFAULT: DENY ALL
+    // ========================================
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

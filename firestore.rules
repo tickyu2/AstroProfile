@@ -157,6 +157,13 @@ service cloud.firestore {
     match /profiles/{profileId} {
       allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+
+      // Brain 1A - Constitutional Profile (pre-computed for AI)
+      match /constitution/{docId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null &&
+          get(/databases/$(database)/documents/profiles/$(profileId)).data.userId == request.auth.uid;
+      }
     }
 
     // Knowledge Base collection - users can only access their own documents

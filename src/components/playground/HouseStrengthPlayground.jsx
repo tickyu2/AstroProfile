@@ -111,7 +111,7 @@ export default function HouseStrengthPlayground({
   const [alchemicalMode, setAlchemicalMode] = useState(true);
   const [focusedTime, setFocusedTime] = useState(null); // Track the specific time user requested
   const [focusedIndex, setFocusedIndex] = useState(null); // Track the index of the focused time slice
-  const [isTimeLocked, setIsTimeLocked] = useState(true); // Lock time selection by default when profile has birth time
+  const [isTimeLocked, setIsTimeLocked] = useState(false); // Unlocked by default to allow exploration
   const [showSummary, setShowSummary] = useState(false); // Toggle for Soul Profile Summary panel
   const [showChapters, setShowChapters] = useState(false); // Toggle for Life Chapters panel
   const [showLetter, setShowLetter] = useState(false); // Toggle for Letter From Chart modal
@@ -259,37 +259,35 @@ export default function HouseStrengthPlayground({
               φ = 1.618 • 96 time slices
             </div>
 
-            {/* Time Lock Toggle - only show when there's a focused time */}
-            {focusedTime && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleToggleLock}
-                  className={`
-                    px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 flex items-center gap-1.5
-                    ${isTimeLocked
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
-                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30'
-                    }
-                  `}
-                  title={isTimeLocked ? 'Click to unlock and explore other times' : 'Click to lock time selection'}
-                >
-                  <span>{isTimeLocked ? '🔒' : '🔓'}</span>
-                  <span className="hidden sm:inline">{isTimeLocked ? 'Unlock Time' : 'Exploring'}</span>
-                </button>
+            {/* Time Lock Toggle - always visible for time navigation control */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleToggleLock}
+                className={`
+                  px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 flex items-center gap-1.5
+                  ${isTimeLocked
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30'
+                  }
+                `}
+                title={isTimeLocked ? 'Click to unlock and explore other times' : 'Click to lock time selection'}
+              >
+                <span>{isTimeLocked ? '🔒' : '🔓'}</span>
+                <span className="hidden sm:inline">{isTimeLocked ? 'Locked' : 'Exploring'}</span>
+              </button>
 
-                {/* Reset to Birth Time - show when viewing a different time */}
-                {isViewingWhatIf && (
-                  <button
-                    onClick={handleResetToBirthTime}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-all duration-300 flex items-center gap-1.5"
-                    title="Reset to birth time"
-                  >
-                    <span>↻</span>
-                    <span className="hidden sm:inline">Birth Time</span>
-                  </button>
-                )}
-              </div>
-            )}
+              {/* Reset to Birth Time - show when viewing a different time and has a focused time */}
+              {focusedTime && isViewingWhatIf && (
+                <button
+                  onClick={handleResetToBirthTime}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-all duration-300 flex items-center gap-1.5"
+                  title="Reset to birth time"
+                >
+                  <span>↻</span>
+                  <span className="hidden sm:inline">Birth Time</span>
+                </button>
+              )}
+            </div>
 
             {/* Soul Profile Summary Toggle */}
             <button
@@ -352,18 +350,23 @@ export default function HouseStrengthPlayground({
       </div>
 
       {/* Main content area */}
-      <div className="flex" style={{ minHeight: `${PANEL_HEIGHTS.nave + PANEL_HEIGHTS.cloister + PANEL_HEIGHTS.roseWindow + 200}px` }}>
-        {/* Left: Time Scroller */}
-        <TimeScroller
-          timeline={timeline}
-          selectedIndex={selectedIndex}
-          onSelect={handleTimeSelect}
-          focusedIndex={focusedIndex}
-          isLocked={isTimeLocked}
-        />
+      <div className="flex relative">
+        {/* Left: Time Scroller - sticky sidebar */}
+        <div
+          className="w-20 flex-shrink-0 overflow-y-auto border-r border-cyan-500/20 bg-indigo-950/30 scrollbar-thin scrollbar-thumb-cyan-500/30 scrollbar-track-transparent sticky top-0 self-start"
+          style={{ height: '100vh', maxHeight: '100vh' }}
+        >
+          <TimeScroller
+            timeline={timeline}
+            selectedIndex={selectedIndex}
+            onSelect={handleTimeSelect}
+            focusedIndex={focusedIndex}
+            isLocked={isTimeLocked}
+          />
+        </div>
 
-        {/* Center: Three Vertical Panels (The Cathedral Naves) */}
-        <div className="flex-1 flex flex-col p-4 overflow-y-auto soul-scroll">
+        {/* Center: Three Vertical Panels (The Cathedral Naves) - full height, no scroll */}
+        <div className="flex-1 flex flex-col p-4">
 
           {/* Sacred Legend */}
           <SacredLegend alchemical={alchemicalMode} />
