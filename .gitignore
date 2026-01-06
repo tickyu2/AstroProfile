@@ -5,6 +5,24 @@
 .env.development.local
 .env.test.local
 .env.production.local
+functions/.env
+functions/.env.*
+
+# Firebase/GCP Service Account Keys - NEVER commit these!
+**/serviceAccountKey.json
+**/serviceAccountKey*.json
+**/*-firebase-adminsdk*.json
+**/service-account*.json
+**/credentials.json
+**/*.pem
+**/*.p12
+
+# Firebase local files
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebaserc
 
 # Dependencies
 node_modules/
