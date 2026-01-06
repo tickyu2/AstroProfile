@@ -1458,14 +1458,8 @@ function buildNumerologyRawText(lifePath, destiny, soulUrge, personality, birthd
   return lines.join('\n') || 'No numerology data available';
 }
 
-function calculateLifePathFromDate(birthDate) {
-  if (!birthDate) return null;
-  const [year, month, day] = birthDate.split('-').map(Number);
-  const sum = year.toString().split('').reduce((a, b) => a + parseInt(b), 0) +
-              month.toString().split('').reduce((a, b) => a + parseInt(b), 0) +
-              day.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-  return reduceToSingleDigit(sum);
-}
+// NOTE: calculateLifePathFromDate was removed as dead code.
+// Use calculateLifePathWithFormula from numerologyCalculations.js instead (imported at top).
 
 // ============================================
 // GOLD STANDARD INTERPRETATION HELPERS

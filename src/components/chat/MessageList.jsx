@@ -158,6 +158,20 @@ function MessageList({
                           <span className="text-[10px] opacity-60">
                             {LANGUAGE_NAMES[message.content.translation.targetLanguage] || message.content.translation.targetLanguage}:
                           </span>
+                          {/* Translation source indicator */}
+                          {message.content.translation.model && (
+                            <span className={`text-[9px] px-1 rounded ${
+                              message.content.translation.model.includes('deepseek')
+                                ? 'bg-blue-500/20 text-blue-600'
+                                : message.content.translation.model.includes('claude')
+                                ? 'bg-orange-500/20 text-orange-600'
+                                : 'bg-slate-500/20 text-slate-500'
+                            }`}>
+                              {message.content.translation.model.includes('deepseek') ? '🔷 DeepSeek' :
+                               message.content.translation.model.includes('claude') ? '🟠 Claude' :
+                               message.content.translation.model}
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm whitespace-pre-wrap break-words opacity-90">
                           {message.content.translation.text}

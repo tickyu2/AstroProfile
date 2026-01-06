@@ -85,6 +85,20 @@ function LunaPrivateMessage({ message }) {
                     <span className="text-[10px] text-purple-500">
                       {LANGUAGE_NAMES[translation.targetLanguage] || translation.targetLanguage}:
                     </span>
+                    {/* Translation source indicator */}
+                    {translation.model && (
+                      <span className={`text-[9px] px-1 rounded ${
+                        translation.model.includes('deepseek')
+                          ? 'bg-blue-500/20 text-blue-600'
+                          : translation.model.includes('claude')
+                          ? 'bg-orange-500/20 text-orange-600'
+                          : 'bg-slate-500/20 text-slate-500'
+                      }`}>
+                        {translation.model.includes('deepseek') ? '🔷 DeepSeek' :
+                         translation.model.includes('claude') ? '🟠 Claude' :
+                         translation.model}
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
                     {translation.text}

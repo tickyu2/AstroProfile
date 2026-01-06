@@ -150,6 +150,37 @@ try {
 } catch (e) { anchorDetector = {}; anchorRetrieval = {}; }
 
 // ============================================================================
+// BRAIN 1B FACT EXTRACTION (NEW - 8-Brain Architecture v3.0)
+// ============================================================================
+
+// Fact Extractor - Core extraction logic
+let factExtractor;
+try {
+  factExtractor = require('./factExtractor');
+} catch (e) {
+  console.warn('[Memory] factExtractor not available:', e.message);
+  factExtractor = {};
+}
+
+// Brain 1B Service - Firebase operations for facts STM
+let brain1BService;
+try {
+  brain1BService = require('./brain1BService');
+} catch (e) {
+  console.warn('[Memory] brain1BService not available:', e.message);
+  brain1BService = {};
+}
+
+// Nightly Consolidation - 8-Brain consolidation engine
+let nightlyConsolidation;
+try {
+  nightlyConsolidation = require('./nightlyConsolidation');
+} catch (e) {
+  console.warn('[Memory] nightlyConsolidation not available:', e.message);
+  nightlyConsolidation = {};
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -203,6 +234,35 @@ module.exports = {
   anchorRetrieval,
 
   // ═══════════════════════════════════════════════════════════════════════
+  // BRAIN 1B FACT EXTRACTION (8-Brain Architecture v3.0)
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Fact Extractor - Core extraction functions
+  extractFacts: factExtractor.extractFacts,
+  extractProperNames: factExtractor.extractProperNames,
+  extractLifeStructureFacts: factExtractor.extractLifeStructureFacts,
+  isTransientContent: factExtractor.isTransientContent,
+  consolidateFacts: factExtractor.consolidateFacts,
+  calculatePromotionScore: factExtractor.calculatePromotionScore,
+  shouldPromoteToBrain2: factExtractor.shouldPromoteToBrain2,
+
+  // Brain 1B Service - Firebase operations
+  processMessage: brain1BService.processMessage,
+  getAllFacts: brain1BService.getAllFacts,
+  getFactsByCategory: brain1BService.getFactsByCategory,
+  getFactsAboutPerson: brain1BService.getFactsAboutPerson,
+  getTodaysFacts: brain1BService.getTodaysFacts,
+  searchFacts: brain1BService.searchFacts,
+  runConsolidation: brain1BService.runConsolidation,
+  getBrain2Facts: brain1BService.getBrain2Facts,
+  getBrain2Relationships: brain1BService.getBrain2Relationships,
+  getBrain2LifeStructure: brain1BService.getBrain2LifeStructure,
+  buildUserProfileSummary: brain1BService.buildUserProfileSummary,
+
+  // Nightly Consolidation - Cloud Functions
+  nightlyConsolidation,
+
+  // ═══════════════════════════════════════════════════════════════════════
   // DIRECT MODULE ACCESS
   // ═══════════════════════════════════════════════════════════════════════
 
@@ -214,6 +274,11 @@ module.exports = {
     tango,
     analysis,
     orchestrator,
+
+    // 8-Brain Architecture v3.0
+    factExtractor,
+    brain1BService,
+    nightlyConsolidation,
 
     // Legacy modules
     scoring: scoringUtils,

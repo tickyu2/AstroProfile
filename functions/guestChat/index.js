@@ -5,16 +5,27 @@
  * - Calls Claude API for Einstein responses
  * - Calls Claude API for Luna coaching
  * - Writes to Brain 3 (messages), Brain 7 (witness), Brain 1B (facts)
- * - Extracts biographical facts from user messages
+ * - Real-time fact extraction using Brain 1B service (Person-Tie Rule)
  *
  * Additional:
  * - handleLunaPrivateQuery: Private consultation with Luna (bypasses guest)
  *
  * Security: Uses service account with system_role for Brain writes
+ *
+ * Updated: January 5, 2026 - Integrated 8-Brain Architecture v3.0
  */
 
 const admin = require('firebase-admin');
 const Anthropic = require('@anthropic-ai/sdk');
+
+// Import Brain 1B Service for real-time fact extraction
+let brain1BService;
+try {
+  brain1BService = require('../memory/brain1BService');
+} catch (e) {
+  console.warn('[GuestChat] brain1BService not available:', e.message);
+  brain1BService = null;
+}
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -54,8 +65,28 @@ async function handleGuestChat(data, context) {
   const threadId = `thread_${userId}_${partnerId}_${today}`;
 
   try {
-    // 1. Build Einstein's system prompt
-    const einsteinPrompt = buildGuestPrompt(guestProfile, userConstitutional, learnedFacts, conversationHistory);
+    // 0. Retrieve Brain 2 facts (validated LTM) for enhanced context
+    let brain2Facts = [];
+    let brain2Summary = null;
+    if (brain1BService && brain1BService.getBrain2Facts) {
+      try {
+        brain2Facts = await brain1BService.getBrain2Facts(userId);
+        if (brain2Facts.length > 0) {
+          console.log(`[Brain 2] Retrieved ${brain2Facts.length} validated facts for system prompt`);
+        }
+
+        // Also get user profile summary if available
+        if (brain1BService.buildUserProfileSummary) {
+          brain2Summary = await brain1BService.buildUserProfileSummary(userId);
+        }
+      } catch (brain2Error) {
+        console.error('[Brain 2] Retrieval error:', brain2Error);
+        // Continue without Brain 2 - use learnedFacts fallback
+      }
+    }
+
+    // 1. Build Einstein's system prompt (now includes Brain 2 facts)
+    const einsteinPrompt = buildGuestPrompt(guestProfile, userConstitutional, learnedFacts, conversationHistory, brain2Facts, brain2Summary);
 
     // 2. Call Claude API for Einstein's response
     const einsteinResponse = await anthropic.messages.create({
@@ -80,8 +111,37 @@ async function handleGuestChat(data, context) {
       });
     }
 
-    // 4. Extract biographical facts from user message
-    const extractedFacts = extractBiographicalFacts(userMessage, {
+    // 4. Extract facts using Brain 1B Service (Person-Tie Rule + Life Structure)
+    // Real-time extraction from Brain 3 text, stored in Brain 1B STM
+    let extractedFactsCount = 0;
+    let brain1BResult = null;
+
+    if (brain1BService && brain1BService.processMessage) {
+      try {
+        brain1BResult = await brain1BService.processMessage(
+          userId,
+          userMessage,
+          'brain3', // Source: text conversation
+          {
+            timestamp,
+            partnerId,
+            partnerName: guestProfile?.profile_name || 'Guest',
+            context: 'guest_chat'
+          }
+        );
+
+        if (brain1BResult?.extracted) {
+          extractedFactsCount = brain1BResult.factCount || 0;
+          console.log(`[Brain 1B] Extracted ${extractedFactsCount} facts from message`);
+        }
+      } catch (brain1BError) {
+        console.error('[Brain 1B] Fact extraction error:', brain1BError);
+        // Continue without Brain 1B - don't block chat
+      }
+    }
+
+    // Fallback: Legacy fact extraction (if Brain 1B not available)
+    const legacyFacts = extractBiographicalFacts(userMessage, {
       partnerId,
       timestamp
     });
@@ -148,16 +208,19 @@ async function handleGuestChat(data, context) {
       created_at: timestamp
     });
 
-    // 5d. Write extracted facts to Brain 1B (if any)
-    if (extractedFacts.length > 0) {
+    // 5d. Write legacy facts to Brain 1B (only if Brain 1B service didn't extract)
+    // Brain 1B Service writes directly to brain1_facts_stm collection
+    // Legacy writes to brain1_learned_biography for backwards compatibility
+    if (!brain1BResult?.extracted && legacyFacts.length > 0) {
       const brain1BRef = db.doc(`users/${userId}/brain1_learned_biography/${partnerId}`);
       batch.set(brain1BRef, {
         partner_id: partnerId,
         partner_name: guestProfile?.profile_name || 'Guest',
         partner_type: guestProfile?.profile_type || 'historical_figure',
-        learned_facts: admin.firestore.FieldValue.arrayUnion(...extractedFacts),
+        learned_facts: admin.firestore.FieldValue.arrayUnion(...legacyFacts),
         last_updated: timestamp
       }, { merge: true });
+      extractedFactsCount = legacyFacts.length;
     }
 
     // Commit batch asynchronously (don't block response)
@@ -185,7 +248,15 @@ async function handleGuestChat(data, context) {
         is_private: true,
         coaching_type: lunaCoaching.coaching_type
       } : null,
-      extractedFacts: extractedFacts.length
+      extractedFacts: extractedFactsCount,
+      brain1BResult: brain1BResult?.extracted ? {
+        factCount: brain1BResult.factCount,
+        facts: brain1BResult.facts?.map(f => ({
+          category: f.category,
+          name: f.name || f.value,
+          type: f.type
+        }))
+      } : null
     };
 
   } catch (error) {
@@ -196,9 +267,12 @@ async function handleGuestChat(data, context) {
 
 /**
  * Build guest AI prompt with constitutional personalization
- * Now includes full chart with planets and retrogrades
+ * Now includes:
+ * - Full chart with planets and retrogrades (Brain 1A)
+ * - Validated facts from Brain 2 (LTM)
+ * - User profile summary for relationship context
  */
-function buildGuestPrompt(profile, userConstitutional, learnedFacts, history) {
+function buildGuestPrompt(profile, userConstitutional, learnedFacts, history, brain2Facts = [], brain2Summary = null) {
   if (!profile?.ai_config?.system_prompt_template) {
     return `You are ${profile?.profile_name || 'a helpful assistant'}. Respond thoughtfully.`;
   }
@@ -282,9 +356,59 @@ TEACHING NOTE: These retrograde placements are GIFTS, not flaws. Adapt your teac
     constitutionalText = sections.join('\n\n');
   }
 
-  let learnedFactsText = 'No facts learned yet.';
+  // Build comprehensive facts section from Brain 2 (validated LTM) + legacy learned facts
+  let learnedFactsText = 'No facts learned yet about this user.';
+
+  const factsSections = [];
+
+  // Brain 2 validated facts (higher confidence)
+  if (brain2Facts && brain2Facts.length > 0) {
+    const brain2Lines = brain2Facts.map(f => {
+      const confidence = f.confidence ? ` (${Math.round(f.confidence * 100)}% confidence)` : '';
+      if (f.category === 'relationship') {
+        return `- ${f.name}: ${f.type || 'person in their life'}${f.sentiment ? ` [${f.sentiment}]` : ''}${confidence}`;
+      } else if (f.category === 'life_structure') {
+        return `- ${f.type}: ${f.value}${confidence}`;
+      }
+      return `- ${f.value || f.name || 'Unknown fact'}${confidence}`;
+    });
+    factsSections.push(`VALIDATED FACTS (Brain 2 - High Confidence):\n${brain2Lines.join('\n')}`);
+  }
+
+  // User profile summary (relationships, employment, etc.)
+  if (brain2Summary) {
+    const summaryParts = [];
+    if (brain2Summary.employment) {
+      summaryParts.push(`Works as/at: ${brain2Summary.employment}`);
+    }
+    if (brain2Summary.education) {
+      summaryParts.push(`Education: ${brain2Summary.education}`);
+    }
+    if (brain2Summary.residence) {
+      summaryParts.push(`Location: ${brain2Summary.residence}`);
+    }
+    if (Object.keys(brain2Summary.relationships || {}).length > 0) {
+      const relLines = Object.entries(brain2Summary.relationships).map(([name, data]) =>
+        `  - ${name}: ${data.role}${data.sentiment ? ` (${data.sentiment})` : ''}`
+      );
+      summaryParts.push(`Key People:\n${relLines.join('\n')}`);
+    }
+    if (brain2Summary.interests?.length > 0) {
+      summaryParts.push(`Interests: ${brain2Summary.interests.join(', ')}`);
+    }
+    if (summaryParts.length > 0) {
+      factsSections.push(`USER PROFILE SUMMARY:\n${summaryParts.join('\n')}`);
+    }
+  }
+
+  // Legacy learned facts (backward compatibility)
   if (learnedFacts && learnedFacts.length > 0) {
-    learnedFactsText = learnedFacts.map((f, i) => `${i + 1}. ${f.fact}`).join('\n');
+    const legacyLines = learnedFacts.map((f, i) => `${i + 1}. ${f.fact}`);
+    factsSections.push(`ADDITIONAL LEARNED FACTS:\n${legacyLines.join('\n')}`);
+  }
+
+  if (factsSections.length > 0) {
+    learnedFactsText = factsSections.join('\n\n');
   }
 
   let conversationText = 'Start of conversation.';

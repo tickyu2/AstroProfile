@@ -3125,6 +3125,11 @@ exports.getHouseStrengthTimeline = onCall({
 const memoryFunctions = require('./memory/memoryFunctions');
 const dualBrainFunctions = require('./memory/dualBrainFunctions');
 const sleepConsolidation = require('./memory/sleepConsolidation');
+
+// 8-Brain Memory Architecture v3.0 (Brain 1B Fact Extraction)
+const brain1BService = require('./memory/brain1BService');
+const brain8Consolidation = require('./memory/nightlyConsolidation');
+
 const voiceFunctions = require('./voice/voiceFunctions');
 const elevenLabsService = require('./voice/elevenLabsService');
 const toolChat = require('./tools/toolChat');
@@ -3149,7 +3154,8 @@ exports.getMemoryContext = memoryFunctions.getMemoryContext;
 exports.getPendingQuestions = memoryFunctions.getPendingQuestions;
 exports.markQuestionAnswered = memoryFunctions.markQuestionAnswered;
 exports.getTimelineEvents = memoryFunctions.getTimelineEvents;
-exports.searchTimeline = memoryFunctions.searchTimeline;
+// NOTE: Renamed to searchTimelinePG to avoid conflict with newer onCall searchTimeline (line ~4463)
+exports.searchTimelinePG = memoryFunctions.searchTimeline;
 exports.getTimelineWithQuestions = memoryFunctions.getTimelineWithQuestions;
 
 // Luna's Brain (SoulPartner's Private Journal & Patterns) - Inspired by Kindroid
@@ -3204,8 +3210,9 @@ exports.searchInteractionTimeline = dualBrainFunctions.searchInteractionTimeline
 exports.getKeyObservations = dualBrainFunctions.getKeyObservations;
 
 // SoulPartner's Brain - Pattern Detection
-exports.storePattern = dualBrainFunctions.storePattern;
-exports.getPatterns = dualBrainFunctions.getPatterns;
+// NOTE: Renamed to avoid conflict with memoryFunctions.storePattern/getPatterns (Luna's Brain)
+exports.storeDualBrainPattern = dualBrainFunctions.storePattern;
+exports.getDualBrainPatterns = dualBrainFunctions.getPatterns;
 
 // Unified Dual-Brain Context (main RAG entry point)
 exports.getDualBrainContext = dualBrainFunctions.getDualBrainContext;
@@ -3217,6 +3224,35 @@ exports.getDualBrainContext = dualBrainFunctions.getDualBrainContext;
 exports.nightlyConsolidation = sleepConsolidation.nightlyConsolidation;
 exports.manualConsolidation = sleepConsolidation.manualConsolidation;
 exports.getConsolidationStatus = sleepConsolidation.getConsolidationStatus;
+
+// ---------------------------------------------------------------------------
+// 8-BRAIN MEMORY ARCHITECTURE v3.0 (Brain 1B Fact Extraction)
+// Real-time fact extraction from text/audio → Brain 1B → Brain 2 consolidation
+// ---------------------------------------------------------------------------
+
+// Brain 1B Service - Real-time fact processing
+exports.processMessageForFacts = brain1BService.processMessage;
+exports.getBrain1BFacts = brain1BService.getAllFacts;
+exports.getBrain1BFactsByCategory = brain1BService.getFactsByCategory;
+exports.getFactsAboutPerson = brain1BService.getFactsAboutPerson;
+exports.getTodaysFacts = brain1BService.getTodaysFacts;
+exports.searchBrain1BFacts = brain1BService.searchFacts;
+exports.runBrain1BConsolidation = brain1BService.runConsolidation;
+
+// Brain 2 LTM - Validated facts
+exports.getBrain2Facts = brain1BService.getBrain2Facts;
+exports.getBrain2Relationships = brain1BService.getBrain2Relationships;
+exports.getBrain2LifeStructure = brain1BService.getBrain2LifeStructure;
+exports.buildUserProfileSummary = brain1BService.buildUserProfileSummary;
+
+// Semantic Search (Vector-based) - 768-dim Gemini embeddings
+exports.searchFactsSemantically = brain1BService.searchFactsSemantically;
+exports.findRelatedFacts = brain1BService.findRelatedFacts;
+exports.checkSemanticDuplicate = brain1BService.checkSemanticDuplicate;
+
+// Brain 8 Consolidation - Scheduled nightly processing
+exports.brain8NightlyConsolidation = brain8Consolidation.scheduledConsolidation;
+exports.brain8ManualConsolidation = brain8Consolidation.manualConsolidation;
 
 // ---------------------------------------------------------------------------
 // LUNA VOICE INTERFACE (Gemini Live Audio)
@@ -3474,9 +3510,10 @@ exports.storeCulturalMemory = onCall({
 });
 
 /**
- * Manual consolidation trigger for a specific user
+ * Manual consolidation trigger for a specific user (PostgreSQL Engine)
+ * NOTE: Renamed to triggerConsolidationPG to avoid conflict with consolidationScheduler.triggerConsolidation
  */
-exports.triggerConsolidation = onCall({
+exports.triggerConsolidationPG = onCall({
   timeoutSeconds: 120,
   memory: '1GiB'
 }, async (request) => {
@@ -4103,8 +4140,9 @@ exports.getTimelineOverview = onCall({
 /**
  * Get timeline statistics for dashboard
  * Reads from Firestore life_timeline collection
+ * NOTE: Renamed to getLifeTimelineStats to avoid conflict with timelineEndpoints.getTimelineStats
  */
-exports.getTimelineStats = onCall({
+exports.getLifeTimelineStats = onCall({
   timeoutSeconds: 30,
   memory: '256MiB'
 }, async (request) => {
