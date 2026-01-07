@@ -1,0 +1,18 @@
+# Firebase Functions
+firebase-functions>=0.1.0
+firebase-admin>=6.0.0
+
+# Swiss Ephemeris - Precision Astrology Calculations
+pyswisseph>=2.10.0
+
+# Neo4j Graph Database
+neo4j>=5.0.0
+
+# Vector Embeddings & AI
+sentence-transformers>=2.2.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Utilities
+python-dateutil>=2.8.0
+pytz>=2023.3

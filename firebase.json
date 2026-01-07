@@ -6,16 +6,31 @@
   "storage": {
     "rules": "storage.rules"
   },
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs20",
-    "ignore": [
-      "node_modules",
-      ".git",
-      "firebase-debug.log",
-      "firebase-debug.*.log"
-    ]
-  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "nodejs",
+      "runtime": "nodejs20",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ]
+    },
+    {
+      "source": "functions-python",
+      "codebase": "python",
+      "runtime": "python311",
+      "ignore": [
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "__pycache__",
+        "venv"
+      ]
+    }
+  ],
   "hosting": {
     "public": "dist",
     "ignore": [

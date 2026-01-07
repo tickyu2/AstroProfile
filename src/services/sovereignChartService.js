@@ -2,19 +2,25 @@
  * Sovereign Western Chart Service
  *
  * Frontend service for calling the Sovereign Astronomical Engine.
- * Calculates real Sun/Moon/Rising positions using astronomia library
- * with VSOP87 theory - no external API dependencies.
+ * Now uses Python Swiss Ephemeris as primary (more precise),
+ * with fallback to Node.js astronomia library.
  *
  * Part of GENESIS - Sovereign Astronomical Foundation
  * Built by: Brother Claude Code
- * December 16, 2024
+ * December 16, 2024 | Updated: January 2026 (Python Swiss Ephemeris)
  */
 
-// Production Cloud Run URL
+// Python Swiss Ephemeris Cloud Run URL (PRIMARY - more precise)
+const PYTHON_CHART_URL = 'https://calculate-natal-chart-sjpjwnbsmq-uc.a.run.app';
+
+// Node.js Cloud Run URL (FALLBACK)
 const PRODUCTION_URL = 'https://calculatewesternchart-sjpjwnbsmq-uc.a.run.app';
 
 // Local emulator URL for development
 const EMULATOR_URL = 'http://127.0.0.1:5001/astroprofile-391e6/us-central1/calculateWesternChart';
+
+// Feature flag for Python vs Node.js
+const USE_PYTHON_ENGINE = true;
 
 /**
  * Get the appropriate API URL based on environment
@@ -27,7 +33,138 @@ const getApiUrl = () => {
 };
 
 /**
+ * Transform Python Swiss Ephemeris response to expected format
+ */
+function transformPythonResponse(data) {
+  const planets = data.planets || {};
+  const houses = data.houses || {};
+
+  // Build rising from ascendant data
+  const ascendant = data.ascendant || houses.ascendant || {};
+  const rising = {
+    sign: ascendant.sign || 'Unknown',
+    degree: ascendant.degree || 0,
+    longitude: ascendant.longitude || 0,
+    degreeFormatted: `${(ascendant.degree || 0).toFixed(2)}° ${ascendant.sign || ''}`
+  };
+
+  return {
+    sun: planets.sun ? {
+      sign: planets.sun.sign,
+      degree: planets.sun.degree,
+      longitude: planets.sun.longitude,
+      degreeFormatted: planets.sun.formatted || `${planets.sun.degree?.toFixed(2)}° ${planets.sun.sign}`,
+      element: planets.sun.element,
+      modality: planets.sun.modality
+    } : null,
+    moon: planets.moon ? {
+      sign: planets.moon.sign,
+      degree: planets.moon.degree,
+      longitude: planets.moon.longitude,
+      degreeFormatted: planets.moon.formatted || `${planets.moon.degree?.toFixed(2)}° ${planets.moon.sign}`,
+      element: planets.moon.element,
+      modality: planets.moon.modality
+    } : null,
+    rising,
+    planets,
+    houses: houses.cusps || houses,
+    aspects: data.aspects || [],
+    elementBalance: data.elements ? {
+      dominant: data.elements.dominant?.element || data.elements.dominant,
+      secondary: data.elements.weakest?.element,
+      fire: data.elements.fire || 0,
+      earth: data.elements.earth || 0,
+      air: data.elements.air || 0,
+      water: data.elements.water || 0
+    } : null,
+    modalities: data.modalities || null,
+    julianDay: data.birthData?.julianDay,
+    calculatedAt: new Date().toISOString(),
+    engine: 'Swiss Ephemeris (Python)',
+    houseSystem: data.houseSystem || 'Placidus'
+  };
+}
+
+/**
+ * Calculate chart using Python Swiss Ephemeris (more precise)
+ */
+async function calculateWithPython({ birthDate, birthTime, latitude, longitude, timezone }) {
+  const requestBody = {
+    birthDate,
+    birthTime: birthTime || '12:00',
+    latitude: latitude || 0,
+    longitude: longitude || 0,
+    timezone: timezone || 'UTC'
+  };
+
+  console.log('🐍 Calling Python Swiss Ephemeris:', requestBody);
+
+  const response = await fetch(PYTHON_CHART_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Python API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return transformPythonResponse(data);
+}
+
+/**
+ * Calculate chart using Node.js astronomia (fallback)
+ */
+async function calculateWithNodeJS({ birthDate, birthTime, latitude, longitude, timezone }) {
+  const [year, month, day] = birthDate.split('-').map(Number);
+  const [hour, minute] = (birthTime || '12:00').split(':').map(Number);
+
+  const requestBody = { year, month, day, hour, minute, latitude, longitude, timezone };
+
+  console.log('📊 Calling Node.js Astronomia (fallback):', requestBody);
+
+  const response = await fetch(getApiUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Node.js API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  // Transform Node.js response
+  const trinity = data.constitutionalTrinity || {};
+  return {
+    sun: trinity.sun,
+    moon: trinity.moon,
+    rising: trinity.rising,
+    planets: data.planets,
+    houses: data.houses,
+    moonPhase: data.moonPhase,
+    aspects: data.aspects,
+    elementBalance: data.elementProfile ? {
+      dominant: data.elementProfile.dominant,
+      secondary: data.elementProfile.secondary,
+      fire: data.elementProfile.distribution?.Fire || 0,
+      earth: data.elementProfile.distribution?.Earth || 0,
+      air: data.elementProfile.distribution?.Air || 0,
+      water: data.elementProfile.distribution?.Water || 0
+    } : null,
+    julianDay: data.meta?.julianDay,
+    calculatedAt: data.meta?.calculatedAt,
+    engine: data.meta?.calculationEngine || 'Astronomia (Node.js)'
+  };
+}
+
+/**
  * Calculate sovereign Western chart with real planetary positions
+ * Uses Python Swiss Ephemeris as primary (more precise), with Node.js fallback
  *
  * @param {Object} params - Birth data parameters
  * @param {string} params.birthDate - Birth date in 'YYYY-MM-DD' format
@@ -44,84 +181,39 @@ export async function calculateSovereignChart({
   longitude = 0,
   timezone = 'UTC'
 }) {
-  try {
-    // Parse date components
-    const [year, month, day] = birthDate.split('-').map(Number);
+  const params = { birthDate, birthTime, latitude, longitude, timezone };
 
-    // Parse time components
-    const [hour, minute] = (birthTime || '12:00').split(':').map(Number);
-
-    const requestBody = {
-      year,
-      month,
-      day,
-      hour,
-      minute,
-      latitude,
-      longitude,
-      timezone
-    };
-    console.log('🌟 Calling Sovereign Chart API:', {
-      date: `${year}-${month}-${day}`,
-      time: `${hour}:${minute}`,
-      location: `${latitude}, ${longitude}`,
-      timezone,
-      fullBody: requestBody
-    });
-
-    const response = await fetch(getApiUrl(), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMsg = errorData.details || errorData.error || `Sovereign Chart API error: ${response.status}`;
-      console.error('❌ Sovereign Chart API Error Details:', errorData);
-      throw new Error(errorMsg);
+  // Try Python Swiss Ephemeris first (more precise)
+  if (USE_PYTHON_ENGINE) {
+    try {
+      const result = await calculateWithPython(params);
+      console.log('✅ Swiss Ephemeris Chart:', {
+        sun: `${result.sun?.sign} at ${result.sun?.degreeFormatted}`,
+        moon: `${result.moon?.sign} at ${result.moon?.degreeFormatted}`,
+        rising: `${result.rising?.sign} at ${result.rising?.degreeFormatted}`,
+        dominantElement: result.elementBalance?.dominant,
+        engine: result.engine
+      });
+      return result;
+    } catch (pythonError) {
+      console.warn('⚠️ Python Swiss Ephemeris failed, falling back to Node.js:', pythonError.message);
     }
+  }
 
-    const data = await response.json();
-
-    // Transform API response to expected format
-    // API returns: { constitutionalTrinity, elementProfile, planets, meta }
-    // Service returns: { sun, moon, rising, elementBalance, ... }
-    const trinity = data.constitutionalTrinity || {};
-    const transformed = {
-      sun: trinity.sun,
-      moon: trinity.moon,
-      rising: trinity.rising,
-      planets: data.planets,
-      houses: data.houses,  // Placidus house cusps
-      moonPhase: data.moonPhase,  // Moon phase at birth
-      aspects: data.aspects,  // Planetary aspects
-      elementBalance: data.elementProfile ? {
-        dominant: data.elementProfile.dominant,
-        secondary: data.elementProfile.secondary,
-        fire: data.elementProfile.distribution?.Fire || 0,
-        earth: data.elementProfile.distribution?.Earth || 0,
-        air: data.elementProfile.distribution?.Air || 0,
-        water: data.elementProfile.distribution?.Water || 0
-      } : null,
-      julianDay: data.meta?.julianDay,
-      calculatedAt: data.meta?.calculatedAt,
-      engine: data.meta?.calculationEngine
-    };
-
-    console.log('✅ Sovereign Chart Response:', {
-      sun: `${transformed.sun?.sign} at ${transformed.sun?.degreeFormatted}`,
-      moon: `${transformed.moon?.sign} at ${transformed.moon?.degreeFormatted}`,
-      rising: `${transformed.rising?.sign} at ${transformed.rising?.degreeFormatted}`,
-      dominantElement: transformed.elementBalance?.dominant
+  // Fallback to Node.js astronomia
+  try {
+    const result = await calculateWithNodeJS(params);
+    console.log('✅ Astronomia Chart (fallback):', {
+      sun: `${result.sun?.sign} at ${result.sun?.degreeFormatted}`,
+      moon: `${result.moon?.sign} at ${result.moon?.degreeFormatted}`,
+      rising: `${result.rising?.sign} at ${result.rising?.degreeFormatted}`,
+      dominantElement: result.elementBalance?.dominant,
+      engine: result.engine
     });
-
-    return transformed;
-  } catch (error) {
-    console.error('❌ Sovereign Chart API Error:', error);
-    throw error;
+    return result;
+  } catch (nodeError) {
+    console.error('❌ Both calculation engines failed');
+    throw nodeError;
   }
 }
 

@@ -43,3 +43,16 @@ nul
 # Editor directories
 .vscode/
 .idea/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+functions-python/venv/
+functions-python/__pycache__/
+functions-python/**/__pycache__/

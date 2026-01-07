@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * BIOGRAPHICAL LIFE EVENT EXTRACTOR
+ * BIOGRAPHICAL LIFE EVENT EXTRACTOR - "Living Archive" Edition
  * ============================================================================
  * Intelligently extracts life events from conversation messages
  * Creates structured timeline entries with temporal data
@@ -10,8 +10,16 @@
  * - Zep/Graphiti Temporal Knowledge Graph
  * - Episodic vs Semantic Memory separation
  * - Bi-temporal model (event time vs mention time)
+ * - Digital Souls "Memory Brick" pattern (sensory + wisdom)
+ *
+ * Enhanced January 2026 with:
+ * - ai_summary: polished per-memory summary for future recall
+ * - sensory_details: visual, scent, audio, touch_taste
+ * - core_wisdom: life lessons extracted from events
+ * - voice_tone: emotional quality of how memories are shared
  *
  * Created: December 22, 2025
+ * Enhanced: January 7, 2026 (Digital Souls integration)
  * Mission: JOIE DE VIVRE - Curating Life Stories
  */
 
@@ -70,8 +78,9 @@ const LIFE_CHAPTERS = {
 // ============================================================================
 
 const EXTRACTION_PROMPT = `You are a biographical intelligence system that extracts life events from conversation.
+You are building a "Living Archive" - memories rich enough that future generations can truly experience and connect with this person's life story.
 
-TASK: Analyze the message for any biographical life events mentioned. Extract structured data about the person's life story.
+TASK: Analyze the message for any biographical life events mentioned. Extract structured data about the person's life story, including SENSORY DETAILS and WISDOM that make memories come alive.
 
 LIFE EVENT TYPES to detect:
 - education: Schools, degrees, learning milestones
@@ -91,19 +100,28 @@ LIFE EVENT TYPES to detect:
 For each life event found, extract:
 1. event_type: One of the types above
 2. title: Brief descriptive title
-3. description: What happened (from what was shared)
-4. date: Any temporal information
+3. description: What happened (from what was shared - raw extraction)
+4. ai_summary: A polished 1-2 sentence summary of this memory, written as if describing the person's life to future generations. Should capture the essence, emotion, and significance.
+5. date: Any temporal information
    - year (if mentioned or inferable)
    - month (if mentioned)
    - day (if mentioned)
    - age_at_event (if inferable)
    - precision: "exact", "year", "decade", "approximate", "unknown"
-5. location: Place information if mentioned
+6. location: Place information if mentioned
    - city, state, country
-6. people_involved: Names of people mentioned
-7. emotions: Emotional tone detected
-8. confidence: 0-1 score for extraction accuracy
-9. neural_pathways: Questions to ask to learn more (gaps in the story)
+7. people_involved: Names of people mentioned
+8. emotions: Emotional tone detected (e.g., ["joy", "nostalgia", "pride"])
+9. voice_tone: The emotional quality of how this memory is shared (e.g., "nostalgic and warm", "bittersweet", "proud but humble", "wistful")
+10. sensory_details: CRITICAL - Extract any sensory anchors that make this memory vivid:
+   - visual: What did they SEE? (colors, light, faces, scenes)
+   - scent: What did they SMELL? (food, nature, places)
+   - audio: What did they HEAR? (voices, music, sounds)
+   - touch_taste: What did they FEEL or TASTE? (textures, temperatures, flavors)
+   NOTE: Only include senses that are actually mentioned or strongly implied. Use null for others.
+11. core_wisdom: If the person shares a life lesson, value, or insight from this event - capture it as a quotable truth
+12. confidence: 0-1 score for extraction accuracy
+13. neural_pathways: Questions to ask to learn more (gaps in the story)
 
 IMPORTANT RULES:
 - Only extract ACTUAL life events mentioned, not hypotheticals
@@ -113,6 +131,9 @@ IMPORTANT RULES:
 - Neural pathways should be natural follow-up questions a biographer would ask
 - Do NOT extract trivial daily activities unless they represent milestones
 - Look for BIOGRAPHICAL significance
+- AI_SUMMARY should read like a biography excerpt - evocative and meaningful, written for future generations
+- SENSORY DETAILS are precious - they make memories "living". Extract every sensory detail mentioned!
+- CORE WISDOM captures the meaning behind events - what did they learn?
 
 OUTPUT FORMAT (JSON):
 {
@@ -122,6 +143,7 @@ OUTPUT FORMAT (JSON):
       "event_type": "education",
       "title": "University enrollment",
       "description": "Started attending University of Texas",
+      "ai_summary": "At 18, they took a leap of faith and enrolled at the University of Texas in Austin - a decision that would shape the rest of their life, marked by the excitement of new beginnings and the nervous energy of stepping into the unknown.",
       "date": {
         "year": 1982,
         "month": null,
@@ -136,6 +158,14 @@ OUTPUT FORMAT (JSON):
       },
       "people_involved": [],
       "emotions": ["excitement", "uncertainty"],
+      "voice_tone": "nostalgic with a hint of pride",
+      "sensory_details": {
+        "visual": "Red brick buildings, sprawling campus lawns",
+        "scent": "Fresh cut grass and coffee from the student union",
+        "audio": "Church bells from the tower every hour",
+        "touch_taste": null
+      },
+      "core_wisdom": "Sometimes the scariest decisions lead to the best chapters of your life.",
       "confidence": 0.9,
       "neural_pathways": [
         "What semester did you start?",
@@ -631,6 +661,8 @@ async function getNeuralPathways(db, userId, profileId, limit = 10) {
 
   snapshot.forEach(doc => {
     const event = doc.data();
+
+    // Add LLM-generated neural pathways
     if (event.neural_pathways && event.neural_pathways.length > 0) {
       event.neural_pathways.forEach(question => {
         // Skip questions that have been answered based on current event data
@@ -647,10 +679,27 @@ async function getNeuralPathways(db, userId, profileId, limit = 10) {
             year: event.date?.year,
             type: event.event_type
           },
-          priority: calculateQuestionPriority(question, event)
+          priority: calculateQuestionPriority(question, event),
+          category: 'llm_generated'
         });
       });
     }
+
+    // Add sensory-focused pathways for events missing rich details
+    const sensoryPathways = generateSensoryPathways(event);
+    sensoryPathways.forEach(question => {
+      allPathways.push({
+        question,
+        relatedEvent: {
+          id: doc.id,
+          title: event.title,
+          year: event.date?.year,
+          type: event.event_type
+        },
+        priority: 0.85, // High priority for sensory enrichment
+        category: 'sensory_enrichment'
+      });
+    });
   });
 
   // Sort by priority and return top N
@@ -670,6 +719,21 @@ function calculateQuestionPriority(question, event) {
   if (question.toLowerCase().includes('who')) priority += 0.15;
   if (question.toLowerCase().includes('when')) priority += 0.1;
 
+  // Higher priority for sensory questions (make memories vivid)
+  if (question.toLowerCase().includes('smell') ||
+      question.toLowerCase().includes('sound') ||
+      question.toLowerCase().includes('look like') ||
+      question.toLowerCase().includes('feel like')) {
+    priority += 0.25;
+  }
+
+  // Higher priority for wisdom questions
+  if (question.toLowerCase().includes('learn') ||
+      question.toLowerCase().includes('realize') ||
+      question.toLowerCase().includes('teach')) {
+    priority += 0.2;
+  }
+
   // Higher priority for less confident events
   if (event.confidence < 0.7) priority += 0.2;
 
@@ -679,6 +743,40 @@ function calculateQuestionPriority(question, event) {
   }
 
   return Math.min(1, priority);
+}
+
+/**
+ * Generate sensory-focused neural pathways for events missing rich details
+ * Inspired by Digital Souls "Memory Brick" approach
+ */
+function generateSensoryPathways(event) {
+  const pathways = [];
+  const sensory = event.sensory_details || {};
+
+  // If missing visual details
+  if (!sensory.visual) {
+    pathways.push(`When you think about ${event.title}, what's the first image that comes to mind?`);
+    pathways.push(`What did the place look like where this happened?`);
+  }
+
+  // If missing scent
+  if (!sensory.scent) {
+    pathways.push(`Do you remember any particular smells from that time?`);
+  }
+
+  // If missing audio
+  if (!sensory.audio) {
+    pathways.push(`What sounds do you associate with this memory?`);
+    pathways.push(`Was there any music playing during that time?`);
+  }
+
+  // If missing wisdom
+  if (!event.core_wisdom) {
+    pathways.push(`Looking back, what did this experience teach you?`);
+    pathways.push(`What would you tell someone going through the same thing?`);
+  }
+
+  return pathways;
 }
 
 // ============================================================================
@@ -770,6 +868,7 @@ module.exports = {
   getNeuralPathways,
   getBiographyTimeline,
   getBiographyStats,
+  generateSensoryPathways,
   LIFE_EVENT_TYPES,
   LIFE_CHAPTERS
 };
