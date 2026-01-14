@@ -71,3 +71,6 @@ export { default as ElementCalculationFlaps } from './organisms/ElementCalculati
 // Seasonality Analysis (四季土 Doctrine)
 export { default as SeasonalityComparisonChart } from './organisms/SeasonalityComparisonChart';
 export { default as SeasonalityPairComparison } from './organisms/SeasonalityPairComparison';
+
+// Yin/Yang Pair Compatibility
+export { default as YinYangPairPanel } from './organisms/YinYangPairPanel';

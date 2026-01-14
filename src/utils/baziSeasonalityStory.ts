@@ -17,6 +17,8 @@
 import { SeasonalityResult, Element } from './baziSeasonality';
 import { DMSeasonalityResult } from './baziDmSeasonality';
 import { TenGodsSeasonalityResult, TenGodCategory } from './baziTenGodsSeasonality';
+import { YinYangProfile, FourPillars } from './baziYinYang';
+import { ChartStemBranchAnalysis } from './baziStemBranchRelations';
 
 // ============================================================================
 // SEASON METAPHORS
@@ -75,6 +77,110 @@ const ELEMENT_METAPHORS: Record<Element, { nature: string; gift: string; challen
     nature: 'the flowing stream',
     gift: 'wisdom, adaptability, and deep understanding',
     challenge: 'learning when to take form and when to flow'
+  }
+};
+
+// ============================================================================
+// YIN/YANG POLARITY METAPHORS
+// ============================================================================
+
+const POLARITY_METAPHORS: Record<YinYangProfile['balance'], {
+  label: string;
+  metaphor: string;
+  tendency: string;
+  gift: string;
+}> = {
+  very_yang: {
+    label: 'Strongly Yang',
+    metaphor: 'like the midday sun - radiant, forceful, commanding attention',
+    tendency: 'to initiate, to lead, to be visible and direct',
+    gift: 'the ability to start things, to inspire action, to cut through hesitation'
+  },
+  yang: {
+    label: 'Yang-Leaning',
+    metaphor: 'like the morning sun - rising energy, forward momentum',
+    tendency: 'to be proactive, to express outwardly, to engage actively',
+    gift: 'a natural drive toward action while still being receptive'
+  },
+  balanced: {
+    label: 'Yin-Yang Balanced',
+    metaphor: 'like the equinox - equal parts light and shadow, movement and stillness',
+    tendency: 'to adapt fluidly between action and reflection',
+    gift: 'versatility - the ability to lead or follow as the moment requires'
+  },
+  yin: {
+    label: 'Yin-Leaning',
+    metaphor: 'like the evening moon - soft illumination, receptive presence',
+    tendency: 'to observe, to adapt, to respond rather than initiate',
+    gift: 'deep perception and the ability to work skillfully with what is given'
+  },
+  very_yin: {
+    label: 'Strongly Yin',
+    metaphor: 'like the midnight moon - quiet, profound, drawing energy inward',
+    tendency: 'to reflect, to process internally, to move through intuition',
+    gift: 'the ability to see what others miss, to hold space, to nurture quietly'
+  }
+};
+
+const DM_POLARITY_NARRATIVES: Record<'yang' | 'yin', {
+  nature: string;
+  expression: string;
+  when_aligned: string;
+  when_counter: string;
+}> = {
+  yang: {
+    nature: 'Your Day Master carries Yang energy - the active, assertive, outward-moving force',
+    expression: 'You naturally express yourself through direct action and visible presence',
+    when_aligned: 'With your chart also leaning Yang, your core self flows naturally with your environment - like a river running downhill',
+    when_counter: 'But your Yang core must navigate a Yin-dominant environment - like the sun working through clouds. This isn\'t weakness; it builds depth and adaptability'
+  },
+  yin: {
+    nature: 'Your Day Master carries Yin energy - the receptive, adaptive, inward-moving force',
+    expression: 'You naturally express yourself through observation, adaptation, and skillful response',
+    when_aligned: 'With your chart also leaning Yin, your core self flows naturally with your environment - like moonlight reflecting on still water',
+    when_counter: 'But your Yin core must navigate a Yang-dominant environment - like the moon visible in daylight. This isn\'t weakness; it builds strength and presence'
+  }
+};
+
+// ============================================================================
+// ROOTEDNESS METAPHORS
+// ============================================================================
+
+const ROOTEDNESS_METAPHORS: Record<string, {
+  label: string;
+  metaphor: string;
+  meaning: string;
+  practice: string;
+}> = {
+  strongly_rooted: {
+    label: 'Strongly Rooted',
+    metaphor: 'like an ancient oak with roots reaching deep into the earth',
+    meaning: 'Your stems are deeply supported by the hidden elements in your branches. Your expressed self has strong backing from your foundational energies',
+    practice: 'Trust your instincts - your foundation supports confident action. Your challenge is avoiding rigidity'
+  },
+  well_rooted: {
+    label: 'Well Rooted',
+    metaphor: 'like a healthy maple - firm roots with room to sway',
+    meaning: 'Your stems find good support in your branches. You have a stable foundation that allows for flexible expression',
+    practice: 'You have reliable inner resources. When stressed, return to your center and you\'ll find strength there'
+  },
+  moderately_rooted: {
+    label: 'Moderately Rooted',
+    metaphor: 'like a young willow - flexible roots adapting to changing ground',
+    meaning: 'Your stems have partial support from your branches. Some parts of your expressed self have strong backing; others are more free-floating',
+    practice: 'Learn which aspects of yourself have deep roots (they\'re your reliable strengths) and which need external support'
+  },
+  lightly_rooted: {
+    label: 'Lightly Rooted',
+    metaphor: 'like a graceful bamboo - light anchoring but tremendous flexibility',
+    meaning: 'Your stems have limited direct support from branches. Your expressed self operates with more independence from foundational energies',
+    practice: 'Seek supportive environments and relationships. Your strength lies in adaptability, not immovability'
+  },
+  uprooted: {
+    label: 'Floating Freely',
+    metaphor: 'like a dandelion seed - carried by winds rather than anchored in earth',
+    meaning: 'Your stems have minimal branch support. Your expressed self is remarkably free from foundational constraints',
+    practice: 'Your gift is total adaptability. Seek anchoring through luck cycles, relationships, or conscious practice'
   }
 };
 
@@ -144,6 +250,245 @@ This is the foundation of mutual respect: "I see why you are like this, and I ho
 `;
 
   return story.trim();
+}
+
+// ============================================================================
+// ENHANCED STORY BUILDER (WITH YIN/YANG + ROOTEDNESS)
+// ============================================================================
+
+export interface EnhancedStoryOpts {
+  seasonality: SeasonalityResult;
+  dmSeasonal: DMSeasonalityResult;
+  tenGodsSeasonal: TenGodsSeasonalityResult;
+  yinYangProfile: YinYangProfile;
+  stemBranchAnalysis: ChartStemBranchAnalysis;
+  dmStem: string;
+  pillars: FourPillars;
+}
+
+/**
+ * Build a comprehensive story that includes seasonality, Yin/Yang polarity,
+ * and stem-branch rootedness narratives.
+ *
+ * This is the "Full Cathedral" story mode - everything woven together
+ * into a gentle, coherent narrative.
+ */
+export function buildSeasonalityStoryWithPolarityRootedness(
+  opts: EnhancedStoryOpts
+): string {
+  const {
+    seasonality,
+    dmSeasonal,
+    tenGodsSeasonal,
+    yinYangProfile,
+    stemBranchAnalysis,
+    dmStem,
+    pillars
+  } = opts;
+
+  const seasonMeta = SEASON_METAPHORS[seasonality.season] || SEASON_METAPHORS.spring;
+  const dmMeta = ELEMENT_METAPHORS[dmSeasonal.dmElement];
+  const polarityMeta = POLARITY_METAPHORS[yinYangProfile.balance];
+  const dmPolarityNarrative = DM_POLARITY_NARRATIVES[yinYangProfile.dmPolarity];
+  const rootednessKey = getRootednessKey(stemBranchAnalysis.overallRootedness);
+  const rootednessMeta = ROOTEDNESS_METAPHORS[rootednessKey];
+
+  const story = `
+${'═'.repeat(60)}
+YOUR COMPLETE CHART STORY
+${'═'.repeat(60)}
+
+PART I: THE SEASON OF YOUR BIRTH
+${'─'.repeat(50)}
+
+Imagine the moment of your birth: the world around you was ${seasonMeta.metaphor}.
+
+Your chart was born in ${seasonMeta.label}, when the air carried the energy of ${seasonMeta.energy}.
+
+This seasonal environment shapes everything that follows - your elemental balance, your strengths, your growth edges.
+
+
+PART II: YOUR CORE SELF (DAY MASTER)
+${'─'.repeat(50)}
+
+At the center of your chart is your Day Master: ${dmStem} (${capitalize(dmSeasonal.dmElement)}).
+
+The ${dmMeta.nature} is your essential nature.
+Your gift is ${dmMeta.gift}.
+Your growth edge is ${dmMeta.challenge}.
+
+${dmSeasonal.isInSeason ?
+    `You were born when ${capitalize(dmSeasonal.dmElement)} naturally thrives.
+This gives your core self innate seasonal support - like a plant in its ideal climate.` :
+    `You were born in a season that doesn't naturally amplify ${capitalize(dmSeasonal.dmElement)}.
+This isn't weakness - it's an invitation to consciously cultivate your elemental nature.`
+  }
+
+Adjusted Day Master strength: ${(dmSeasonal.adjustedStrength * 100).toFixed(0)}%
+
+
+PART III: YOUR YIN/YANG POLARITY
+${'─'.repeat(50)}
+
+Your chart's energy is ${polarityMeta.label} - ${polarityMeta.metaphor}.
+
+This gives you a natural tendency ${polarityMeta.tendency}.
+
+Your polarity gift is ${polarityMeta.gift}.
+
+${dmPolarityNarrative.nature}.
+${dmPolarityNarrative.expression}.
+
+${yinYangProfile.dmPolarityMatch ? dmPolarityNarrative.when_aligned : dmPolarityNarrative.when_counter}.
+
+Chart Balance: ${(yinYangProfile.weightedYang * 100).toFixed(0)}% Yang, ${(yinYangProfile.weightedYin * 100).toFixed(0)}% Yin
+Day Master Polarity: ${yinYangProfile.dmPolarity === 'yang' ? 'Yang' : 'Yin'}
+Alignment: ${yinYangProfile.dmPolarityMatch ? 'Harmonious Flow' : 'Creative Tension'}
+
+
+PART IV: YOUR ROOTEDNESS (STEM-BRANCH SUPPORT)
+${'─'.repeat(50)}
+
+Your overall rootedness is ${rootednessMeta.label} - ${rootednessMeta.metaphor}.
+
+${rootednessMeta.meaning}.
+
+${rootednessMeta.practice}
+
+${formatRootednessDetails(stemBranchAnalysis)}
+
+
+PART V: HOW SEASON SHAPES YOUR LIFE DOMAINS
+${'─'.repeat(50)}
+
+The season affects different areas of your life through the "Ten Gods" -
+symbolic relationships between elements that represent life domains.
+
+${formatTenGodsStory(tenGodsSeasonal)}
+
+
+PART VI: YOUR INTEGRATED PICTURE
+${'─'.repeat(50)}
+
+${generateIntegratedInsight(seasonality, dmSeasonal, yinYangProfile, stemBranchAnalysis)}
+
+
+${'═'.repeat(60)}
+REMEMBER
+${'═'.repeat(60)}
+
+Understanding your chart is not about labeling yourself as "good" or "bad."
+
+It's about seeing clearly:
+• Where support comes naturally
+• Where conscious cultivation is needed
+• How your polarity shapes your expression
+• How your roots provide (or free you from) stability
+
+When you understand your own chart fingerprint, you begin to understand why
+others are different. Their charts were born into different seasons, with
+different polarities and different rootedness.
+
+This is the foundation of mutual respect:
+"I see why you are like this, and I honor it."
+`;
+
+  return story.trim();
+}
+
+/**
+ * Get rootedness category key from normalized score
+ */
+function getRootednessKey(normalized: number): string {
+  if (normalized >= 0.75) return 'strongly_rooted';
+  if (normalized >= 0.55) return 'well_rooted';
+  if (normalized >= 0.35) return 'moderately_rooted';
+  if (normalized >= 0.15) return 'lightly_rooted';
+  return 'uprooted';
+}
+
+/**
+ * Format detailed rootedness by pillar
+ */
+function formatRootednessDetails(analysis: ChartStemBranchAnalysis): string {
+  const pillars = ['year', 'month', 'day', 'hour'] as const;
+  const pillarNames = ['Year', 'Month', 'Day', 'Hour'];
+
+  const details = pillars.map((pillar, idx) => {
+    const relation = analysis.pillarRelations[pillar];
+    const icon = relation.hasRoot ? '+' : relation.relationType === 'neutral' ? '~' : '-';
+    return `[${icon}] ${pillarNames[idx]} Pillar: ${relation.relationLabel}`;
+  });
+
+  // Add Day Master specific note
+  const dmNote = analysis.dmHasStrongRoot
+    ? '\nYour Day Master has strong roots in its branch - a solid foundation for self-expression.'
+    : '\nYour Day Master draws strength from other pillars or luck cycles rather than its own branch.';
+
+  return details.join('\n') + dmNote;
+}
+
+/**
+ * Generate integrated insight combining all factors
+ */
+function generateIntegratedInsight(
+  seasonality: SeasonalityResult,
+  dmSeasonal: DMSeasonalityResult,
+  yinYang: YinYangProfile,
+  rootedness: ChartStemBranchAnalysis
+): string {
+  const insights: string[] = [];
+
+  // Strength + Polarity combination
+  if (dmSeasonal.adjustedStrength > 0.6 && yinYang.dmPolarityMatch) {
+    insights.push(
+      'Your strong Day Master combined with aligned polarity suggests natural confidence. ' +
+      'You can trust your instincts and act decisively. Watch for being too forceful.'
+    );
+  } else if (dmSeasonal.adjustedStrength > 0.6 && !yinYang.dmPolarityMatch) {
+    insights.push(
+      'Your strong Day Master works against your chart\'s polarity flow. ' +
+      'This creates dynamic tension - you have power, but must learn when to yield.'
+    );
+  } else if (dmSeasonal.adjustedStrength < 0.4 && yinYang.dmPolarityMatch) {
+    insights.push(
+      'Your Day Master needs support, but your polarity flows harmoniously. ' +
+      'Seek nurturing relationships and environments - they\'ll feel natural to you.'
+    );
+  } else if (dmSeasonal.adjustedStrength < 0.4 && !yinYang.dmPolarityMatch) {
+    insights.push(
+      'Your Day Master faces a double challenge: seasonal weakness and polarity tension. ' +
+      'This builds tremendous resilience. Success comes through conscious cultivation.'
+    );
+  } else {
+    insights.push(
+      'Your Day Master operates in balanced territory - neither exceptionally strong nor weak. ' +
+      'This gives flexibility to adapt to different situations.'
+    );
+  }
+
+  // Rootedness insight
+  if (rootedness.overallRootedness > 0.6) {
+    insights.push(
+      'Your strong rootedness provides a stable foundation. ' +
+      'When life gets turbulent, you can draw on deep inner resources.'
+    );
+  } else if (rootedness.overallRootedness < 0.3) {
+    insights.push(
+      'Your lighter rootedness makes you highly adaptable but may seek external anchoring. ' +
+      'Relationships, environments, and luck cycles play important supportive roles for you.'
+    );
+  }
+
+  // Dominant element shift
+  if (seasonality.dominantChanged) {
+    insights.push(
+      `Interestingly, the season shifts your dominant element from ${capitalize(seasonality.dominantBefore)} to ${capitalize(seasonality.dominantAfter)}. ` +
+      'Environmental influences are particularly significant in your chart.'
+    );
+  }
+
+  return insights.join('\n\n');
 }
 
 // ============================================================================
@@ -284,7 +629,16 @@ function getDominantElements(seasonality: SeasonalityResult): string[] {
 
 export default {
   buildSeasonalityStory,
+  buildSeasonalityStoryWithPolarityRootedness,
   buildPairSeasonalityStory,
   SEASON_METAPHORS,
-  ELEMENT_METAPHORS
+  ELEMENT_METAPHORS,
+  POLARITY_METAPHORS,
+  ROOTEDNESS_METAPHORS
+};
+
+export {
+  POLARITY_METAPHORS,
+  DM_POLARITY_NARRATIVES,
+  ROOTEDNESS_METAPHORS
 };
