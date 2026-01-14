@@ -52,6 +52,8 @@ export { default as ElementBadge } from './atoms/ElementBadge';
 
 // Molecules
 export { default as ModularPillarCard } from './molecules/ModularPillarCard';
+export { default as DmPolarityGauge } from './molecules/DmPolarityGauge';
+export { default as DmRootednessMeter } from './molecules/DmRootednessMeter';
 
 // Organisms
 export { default as FourPillarsGrid } from './organisms/FourPillarsGrid';

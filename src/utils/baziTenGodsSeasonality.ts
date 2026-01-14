@@ -20,6 +20,8 @@
  */
 
 import { Element, getSeasonalWeights, SeasonalityResult } from './baziSeasonality';
+import { computeYinYangProfile, computeDmYinYangModifier, FourPillars } from './baziYinYang';
+import { computeChartStemBranchRelations, FourPillars as SBFourPillars } from './baziStemBranchRelations';
 
 // ============================================================================
 // TEN GODS TYPES
@@ -292,11 +294,228 @@ function capitalize(str: string): string {
 }
 
 // ============================================================================
+// ENHANCED TEN GODS SEASONALITY (with Yin/Yang + Rootedness)
+// ============================================================================
+
+export interface EnhancedTenGodInfo {
+  name: string;
+  chineseName: string;
+  category: TenGodCategory;
+  element: Element;
+  raw: number;
+  seasonalWeight: number;
+  polarityModifier: number;
+  rootednessModifier: number;
+  final: number;
+  explanation: string;
+}
+
+export interface EnhancedTenGodsResult {
+  dmElement: Element;
+  monthBranch: string;
+  seasonType: string;
+  tenGods: Record<TenGodCategory, EnhancedTenGodInfo>;
+  // Global modifiers applied
+  globalPolarityModifier: number;
+  globalRootednessModifier: number;
+  // Debug/explanation
+  polarityExplanation: string;
+  rootednessExplanation: string;
+  summary: string;
+}
+
+/**
+ * Enhanced Ten Gods Seasonality with Yin/Yang + Rootedness modifiers
+ *
+ * This function applies three layers of adjustment to each Ten God:
+ * 1. Seasonality - Based on month branch
+ * 2. Yin/Yang Polarity - Based on chart balance and DM alignment
+ * 3. Stem-Branch Rootedness - Based on how well stems are supported
+ *
+ * @param opts - Options including pillars, raw strengths, and optional element distribution
+ * @returns EnhancedTenGodsResult with full breakdown
+ */
+export function computeEnhancedTenGodsSeasonality(opts: {
+  pillars: FourPillars;
+  dmElement: Element;
+  monthBranch: string;
+  rawStrengths?: Partial<Record<TenGodCategory, number>>;
+}): EnhancedTenGodsResult {
+  const { pillars, dmElement, monthBranch, rawStrengths } = opts;
+
+  // 1. Get seasonal weights
+  const seasonalWeights = getSeasonalWeights(monthBranch);
+
+  // 2. Compute Yin/Yang profile and modifier
+  const yinYangProfile = computeYinYangProfile(pillars);
+  const polarityResult = computeDmYinYangModifier(yinYangProfile);
+  const globalPolarityModifier = polarityResult.dmModifier;
+
+  // 3. Compute stem-branch rootedness
+  const stemBranch = computeChartStemBranchRelations(pillars as SBFourPillars);
+  // Convert rootedness to modifier: 0.0 -> 0.9, 0.5 -> 1.0, 1.0 -> 1.1
+  const globalRootednessModifier = 0.9 + (stemBranch.overallRootedness * 0.2);
+
+  // Determine element for each Ten God
+  const tenGodElements: Record<TenGodCategory, Element> = {
+    resource: getResourceElement(dmElement),
+    companion: dmElement,
+    output: GENERATION_CYCLE[dmElement],
+    wealth: CONTROL_CYCLE[dmElement],
+    officer: getOfficerElement(dmElement)
+  };
+
+  const defaultRaw = 0.5;
+  const tenGods: Record<TenGodCategory, EnhancedTenGodInfo> = {} as any;
+
+  for (const category of Object.keys(TEN_GODS_META) as TenGodCategory[]) {
+    const element = tenGodElements[category];
+    const raw = rawStrengths?.[category] ?? defaultRaw;
+    const seasonalWeight = seasonalWeights[element];
+
+    // Apply modifiers step by step
+    const afterSeason = raw * seasonalWeight;
+    const afterPolarity = afterSeason * globalPolarityModifier;
+    const final = afterPolarity * globalRootednessModifier;
+
+    const meta = TEN_GODS_META[category];
+
+    // Generate detailed explanation
+    const explanation = generateEnhancedExplanation(
+      meta.name,
+      element,
+      raw,
+      seasonalWeight,
+      globalPolarityModifier,
+      globalRootednessModifier,
+      afterSeason,
+      afterPolarity,
+      final,
+      monthBranch
+    );
+
+    tenGods[category] = {
+      name: meta.name,
+      chineseName: meta.chineseName,
+      category,
+      element,
+      raw,
+      seasonalWeight,
+      polarityModifier: globalPolarityModifier,
+      rootednessModifier: globalRootednessModifier,
+      final,
+      explanation
+    };
+  }
+
+  // Generate summary
+  const summary = generateEnhancedSummary(
+    tenGods,
+    dmElement,
+    monthBranch,
+    globalPolarityModifier,
+    globalRootednessModifier
+  );
+
+  return {
+    dmElement,
+    monthBranch,
+    seasonType: getSeasonType(monthBranch),
+    tenGods,
+    globalPolarityModifier,
+    globalRootednessModifier,
+    polarityExplanation: polarityResult.explanation,
+    rootednessExplanation: stemBranch.explanation,
+    summary
+  };
+}
+
+function generateEnhancedExplanation(
+  name: string,
+  element: Element,
+  raw: number,
+  seasonalWeight: number,
+  polarityMod: number,
+  rootednessMod: number,
+  afterSeason: number,
+  afterPolarity: number,
+  final: number,
+  monthBranch: string
+): string {
+  const fmt = (n: number) => n.toFixed(3);
+  const pct = (n: number) => (n * 100).toFixed(0);
+
+  return `
+Ten God: ${name}
+Underlying Element: ${capitalize(element)}
+
+1. Raw Strength:
+   raw = ${pct(raw)}%
+
+2. Seasonality Adjustment (month ${monthBranch}):
+   seasonalWeight = ${seasonalWeight.toFixed(2)}
+   afterSeason = raw × seasonalWeight
+              = ${pct(raw)}% × ${seasonalWeight.toFixed(2)}
+              = ${pct(afterSeason)}%
+
+3. Yin/Yang Polarity Adjustment:
+   polarityModifier = ${polarityMod.toFixed(2)}
+   afterPolarity = afterSeason × polarityModifier
+                = ${pct(afterSeason)}% × ${polarityMod.toFixed(2)}
+                = ${pct(afterPolarity)}%
+
+4. Stem-Branch Rootedness Adjustment:
+   rootednessModifier = ${rootednessMod.toFixed(2)}
+   final = afterPolarity × rootednessModifier
+        = ${pct(afterPolarity)}% × ${rootednessMod.toFixed(2)}
+        = ${pct(final)}%
+
+Final ${name} Strength: ${pct(final)}%
+`.trim();
+}
+
+function generateEnhancedSummary(
+  tenGods: Record<TenGodCategory, EnhancedTenGodInfo>,
+  dmElement: Element,
+  monthBranch: string,
+  polarityMod: number,
+  rootednessMod: number
+): string {
+  const sorted = Object.values(tenGods).sort((a, b) => b.final - a.final);
+  const strongest = sorted[0];
+  const weakest = sorted[sorted.length - 1];
+
+  const polarityDir = polarityMod >= 1 ? 'boosting' : 'dampening';
+  const rootednessDir = rootednessMod >= 1 ? 'supporting' : 'challenging';
+
+  let summary = `Enhanced Ten Gods Analysis\n`;
+  summary += `${'='.repeat(40)}\n\n`;
+
+  summary += `Day Master: ${capitalize(dmElement)}\n`;
+  summary += `Month: ${monthBranch}\n\n`;
+
+  summary += `Global Modifiers Applied:\n`;
+  summary += `- Yin/Yang Polarity: ×${polarityMod.toFixed(2)} (${polarityDir})\n`;
+  summary += `- Stem-Branch Rootedness: ×${rootednessMod.toFixed(2)} (${rootednessDir})\n\n`;
+
+  summary += `Ten Gods Ranking (by final strength):\n`;
+  sorted.forEach((tg, idx) => {
+    summary += `${idx + 1}. ${tg.name} (${capitalize(tg.element)}): ${(tg.final * 100).toFixed(0)}%\n`;
+  });
+
+  summary += `\nStrongest: ${strongest.name} at ${(strongest.final * 100).toFixed(0)}%\n`;
+  summary += `Weakest: ${weakest.name} at ${(weakest.final * 100).toFixed(0)}%\n`;
+
+  return summary;
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
 export default {
   computeTenGodsSeasonality,
+  computeEnhancedTenGodsSeasonality,
   TEN_GODS_META,
   GENERATION_CYCLE,
   CONTROL_CYCLE
