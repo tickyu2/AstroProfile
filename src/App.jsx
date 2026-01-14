@@ -1,43 +1,68 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProfileProvider } from './contexts/ProfileContext'
 import { KnowledgeBaseProvider } from './contexts/KnowledgeBaseContext'
 import { ConversationsProvider } from './contexts/ConversationsContext'
-import DiamondProfileForm from './components/DiamondProfileForm'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import LoginForm from './components/auth/LoginForm'
 import RegisterForm from './components/auth/RegisterForm'
-import Dashboard from './components/Dashboard'
-import InputForm from './components/InputForm'
-import SimpleProfileForm from './components/SimpleProfileForm'
-import Results from './components/Results'
-import MigrationPage from './pages/MigrationPage'
-import CompatibilityPage from './pages/CompatibilityPage'
-import DataManager from './pages/DataManager'
-import AISoulPartnerPage from './pages/AISoulPartnerPage'
-import KnowledgeBasePage from './pages/KnowledgeBasePage'
-import ConstitutionalAssessmentPage from './pages/ConstitutionalAssessmentPage'
-import SystemsPage from './pages/SystemsPage'
-import OperationsPage from './pages/OperationsPage'
-import AdminConsolePage from './pages/AdminConsolePage'
-import { LunaConsole } from './components/console/LunaConsole'
-import TimelineConsolePage from './pages/TimelineConsolePage'
-import CustomizingYourSoulPartnerPage from './pages/CustomizingYourSoulPartnerPage'
-import BaZiCalculatorPage from './pages/BaZiCalculatorPage'
-import SoulGardenPage from './pages/SoulGardenPage'
-import SanctuaryPage from './pages/SanctuaryPage'
-import TranscriptTesterPage from './pages/TranscriptTesterPage'
-import BrainArchitecturePage from './pages/BrainArchitecturePage'
-import ZodiacCuspsPage from './pages/ZodiacCuspsPage'
-import ChineseZodiacPage from './pages/ChineseZodiacPage'
-import SoulFamilyPage from './pages/SoulFamilyPage'
-import GuestChat from './pages/GuestChat'
-import NumerologyDecodePage from './pages/NumerologyDecodePage'
-import WesternAstrologyDecodePage from './pages/WesternAstrologyDecodePage'
+import LoadingSpinner from './components/layout/LoadingSpinner'
 
-// CCLR - Couples Cosmic Love Rejuvenation
-import { CCLRHomePage, CCLRSessionPage, CreateSessionPage } from './pages/cclr'
+// Core pages - loaded immediately
+import Dashboard from './components/Dashboard'
+
+// Lazy-loaded pages - loaded on demand to reduce initial bundle
+const DiamondProfileForm = lazy(() => import('./components/DiamondProfileForm'))
+const InputForm = lazy(() => import('./components/InputForm'))
+const SimpleProfileForm = lazy(() => import('./components/SimpleProfileForm'))
+const Results = lazy(() => import('./components/Results'))
+const MigrationPage = lazy(() => import('./pages/MigrationPage'))
+const CompatibilityPage = lazy(() => import('./pages/CompatibilityPage'))
+const DataManager = lazy(() => import('./pages/DataManager'))
+const AISoulPartnerPage = lazy(() => import('./pages/AISoulPartnerPage'))
+const KnowledgeBasePage = lazy(() => import('./pages/KnowledgeBasePage'))
+const ConstitutionalAssessmentPage = lazy(() => import('./pages/ConstitutionalAssessmentPage'))
+const SystemsPage = lazy(() => import('./pages/SystemsPage'))
+const OperationsPage = lazy(() => import('./pages/OperationsPage'))
+const AdminConsolePage = lazy(() => import('./pages/AdminConsolePage'))
+const LunaConsole = lazy(() => import('./components/console/LunaConsole').then(m => ({ default: m.LunaConsole })))
+const TimelineConsolePage = lazy(() => import('./pages/TimelineConsolePage'))
+const CustomizingYourSoulPartnerPage = lazy(() => import('./pages/CustomizingYourSoulPartnerPage'))
+const BaZiCalculatorPage = lazy(() => import('./pages/BaZiCalculatorPage'))
+const BaZiModularPage = lazy(() => import('./pages/BaZiModularPage'))
+const BaZiSeasonalityPage = lazy(() => import('./pages/BaZiSeasonalityPage'))
+const SoulGardenPage = lazy(() => import('./pages/SoulGardenPage'))
+const SanctuaryPage = lazy(() => import('./pages/SanctuaryPage'))
+const TranscriptTesterPage = lazy(() => import('./pages/TranscriptTesterPage'))
+const BrainArchitecturePage = lazy(() => import('./pages/BrainArchitecturePage'))
+const ZodiacCuspsPage = lazy(() => import('./pages/ZodiacCuspsPage'))
+const ChineseZodiacPage = lazy(() => import('./pages/ChineseZodiacPage'))
+const SoulFamilyPage = lazy(() => import('./pages/SoulFamilyPage'))
+const GuestChat = lazy(() => import('./pages/GuestChat'))
+const NumerologyDecodePage = lazy(() => import('./pages/NumerologyDecodePage'))
+const WesternAstrologyDecodePage = lazy(() => import('./pages/WesternAstrologyDecodePage'))
+const VoiceTestPage = lazy(() => import('./pages/VoiceTestPage'))
+const LunaVoicePage = lazy(() => import('./pages/LunaVoicePage'))
+const BiographyJournalPage = lazy(() => import('./pages/BiographyJournalPage'))
+const WesternElementalAnalysisPage = lazy(() => import('./pages/WesternElementalAnalysisPage'))
+const CompatibilityMatchPage = lazy(() => import('./pages/CompatibilityMatchPage'))
+const DynamicPersonalityPage = lazy(() => import('./pages/DynamicPersonalityPage'))
+const LunaPersonalityTunerPage = lazy(() => import('./pages/LunaPersonalityTunerPage'))
+const MemoryExplorerPage = lazy(() => import('./pages/MemoryExplorerPage'))
+const ConstellationPage = lazy(() => import('./pages/ConstellationPage'))
+
+// CCLR - Couples Cosmic Love Rejuvenation (lazy loaded)
+const CCLRHomePage = lazy(() => import('./pages/cclr').then(m => ({ default: m.CCLRHomePage })))
+const CCLRSessionPage = lazy(() => import('./pages/cclr').then(m => ({ default: m.CCLRSessionPage })))
+const CreateSessionPage = lazy(() => import('./pages/cclr').then(m => ({ default: m.CreateSessionPage })))
+
+// Suspense fallback component
+const PageLoader = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 flex items-center justify-center">
+    <LoadingSpinner />
+  </div>
+)
 
 function App() {
   return (
@@ -46,10 +71,13 @@ function App() {
         <ProfileProvider>
           <KnowledgeBaseProvider>
           <ConversationsProvider>
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginForm />} />
             <Route path="/signup" element={<RegisterForm />} />
+            <Route path="/voice-test" element={<VoiceTestPage />} />
+            <Route path="/luna-voice" element={<LunaVoicePage />} />
 
             {/* Protected routes */}
             <Route
@@ -99,6 +127,16 @@ function App() {
               }
             />
 
+            {/* Western Elemental Analysis - Transparent calculation */}
+            <Route
+              path="/western-elements/:profileId"
+              element={
+                <ProtectedRoute>
+                  <WesternElementalAnalysisPage />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/migrate"
               element={
@@ -113,6 +151,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CompatibilityPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* NEW: Compatibility Match with Explainability (L0-L3) */}
+            <Route
+              path="/match"
+              element={
+                <ProtectedRoute>
+                  <CompatibilityMatchPage />
                 </ProtectedRoute>
               }
             />
@@ -216,6 +264,26 @@ function App() {
               element={
                 <ProtectedRoute>
                   <BaZiCalculatorPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* BaZi Modular - Atomic Design Components */}
+            <Route
+              path="/bazi-modular"
+              element={
+                <ProtectedRoute>
+                  <BaZiModularPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* BaZi Seasonality - Learning Hall Education Module */}
+            <Route
+              path="/bazi-seasonality"
+              element={
+                <ProtectedRoute>
+                  <BaZiSeasonalityPage />
                 </ProtectedRoute>
               }
             />
@@ -336,12 +404,63 @@ function App() {
               }
             />
 
+            {/* Biography Journal - Text-based life story preservation */}
+            <Route
+              path="/biography"
+              element={
+                <ProtectedRoute>
+                  <BiographyJournalPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Dynamic Personality - P4-P8 Luna Fusion Engines */}
+            <Route
+              path="/dynamic-personality"
+              element={
+                <ProtectedRoute>
+                  <DynamicPersonalityPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Luna Personality Tuner - Customize Luna's personality */}
+            <Route
+              path="/luna-tuner"
+              element={
+                <ProtectedRoute>
+                  <LunaPersonalityTunerPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Memory Explorer - Happiness Anchors, Emotion Trends, Relationship Stats */}
+            <Route
+              path="/memory-explorer"
+              element={
+                <ProtectedRoute>
+                  <MemoryExplorerPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* AI Constellation - Multi-AI Perspectives */}
+            <Route
+              path="/constellation"
+              element={
+                <ProtectedRoute>
+                  <ConstellationPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Redirect root to dashboard (or login if not authenticated) */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
             {/* Catch all - redirect to dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
+          </Suspense>
           </ConversationsProvider>
           </KnowledgeBaseProvider>
         </ProfileProvider>
