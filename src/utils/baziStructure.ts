@@ -31,6 +31,13 @@
  */
 
 import { TenGodCategory } from './baziTenGodsSeasonality';
+import {
+  computeFollowStructure,
+  FollowStructureResult,
+  FollowStructureType,
+  FOLLOW_STRUCTURE_DEFINITIONS,
+  ComputeFollowOpts
+} from './baziFollowStructure';
 
 // ============================================================================
 // TYPES
@@ -45,9 +52,11 @@ export type StructureType =
   | 'hurting_officer'     // 伤官格
   | 'friend'              // 比肩格
   | 'rob_wealth'          // 劫财格
-  | 'follow_wealth'       // 从财格 (Follow Structure)
-  | 'follow_officer'      // 从官格 (Follow Structure)
-  | 'follow_output'       // 从儿格 (Follow Structure)
+  | 'follow_strong'       // 从强格 (Follow Strong - companions/resources)
+  | 'follow_weak'         // 从弱格 (Follow Weak - general surrender)
+  | 'follow_wealth'       // 从财格 (Follow Wealth)
+  | 'follow_officer'      // 从官杀格 (Follow Officer/Power)
+  | 'follow_output'       // 从儿格 (Follow Output)
   | 'special'             // 特殊格局
   | 'unclear';            // 格局不清
 
@@ -88,6 +97,9 @@ export interface StructureResult {
   dmStrength: number;
   dmCategory: 'strong' | 'balanced' | 'weak' | 'very_weak';
   isFollowStructure: boolean;
+
+  // Follow structure details (from dedicated engine)
+  followStructureResult: FollowStructureResult | null;
 
   // Secondary structures
   secondaryStructure: StructureDefinition | null;
@@ -310,29 +322,79 @@ export const STRUCTURE_DEFINITIONS: Record<StructureType, StructureDefinition> =
     relationship: 'Intense romantic pursuit. May have rivalry with partners or for partners. Needs to balance competition with cooperation.'
   },
 
+  follow_strong: {
+    type: 'follow_strong',
+    han: '从强格',
+    label: 'Follow Strong Structure',
+    category: 'follow',
+    tenGod: 'Companion/Resource (Follow)',
+    theme: 'Strength Through Unity - Following the Strong',
+    strengths: [
+      'Natural team player and collaborator',
+      'Strong when surrounded by similar energies',
+      'Excellent at building alliances',
+      'Resilient through peer support'
+    ],
+    challenges: [
+      'May struggle with independence',
+      'Can be overly influenced by peers',
+      'Needs to develop personal direction'
+    ],
+    careers: [
+      'Partnership ventures', 'Team leadership', 'Collaborative projects',
+      'Family business', 'Peer networks'
+    ],
+    relationship: 'Thrives with strong, supportive partners. Benefits from being part of a power couple or strong family unit.'
+  },
+
+  follow_weak: {
+    type: 'follow_weak',
+    han: '从弱格',
+    label: 'Follow Weak Structure',
+    category: 'follow',
+    tenGod: 'Mixed (Follow)',
+    theme: 'Flexibility Through Surrender - The Way of Water',
+    strengths: [
+      'Highly adaptable and flexible',
+      'Can fit into any environment',
+      'Non-threatening, gains trust easily',
+      'Survives through yielding'
+    ],
+    challenges: [
+      'May lack clear identity',
+      'Can be too passive',
+      'Needs external structure'
+    ],
+    careers: [
+      'Support roles', 'Service industries', 'Flexible employment',
+      'Consulting', 'Adaptable positions'
+    ],
+    relationship: 'Adaptable in relationships, can mold to partner\'s needs. Benefits from strong partners who provide direction.'
+  },
+
   follow_wealth: {
     type: 'follow_wealth',
     han: '从财格',
     label: 'Follow Wealth Structure',
     category: 'follow',
     tenGod: 'Wealth (Follow)',
-    theme: 'Surrendering to Wealth Opportunities',
+    theme: 'Material Flow - Following Prosperity',
     strengths: [
-      'Flexible and adaptable',
-      'Goes with the flow of opportunity',
-      'Can achieve much through yielding',
-      'Good at leveraging others\' resources'
+      'Natural affinity for wealth flow',
+      'Good at attracting resources',
+      'Flexible about money sources',
+      'Can leverage opportunities quickly'
     ],
     challenges: [
-      'Weak sense of self',
-      'Can be overly dependent on external support',
-      'May lack personal direction'
+      'May be too focused on material',
+      'Can be dependent on wealth sources',
+      'Needs to develop inner worth'
     ],
     careers: [
-      'Service industries', 'Support roles', 'Following market trends',
-      'Flexible employment'
+      'Sales', 'Trading', 'Service industries', 'Finance support',
+      'Wealth management', 'Business support'
     ],
-    relationship: 'May be dependent in relationships. Needs strong partners. Benefits from supportive environments.'
+    relationship: 'Relationships often involve financial dynamics. May attract wealthy partners. Benefits from material stability.'
   },
 
   follow_officer: {
@@ -476,6 +538,15 @@ export interface ComputeStructureOpts {
 
   // Growth stage modifier (optional, for refinement)
   growthStageModifier?: number;
+
+  // Follow structure inputs (for dedicated follow engine)
+  followOpts?: {
+    dmElementCount?: number;
+    totalElementCount?: number;
+    hasRoots?: boolean;
+    seasonalityStrength?: number;
+    hasSupportingCombos?: boolean;
+  };
 }
 
 /**
@@ -484,11 +555,17 @@ export interface ComputeStructureOpts {
  * Joey Yap methodology:
  * 1. Identify the dominant Ten God (excluding Resource which supports DM)
  * 2. Check if DM is strong enough to "hold" the structure
- * 3. If DM is very weak, may be a Follow Structure
+ * 3. If DM is very weak, use dedicated Follow Structure engine
  * 4. Score the clarity of the structure
  */
 export function computeStructure(opts: ComputeStructureOpts): StructureResult {
-  const { tenGodsAdjusted, dmStrength, detailedTenGods, growthStageModifier = 1.0 } = opts;
+  const {
+    tenGodsAdjusted,
+    dmStrength,
+    detailedTenGods,
+    growthStageModifier = 1.0,
+    followOpts
+  } = opts;
 
   // Apply growth stage modifier to DM strength
   const effectiveDmStrength = dmStrength * growthStageModifier;
@@ -496,8 +573,20 @@ export function computeStructure(opts: ComputeStructureOpts): StructureResult {
   // Categorize DM strength
   const dmCategory = getDmCategory(effectiveDmStrength);
 
-  // Check for Follow Structure conditions
-  const isFollowStructure = shouldBeFollowStructure(effectiveDmStrength, tenGodsAdjusted);
+  // ─────────────────────────────────────────────────────────────────
+  // Use dedicated Follow Structure engine for proper classical detection
+  // ─────────────────────────────────────────────────────────────────
+  const followStructureResult = computeFollowStructure({
+    dmStrength: effectiveDmStrength,
+    tenGodsAdjusted: tenGodsAdjusted as Record<TenGodCategory, number>,
+    dmElementCount: followOpts?.dmElementCount,
+    totalElementCount: followOpts?.totalElementCount,
+    hasRoots: followOpts?.hasRoots,
+    seasonalityStrength: followOpts?.seasonalityStrength,
+    hasSupportingCombos: followOpts?.hasSupportingCombos
+  });
+
+  const isFollowStructure = followStructureResult.isFollowStructure;
 
   // Build Ten Gods ranking (excluding Resource for structure determination)
   const tenGodsRanking = buildTenGodsRanking(tenGodsAdjusted, detailedTenGods);
@@ -510,7 +599,8 @@ export function computeStructure(opts: ComputeStructureOpts): StructureResult {
   let structureType: StructureType;
 
   if (isFollowStructure) {
-    structureType = determineFollowStructure(tenGodsRanking);
+    // Use the follow structure type from dedicated engine
+    structureType = mapFollowTypeToStructureType(followStructureResult.followType);
   } else {
     structureType = TEN_GOD_TO_STRUCTURE[dominant.tenGod] || 'unclear';
   }
@@ -519,15 +609,19 @@ export function computeStructure(opts: ComputeStructureOpts): StructureResult {
   const structure = STRUCTURE_DEFINITIONS[structureType];
 
   // Calculate structure clarity
-  const clarityFactor = calculateClarity(tenGodsRanking, effectiveDmStrength);
+  const clarityFactor = isFollowStructure
+    ? followStructureResult.followConfidence
+    : calculateClarity(tenGodsRanking, effectiveDmStrength);
   const structureClarity = clarityFactor >= 0.7 ? 'clear' : clarityFactor >= 0.4 ? 'moderate' : 'mixed';
 
   // Calculate structure score
   const dmStrengthFactor = isFollowStructure ? 1.0 : Math.min(1.0, effectiveDmStrength);
-  const structureScore = dominant.score * dmStrengthFactor * clarityFactor;
+  const structureScore = isFollowStructure
+    ? followStructureResult.followConfidence
+    : dominant.score * dmStrengthFactor * clarityFactor;
 
-  // Get secondary structure if applicable
-  const secondaryStructure = secondary && secondary.score > 0.3
+  // Get secondary structure if applicable (not for follow structures)
+  const secondaryStructure = !isFollowStructure && secondary && secondary.score > 0.3
     ? STRUCTURE_DEFINITIONS[TEN_GOD_TO_STRUCTURE[secondary.tenGod] || 'unclear']
     : null;
 
@@ -540,17 +634,19 @@ export function computeStructure(opts: ComputeStructureOpts): StructureResult {
   };
 
   // Generate explanation
-  const explanation = generateStructureExplanation(
-    structure,
-    dominant,
-    secondary,
-    effectiveDmStrength,
-    dmCategory,
-    isFollowStructure,
-    structureScore,
-    clarityFactor,
-    tenGodsRanking
-  );
+  const explanation = isFollowStructure
+    ? followStructureResult.explanation
+    : generateStructureExplanation(
+        structure,
+        dominant,
+        secondary,
+        effectiveDmStrength,
+        dmCategory,
+        isFollowStructure,
+        structureScore,
+        clarityFactor,
+        tenGodsRanking
+      );
 
   return {
     structure,
@@ -563,11 +659,27 @@ export function computeStructure(opts: ComputeStructureOpts): StructureResult {
     dmStrength: effectiveDmStrength,
     dmCategory,
     isFollowStructure,
+    followStructureResult,
     secondaryStructure,
     secondaryScore: secondary?.score || 0,
     explanation,
     breakdown
   };
+}
+
+/**
+ * Map FollowStructureType to StructureType
+ */
+function mapFollowTypeToStructureType(followType: FollowStructureType): StructureType {
+  const mapping: Record<FollowStructureType, StructureType> = {
+    follow_strong: 'follow_strong',
+    follow_weak: 'follow_weak',
+    follow_output: 'follow_output',
+    follow_wealth: 'follow_wealth',
+    follow_officer: 'follow_officer',
+    none: 'unclear'
+  };
+  return mapping[followType] || 'unclear';
 }
 
 // ============================================================================
@@ -581,40 +693,6 @@ function getDmCategory(strength: number): 'strong' | 'balanced' | 'weak' | 'very
   return 'very_weak';
 }
 
-function shouldBeFollowStructure(
-  dmStrength: number,
-  tenGodsAdjusted: Record<string, number>
-): boolean {
-  // Follow structure occurs when DM is very weak and dominated by other elements
-  if (dmStrength >= 0.4) return false;
-
-  // Check if one category dominates overwhelmingly
-  const categories = ['wealth', 'officer', 'output', 'companion', 'resource'];
-  let maxCategory = 0;
-  let total = 0;
-
-  for (const cat of categories) {
-    const score = tenGodsAdjusted[cat] || 0;
-    total += score;
-    if (score > maxCategory) maxCategory = score;
-  }
-
-  // If dominant category is > 60% of total, likely follow structure
-  return total > 0 && (maxCategory / total) > 0.6;
-}
-
-function determineFollowStructure(ranking: Array<{ tenGod: string; score: number }>): StructureType {
-  if (ranking.length === 0) return 'unclear';
-
-  const dominant = ranking[0].tenGod;
-
-  // Map to follow structure based on dominant category
-  if (dominant.includes('Wealth')) return 'follow_wealth';
-  if (dominant.includes('Officer') || dominant.includes('Killings')) return 'follow_officer';
-  if (dominant.includes('God') || dominant.includes('Hurting')) return 'follow_output';
-
-  return 'unclear';
-}
 
 function buildTenGodsRanking(
   tenGodsAdjusted: Record<string, number>,
@@ -818,6 +896,18 @@ export function getStructureCategoryIcon(category: StructureCategory): string {
 // ============================================================================
 // EXPORTS
 // ============================================================================
+
+// Re-export follow structure utilities for convenience
+export {
+  computeFollowStructure,
+  quickFollowCheck,
+  getFollowStructureLabel,
+  getFollowStructureIcon,
+  FOLLOW_STRUCTURE_DEFINITIONS,
+  FOLLOW_THRESHOLDS
+} from './baziFollowStructure';
+
+export type { FollowStructureResult, FollowStructureType } from './baziFollowStructure';
 
 export default {
   computeStructure,
