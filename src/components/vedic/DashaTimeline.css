@@ -1,0 +1,271 @@
+/* DashaTimeline.css */
+
+.dasha-timeline-container {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(100, 116, 139, 0.3);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.dasha-timeline-container.compact {
+  padding: 16px;
+}
+
+/* Header */
+.dasha-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.dasha-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title-icon {
+  font-size: 20px;
+}
+
+.title-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.current-dasha-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 20px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Timeline */
+.dasha-timeline {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 8px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.3) transparent;
+}
+
+.dasha-timeline::-webkit-scrollbar {
+  height: 6px;
+}
+
+.dasha-timeline::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dasha-timeline::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 3px;
+}
+
+/* Dasha Block */
+.dasha-block {
+  position: relative;
+  min-width: 100px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dasha-block:hover,
+.dasha-block.hovered {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dasha-block.current {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
+}
+
+.dasha-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.dasha-planet {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.dasha-years {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 4px;
+}
+
+.dasha-range {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.current-marker {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #a78bfa;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Details Panel */
+.dasha-details {
+  margin-top: 20px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.details-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.5);
+  border-left: 3px solid;
+}
+
+.details-icon {
+  font-size: 20px;
+}
+
+.details-planet {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.details-content {
+  padding: 16px;
+}
+
+.details-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.details-row .label {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.details-row .value {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Antardasha */
+.antardasha-container {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.antardasha-header {
+  margin-bottom: 12px;
+}
+
+.antardasha-title {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.antardasha-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.antardasha-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid;
+  min-width: 120px;
+}
+
+.antardasha-block.current {
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.2);
+}
+
+.ad-planet {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ad-dates {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Footer */
+.dasha-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.footer-note {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Compact mode */
+.compact .dasha-block {
+  min-width: 80px;
+  padding: 8px;
+}
+
+.compact .dasha-icon {
+  font-size: 18px;
+}
+
+.compact .dasha-planet {
+  font-size: 10px;
+}
+
+.compact .dasha-years,
+.compact .dasha-range {
+  font-size: 8px;
+}

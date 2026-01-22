@@ -112,6 +112,123 @@ export async function calculateElementalBalance(planets) {
 }
 
 // =============================================================================
+// UNIFIED PROFILE COMPUTATION (Python-First Architecture)
+// =============================================================================
+
+/**
+ * Compute complete unified profile: BaZi + Western + Vedic + Unified Vector
+ * This is the canonical computation endpoint - output is stored directly in Firebase.
+ *
+ * @param {Object} birthData - Birth data
+ * @param {string} birthData.birthDate - YYYY-MM-DD format
+ * @param {string} birthData.birthTime - HH:MM format
+ * @param {number} birthData.latitude - Birth location latitude
+ * @param {number} birthData.longitude - Birth location longitude
+ * @param {string} birthData.timezone - Timezone string (e.g., "Asia/Bangkok")
+ * @param {string} birthData.gender - "male" or "female" (for BaZi DaYun direction)
+ * @returns {Promise<Object>} Canonical profile with bazi, western, vedic, unified
+ */
+export async function computeUnifiedProfile(birthData) {
+  try {
+    console.log('🐍 [computeUnifiedProfile] Calling Python endpoint with:', birthData);
+
+    const response = await fetch(getCloudRunUrl('compute_unified_profile'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        birth: {
+          birthDate: birthData.birthDate,
+          birthTime: birthData.birthTime || '12:00',
+          latitude: birthData.latitude || 0,
+          longitude: birthData.longitude || 0,
+          timezone: birthData.timezone || 'UTC',
+          gender: birthData.gender || 'male'
+        },
+        computeOptions: {
+          includeBazi: true,
+          includeWestern: true,
+          includeVedic: true,
+          includeUnified: true
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ [computeUnifiedProfile] Python returned canonical profile:', {
+      hasBazi: !!result.bazi,
+      hasWestern: !!result.western,
+      hasVedic: !!result.vedic,
+      hasUnified: !!result.unified,
+      computeVersion: result.computeVersion
+    });
+
+    return result;
+  } catch (error) {
+    console.error('❌ [computeUnifiedProfile] Python computation failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Compute compatibility between two profiles
+ * @param {Object} profileA - First person's birth data
+ * @param {Object} profileB - Second person's birth data
+ * @param {Object} [options] - Compatibility options (weights, etc.)
+ * @returns {Promise<Object>} Canonical compatibility result
+ */
+export async function computeUnifiedCompatibility(profileA, profileB, options = {}) {
+  try {
+    console.log('🐍 [computeUnifiedCompatibility] Calling Python endpoint');
+
+    const response = await fetch(getCloudRunUrl('compute_unified_compatibility'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        profileA: {
+          birthDate: profileA.birthDate,
+          birthTime: profileA.birthTime || '12:00',
+          latitude: profileA.latitude || 0,
+          longitude: profileA.longitude || 0,
+          timezone: profileA.timezone || 'UTC',
+          gender: profileA.gender || 'male'
+        },
+        profileB: {
+          birthDate: profileB.birthDate,
+          birthTime: profileB.birthTime || '12:00',
+          latitude: profileB.latitude || 0,
+          longitude: profileB.longitude || 0,
+          timezone: profileB.timezone || 'UTC',
+          gender: profileB.gender || 'male'
+        },
+        options
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ [computeUnifiedCompatibility] Result:', {
+      totalScore: result.totalScore,
+      grade: result.grade,
+      sections: result.sections?.length
+    });
+
+    return result;
+  } catch (error) {
+    console.error('❌ [computeUnifiedCompatibility] Failed:', error);
+    throw error;
+  }
+}
+
+// =============================================================================
 // SYNASTRY & COMPATIBILITY
 // =============================================================================
 
@@ -328,6 +445,8 @@ export default {
   calculateNatalChart,
   getPlanetaryPositions,
   calculateElementalBalance,
+  computeUnifiedProfile,
+  computeUnifiedCompatibility,
   calculateSynastry,
   findSoulFamily,
   storeProfileNode,

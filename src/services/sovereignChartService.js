@@ -10,6 +10,8 @@
  * December 16, 2024 | Updated: January 2026 (Python Swiss Ephemeris)
  */
 
+import { calculateMoonPhase } from './moonPhaseService';
+
 // Python Swiss Ephemeris Cloud Run URL (PRIMARY - more precise)
 const PYTHON_CHART_URL = 'https://calculate-natal-chart-sjpjwnbsmq-uc.a.run.app';
 
@@ -32,10 +34,57 @@ const getApiUrl = () => {
   return PRODUCTION_URL;
 };
 
+// Planet symbols for display
+const PLANET_SYMBOLS = {
+  sun: '☉', moon: '☽', mercury: '☿', venus: '♀', mars: '♂',
+  jupiter: '♃', saturn: '♄', uranus: '♅', neptune: '♆', pluto: '♇',
+  north_node: '☊', south_node: '☋', chiron: '⚷'
+};
+
+// Major aspects and their properties
+const ASPECT_INFO = {
+  conjunction: { nature: 'major', quality: 'neutral', symbol: '☌' },
+  opposition: { nature: 'major', quality: 'challenging', symbol: '☍' },
+  trine: { nature: 'major', quality: 'harmonious', symbol: '△' },
+  square: { nature: 'major', quality: 'challenging', symbol: '□' },
+  sextile: { nature: 'major', quality: 'harmonious', symbol: '⚹' },
+  quincunx: { nature: 'minor', quality: 'challenging', symbol: '⚻' },
+  semisextile: { nature: 'minor', quality: 'neutral', symbol: '⚺' },
+  semisquare: { nature: 'minor', quality: 'challenging', symbol: '∠' },
+  sesquiquadrate: { nature: 'minor', quality: 'challenging', symbol: '⚼' }
+};
+
+/**
+ * Transform Python aspect data to UI-expected format
+ */
+function transformAspect(aspect) {
+  const info = ASPECT_INFO[aspect.aspect] || { nature: 'minor', quality: 'neutral', symbol: '?' };
+  return {
+    planet1: {
+      name: aspect.planet1,
+      symbol: PLANET_SYMBOLS[aspect.planet1] || '?'
+    },
+    planet2: {
+      name: aspect.planet2,
+      symbol: PLANET_SYMBOLS[aspect.planet2] || '?'
+    },
+    aspect: aspect.aspect,
+    angle: aspect.angle,
+    orb: aspect.orb,
+    exactness: aspect.exactness,
+    applying: aspect.applying,
+    nature: info.nature,
+    quality: info.quality,
+    symbol: info.symbol
+  };
+}
+
 /**
  * Transform Python Swiss Ephemeris response to expected format
+ * @param {Object} data - Python API response
+ * @param {string} birthDate - Birth date in YYYY-MM-DD format for moon phase calculation
  */
-function transformPythonResponse(data) {
+function transformPythonResponse(data, birthDate) {
   const planets = data.planets || {};
   const houses = data.houses || {};
 
@@ -47,6 +96,30 @@ function transformPythonResponse(data) {
     longitude: ascendant.longitude || 0,
     degreeFormatted: `${(ascendant.degree || 0).toFixed(2)}° ${ascendant.sign || ''}`
   };
+
+  // Calculate moon phase at birth (Python doesn't provide this yet)
+  let moonPhase = null;
+  if (birthDate) {
+    try {
+      const birthDateTime = new Date(birthDate);
+      moonPhase = calculateMoonPhase(birthDateTime);
+    } catch (e) {
+      console.warn('Could not calculate moon phase:', e);
+    }
+  }
+
+  // Transform planets to include name and symbol for UI display
+  const transformedPlanets = {};
+  Object.entries(planets).forEach(([key, planet]) => {
+    const capitalizedName = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+    transformedPlanets[key] = {
+      ...planet,
+      name: capitalizedName,
+      symbol: PLANET_SYMBOLS[key] || '?',
+      degreeFormatted: planet.formatted || `${planet.degree?.toFixed(2)}° ${planet.sign}`,
+      isRetrograde: planet.retrograde || false
+    };
+  });
 
   return {
     sun: planets.sun ? {
@@ -66,9 +139,10 @@ function transformPythonResponse(data) {
       modality: planets.moon.modality
     } : null,
     rising,
-    planets,
+    planets: transformedPlanets,
     houses: houses.cusps || houses,
-    aspects: data.aspects || [],
+    moonPhase,
+    aspects: (data.aspects || []).map(transformAspect),
     elementBalance: data.elements ? {
       dominant: data.elements.dominant?.element || data.elements.dominant,
       secondary: data.elements.weakest?.element,
@@ -111,7 +185,7 @@ async function calculateWithPython({ birthDate, birthTime, latitude, longitude, 
   }
 
   const data = await response.json();
-  return transformPythonResponse(data);
+  return transformPythonResponse(data, birthDate);
 }
 
 /**

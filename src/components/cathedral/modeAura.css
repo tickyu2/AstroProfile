@@ -1,0 +1,598 @@
+/**
+ * Mode Aura System
+ *
+ * Subtle UI recoloring system that shifts the entire Cathedral
+ * atmosphere based on the current mode. Uses CSS custom properties
+ * for seamless theming.
+ *
+ * Part of GENESIS OS - Soul Discovery Engine
+ */
+
+/* ============================================================================
+   ROOT AURA VARIABLES
+   ============================================================================ */
+
+:root {
+  /* Base transition for aura shifts */
+  --aura-transition: 500ms ease;
+
+  /* Default aura (Pilgrim) */
+  --aura-primary: #ffd780;
+  --aura-secondary: #e6b84d;
+  --aura-accent: #ffaa33;
+  --aura-glow: rgba(255, 215, 128, 0.2);
+  --aura-ambient: rgba(255, 215, 128, 0.05);
+
+  /* Surface colors */
+  --aura-surface-1: rgba(255, 215, 128, 0.03);
+  --aura-surface-2: rgba(255, 215, 128, 0.06);
+  --aura-surface-3: rgba(255, 215, 128, 0.1);
+
+  /* Border colors */
+  --aura-border-subtle: rgba(255, 215, 128, 0.1);
+  --aura-border-medium: rgba(255, 215, 128, 0.2);
+  --aura-border-strong: rgba(255, 215, 128, 0.4);
+
+  /* Text colors */
+  --aura-text-accent: #ffd780;
+  --aura-text-highlight: #fff5e6;
+
+  /* Interactive states */
+  --aura-hover: rgba(255, 215, 128, 0.1);
+  --aura-active: rgba(255, 215, 128, 0.15);
+  --aura-focus: rgba(255, 215, 128, 0.2);
+  --aura-focus-ring: 0 0 0 2px rgba(255, 215, 128, 0.3);
+
+  /* Shadows */
+  --aura-shadow-sm: 0 2px 8px rgba(255, 215, 128, 0.1);
+  --aura-shadow-md: 0 4px 16px rgba(255, 215, 128, 0.15);
+  --aura-shadow-lg: 0 8px 32px rgba(255, 215, 128, 0.2);
+  --aura-glow-sm: 0 0 10px rgba(255, 215, 128, 0.3);
+  --aura-glow-md: 0 0 20px rgba(255, 215, 128, 0.4);
+  --aura-glow-lg: 0 0 40px rgba(255, 215, 128, 0.5);
+}
+
+/* ============================================================================
+   PILGRIM AURA (Warm Gold)
+   ============================================================================ */
+
+.aura-pilgrim,
+.mode-pilgrim {
+  --aura-primary: #ffd780;
+  --aura-secondary: #e6b84d;
+  --aura-accent: #ffaa33;
+  --aura-glow: rgba(255, 215, 128, 0.2);
+  --aura-ambient: rgba(255, 215, 128, 0.05);
+
+  --aura-surface-1: rgba(255, 215, 128, 0.03);
+  --aura-surface-2: rgba(255, 215, 128, 0.06);
+  --aura-surface-3: rgba(255, 215, 128, 0.1);
+
+  --aura-border-subtle: rgba(255, 215, 128, 0.1);
+  --aura-border-medium: rgba(255, 215, 128, 0.2);
+  --aura-border-strong: rgba(255, 215, 128, 0.4);
+
+  --aura-text-accent: #ffd780;
+  --aura-text-highlight: #fff5e6;
+
+  --aura-hover: rgba(255, 215, 128, 0.1);
+  --aura-active: rgba(255, 215, 128, 0.15);
+  --aura-focus: rgba(255, 215, 128, 0.2);
+  --aura-focus-ring: 0 0 0 2px rgba(255, 215, 128, 0.3);
+
+  --aura-shadow-sm: 0 2px 8px rgba(255, 215, 128, 0.1);
+  --aura-shadow-md: 0 4px 16px rgba(255, 215, 128, 0.15);
+  --aura-shadow-lg: 0 8px 32px rgba(255, 215, 128, 0.2);
+  --aura-glow-sm: 0 0 10px rgba(255, 215, 128, 0.3);
+  --aura-glow-md: 0 0 20px rgba(255, 215, 128, 0.4);
+  --aura-glow-lg: 0 0 40px rgba(255, 215, 128, 0.5);
+}
+
+/* ============================================================================
+   SCHOLAR AURA (Parchment/Sepia)
+   ============================================================================ */
+
+.aura-scholar,
+.mode-scholar {
+  --aura-primary: #e8d5a3;
+  --aura-secondary: #c4b08a;
+  --aura-accent: #d4a84b;
+  --aura-glow: rgba(232, 213, 163, 0.2);
+  --aura-ambient: rgba(232, 213, 163, 0.04);
+
+  --aura-surface-1: rgba(232, 213, 163, 0.03);
+  --aura-surface-2: rgba(232, 213, 163, 0.06);
+  --aura-surface-3: rgba(232, 213, 163, 0.1);
+
+  --aura-border-subtle: rgba(232, 213, 163, 0.1);
+  --aura-border-medium: rgba(232, 213, 163, 0.2);
+  --aura-border-strong: rgba(232, 213, 163, 0.4);
+
+  --aura-text-accent: #e8d5a3;
+  --aura-text-highlight: #f5f0e6;
+
+  --aura-hover: rgba(232, 213, 163, 0.08);
+  --aura-active: rgba(232, 213, 163, 0.12);
+  --aura-focus: rgba(232, 213, 163, 0.15);
+  --aura-focus-ring: 0 0 0 2px rgba(232, 213, 163, 0.25);
+
+  --aura-shadow-sm: 0 2px 8px rgba(232, 213, 163, 0.08);
+  --aura-shadow-md: 0 4px 16px rgba(232, 213, 163, 0.12);
+  --aura-shadow-lg: 0 8px 32px rgba(232, 213, 163, 0.18);
+  --aura-glow-sm: 0 0 10px rgba(232, 213, 163, 0.25);
+  --aura-glow-md: 0 0 20px rgba(232, 213, 163, 0.35);
+  --aura-glow-lg: 0 0 40px rgba(232, 213, 163, 0.45);
+}
+
+/* ============================================================================
+   ARCHITECT AURA (Blueprint Blue)
+   ============================================================================ */
+
+.aura-architect,
+.mode-architect {
+  --aura-primary: #60a5fa;
+  --aura-secondary: #3b82f6;
+  --aura-accent: #93c5fd;
+  --aura-glow: rgba(96, 165, 250, 0.25);
+  --aura-ambient: rgba(96, 165, 250, 0.04);
+
+  --aura-surface-1: rgba(96, 165, 250, 0.03);
+  --aura-surface-2: rgba(96, 165, 250, 0.06);
+  --aura-surface-3: rgba(96, 165, 250, 0.1);
+
+  --aura-border-subtle: rgba(96, 165, 250, 0.15);
+  --aura-border-medium: rgba(96, 165, 250, 0.25);
+  --aura-border-strong: rgba(96, 165, 250, 0.5);
+
+  --aura-text-accent: #60a5fa;
+  --aura-text-highlight: #e0f2fe;
+
+  --aura-hover: rgba(96, 165, 250, 0.1);
+  --aura-active: rgba(96, 165, 250, 0.15);
+  --aura-focus: rgba(96, 165, 250, 0.2);
+  --aura-focus-ring: 0 0 0 2px rgba(96, 165, 250, 0.4);
+
+  --aura-shadow-sm: 0 2px 8px rgba(96, 165, 250, 0.12);
+  --aura-shadow-md: 0 4px 16px rgba(96, 165, 250, 0.18);
+  --aura-shadow-lg: 0 8px 32px rgba(96, 165, 250, 0.25);
+  --aura-glow-sm: 0 0 10px rgba(96, 165, 250, 0.4);
+  --aura-glow-md: 0 0 20px rgba(96, 165, 250, 0.5);
+  --aura-glow-lg: 0 0 40px rgba(96, 165, 250, 0.6);
+}
+
+/* ============================================================================
+   SOVEREIGN AURA (Obsidian Gold)
+   ============================================================================ */
+
+.aura-sovereign,
+.mode-sovereign {
+  --aura-primary: #fbbf24;
+  --aura-secondary: #d97706;
+  --aura-accent: #fcd34d;
+  --aura-glow: rgba(251, 191, 36, 0.3);
+  --aura-ambient: rgba(251, 191, 36, 0.03);
+
+  --aura-surface-1: rgba(251, 191, 36, 0.02);
+  --aura-surface-2: rgba(251, 191, 36, 0.05);
+  --aura-surface-3: rgba(251, 191, 36, 0.08);
+
+  --aura-border-subtle: rgba(251, 191, 36, 0.1);
+  --aura-border-medium: rgba(251, 191, 36, 0.2);
+  --aura-border-strong: rgba(251, 191, 36, 0.4);
+
+  --aura-text-accent: #fbbf24;
+  --aura-text-highlight: #fefce8;
+
+  --aura-hover: rgba(251, 191, 36, 0.08);
+  --aura-active: rgba(251, 191, 36, 0.12);
+  --aura-focus: rgba(251, 191, 36, 0.15);
+  --aura-focus-ring: 0 0 0 2px rgba(251, 191, 36, 0.35);
+
+  --aura-shadow-sm: 0 2px 8px rgba(251, 191, 36, 0.1);
+  --aura-shadow-md: 0 4px 16px rgba(251, 191, 36, 0.15);
+  --aura-shadow-lg: 0 8px 32px rgba(251, 191, 36, 0.22);
+  --aura-glow-sm: 0 0 10px rgba(251, 191, 36, 0.35);
+  --aura-glow-md: 0 0 20px rgba(251, 191, 36, 0.5);
+  --aura-glow-lg: 0 0 40px rgba(251, 191, 36, 0.6);
+}
+
+/* ============================================================================
+   AURA-AWARE COMPONENT CLASSES
+   ============================================================================ */
+
+/* Cards and panels */
+.aura-card {
+  background: var(--aura-surface-1);
+  border: 1px solid var(--aura-border-subtle);
+  border-radius: 12px;
+  transition: all var(--aura-transition);
+}
+
+.aura-card:hover {
+  background: var(--aura-surface-2);
+  border-color: var(--aura-border-medium);
+  box-shadow: var(--aura-shadow-md);
+}
+
+.aura-card.elevated {
+  box-shadow: var(--aura-shadow-lg);
+}
+
+.aura-card.glowing {
+  box-shadow: var(--aura-glow-md);
+}
+
+/* Buttons */
+.aura-button {
+  background: var(--aura-surface-2);
+  border: 1px solid var(--aura-border-medium);
+  color: var(--aura-text-accent);
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all var(--aura-transition);
+}
+
+.aura-button:hover {
+  background: var(--aura-hover);
+  border-color: var(--aura-border-strong);
+  box-shadow: var(--aura-shadow-sm);
+}
+
+.aura-button:active {
+  background: var(--aura-active);
+}
+
+.aura-button:focus {
+  outline: none;
+  box-shadow: var(--aura-focus-ring);
+}
+
+.aura-button.primary {
+  background: var(--aura-primary);
+  border-color: var(--aura-secondary);
+  color: #000;
+}
+
+.aura-button.primary:hover {
+  background: var(--aura-accent);
+  box-shadow: var(--aura-glow-sm);
+}
+
+/* Text and links */
+.aura-text {
+  color: var(--aura-text-accent);
+  transition: color var(--aura-transition);
+}
+
+.aura-link {
+  color: var(--aura-primary);
+  text-decoration: none;
+  transition: all var(--aura-transition);
+}
+
+.aura-link:hover {
+  color: var(--aura-text-highlight);
+  text-shadow: var(--aura-glow-sm);
+}
+
+.aura-highlight {
+  color: var(--aura-text-highlight);
+  text-shadow: 0 0 10px var(--aura-glow);
+}
+
+/* Borders and dividers */
+.aura-border {
+  border: 1px solid var(--aura-border-subtle);
+  transition: border-color var(--aura-transition);
+}
+
+.aura-border-accent {
+  border: 1px solid var(--aura-border-strong);
+}
+
+.aura-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--aura-border-medium),
+    transparent
+  );
+}
+
+/* Glowing elements */
+.aura-glow {
+  box-shadow: var(--aura-glow-md);
+  transition: box-shadow var(--aura-transition);
+}
+
+.aura-glow-strong {
+  box-shadow: var(--aura-glow-lg);
+}
+
+.aura-glow-pulse {
+  animation: auraPulse 2s ease-in-out infinite;
+}
+
+@keyframes auraPulse {
+  0%, 100% {
+    box-shadow: var(--aura-glow-sm);
+  }
+  50% {
+    box-shadow: var(--aura-glow-lg);
+  }
+}
+
+/* Ambient background */
+.aura-ambient {
+  background: var(--aura-ambient);
+  transition: background var(--aura-transition);
+}
+
+.aura-ambient-gradient {
+  background: radial-gradient(
+    ellipse at center,
+    var(--aura-ambient) 0%,
+    transparent 70%
+  );
+}
+
+/* Icons */
+.aura-icon {
+  color: var(--aura-primary);
+  transition: all var(--aura-transition);
+}
+
+.aura-icon:hover {
+  color: var(--aura-text-highlight);
+  filter: drop-shadow(var(--aura-glow-sm));
+}
+
+/* Progress indicators */
+.aura-progress {
+  background: var(--aura-surface-1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.aura-progress-fill {
+  background: linear-gradient(90deg, var(--aura-secondary), var(--aura-primary));
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Input fields */
+.aura-input {
+  background: var(--aura-surface-1);
+  border: 1px solid var(--aura-border-subtle);
+  color: var(--aura-text-highlight);
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: all var(--aura-transition);
+}
+
+.aura-input:hover {
+  border-color: var(--aura-border-medium);
+}
+
+.aura-input:focus {
+  outline: none;
+  border-color: var(--aura-primary);
+  box-shadow: var(--aura-focus-ring);
+}
+
+/* Tags and badges */
+.aura-tag {
+  background: var(--aura-surface-2);
+  border: 1px solid var(--aura-border-subtle);
+  color: var(--aura-text-accent);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  transition: all var(--aura-transition);
+}
+
+.aura-badge {
+  background: var(--aura-primary);
+  color: #000;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   AMBIENT EFFECTS
+   ============================================================================ */
+
+/* Subtle vignette around edges */
+.aura-vignette::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    var(--aura-ambient) 100%
+  );
+  z-index: 9999;
+  opacity: 0.5;
+}
+
+/* Corner glow accents */
+.aura-corner-glow::before,
+.aura-corner-glow::after {
+  content: '';
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--aura-glow) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.aura-corner-glow::before {
+  top: -150px;
+  left: -150px;
+}
+
+.aura-corner-glow::after {
+  bottom: -150px;
+  right: -150px;
+}
+
+/* Floating particles (requires JS for animation) */
+.aura-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.aura-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--aura-primary);
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: particleFloat 20s linear infinite;
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(100vh) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.3;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(100px);
+    opacity: 0;
+  }
+}
+
+/* ============================================================================
+   MODE-SPECIFIC AMBIENT ANIMATIONS
+   ============================================================================ */
+
+/* Pilgrim: Gentle breathing */
+.mode-pilgrim .aura-ambient-animation {
+  animation: pilgrimAmbient 8s ease-in-out infinite;
+}
+
+@keyframes pilgrimAmbient {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+/* Scholar: Subtle flicker like candlelight */
+.mode-scholar .aura-ambient-animation {
+  animation: scholarAmbient 4s ease-in-out infinite;
+}
+
+@keyframes scholarAmbient {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  25% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.95;
+  }
+  75% {
+    opacity: 0.88;
+  }
+}
+
+/* Architect: Grid scan effect */
+.mode-architect .aura-ambient-animation {
+  animation: architectAmbient 3s linear infinite;
+}
+
+@keyframes architectAmbient {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 20px;
+  }
+}
+
+/* Sovereign: Command pulse */
+.mode-sovereign .aura-ambient-animation {
+  animation: sovereignAmbient 2s ease-in-out infinite;
+}
+
+@keyframes sovereignAmbient {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--aura-glow);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--aura-glow);
+  }
+}
+
+/* ============================================================================
+   TRANSITION EFFECTS
+   ============================================================================ */
+
+/* Smooth mode transition overlay */
+.aura-mode-transition {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--aura-primary);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10000;
+  transition: opacity 300ms ease;
+}
+
+.aura-mode-transition.active {
+  opacity: 0.1;
+  pointer-events: auto;
+}
+
+/* ============================================================================
+   REDUCED MOTION SUPPORT
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .aura-glow-pulse,
+  .aura-ambient-animation,
+  .aura-particle {
+    animation: none;
+  }
+
+  :root {
+    --aura-transition: 0ms;
+  }
+}

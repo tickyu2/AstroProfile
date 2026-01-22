@@ -263,17 +263,24 @@ function GuestChat() {
     };
   }, [selectedUserProfile]);
 
-  // Auto-select first "self" profile if available
+  // Auto-select first "self" profile if available, otherwise first profile
   useEffect(() => {
     if (!selectedUserProfileId && userProfiles.length > 0) {
+      // Try to find a "self" profile first
       const selfProfile = userProfiles.find(p => p.relationshipType === 'self');
       if (selfProfile) {
         setSelectedUserProfileId(selfProfile.id);
+        console.log(`[Profile Auto-Select] Selected self profile: ${selfProfile.id}`);
+      } else {
+        // Fallback to first profile
+        setSelectedUserProfileId(userProfiles[0].id);
+        console.log(`[Profile Auto-Select] No self profile found, using first profile: ${userProfiles[0].id}`);
       }
     }
   }, [userProfiles, selectedUserProfileId]);
 
   // Load guest profile with Brain 1A/1B when guest is selected
+  // Reload when AstroProfile changes (compartmentalization)
   useEffect(() => {
     async function loadGuestProfile() {
       if (!userId || !partnerId) {
@@ -284,8 +291,10 @@ function GuestChat() {
       try {
         setLoading(true);
         setError(null);
-        const data = await loadProfile(userId, partnerId);
+        // Pass AstroProfile ID for profile-scoped Brain 1B facts
+        const data = await loadProfile(userId, partnerId, selectedUserProfileId);
         setProfileData(data);
+        console.log(`[Profile Load] Loaded for AstroProfile: ${selectedUserProfileId || 'default'}, Facts: ${data.profile_metadata.learned_facts_count}`);
       } catch (err) {
         console.error('Failed to load profile:', err);
         setError('Failed to load guest profile');
@@ -295,7 +304,7 @@ function GuestChat() {
     }
 
     loadGuestProfile();
-  }, [userId, partnerId]);
+  }, [userId, partnerId, selectedUserProfileId]);
 
   // Clear messages when user profile changes (compartmentalization)
   useEffect(() => {
@@ -308,47 +317,56 @@ function GuestChat() {
   useEffect(() => {
     async function loadConversationHistory() {
       // Need both user profile ID and guest partner ID to load correct conversation
-      if (!userId || !partnerId || !selectedUserProfileId) {
-        console.log('[Brain 3] Skipping history load - missing profile or partner ID');
+      if (!userId) {
+        console.log('[Brain 3] Skipping history load - no auth user');
+        return;
+      }
+      if (!partnerId) {
+        console.log('[Brain 3] Skipping history load - no partner selected');
+        return;
+      }
+      if (!selectedUserProfileId) {
+        console.log('[Brain 3] Skipping history load - no user profile selected');
         return;
       }
 
+      console.log(`[Brain 3] Loading history for profile ${selectedUserProfileId} with guest ${partnerId}...`);
+
       try {
-        // Query Brain 3 for messages specific to THIS user profile chatting with THIS guest
-        const brain3Ref = collection(db, 'brain3_active_text');
-        const q = query(
+        // PROFILE-SCOPED BRAIN: Each profile has its own conversations
+        // Path: profiles/{profileId}/b3_conversations (3 segments = valid collection)
+        const brainsPath = `profiles/${selectedUserProfileId}/b3_conversations`;
+        const brain3Ref = collection(db, brainsPath);
+
+        // Query conversations with this specific partner
+        const conversationQuery = query(
           brain3Ref,
-          where('chatting_as.profile_id', '==', selectedUserProfileId), // Use profile ID, not auth userId
-          where('chatting_with.partner_id', '==', partnerId),
+          where('partner_id', '==', partnerId),
           orderBy('timestamp', 'desc'),
-          limit(50) // Load last 50 messages
+          limit(50)
         );
 
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocs(conversationQuery);
 
         if (!snapshot.empty) {
           const loadedMessages = snapshot.docs
-            .map(doc => ({
-              id: doc.id,
-              ...doc.data()
-            }))
-            .reverse(); // Reverse to get chronological order
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .reverse(); // Chronological order
 
           setMessages(loadedMessages);
-          console.log(`[Brain 3] Loaded ${loadedMessages.length} messages for profile ${selectedUserProfileId} with guest ${partnerId}`);
+          console.log(`[Brain 3] Loaded ${loadedMessages.length} messages from profile-scoped brain`);
         } else {
-          console.log(`[Brain 3] No conversation history found for profile ${selectedUserProfileId} with guest ${partnerId}`);
-          setMessages([]); // Ensure clean slate for new conversation
+          console.log(`[Brain 3] No conversation history found for this profile + partner`);
+          setMessages([]);
         }
       } catch (err) {
-        console.warn('Could not load conversation history:', err);
-        // Don't show error to user - just start fresh conversation
+        console.error('[Brain 3] Error loading conversation history:', err.code, err.message);
         setMessages([]);
       }
     }
 
     loadConversationHistory();
-  }, [userId, partnerId, selectedUserProfileId]); // Added selectedUserProfileId as dependency
+  }, [userId, partnerId, selectedUserProfileId]); // Re-run when any of these change
 
   // Handle user sending message (with optional images)
   const handleSendMessage = useCallback(async (text, images = []) => {

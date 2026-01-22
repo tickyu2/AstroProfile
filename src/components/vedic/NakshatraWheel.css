@@ -1,0 +1,106 @@
+/* NakshatraWheel.css */
+
+.nakshatra-wheel-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.nakshatra-wheel {
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+}
+
+.nakshatra-segment {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.nakshatra-segment:hover {
+  opacity: 1;
+}
+
+.nakshatra-arc {
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.nakshatra-label {
+  pointer-events: none;
+  user-select: none;
+}
+
+.nakshatra-label.active {
+  font-weight: 600;
+}
+
+.center-info text {
+  pointer-events: none;
+}
+
+/* Tooltip */
+.nakshatra-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(100, 116, 139, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  min-width: 180px;
+  z-index: 10;
+}
+
+.tooltip-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #a78bfa;
+  margin-bottom: 8px;
+}
+
+.tooltip-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tooltip-details span {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Legend */
+.nakshatra-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.moon {
+  background: #a78bfa;
+}
+
+.legend-dot.sun {
+  background: #fbbf24;
+}
+
+.legend-dot.asc {
+  background: #22d3ee;
+}

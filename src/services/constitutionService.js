@@ -211,8 +211,10 @@ export function extractBazi(profile) {
   const dayMaster = fourPillars.dayMaster || fourPillars.day?.stem;
   const dayMasterInfo = getDayMasterInterpretation(dayMaster);
 
-  // Element balance with interpretation
-  const elementBalance = profile.calculations?.elementBalance || calculateElementBalance(fourPillars);
+  // Element balance with interpretation - check multiple sources
+  const elementBalance = profile.calculations?.elementBalance ||
+                         fourPillars.elementBalance ||  // Direct from fourPillars object
+                         calculateElementBalance(fourPillars);
   const elementInterpretation = getElementBalanceInterpretation(elementBalance);
 
   return {
@@ -968,11 +970,106 @@ function extractTenGods(fourPillars) {
   };
 }
 
+/**
+ * Calculate element balance from Four Pillars data
+ * Parses ganZhi (干支) strings to extract elements from Heavenly Stems and Earthly Branches
+ */
 function calculateElementBalance(fourPillars) {
-  // Basic element balance calculation
-  return {
-    Wood: 15, Fire: 20, Earth: 25, Metal: 25, Water: 15
+  if (!fourPillars) {
+    return { Wood: 20, Fire: 20, Earth: 20, Metal: 20, Water: 20 };
+  }
+
+  // Heavenly Stems (天干) to element mapping
+  const STEM_ELEMENTS = {
+    '甲': 'Wood', '乙': 'Wood', 'Jia': 'Wood', 'Yi': 'Wood',
+    '丙': 'Fire', '丁': 'Fire', 'Bing': 'Fire', 'Ding': 'Fire',
+    '戊': 'Earth', '己': 'Earth', 'Wu': 'Earth', 'Ji': 'Earth',
+    '庚': 'Metal', '辛': 'Metal', 'Geng': 'Metal', 'Xin': 'Metal',
+    '壬': 'Water', '癸': 'Water', 'Ren': 'Water', 'Gui': 'Water'
   };
+
+  // Earthly Branches (地支) to element mapping
+  const BRANCH_ELEMENTS = {
+    '寅': 'Wood', '卯': 'Wood', 'Yin': 'Wood', 'Mao': 'Wood',
+    '巳': 'Fire', '午': 'Fire', 'Si': 'Fire', 'Wu': 'Fire',
+    '辰': 'Earth', '戌': 'Earth', '丑': 'Earth', '未': 'Earth',
+    'Chen': 'Earth', 'Xu': 'Earth', 'Chou': 'Earth', 'Wei': 'Earth',
+    '申': 'Metal', '酉': 'Metal', 'Shen': 'Metal', 'You': 'Metal',
+    '亥': 'Water', '子': 'Water', 'Hai': 'Water', 'Zi': 'Water'
+  };
+
+  const elementCounts = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+
+  // Try different pillar key formats
+  const pillarKeys = [
+    ['year', 'month', 'day', 'hour'],
+    ['yearPillar', 'monthPillar', 'dayPillar', 'hourPillar']
+  ];
+
+  let foundPillars = false;
+
+  for (const keys of pillarKeys) {
+    for (const key of keys) {
+      const pillar = fourPillars[key];
+      if (!pillar) continue;
+      foundPillars = true;
+
+      // Extract ganZhi string
+      const ganZhi = pillar.ganZhi || pillar.ganzhi || pillar.ganzhi_cn ||
+                     (typeof pillar === 'string' ? pillar : null);
+
+      if (ganZhi && typeof ganZhi === 'string') {
+        // Parse each character
+        for (const char of ganZhi) {
+          if (STEM_ELEMENTS[char]) {
+            elementCounts[STEM_ELEMENTS[char]] += 1;
+          } else if (BRANCH_ELEMENTS[char]) {
+            elementCounts[BRANCH_ELEMENTS[char]] += 1;
+          }
+        }
+      }
+
+      // Also check explicit stem/branch objects
+      if (pillar.stem) {
+        const stemElement = pillar.stem.element || STEM_ELEMENTS[pillar.stem.chinese] ||
+                           STEM_ELEMENTS[pillar.stem.pinyin] || STEM_ELEMENTS[pillar.stem];
+        if (stemElement && elementCounts[stemElement] !== undefined) {
+          elementCounts[stemElement] += 1;
+        }
+      }
+
+      if (pillar.branch) {
+        const branchElement = pillar.branch.element || BRANCH_ELEMENTS[pillar.branch.chinese] ||
+                             BRANCH_ELEMENTS[pillar.branch.pinyin] || BRANCH_ELEMENTS[pillar.branch];
+        if (branchElement && elementCounts[branchElement] !== undefined) {
+          elementCounts[branchElement] += 1;
+        }
+      }
+    }
+    if (foundPillars) break;
+  }
+
+  // If no pillars found, return equal distribution
+  const total = Object.values(elementCounts).reduce((a, b) => a + b, 0);
+  if (total === 0) {
+    return { Wood: 20, Fire: 20, Earth: 20, Metal: 20, Water: 20 };
+  }
+
+  // Convert to percentages
+  const result = {};
+  for (const [element, count] of Object.entries(elementCounts)) {
+    result[element] = Math.round((count / total) * 100);
+  }
+
+  // Ensure total adds up to 100
+  const resultTotal = Object.values(result).reduce((a, b) => a + b, 0);
+  if (resultTotal !== 100) {
+    // Adjust the largest element to make total 100
+    const maxElement = Object.entries(result).sort((a, b) => b[1] - a[1])[0][0];
+    result[maxElement] += (100 - resultTotal);
+  }
+
+  return result;
 }
 
 function getElementBalanceInterpretation(balance) {

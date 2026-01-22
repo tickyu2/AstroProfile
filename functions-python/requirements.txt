@@ -12,7 +12,30 @@ neo4j>=5.0.0
 sentence-transformers>=2.2.0
 numpy>=1.24.0
 pandas>=2.0.0
+anthropic>=0.18.0          # Claude API for biographic extraction
+
+# Chinese Calendar & BaZi Engine (Joey Yap Standard)
+sxtwl>=1.1.0     # 寿星万年历 - Accurate solar terms, Lichun timing
+lunardate>=0.2.0  # Lunar calendar fallback
 
 # Utilities
 python-dateutil>=2.8.0
 pytz>=2023.3
+
+# Biography Ingestion Pipeline (Hello History RAG)
+PyMuPDF>=1.23.0          # PDF reading (fitz)
+pdfplumber>=0.10.0       # PDF reading fallback
+openai>=1.0.0            # Embeddings and enrichment
+psycopg2-binary>=2.9.0   # PostgreSQL connection (local dev)
+pgvector>=0.2.0          # Vector storage in PostgreSQL
+
+# ePub Ingestion (Reagan Diaries)
+EbookLib>=0.18           # ePub parsing
+beautifulsoup4>=4.12.0   # HTML extraction from ePub
+lxml>=4.9.0              # XML/HTML parser (bs4 backend)
+langchain-text-splitters>=0.0.1  # 20% overlap chunking for long entries
+
+# Cloud SQL Connection (Cloud Functions)
+pg8000>=1.30.0           # Pure Python PostgreSQL driver (required for Cloud SQL)
+SQLAlchemy>=2.0.0        # Database ORM
+cloud-sql-python-connector>=1.0.0  # Google Cloud SQL connector

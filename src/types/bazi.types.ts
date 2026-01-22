@@ -148,6 +148,12 @@ export interface NeoSimilarityResult {
 export interface Profile {
   neo30Facets: Neo30Facets | number[];
   bazi?: BaziData;
+  /** Pre-computed Western Expression Vector (72 dimensions) */
+  westernVector?: import('../types/western.types').WesternExpressionVector;
+  /** Raw natal chart data for Western calculations */
+  natalChart?: unknown;
+  /** Alternative location for Western data */
+  western?: unknown;
   name?: string;
   id?: string;
 }

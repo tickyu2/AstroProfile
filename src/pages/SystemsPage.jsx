@@ -21,6 +21,7 @@ import {
 } from '../services/apiKeysService';
 import { costTrackingService, COST_RATES } from '../services/costTrackingService';
 import { voiceOptimizationService, VOICE_QUALITY_PRESETS } from '../services/voiceOptimizationService';
+import { brainTicklerService, DEFAULT_BRAIN_TICKLERS } from '../services/brainTicklerService';
 
 // Service categories with links
 const SERVICE_CATEGORIES = {
@@ -28,6 +29,14 @@ const SERVICE_CATEGORIES = {
     title: 'Hosting & Infrastructure',
     icon: '🏗️',
     services: [
+      {
+        name: 'GENESIS Live Site',
+        url: 'https://astroprofile-391e6.web.app',
+        description: 'Live demo - GENESIS Soul Partner App',
+        icon: '🌟',
+        color: 'from-amber-500 to-pink-500',
+        highlight: true
+      },
       {
         name: 'Firebase Console',
         url: 'https://console.firebase.google.com/project/astroprofile-391e6',
@@ -497,6 +506,20 @@ export function SystemsPage() {
   const [voiceSummary, setVoiceSummary] = useState(null);
   const [selectedVoicePreset, setSelectedVoicePreset] = useState('BALANCED');
 
+  // Brain Ticklers admin state
+  const [brainTicklerCategories, setBrainTicklerCategories] = useState({});
+  const [ticklerStats, setTicklerStats] = useState({ categories: 0, subcategories: 0, questions: 0 });
+  const [expandedAdminCategory, setExpandedAdminCategory] = useState(null);
+  const [expandedAdminSubcategory, setExpandedAdminSubcategory] = useState(null);
+  const [newQuestionText, setNewQuestionText] = useState('');
+  const [editingQuestion, setEditingQuestion] = useState(null);
+  const [editingQuestionText, setEditingQuestionText] = useState('');
+  const [aiTopic, setAiTopic] = useState('');
+  const [aiGeneratedQuestions, setAiGeneratedQuestions] = useState([]);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [showBrainTicklerAdmin, setShowBrainTicklerAdmin] = useState(false);
+  const [ticklerMessage, setTicklerMessage] = useState({ type: '', text: '' });
+
   // Load API key status and metrics on mount
   useEffect(() => {
     setKeyStatus(getKeyStatus());
@@ -508,6 +531,9 @@ export function SystemsPage() {
     setVoiceSummary(voiceOptimizationService.getSummary());
     setSelectedVoicePreset(voiceOptimizationService.currentPreset);
 
+    // Load Brain Ticklers
+    loadBrainTicklers();
+
     // Refresh metrics every 30 seconds
     const interval = setInterval(() => {
       setCostSummary(costTrackingService.getSessionSummary());
@@ -516,6 +542,134 @@ export function SystemsPage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Load Brain Ticklers from service
+  const loadBrainTicklers = async () => {
+    try {
+      const categories = await brainTicklerService.getAllCategories();
+      setBrainTicklerCategories(categories);
+      const stats = await brainTicklerService.getStats();
+      setTicklerStats(stats);
+    } catch (error) {
+      console.error('Error loading brain ticklers:', error);
+      setBrainTicklerCategories(DEFAULT_BRAIN_TICKLERS);
+    }
+  };
+
+  // Initialize Brain Ticklers in Firestore
+  const handleInitializeBrainTicklers = async () => {
+    if (!window.confirm('Initialize Brain Ticklers in Firestore with default questions? This will overwrite any existing data.')) {
+      return;
+    }
+    try {
+      const result = await brainTicklerService.initializeDefaults();
+      if (result.success) {
+        setTicklerMessage({ type: 'success', text: 'Brain Ticklers initialized successfully!' });
+        await loadBrainTicklers();
+      } else {
+        setTicklerMessage({ type: 'error', text: `Error: ${result.error}` });
+      }
+    } catch (error) {
+      setTicklerMessage({ type: 'error', text: `Error: ${error.message}` });
+    }
+    setTimeout(() => setTicklerMessage({ type: '', text: '' }), 5000);
+  };
+
+  // Add a new question
+  const handleAddQuestion = async (categoryId, subcategoryId) => {
+    if (!newQuestionText.trim()) return;
+    try {
+      const result = await brainTicklerService.addQuestion(categoryId, subcategoryId, newQuestionText.trim());
+      if (result.success) {
+        setTicklerMessage({ type: 'success', text: 'Question added successfully!' });
+        setNewQuestionText('');
+        await loadBrainTicklers();
+      } else {
+        setTicklerMessage({ type: 'error', text: `Error: ${result.error}` });
+      }
+    } catch (error) {
+      setTicklerMessage({ type: 'error', text: `Error: ${error.message}` });
+    }
+    setTimeout(() => setTicklerMessage({ type: '', text: '' }), 3000);
+  };
+
+  // Delete a question
+  const handleDeleteQuestion = async (categoryId, subcategoryId, questionId) => {
+    if (!window.confirm('Delete this question?')) return;
+    try {
+      const result = await brainTicklerService.deleteQuestion(categoryId, subcategoryId, questionId);
+      if (result.success) {
+        setTicklerMessage({ type: 'success', text: 'Question deleted!' });
+        await loadBrainTicklers();
+      } else {
+        setTicklerMessage({ type: 'error', text: `Error: ${result.error}` });
+      }
+    } catch (error) {
+      setTicklerMessage({ type: 'error', text: `Error: ${error.message}` });
+    }
+    setTimeout(() => setTicklerMessage({ type: '', text: '' }), 3000);
+  };
+
+  // Update a question
+  const handleUpdateQuestion = async (categoryId, subcategoryId, questionId) => {
+    if (!editingQuestionText.trim()) return;
+    try {
+      const result = await brainTicklerService.updateQuestion(categoryId, subcategoryId, questionId, editingQuestionText.trim());
+      if (result.success) {
+        setTicklerMessage({ type: 'success', text: 'Question updated!' });
+        setEditingQuestion(null);
+        setEditingQuestionText('');
+        await loadBrainTicklers();
+      } else {
+        setTicklerMessage({ type: 'error', text: `Error: ${result.error}` });
+      }
+    } catch (error) {
+      setTicklerMessage({ type: 'error', text: `Error: ${error.message}` });
+    }
+    setTimeout(() => setTicklerMessage({ type: '', text: '' }), 3000);
+  };
+
+  // Generate AI questions
+  const handleGenerateAIQuestions = async () => {
+    if (!aiTopic.trim()) {
+      setTicklerMessage({ type: 'error', text: 'Please enter a topic' });
+      setTimeout(() => setTicklerMessage({ type: '', text: '' }), 3000);
+      return;
+    }
+    setIsGeneratingAI(true);
+    try {
+      const result = await brainTicklerService.generateQuestionsWithAI(aiTopic.trim(), 5);
+      if (result.success) {
+        setAiGeneratedQuestions(result.questions);
+        if (result.fallback) {
+          setTicklerMessage({ type: 'info', text: 'Generated using templates (AI not available)' });
+        } else {
+          setTicklerMessage({ type: 'success', text: 'AI questions generated!' });
+        }
+      } else {
+        setTicklerMessage({ type: 'error', text: 'Failed to generate questions' });
+      }
+    } catch (error) {
+      setTicklerMessage({ type: 'error', text: `Error: ${error.message}` });
+    }
+    setIsGeneratingAI(false);
+    setTimeout(() => setTicklerMessage({ type: '', text: '' }), 5000);
+  };
+
+  // Add AI generated question to a subcategory
+  const handleAddAIQuestion = async (question, categoryId, subcategoryId) => {
+    try {
+      const result = await brainTicklerService.addQuestion(categoryId, subcategoryId, question);
+      if (result.success) {
+        setTicklerMessage({ type: 'success', text: 'Question added!' });
+        setAiGeneratedQuestions(prev => prev.filter(q => q !== question));
+        await loadBrainTicklers();
+      }
+    } catch (error) {
+      setTicklerMessage({ type: 'error', text: `Error: ${error.message}` });
+    }
+    setTimeout(() => setTicklerMessage({ type: '', text: '' }), 3000);
+  };
 
   // Handle voice preset change
   const handleVoicePresetChange = (presetName) => {
@@ -954,6 +1108,244 @@ export function SystemsPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Brain Ticklers Admin */}
+        <section>
+          <div
+            className="flex items-center justify-between mb-4 cursor-pointer"
+            onClick={() => setShowBrainTicklerAdmin(!showBrainTicklerAdmin)}
+          >
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <span>🧠</span> Brain Ticklers Admin
+              <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">
+                {ticklerStats.questions} questions
+              </span>
+            </h2>
+            <span className="text-white/50 text-sm">
+              {showBrainTicklerAdmin ? '▼ Hide' : '▶ Expand'}
+            </span>
+          </div>
+
+          {showBrainTicklerAdmin && (
+            <div className="space-y-4">
+              {/* Stats & Actions */}
+              <div className="grid md:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 rounded-xl p-4">
+                  <div className="text-xs text-white/50 mb-1">Categories</div>
+                  <div className="text-2xl font-bold text-yellow-400">{ticklerStats.categories}</div>
+                </div>
+                <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-xl p-4">
+                  <div className="text-xs text-white/50 mb-1">Topics</div>
+                  <div className="text-2xl font-bold text-blue-400">{ticklerStats.subcategories}</div>
+                </div>
+                <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
+                  <div className="text-xs text-white/50 mb-1">Questions</div>
+                  <div className="text-2xl font-bold text-green-400">{ticklerStats.questions}</div>
+                </div>
+                <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4 flex items-center justify-center">
+                  <button
+                    onClick={handleInitializeBrainTicklers}
+                    className="text-sm bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    🔄 Reset to Defaults
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Message */}
+              {ticklerMessage.text && (
+                <div className={`p-3 rounded-lg text-sm ${
+                  ticklerMessage.type === 'success' ? 'bg-green-500/20 text-green-400' :
+                  ticklerMessage.type === 'error' ? 'bg-red-500/20 text-red-400' :
+                  'bg-blue-500/20 text-blue-400'
+                }`}>
+                  {ticklerMessage.text}
+                </div>
+              )}
+
+              {/* AI Question Generator */}
+              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-5">
+                <h3 className="text-md font-semibold text-white mb-3 flex items-center gap-2">
+                  <span>🤖</span> AI Question Generator
+                </h3>
+                <div className="flex gap-3 mb-4">
+                  <input
+                    type="text"
+                    value={aiTopic}
+                    onChange={(e) => setAiTopic(e.target.value)}
+                    placeholder="Enter topic (e.g., 'military service', 'college years')"
+                    className="flex-1 bg-slate-900/50 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
+                  />
+                  <button
+                    onClick={handleGenerateAIQuestions}
+                    disabled={isGeneratingAI}
+                    className="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-400 px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    {isGeneratingAI ? '⏳ Generating...' : '✨ Generate'}
+                  </button>
+                </div>
+                {aiGeneratedQuestions.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs text-white/50 mb-2">Generated questions (click to add to a category):</div>
+                    {aiGeneratedQuestions.map((question, idx) => (
+                      <div key={idx} className="bg-slate-900/50 rounded-lg p-3 flex items-start justify-between gap-3">
+                        <span className="text-sm text-white/80 flex-1">{question}</span>
+                        <select
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const [catId, subId] = e.target.value.split('||');
+                              handleAddAIQuestion(question, catId, subId);
+                              e.target.value = '';
+                            }
+                          }}
+                          className="bg-slate-800 border border-white/10 rounded px-2 py-1 text-xs text-white/60"
+                        >
+                          <option value="">Add to...</option>
+                          {Object.entries(brainTicklerCategories).map(([catId, cat]) => (
+                            Object.entries(cat.subcategories || {}).map(([subId, sub]) => (
+                              <option key={`${catId}||${subId}`} value={`${catId}||${subId}`}>
+                                {cat.icon} {sub.title}
+                              </option>
+                            ))
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Category Browser/Editor */}
+              <div className="bg-slate-800/50 rounded-xl border border-white/5 p-5">
+                <h3 className="text-md font-semibold text-white mb-4 flex items-center gap-2">
+                  <span>📚</span> Question Library
+                </h3>
+                <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                  {Object.entries(brainTicklerCategories)
+                    .sort(([, a], [, b]) => (a.order || 0) - (b.order || 0))
+                    .map(([categoryId, category]) => (
+                    <div key={categoryId} className="border border-white/10 rounded-lg overflow-hidden">
+                      {/* Category Header */}
+                      <div
+                        className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${
+                          expandedAdminCategory === categoryId ? 'bg-amber-500/10' : 'hover:bg-white/5'
+                        }`}
+                        onClick={() => {
+                          setExpandedAdminCategory(expandedAdminCategory === categoryId ? null : categoryId);
+                          setExpandedAdminSubcategory(null);
+                        }}
+                      >
+                        <span className="text-xl">{category.icon}</span>
+                        <span className="flex-1 font-medium text-white">{category.title}</span>
+                        <span className="text-xs text-white/40">
+                          {Object.keys(category.subcategories || {}).length} topics
+                        </span>
+                        <span className="text-white/40">{expandedAdminCategory === categoryId ? '▼' : '▶'}</span>
+                      </div>
+
+                      {/* Subcategories */}
+                      {expandedAdminCategory === categoryId && (
+                        <div className="border-t border-white/10 bg-slate-900/30">
+                          {Object.entries(category.subcategories || {})
+                            .sort(([, a], [, b]) => (a.order || 0) - (b.order || 0))
+                            .map(([subcatId, subcategory]) => (
+                            <div key={subcatId} className="border-b border-white/5 last:border-b-0">
+                              {/* Subcategory Header */}
+                              <div
+                                className={`flex items-center gap-3 p-3 pl-8 cursor-pointer transition-colors ${
+                                  expandedAdminSubcategory === subcatId ? 'bg-blue-500/10' : 'hover:bg-white/5'
+                                }`}
+                                onClick={() => setExpandedAdminSubcategory(expandedAdminSubcategory === subcatId ? null : subcatId)}
+                              >
+                                <span className="flex-1 text-sm text-white/80">{subcategory.title}</span>
+                                <span className="text-xs text-white/40">
+                                  {(subcategory.questions || []).length} questions
+                                </span>
+                                <span className="text-white/40 text-xs">{expandedAdminSubcategory === subcatId ? '▼' : '▶'}</span>
+                              </div>
+
+                              {/* Questions */}
+                              {expandedAdminSubcategory === subcatId && (
+                                <div className="bg-slate-950/50 p-3 pl-10 space-y-2">
+                                  {/* Existing Questions */}
+                                  {(subcategory.questions || []).map((question, qIdx) => (
+                                    <div key={question.id || qIdx} className="flex items-start gap-2 group">
+                                      {editingQuestion === question.id ? (
+                                        <>
+                                          <input
+                                            type="text"
+                                            value={editingQuestionText}
+                                            onChange={(e) => setEditingQuestionText(e.target.value)}
+                                            className="flex-1 bg-slate-800 border border-white/20 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
+                                            autoFocus
+                                          />
+                                          <button
+                                            onClick={() => handleUpdateQuestion(categoryId, subcatId, question.id)}
+                                            className="text-green-400 hover:text-green-300 text-sm px-2"
+                                          >
+                                            ✓
+                                          </button>
+                                          <button
+                                            onClick={() => { setEditingQuestion(null); setEditingQuestionText(''); }}
+                                            className="text-red-400 hover:text-red-300 text-sm px-2"
+                                          >
+                                            ✗
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <span className="flex-1 text-sm text-white/70">{question.text}</span>
+                                          <button
+                                            onClick={() => { setEditingQuestion(question.id); setEditingQuestionText(question.text); }}
+                                            className="text-white/30 hover:text-amber-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                          >
+                                            ✏️
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteQuestion(categoryId, subcatId, question.id)}
+                                            className="text-white/30 hover:text-red-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                          >
+                                            🗑️
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  ))}
+
+                                  {/* Add New Question */}
+                                  <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                                    <input
+                                      type="text"
+                                      value={newQuestionText}
+                                      onChange={(e) => setNewQuestionText(e.target.value)}
+                                      placeholder="Add new question..."
+                                      className="flex-1 bg-slate-800 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-green-500/50"
+                                      onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                          handleAddQuestion(categoryId, subcatId);
+                                        }
+                                      }}
+                                    />
+                                    <button
+                                      onClick={() => handleAddQuestion(categoryId, subcatId)}
+                                      className="bg-green-500/20 hover:bg-green-500/30 text-green-400 px-3 py-2 rounded text-sm transition-colors"
+                                    >
+                                      + Add
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Service Categories */}

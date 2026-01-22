@@ -1,8 +1,93 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import ConstitutionalTruthModal from './ConstitutionalTruthModal'
+import LunaPersonalityPanel from './LunaPersonalityPanel'
+import PersonalityRadar from '../bazi/organisms/PersonalityRadar'
+import { calculateBaZi } from '../../utils/baziCalculator'
+import { applySeasonality } from '../../utils/baziSeasonality'
 
 export default function BirthDetailsPanel({ profile, age }) {
+    const navigate = useNavigate()
     const [showConstitutionalTruth, setShowConstitutionalTruth] = useState(false)
+    const [showLunaPersonality, setShowLunaPersonality] = useState(false)
+
+    // Get BaZi data - CANONICAL PATH FIRST (Python-First), then fallback to recalculation
+    const baziData = useMemo(() => {
+        if (!profile?.birthDate) return null
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // PRIORITY 1: CANONICAL PATH (Python-First) - profile.bazi
+        // ═══════════════════════════════════════════════════════════════════════
+        if (profile?.bazi?.elements) {
+            console.log('[BirthDetailsPanel] ✅ Using canonical path profile.bazi')
+            const elements = profile.bazi.elements
+
+            // Convert 0-1 percentages to 0-100 if needed
+            const toPercent = (val) => val < 1 ? Math.round(val * 100) : val
+
+            const adjusted = {
+                wood: toPercent(elements.Wood || 0),
+                fire: toPercent(elements.Fire || 0),
+                earth: toPercent(elements.Earth || 0),
+                metal: toPercent(elements.Metal || 0),
+                water: toPercent(elements.Water || 0)
+            }
+
+            // Build pillars array from canonical structure
+            const pillars = profile.bazi.pillars ? [
+                profile.bazi.pillars.year,
+                profile.bazi.pillars.month,
+                profile.bazi.pillars.day,
+                profile.bazi.pillars.hour
+            ] : null
+
+            return {
+                chart: profile.bazi,
+                pillars: pillars,
+                adjusted: adjusted,
+                seasonInfo: null, // Seasonality already applied in Python
+                canonical: true
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // PRIORITY 2: LEGACY PATH - Recalculate BaZi from birth data
+        // ═══════════════════════════════════════════════════════════════════════
+        console.log('[BirthDetailsPanel] ⚠️ Using legacy recalculation (no profile.bazi)')
+        try {
+            const [year, month, day] = profile.birthDate.split('-').map(Number)
+            const [hour = 12, minute = 0] = (profile.birthTime || '12:00').split(':').map(Number)
+
+            const chart = calculateBaZi({ year, month, day, hour, minute })
+            if (chart.error) return null
+
+            // Get raw element distribution from chart
+            const rawDist = {
+                wood: parseFloat(chart.elements?.percentages?.Wood) || chart.elements?.raw?.Wood || 20,
+                fire: parseFloat(chart.elements?.percentages?.Fire) || chart.elements?.raw?.Fire || 20,
+                earth: parseFloat(chart.elements?.percentages?.Earth) || chart.elements?.raw?.Earth || 20,
+                metal: parseFloat(chart.elements?.percentages?.Metal) || chart.elements?.raw?.Metal || 20,
+                water: parseFloat(chart.elements?.percentages?.Water) || chart.elements?.raw?.Water || 20
+            }
+
+            // Apply seasonality adjustment (四季土 doctrine)
+            const monthBranch = chart.pillars?.[1]?.branch?.char || '子'
+            const seasonality = applySeasonality(rawDist, monthBranch)
+            const adjusted = seasonality?.adjustedNormalized || rawDist
+
+            return {
+                chart,
+                pillars: chart.pillars,
+                adjusted,
+                seasonInfo: seasonality,
+                canonical: false
+            }
+        } catch (error) {
+            console.error('BaZi calculation error:', error)
+            return null
+        }
+    }, [profile?.birthDate, profile?.birthTime, profile?.bazi])
+
     // Helper function to format coordinates
     const formatCoordinates = (lat, lng) => {
         if (!lat || !lng) return null
@@ -114,6 +199,18 @@ export default function BirthDetailsPanel({ profile, age }) {
                             </span>
                         </div>
                     )}
+
+                    {/* Western Elemental Analysis Button */}
+                    <button
+                        onClick={() => navigate(`/western-elements/${profile.id}`)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 hover:border-purple-400/50 hover:from-purple-500/30 hover:to-pink-500/30 transition-all duration-300"
+                        title="Western Zodiac Elemental Analysis"
+                    >
+                        <span className="text-sm">🌍</span>
+                        <span className="text-xs text-purple-300 font-semibold whitespace-nowrap">
+                            Elements
+                        </span>
+                    </button>
                 </div>
             </div>
             
@@ -133,12 +230,20 @@ export default function BirthDetailsPanel({ profile, age }) {
                                     {profile.firstName} {profile.lastName}
                                 </div>
                                 {/* Constitutional Truth Link */}
-                                <button
-                                    onClick={() => setShowConstitutionalTruth(true)}
-                                    className="mt-1 text-[10px] text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors"
-                                >
-                                    View Constitutional Truth (Brain 1A)
-                                </button>
+                                <div className="flex flex-wrap gap-3 mt-1">
+                                    <button
+                                        onClick={() => setShowConstitutionalTruth(true)}
+                                        className="text-[10px] text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors"
+                                    >
+                                        View Constitutional Truth (Brain 1A)
+                                    </button>
+                                    <button
+                                        onClick={() => setShowLunaPersonality(true)}
+                                        className="text-[10px] text-purple-400 hover:text-purple-300 underline underline-offset-2 transition-colors"
+                                    >
+                                        View Luna's Personality (Brain 7B)
+                                    </button>
+                                </div>
                             </div>
                         )}
                         
@@ -190,6 +295,24 @@ export default function BirthDetailsPanel({ profile, age }) {
                                     ⚠️ Default time
                                 </div>
                             )}
+                            {/* Timezone Display */}
+                            {profile.timezone && (
+                                <div className="mt-2 text-xs text-purple-300/70 font-mono flex items-center gap-1">
+                                    <span>🌐</span>
+                                    <span>{profile.timezone.abbreviation || profile.timezone.zoneName || profile.timezone}</span>
+                                    {profile.timezone.formattedOffset && (
+                                        <span className="text-purple-400/50">(UTC{profile.timezone.formattedOffset})</span>
+                                    )}
+                                    {profile.timezone.dst && (
+                                        <span className="text-amber-400/70 ml-1">DST</span>
+                                    )}
+                                </div>
+                            )}
+                            {!profile.timezone && profile.birthTime && profile.birthTime !== '12:00' && (
+                                <div className="mt-2 text-[9px] text-white/40 font-mono">
+                                    🌐 Local time (timezone not specified)
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -207,13 +330,13 @@ export default function BirthDetailsPanel({ profile, age }) {
                                 {locationData.display}
                             </div>
                             
-                            {/* Coordinates - subordinate info */}
+                            {/* Coordinates - more prominent display */}
                             {locationData.coordinates && (
-                                <div className="flex items-center gap-2 mt-2 text-[10px] text-white/40 font-mono">
-                                    <span>📐</span>
-                                    <span>
+                                <div className="flex items-center gap-2 mt-3 text-sm text-emerald-300/80 font-mono bg-emerald-500/10 rounded-lg px-3 py-2 border border-emerald-500/20">
+                                    <span className="text-base">📐</span>
+                                    <span className="font-semibold tracking-wide">
                                         {formatCoordinates(
-                                            locationData.coordinates.lat, 
+                                            locationData.coordinates.lat,
                                             locationData.coordinates.lng
                                         )}
                                     </span>
@@ -247,6 +370,32 @@ export default function BirthDetailsPanel({ profile, age }) {
                     </div>
                 </div>
 
+                {/* === BAZI 5 ELEMENTS (WHO you are) - Full Width PersonalityRadar === */}
+                {baziData && (
+                    <div className="mt-6 pt-4 border-t border-white/10">
+                        <PersonalityRadar
+                            data={[
+                                { trait: 'Wood', score: baziData.adjusted.wood || 20 },
+                                { trait: 'Fire', score: baziData.adjusted.fire || 20 },
+                                { trait: 'Earth', score: baziData.adjusted.earth || 20 },
+                                { trait: 'Metal', score: baziData.adjusted.metal || 20 },
+                                { trait: 'Water', score: baziData.adjusted.water || 20 }
+                            ]}
+                            profileName={profile?.displayName || `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Profile'}
+                            birthDate={profile?.birthDate}
+                            birthTime={profile?.birthTime || '12:00'}
+                            pillars={baziData.pillars}
+                            title="Seasonality Adjusted Elemental Fingerprint"
+                            subtitle="WHO You Are • Your Elemental Identity"
+                            height={380}
+                            compact={false}
+                            variant="adjusted"
+                            showPersonalitySummary={true}
+                            showRankingLegend={true}
+                        />
+                    </div>
+                )}
+
                 {/* Precision Notice - Only if high precision */}
                 {locationData?.coordinates && (locationData.precision === 'hospital' || locationData.precision === 'home' || locationData.precision === 'coordinates') && (
                     <div className="relative mt-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-amber-500/10 border border-amber-500/30 backdrop-blur-sm">
@@ -273,6 +422,12 @@ export default function BirthDetailsPanel({ profile, age }) {
                 profile={profile}
                 isOpen={showConstitutionalTruth}
                 onClose={() => setShowConstitutionalTruth(false)}
+            />
+
+            {/* Luna Personality Panel (Brain 7B) */}
+            <LunaPersonalityPanel
+                isOpen={showLunaPersonality}
+                onClose={() => setShowLunaPersonality(false)}
             />
         </div>
     )

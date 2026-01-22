@@ -290,8 +290,11 @@ function MessageList({
         }
 
         // Regular message (user or guest)
-        const isUser = message.sender === currentUserId;
-        const isGuest = message.sender === guestId || message.sender_role === 'guest';
+        // IMPORTANT: Check sender_role FIRST as it's the most reliable identifier
+        // Also check sender === 'user'/'guest' for legacy messages from Cloud Function
+        // Finally fall back to ID comparison
+        const isUser = message.sender_role === 'user' || message.sender === 'user' || message.sender === currentUserId;
+        const isGuest = message.sender_role === 'guest' || message.sender === 'guest' || message.sender === guestId;
 
         return (
           <div key={message.temp_id || message.id || index}>

@@ -1,0 +1,90 @@
+/**
+ * RelationshipCathedralPage.css
+ * Layout for the complete Cathedral experience
+ */
+
+.cathedral-page {
+  --cathedral-bg: #1a1a2e;
+
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  min-height: 100vh;
+  background: var(--cathedral-bg);
+  padding: 24px;
+}
+
+/* Sidebar */
+.cathedral-sidebar {
+  position: relative;
+}
+
+/* Main Content */
+.cathedral-main {
+  min-width: 0; /* Prevent overflow */
+}
+
+/* Loading State */
+.cathedral-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--cathedral-bg);
+  color: #d4a574;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #0f3460;
+  border-top-color: #d4a574;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.cathedral-loading p {
+  font-size: 1rem;
+  font-style: italic;
+  color: #8b8b8b;
+}
+
+/* Error State */
+.cathedral-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--cathedral-bg);
+  color: #eaeaea;
+  text-align: center;
+  padding: 24px;
+}
+
+.cathedral-error h2 {
+  color: #e94560;
+  margin-bottom: 8px;
+}
+
+.cathedral-error p {
+  color: #8b8b8b;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .cathedral-page {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .cathedral-sidebar {
+    display: none;
+  }
+}

@@ -15,7 +15,7 @@ const TRANSLATE_URL = 'https://us-central1-astroprofile-391e6.cloudfunctions.net
 const DETECT_URL = 'https://us-central1-astroprofile-391e6.cloudfunctions.net/detectLanguage';
 
 // Language metadata for display
-const LANGUAGE_DISPLAY = {
+export const LANGUAGE_DISPLAY = {
   en: { name: 'English', nativeName: 'English', flag: '🇺🇸' },
   zh: { name: 'Chinese', nativeName: '中文', flag: '🇨🇳' },
   es: { name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },

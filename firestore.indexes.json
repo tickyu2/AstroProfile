@@ -1,6 +1,22 @@
 {
   "indexes": [
     {
+      "collectionGroup": "b3_conversations",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "partner_id", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "b7_witness",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "partner_id", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "brain3_active_text",
       "queryScope": "COLLECTION",
       "fields": [

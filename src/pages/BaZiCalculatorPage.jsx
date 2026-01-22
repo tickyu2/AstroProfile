@@ -18,6 +18,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { calculateBaZi } from '../utils/baziCalculator';
+import { DaYunPanel } from '../components/bazi';
+import { useProfiles } from '../contexts/ProfileContext';
 
 // Element colors for visual display
 const ELEMENT_COLORS = {
@@ -38,11 +40,37 @@ const ELEMENT_EMOJI = {
 };
 
 export default function BaZiCalculatorPage() {
-  // Form state
+  // Tab state
+  const [activeTab, setActiveTab] = useState('calculator'); // 'calculator' or 'dayun'
+
+  // Get profiles for DaYun
+  const { profiles } = useProfiles();
+
+  // DaYun form state
+  const [dayunBirthDate, setDayunBirthDate] = useState('1990-05-15');
+  const [dayunBirthTime, setDayunBirthTime] = useState('12:00');
+  const [dayunIsMale, setDayunIsMale] = useState(true);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [showDayun, setShowDayun] = useState(false);
+
+  // Calculator form state
   const [startDate, setStartDate] = useState('1873-03-15');
   const [numDays, setNumDays] = useState(10);
   const [results, setResults] = useState([]);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  // Load profile data into DaYun form
+  const handleProfileSelect = (profileId) => {
+    const profile = profiles.find(p => p.id === profileId);
+    if (profile) {
+      setSelectedProfile(profile);
+      const birthDate = profile.birthDate || profile.dateOfBirth;
+      if (birthDate) setDayunBirthDate(birthDate);
+      if (profile.birthTime) setDayunBirthTime(profile.birthTime);
+      setDayunIsMale(profile.gender === 'male' || profile.isMale !== false);
+      setShowDayun(true);
+    }
+  };
 
   // Helper to normalize pillar data structure for display
   // Adapts from baziCalculator format to consistent display format
@@ -192,6 +220,136 @@ export default function BaZiCalculatorPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('calculator')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              activeTab === 'calculator'
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50'
+                : 'bg-slate-800/50 text-slate-400 border border-slate-700 hover:text-white'
+            }`}
+          >
+            🧮 Date Calculator
+          </button>
+          <button
+            onClick={() => setActiveTab('dayun')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              activeTab === 'dayun'
+                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/50'
+                : 'bg-slate-800/50 text-slate-400 border border-slate-700 hover:text-white'
+            }`}
+          >
+            🎯 Luck Pillars (大運)
+          </button>
+        </div>
+
+        {/* DaYun Tab Content */}
+        {activeTab === 'dayun' && (
+          <div className="space-y-6">
+            {/* DaYun Input Form */}
+            <div className="bg-slate-800/50 backdrop-blur-lg rounded-xl p-6 border border-slate-700">
+              <h2 className="text-lg font-semibold text-white mb-4">
+                Calculate Your 10-Year Luck Pillars
+              </h2>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Profile Selection */}
+                <div>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    Select from saved profiles (optional)
+                  </label>
+                  <select
+                    value={selectedProfile?.id || ''}
+                    onChange={(e) => handleProfileSelect(e.target.value)}
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                  >
+                    <option value="">-- Enter manually or select profile --</option>
+                    {profiles?.map(profile => (
+                      <option key={profile.id} value={profile.id}>
+                        {profile.displayName || profile.fullName || profile.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Manual Entry */}
+                <div className="flex flex-wrap gap-4">
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">Birth Date</label>
+                    <input
+                      type="date"
+                      value={dayunBirthDate}
+                      onChange={(e) => setDayunBirthDate(e.target.value)}
+                      className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">Birth Time</label>
+                    <input
+                      type="time"
+                      value={dayunBirthTime}
+                      onChange={(e) => setDayunBirthTime(e.target.value)}
+                      className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">Gender</label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setDayunIsMale(true)}
+                        className={`px-4 py-2 rounded-lg transition-all ${
+                          dayunIsMale
+                            ? 'bg-blue-500/30 text-blue-300 border border-blue-500/50'
+                            : 'bg-slate-700 text-slate-400 border border-slate-600'
+                        }`}
+                      >
+                        Male
+                      </button>
+                      <button
+                        onClick={() => setDayunIsMale(false)}
+                        className={`px-4 py-2 rounded-lg transition-all ${
+                          !dayunIsMale
+                            ? 'bg-pink-500/30 text-pink-300 border border-pink-500/50'
+                            : 'bg-slate-700 text-slate-400 border border-slate-600'
+                        }`}
+                      >
+                        Female
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowDayun(true)}
+                className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-semibold rounded-lg transition-all"
+              >
+                🔮 Calculate Luck Pillars
+              </button>
+
+              <p className="mt-3 text-xs text-slate-500">
+                DaYun (大運) reveals your 10-year luck cycles. Direction depends on gender and year stem polarity.
+                Knowing your current luck pillar helps you understand life themes and timing.
+              </p>
+            </div>
+
+            {/* DaYun Panel */}
+            {showDayun && (
+              <DaYunPanel
+                birthDate={dayunBirthDate}
+                birthTime={dayunBirthTime}
+                isMale={dayunIsMale}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Calculator Tab Content */}
+        {activeTab === 'calculator' && (
+        <>
         {/* Input Form */}
         <div className="bg-slate-800/50 backdrop-blur-lg rounded-xl p-6 border border-slate-700 mb-8">
           <h2 className="text-lg font-semibold text-white mb-4">Calculate BaZi Pillars</h2>
@@ -365,6 +523,8 @@ export default function BaZiCalculatorPage() {
             </p>
           </div>
         </div>
+        </>
+        )}
       </main>
     </div>
   );

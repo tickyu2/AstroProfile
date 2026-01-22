@@ -42,6 +42,7 @@ export default function Dashboard() {
       {/* Navbar */}
       <nav className="bg-slate-900/50 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* First Row */}
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-6">
               <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
@@ -49,7 +50,7 @@ export default function Dashboard() {
                 <span className="text-white font-bold text-xl">AstroProfile</span>
               </Link>
 
-              {/* Navigation Links */}
+              {/* Navigation Links - First Row */}
               <div className="hidden md:flex items-center gap-4">
                 <Link
                   to="/dashboard"
@@ -105,6 +106,34 @@ export default function Dashboard() {
                   <span>📊</span>
                   <span>Admin</span>
                 </Link>
+                <Link
+                  to="/biography"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1"
+                >
+                  <span>📖</span>
+                  <span>Biography</span>
+                </Link>
+                <Link
+                  to="/dynamic-personality"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1"
+                >
+                  <span>🧠</span>
+                  <span>Personality</span>
+                </Link>
+                <Link
+                  to="/luna-tuner"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1"
+                >
+                  <span>🎛️</span>
+                  <span>Luna Tuner</span>
+                </Link>
+                <Link
+                  to="/cms"
+                  className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium flex items-center gap-1"
+                >
+                  <span>📚</span>
+                  <span>CMS</span>
+                </Link>
               </div>
             </div>
 
@@ -119,6 +148,31 @@ export default function Dashboard() {
                 Logout
               </button>
             </div>
+          </div>
+
+          {/* Second Row - BaZi Modular & Match */}
+          <div className="hidden md:flex items-center gap-4 pb-2">
+            <Link
+              to="/bazi-modular"
+              className="px-3 py-1.5 text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium flex items-center gap-1 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:border-amber-500/50"
+            >
+              <span>🎋</span>
+              <span>BaZi Modular</span>
+            </Link>
+            <Link
+              to="/match"
+              className="px-3 py-1.5 text-pink-400 hover:text-pink-300 transition-colors text-sm font-medium flex items-center gap-1 bg-pink-500/10 rounded-lg border border-pink-500/30 hover:border-pink-500/50"
+            >
+              <span>💕</span>
+              <span>Match</span>
+            </Link>
+            <Link
+              to="/unified-compatibility"
+              className="px-3 py-1.5 text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium flex items-center gap-1 bg-purple-500/10 rounded-lg border border-purple-500/30 hover:border-purple-500/50"
+            >
+              <span>💫</span>
+              <span>Unified Compatibility</span>
+            </Link>
           </div>
         </div>
       </nav>
@@ -326,6 +380,34 @@ export default function Dashboard() {
             </button>
             <p className="text-white/40 text-sm mt-4">
               REAGAN • OBAMA • CASH • CLEOPATRA & ANTONY
+            </p>
+          </div>
+        </div>
+
+        {/* Genesis Academy CMS */}
+        <div className="mb-12 bg-gradient-to-r from-amber-600/20 via-yellow-600/20 to-orange-600/20 backdrop-blur-lg rounded-2xl p-8 border-2 border-amber-500/30 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-400/5 via-transparent to-orange-400/5 pointer-events-none" />
+
+          <div className="relative">
+            <div className="text-5xl mb-4">📚🎓✨</div>
+            <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-300 mb-3">
+              Genesis Academy CMS
+            </h3>
+            <p className="text-white/60 mb-2 italic max-w-xl mx-auto">
+              "Khan Academy for Relationships"
+            </p>
+            <p className="text-white/70 mb-6 max-w-2xl mx-auto text-lg">
+              Create and manage educational content for relationship wisdom.
+              Modules, sections, and lessons with multi-language AI translation.
+            </p>
+            <button
+              onClick={() => navigate('/cms')}
+              className="px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-900 text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-amber-500/30"
+            >
+              Open CMS
+            </button>
+            <p className="text-white/40 text-sm mt-4">
+              MODULES • SECTIONS • LESSONS • TRANSLATIONS
             </p>
           </div>
         </div>

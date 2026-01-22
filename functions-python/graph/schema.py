@@ -47,6 +47,7 @@ def initialize_schema(uri: str, user: str, password: str) -> dict:
         "indexes": [],
         "signs": [],
         "elements": [],
+        "graphrag": [],
         "errors": []
     }
 
@@ -54,11 +55,23 @@ def initialize_schema(uri: str, user: str, password: str) -> dict:
 
     try:
         with driver.session() as session:
-            # Create constraints
+            # Create constraints (original + GraphRAG + Diary)
             constraints = [
                 ("profile_userId", "CREATE CONSTRAINT profile_userId IF NOT EXISTS FOR (p:Profile) REQUIRE p.userId IS UNIQUE"),
                 ("sign_name", "CREATE CONSTRAINT sign_name IF NOT EXISTS FOR (s:Sign) REQUIRE s.name IS UNIQUE"),
-                ("element_name", "CREATE CONSTRAINT element_name IF NOT EXISTS FOR (e:Element) REQUIRE e.name IS UNIQUE")
+                ("element_name", "CREATE CONSTRAINT element_name IF NOT EXISTS FOR (e:Element) REQUIRE e.name IS UNIQUE"),
+                # GraphRAG constraints (Hello History pattern)
+                ("guest_profile_id", "CREATE CONSTRAINT guest_profile_id IF NOT EXISTS FOR (g:GuestProfile) REQUIRE g.profile_id IS UNIQUE"),
+                ("chunk_hash", "CREATE CONSTRAINT chunk_hash IF NOT EXISTS FOR (c:BiographyChunk) REQUIRE c.chunk_hash IS UNIQUE"),
+                ("topic_name", "CREATE CONSTRAINT topic_name IF NOT EXISTS FOR (t:Topic) REQUIRE t.name IS UNIQUE"),
+                ("entity_name", "CREATE CONSTRAINT entity_name IF NOT EXISTS FOR (e:Entity) REQUIRE e.name IS UNIQUE"),
+                ("theme_name", "CREATE CONSTRAINT theme_name IF NOT EXISTS FOR (th:ConstitutionalTheme) REQUIRE th.name IS UNIQUE"),
+                ("dynamic_name", "CREATE CONSTRAINT dynamic_name IF NOT EXISTS FOR (d:RelationshipDynamic) REQUIRE d.name IS UNIQUE"),
+                # Reagan Diaries constraints
+                ("diary_entry_hash", "CREATE CONSTRAINT diary_entry_hash IF NOT EXISTS FOR (d:DiaryEntry) REQUIRE d.entry_hash IS UNIQUE"),
+                ("diary_chunk_hash", "CREATE CONSTRAINT diary_chunk_hash IF NOT EXISTS FOR (c:DiaryChunk) REQUIRE c.chunk_hash IS UNIQUE"),
+                ("person_name", "CREATE CONSTRAINT person_name IF NOT EXISTS FOR (p:Person) REQUIRE p.name IS UNIQUE"),
+                ("date_value", "CREATE CONSTRAINT date_value IF NOT EXISTS FOR (d:Date) REQUIRE d.value IS UNIQUE")
             ]
 
             for name, query in constraints:
@@ -68,12 +81,29 @@ def initialize_schema(uri: str, user: str, password: str) -> dict:
                 except Exception as e:
                     results["constraints"].append({"name": name, "success": False, "error": str(e)})
 
-            # Create indexes
+            # Create indexes (original + GraphRAG + Diary)
             indexes = [
                 ("profile_dominant", "CREATE INDEX profile_dominant IF NOT EXISTS FOR (p:Profile) ON (p.dominantElement)"),
                 ("profile_sunSign", "CREATE INDEX profile_sunSign IF NOT EXISTS FOR (p:Profile) ON (p.sunSign)"),
                 ("profile_moonSign", "CREATE INDEX profile_moonSign IF NOT EXISTS FOR (p:Profile) ON (p.moonSign)"),
-                ("sign_element", "CREATE INDEX sign_element IF NOT EXISTS FOR (s:Sign) ON (s.element)")
+                ("sign_element", "CREATE INDEX sign_element IF NOT EXISTS FOR (s:Sign) ON (s.element)"),
+                # GraphRAG indexes (Hello History pattern)
+                ("guest_name", "CREATE INDEX guest_name IF NOT EXISTS FOR (g:GuestProfile) ON (g.name)"),
+                ("chunk_index", "CREATE INDEX chunk_index IF NOT EXISTS FOR (c:BiographyChunk) ON (c.chunk_index)"),
+                ("chunk_sentiment", "CREATE INDEX chunk_sentiment IF NOT EXISTS FOR (c:BiographyChunk) ON (c.sentiment)"),
+                ("topic_name_idx", "CREATE INDEX topic_name_idx IF NOT EXISTS FOR (t:Topic) ON (t.name)"),
+                ("entity_name_idx", "CREATE INDEX entity_name_idx IF NOT EXISTS FOR (e:Entity) ON (e.name)"),
+                ("theme_name_idx", "CREATE INDEX theme_name_idx IF NOT EXISTS FOR (th:ConstitutionalTheme) ON (th.name)"),
+                # Reagan Diaries indexes
+                ("diary_date", "CREATE INDEX diary_date IF NOT EXISTS FOR (d:DiaryEntry) ON (d.date_parsed)"),
+                ("diary_year", "CREATE INDEX diary_year IF NOT EXISTS FOR (d:DiaryEntry) ON (d.year)"),
+                ("diary_source", "CREATE INDEX diary_source IF NOT EXISTS FOR (d:DiaryEntry) ON (d.source)"),
+                ("person_name_idx", "CREATE INDEX person_name_idx IF NOT EXISTS FOR (p:Person) ON (p.name)"),
+                ("date_year", "CREATE INDEX date_year IF NOT EXISTS FOR (d:Date) ON (d.year)"),
+                # DiaryChunk indexes (20% overlap chunking for RAG)
+                ("chunk_date", "CREATE INDEX chunk_date IF NOT EXISTS FOR (c:DiaryChunk) ON (c.date_parsed)"),
+                ("chunk_year", "CREATE INDEX chunk_year IF NOT EXISTS FOR (c:DiaryChunk) ON (c.year)"),
+                ("chunk_index", "CREATE INDEX chunk_idx IF NOT EXISTS FOR (c:DiaryChunk) ON (c.chunk_index)")
             ]
 
             for name, query in indexes:

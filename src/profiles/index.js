@@ -8,6 +8,11 @@
 import einsteinProfile from './historical/einstein.js';
 import cleopatraProfile from './historical/cleopatra.js';
 import ronaldReaganProfile from './historical/ronaldReagan.js';
+import nancyReaganProfile from './historical/nancyReagan.js';
+import joanQuigleyProfile from './historical/joanQuigley.js';
+import donaldTrumpProfile from './historical/donaldTrump.js';
+import margaretThatcherProfile from './historical/margaretThatcher.js';
+import mikhailGorbachevProfile from './historical/mikhailGorbachev.js';
 import motherTeresaProfile from './historical/motherTeresa.js';
 import nelsonMandelaProfile from './historical/nelsonMandela.js';
 import winstonChurchillProfile from './historical/winstonChurchill.js';
@@ -15,6 +20,41 @@ import taylorSwiftProfile from './modern/taylorSwift.js';
 import elonMuskProfile from './modern/elonMusk.js';
 import fredRogersProfile from './modern/fredRogers.js';
 import oprahWinfreyProfile from './modern/oprahWinfrey.js';
+import reaganCoupleProfile from './couples/reaganCouple.js';
+
+// Obama Network
+import barackObamaProfile from './historical/barackObama.js';
+import michelleObamaProfile from './historical/michelleObama.js';
+import obamaCoupleProfile from './couples/obamaCouple.js';
+
+// Obama World Leader Network
+import angelaMerkelProfile from './historical/angelaMerkel.js';
+import justinTrudeauProfile from './historical/justinTrudeau.js';
+import popeFrancisProfile from './historical/popeFrancis.js';
+import benjaminNetanyahuProfile from './historical/benjaminNetanyahu.js';
+import xiJinpingProfile from './historical/xiJinping.js';
+import vladimirPutinProfile from './historical/vladimirPutin.js';
+
+// Carter Presidential Library
+import jimmyCarterProfile from './historical/jimmyCarter.js';
+import rosalynnCarterProfile from './historical/rosalynnCarter.js';
+import carterCoupleProfile from './couples/carterCouple.js';
+
+// Modern Celebrity Couples - Cristiano Ronaldo & Georgina Rodriguez
+import cristianoRonaldoProfile from './modern/cristianoRonaldo.js';
+import georginaRodriguezProfile from './modern/georginaRodriguez.js';
+import cristianoGeorginaCoupleProfile from './couples/cristianoGeorginaCouple.js';
+
+// Modern Celebrity Couples - David & Victoria Beckham
+import davidBeckhamProfile from './modern/davidBeckham.js';
+import victoriaBeckhamProfile from './modern/victoriaBeckham.js';
+import beckhamCoupleProfile from './couples/beckhamCouple.js';
+
+// Entertainment Couples - Dolly Parton & Carl Dean
+import dollyPartonProfile from './modern/dollyParton.js';
+import carlDeanProfile from './modern/carlDean.js';
+import dollyPartonCarlDeanCoupleProfile from './couples/dollyPartonCarlDeanCouple.js';
+
 // Future imports:
 // import lunaProfile from './soulpartners/luna.js';
 
@@ -73,7 +113,75 @@ export const profileRegistry = {
     curated_by: 'GENESIS Team',
     user_accessible: true,
     featured: true,
-    sort_order: 5
+    sort_order: 5,
+    // For Reagan Presidential Library collaboration
+    institution_partner: 'Reagan Presidential Library',
+    allows_markdown_editing: true
+  },
+
+  'historical_nancy_reagan': {
+    profile: nancyReaganProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 6,
+    institution_partner: 'Reagan Presidential Library',
+    allows_markdown_editing: true
+  },
+
+  'historical_joan_quigley': {
+    profile: joanQuigleyProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: false,
+    sort_order: 7,
+    // Reagan White House Shadow Network
+    constitutional_network: 'reagan_inner_circle',
+    relationship_connections: ['historical_nancy_reagan', 'historical_ronald_reagan'],
+    tags: ['white_house_astrologer', 'cold_war_influence', 'synastry_analysis', 'betrayal_story']
+  },
+
+  'historical_margaret_thatcher': {
+    profile: margaretThatcherProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 8,
+    // Cold War Constitutional Wisdom Network
+    constitutional_network: 'cold_war_leaders',
+    relationship_connections: ['historical_ronald_reagan', 'historical_mikhail_gorbachev']
+  },
+
+  'historical_mikhail_gorbachev': {
+    profile: mikhailGorbachevProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 9,
+    // Cold War Constitutional Wisdom Network
+    constitutional_network: 'cold_war_leaders',
+    relationship_connections: ['historical_ronald_reagan', 'historical_margaret_thatcher']
+  },
+
+  'couple_ronald_nancy_reagan': {
+    profile: reaganCoupleProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 7,
+    profile_type: 'couple',
+    institution_partner: 'Reagan Presidential Library',
+    allows_markdown_editing: true
   },
 
   'historical_mother_teresa': {
@@ -124,6 +232,341 @@ export const profileRegistry = {
     user_accessible: true,
     featured: true,
     sort_order: 10
+  },
+
+  // ========================================
+  // OBAMA PRESIDENTIAL LIBRARY NETWORK
+  // ========================================
+
+  'historical_barack_obama': {
+    profile: barackObamaProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 11,
+    institution_partner: 'Obama Presidential Library',
+    constitutional_network: 'obama_world_leaders',
+    relationship_connections: [
+      'historical_michelle_obama',
+      'guest_angela_merkel',
+      'guest_justin_trudeau',
+      'guest_pope_francis',
+      'guest_benjamin_netanyahu',
+      'guest_xi_jinping',
+      'guest_vladimir_putin'
+    ]
+  },
+
+  'historical_michelle_obama': {
+    profile: michelleObamaProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 12,
+    institution_partner: 'Obama Presidential Library',
+    constitutional_network: 'obama_world_leaders'
+  },
+
+  'couple_barack_michelle_obama': {
+    profile: obamaCoupleProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 13,
+    profile_type: 'couple',
+    institution_partner: 'Obama Presidential Library'
+  },
+
+  // Obama World Leader Network
+  'guest_angela_merkel': {
+    profile: angelaMerkelProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: false,
+    sort_order: 20,
+    constitutional_network: 'obama_world_leaders',
+    relationship_type: 'TRUSTED_ALLY',
+    compatibility_with_obama: 85
+  },
+
+  'guest_justin_trudeau': {
+    profile: justinTrudeauProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: false,
+    sort_order: 21,
+    constitutional_network: 'obama_world_leaders',
+    relationship_type: 'MENTORSHIP',
+    compatibility_with_obama: 82
+  },
+
+  'guest_pope_francis': {
+    profile: popeFrancisProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: false,
+    sort_order: 22,
+    constitutional_network: 'obama_world_leaders',
+    relationship_type: 'SPIRITUAL_ALIGNMENT',
+    compatibility_with_obama: 88
+  },
+
+  'guest_benjamin_netanyahu': {
+    profile: benjaminNetanyahuProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: false,
+    sort_order: 23,
+    constitutional_network: 'obama_world_leaders',
+    relationship_type: 'TENSE_ALLIANCE',
+    compatibility_with_obama: 65
+  },
+
+  'guest_xi_jinping': {
+    profile: xiJinpingProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: false,
+    sort_order: 24,
+    constitutional_network: 'obama_world_leaders',
+    relationship_type: 'STRATEGIC_RIVAL',
+    compatibility_with_obama: 62
+  },
+
+  'guest_vladimir_putin': {
+    profile: vladimirPutinProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: false,
+    sort_order: 25,
+    constitutional_network: 'obama_world_leaders',
+    relationship_type: 'ADVERSARIAL_RESPECT',
+    compatibility_with_obama: 58
+  },
+
+  // ========================================
+  // CARTER PRESIDENTIAL LIBRARY NETWORK
+  // ========================================
+
+  'historical_jimmy_carter': {
+    profile: jimmyCarterProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 30,
+    institution_partner: 'Carter Presidential Library',
+    constitutional_network: 'presidential_couples',
+    relationship_connections: [
+      'historical_rosalynn_carter',
+      'couple_jimmy_rosalynn_carter'
+    ]
+  },
+
+  'historical_rosalynn_carter': {
+    profile: rosalynnCarterProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 31,
+    institution_partner: 'Carter Presidential Library',
+    constitutional_network: 'presidential_couples'
+  },
+
+  'couple_jimmy_rosalynn_carter': {
+    profile: carterCoupleProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 32,
+    profile_type: 'couple',
+    institution_partner: 'Carter Presidential Library',
+    compatibility_score: 95,
+    years_together: 77
+  },
+
+  // ========================================
+  // TRUMP PRESIDENTIAL LIBRARY NETWORK
+  // ========================================
+
+  'historical_donald_trump': {
+    profile: donaldTrumpProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 35,
+    institution_partner: 'Trump Presidential Library',
+    constitutional_network: 'presidential_fire_earth',
+    // Early formation influences
+    formation_influences: ['NYMA', 'Norman Vincent Peale', 'Fred Trump'],
+    // Key constitutional data
+    constitutional_dominant: 'Fire 47%, Earth 46%',
+    constitutional_absent: 'Wood 1%, Water 3%, Metal 3%',
+    tags: ['fire_earth_synergy', 'nyma_formation', 'peale_positive_thinking', '45th_president']
+  },
+
+  // ========================================
+  // MODERN CELEBRITY COUPLES - DYNASTY BUILDERS
+  // ========================================
+
+  'modern_cristiano_ronaldo': {
+    profile: cristianoRonaldoProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 40,
+    constitutional_network: 'modern_celebrity_couples',
+    relationship_connections: [
+      'modern_georgina_rodriguez',
+      'couple_cristiano_georgina'
+    ]
+  },
+
+  'modern_georgina_rodriguez': {
+    profile: georginaRodriguezProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 41,
+    constitutional_network: 'modern_celebrity_couples',
+    relationship_connections: [
+      'modern_cristiano_ronaldo',
+      'couple_cristiano_georgina'
+    ]
+  },
+
+  'couple_cristiano_georgina': {
+    profile: cristianoGeorginaCoupleProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 42,
+    profile_type: 'couple',
+    constitutional_network: 'modern_celebrity_couples',
+    compatibility_score: 92,
+    years_together: 8
+  },
+
+  // David & Victoria Beckham - Double Steel Empire
+  'modern_david_beckham': {
+    profile: davidBeckhamProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 43,
+    constitutional_network: 'modern_celebrity_couples',
+    relationship_connections: [
+      'modern_victoria_beckham',
+      'couple_david_victoria_beckham'
+    ]
+  },
+
+  'modern_victoria_beckham': {
+    profile: victoriaBeckhamProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 44,
+    constitutional_network: 'modern_celebrity_couples',
+    relationship_connections: [
+      'modern_david_beckham',
+      'couple_david_victoria_beckham'
+    ]
+  },
+
+  'couple_david_victoria_beckham': {
+    profile: beckhamCoupleProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 45,
+    profile_type: 'couple',
+    constitutional_network: 'modern_celebrity_couples',
+    compatibility_score: 88,
+    years_together: 27
+  },
+
+  // Dolly Parton & Carl Dean - Mountain Sunshine (58-Year Marriage)
+  'modern_dolly_parton': {
+    profile: dollyPartonProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 46,
+    constitutional_network: 'entertainment_couples',
+    relationship_connections: [
+      'modern_carl_dean',
+      'couple_dolly_parton_carl_dean'
+    ]
+  },
+
+  'modern_carl_dean': {
+    profile: carlDeanProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 47,
+    constitutional_network: 'entertainment_couples',
+    relationship_connections: [
+      'modern_dolly_parton',
+      'couple_dolly_parton_carl_dean'
+    ]
+  },
+
+  'couple_dolly_parton_carl_dean': {
+    profile: dollyPartonCarlDeanCoupleProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 48,
+    profile_type: 'couple',
+    constitutional_network: 'entertainment_couples',
+    compatibility_score: 92,
+    years_together: 60,
+    years_married: 58
   },
 
   // Future profiles:
@@ -183,11 +626,12 @@ export function validateProfile(profile) {
 /**
  * Load profile with constitutional data and learned facts
  *
- * @param {string} userId - User's profile ID
- * @param {string} profileId - Guest profile ID
+ * @param {string} userId - Firebase Auth UID (fallback for storage)
+ * @param {string} profileId - Guest profile ID (e.g., 'historical_ronald_reagan')
+ * @param {string} userProfileId - Optional AstroProfile ID for compartmentalized storage
  * @returns {Promise<Object>} Complete profile with Brain 1A/1B data
  */
-export async function loadProfile(userId, profileId) {
+export async function loadProfile(userId, profileId, userProfileId = null) {
   // 1. Load curated profile from registry
   const entry = profileRegistry[profileId];
 
@@ -205,6 +649,10 @@ export async function loadProfile(userId, profileId) {
 
   const profile = entry.profile;
 
+  // Determine storage path - profile-based compartmentalization
+  // Use AstroProfile ID if provided, fallback to Firebase UID
+  const profileIdForStorage = userProfileId || userId;
+
   // 2. Load user's Brain 1A (constitutional data)
   let userConstitutional = null;
   try {
@@ -217,13 +665,15 @@ export async function loadProfile(userId, profileId) {
     console.warn('Could not load user constitutional data:', error);
   }
 
-  // 3. Load this partner's Brain 1B (learned facts)
+  // 3. Load this partner's Brain 1B (learned facts) - PROFILE SCOPED
+  // Path matches backend: profiles/{profileId}/b1b_learned/{partnerId}
   let learnedFacts = [];
   try {
-    const brain1BRef = doc(db, 'users', userId, 'brain1_learned_biography', profileId);
+    const brain1BRef = doc(db, 'profiles', profileIdForStorage, 'b1b_learned', profileId);
     const brain1BDoc = await getDoc(brain1BRef);
     if (brain1BDoc.exists()) {
       learnedFacts = brain1BDoc.data().learned_facts || [];
+      console.log(`[Brain 1B] Loaded ${learnedFacts.length} facts for profile ${profileIdForStorage} with partner ${profileId}`);
     }
   } catch (error) {
     console.warn('Could not load learned facts:', error);

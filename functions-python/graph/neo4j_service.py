@@ -1,14 +1,138 @@
 """
 Neo4j Graph Service for GENESIS
 Soul Family Discovery, Synastry Relationships, and Knowledge Graphs
+
+Includes:
+- Direct Cypher queries via Neo4j Python driver
+- Neo4j Aura Agent API for natural language queries
 """
 
 import os
+import requests
 from typing import Dict, List, Optional
 from neo4j import GraphDatabase
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# NEO4J AURA AGENT CLIENT
+# =============================================================================
+
+class Neo4jAgentClient:
+    """
+    Client for Neo4j Aura AI Agent API.
+    Enables natural language queries against the Soul Family graph.
+    Uses OAuth2 client credentials for authentication.
+    """
+
+    TOKEN_URL = "https://api.neo4j.io/oauth/token"
+
+    def __init__(self, agent_url: str = None, client_id: str = None, client_secret: str = None):
+        """
+        Initialize agent client.
+
+        Environment variables (if not provided):
+        - NEO4J_AGENT_URL: Full agent invoke URL
+        - NEO4J_CLIENT_ID: OAuth2 client ID
+        - NEO4J_CLIENT_SECRET: OAuth2 client secret
+        """
+        self.agent_url = agent_url or os.environ.get("NEO4J_AGENT_URL")
+        self.client_id = client_id or os.environ.get("NEO4J_CLIENT_ID")
+        self.client_secret = client_secret or os.environ.get("NEO4J_CLIENT_SECRET")
+        self._access_token = None
+
+    def is_configured(self) -> bool:
+        """Check if agent is configured"""
+        return bool(self.agent_url and self.client_id and self.client_secret)
+
+    def _get_basic_auth(self) -> str:
+        """Get Basic auth header value"""
+        import base64
+        credentials = f"{self.client_id}:{self.client_secret}"
+        return base64.b64encode(credentials.encode()).decode()
+
+    def query(self, message: str, context: Dict = None) -> Dict:
+        """
+        Send a natural language query to the agent.
+
+        Args:
+            message: Natural language query
+            context: Optional context (userId, userProfile, etc.)
+
+        Returns:
+            Agent response with generated answer
+        """
+        if not self.is_configured():
+            logger.warning("Neo4j Agent not configured")
+            return {
+                "success": False,
+                "error": "Agent not configured",
+                "message": "Set NEO4J_AGENT_URL, NEO4J_CLIENT_ID, and NEO4J_CLIENT_SECRET"
+            }
+
+        try:
+            # Try Bearer token with client_secret
+            response = requests.post(
+                self.agent_url,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.client_secret}"
+                },
+                json={
+                    "message": message,
+                    "context": context or {}
+                },
+                timeout=30
+            )
+
+            if not response.ok:
+                return {
+                    "success": False,
+                    "error": f"HTTP {response.status_code}",
+                    "message": response.text
+                }
+
+            data = response.json()
+            return {
+                "success": True,
+                "response": data.get("response") or data.get("message") or data,
+                "metadata": data.get("metadata", {})
+            }
+
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "error": "timeout",
+                "message": "Agent request timed out"
+            }
+        except Exception as e:
+            logger.error(f"Agent query failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Agent query failed"
+            }
+
+    def find_compatible_profiles(self, day_master: str, limit: int = 10) -> Dict:
+        """Find profiles compatible with a given Day Master"""
+        return self.query(
+            f"Find up to {limit} profiles compatible with Day Master: {day_master}"
+        )
+
+    def get_synastry_insights(self, user1_id: str, user2_id: str) -> Dict:
+        """Get synastry insights between two users"""
+        return self.query(
+            f"Analyze synastry between users {user1_id} and {user2_id}. "
+            f"What are their elemental dynamics and compatibility strengths?"
+        )
+
+    def search_by_element(self, element: str, limit: int = 20) -> Dict:
+        """Search profiles by dominant element"""
+        return self.query(
+            f"Find up to {limit} profiles with dominant {element} element"
+        )
 
 
 class Neo4jService:

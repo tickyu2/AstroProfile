@@ -1,0 +1,259 @@
+{
+  "profiles": {
+    "profile_a": "Ticky",
+    "profile_b": "Chunmei"
+  },
+  "compatibility": {
+    "overall": {
+      "score": 0.8446,
+      "grade": "B+",
+      "level": "excellent",
+      "interpretation": "Strong compatibility - natural understanding and mutual support."
+    },
+    "system_scores": {
+      "western": 0.9462,
+      "bazi": 0.7968
+    },
+    "sections": [
+      {
+        "name": "western_archetype",
+        "score": 0.9645,
+        "weight": 0.15,
+        "contribution": 0.1447,
+        "interpretation": "Strong psychological resonance"
+      },
+      {
+        "name": "bazi_elements",
+        "score": 0.9103,
+        "weight": 0.12,
+        "contribution": 0.1092,
+        "interpretation": "Strong five elements balance"
+      },
+      {
+        "name": "bazi_ten_gods",
+        "score": 0.8536,
+        "weight": 0.12,
+        "contribution": 0.1024,
+        "interpretation": "Strong ten gods interaction"
+      },
+      {
+        "name": "bazi_ten_god_groups",
+        "score": 0.8536,
+        "weight": 0.1,
+        "contribution": 0.0854,
+        "interpretation": "Strong functional group resonance"
+      },
+      {
+        "name": "western_patterns",
+        "score": 0.9773,
+        "weight": 0.08,
+        "contribution": 0.0782,
+        "interpretation": "Strong pattern alignment"
+      },
+      {
+        "name": "bazi_branches",
+        "score": 0.5818,
+        "weight": 0.1,
+        "contribution": 0.0582,
+        "interpretation": "Moderate earthly branch connection"
+      },
+      {
+        "name": "bazi_stems",
+        "score": 0.5904,
+        "weight": 0.08,
+        "contribution": 0.0472,
+        "interpretation": "Moderate heavenly stem harmony"
+      },
+      {
+        "name": "western_elements",
+        "score": 0.8793,
+        "weight": 0.05,
+        "contribution": 0.044,
+        "interpretation": "Strong elemental harmony (Western)"
+      },
+      {
+        "name": "bazi_symbolic_stars",
+        "score": 1.0,
+        "weight": 0.04,
+        "contribution": 0.04,
+        "interpretation": "Strong symbolic star resonance"
+      },
+      {
+        "name": "bazi_growth_phases",
+        "score": 0.6605,
+        "weight": 0.06,
+        "contribution": 0.0396,
+        "interpretation": "Moderate life phase alignment"
+      },
+      {
+        "name": "western_modalities",
+        "score": 0.8989,
+        "weight": 0.04,
+        "contribution": 0.036,
+        "interpretation": "Strong modal compatibility"
+      },
+      {
+        "name": "bazi_dm_strength",
+        "score": 1.0,
+        "weight": 0.03,
+        "contribution": 0.03,
+        "interpretation": "Strong day master complementarity"
+      },
+      {
+        "name": "bazi_palaces",
+        "score": 0.993,
+        "weight": 0.03,
+        "contribution": 0.0298,
+        "interpretation": "Strong palace alignment"
+      }
+    ],
+    "profiles": {
+      "a": {
+        "sign": "Taurus",
+        "day_master": "Bing"
+      },
+      "b": {
+        "sign": "Cancer",
+        "day_master": "Yi"
+      }
+    },
+    "narrative": "The Taurus and Cancer share deep metaphysical resonance. Both Eastern and Western dimensions show similar levels of resonance. Strongest connection: Strong psychological resonance. Day Master interaction (Bing-Yi) shapes the elemental dynamic.",
+    "strengths": [
+      "Strong psychological resonance",
+      "Strong five elements balance",
+      "Strong ten gods interaction"
+    ],
+    "challenges": []
+  },
+  "third_chart": {
+    "partners": [
+      "Taurus",
+      "Cancer"
+    ],
+    "day_masters": [
+      "Bing",
+      "Yi"
+    ],
+    "archetype_name": "The Hearth-Temple",
+    "description": "A sustainer (0.90), stabilizer (0.80), warm (0.80) relational field.",
+    "archetype_vector_16": [
+      0.3,
+      0.8,
+      0.65,
+      0.35,
+      0.7,
+      0.7,
+      0.45,
+      0.30000000000000004,
+      0.15000000000000002,
+      0.65,
+      0.35,
+      0.8,
+      0.45,
+      0.6,
+      0.9,
+      0.7
+    ],
+    "archetype_scores": {
+      "Initiator": 0.3,
+      "Stabilizer": 0.8,
+      "Relational": 0.65,
+      "MindCentered": 0.35,
+      "Intuitive": 0.7,
+      "Concrete": 0.7,
+      "Expressive": 0.45,
+      "Transpersonal": 0.3,
+      "RiskSeeking": 0.15,
+      "OrderOriented": 0.65,
+      "FluidIdentity": 0.35,
+      "Warm": 0.8,
+      "Direct": 0.45,
+      "DepthOriented": 0.6,
+      "Sustainer": 0.9,
+      "BoundaryAware": 0.7
+    },
+    "pattern_strengths": {},
+    "pattern_signature": "Balanced Expression",
+    "western_elements": {},
+    "bazi_elements": {},
+    "element_loop_status": "Mixed Cycle",
+    "element_metabolism": {},
+    "stress_patterns": [
+      {
+        "pattern": "coherent_under_load",
+        "description": "Tightens structure rather than breaking. Becomes more 'us' under pressure.",
+        "strength": 0.85,
+        "axes": [
+          "Stabilizer",
+          "Sustainer"
+        ]
+      },
+      {
+        "pattern": "emotionally_available",
+        "description": "Stays emotionally connected. Doesn't weaponize silence.",
+        "strength": 0.73,
+        "axes": [
+          "Warm",
+          "Relational"
+        ]
+      },
+      {
+        "pattern": "boundary_protection",
+        "description": "Maintains healthy boundaries under external pressure.",
+        "strength": 0.7,
+        "axes": [
+          "BoundaryAware",
+          "Concrete"
+        ]
+      }
+    ],
+    "stress_classification": "Highly Resilient",
+    "lifecycle_stages": [
+      {
+        "stage": "Formation",
+        "period": "0-2 years",
+        "energy": 0.58,
+        "description": "Initial bonding and pattern establishment.",
+        "key_axes": [
+          "Initiator",
+          "Warm",
+          "Relational"
+        ]
+      },
+      {
+        "stage": "Deepening",
+        "period": "2-7 years",
+        "energy": 0.7,
+        "description": "Building trust and emotional intimacy.",
+        "key_axes": [
+          "DepthOriented",
+          "Stabilizer",
+          "Intuitive"
+        ]
+      },
+      {
+        "stage": "Stabilization",
+        "period": "7-15 years",
+        "energy": 0.75,
+        "description": "Establishing long-term patterns and boundaries.",
+        "key_axes": [
+          "Sustainer",
+          "BoundaryAware",
+          "OrderOriented"
+        ]
+      },
+      {
+        "stage": "Maturation",
+        "period": "15+ years",
+        "energy": 0.77,
+        "description": "Legacy building and transcendent connection.",
+        "key_axes": [
+          "Transpersonal",
+          "Sustainer",
+          "Warm"
+        ]
+      }
+    ],
+    "narrative": "**The Hearth-Temple**\n\nA sustainer (0.90), stabilizer (0.80), warm (0.80) relational field.\n\n\nThis union brings together Bing and Yi Day Masters.\nThe relationship expresses dominantly through: Sustainer (0.9), Stabilizer (0.8), Warm (0.8).\n\n\nUnder pressure: Tightens structure rather than breaking. Becomes more 'us' under pressure.\n\n\nStress Classification: **Highly Resilient**"
+  }
+}

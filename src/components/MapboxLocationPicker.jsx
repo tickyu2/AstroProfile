@@ -4,32 +4,147 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 // ═══════════════════════════════════════════════════════════════════
-// MAPBOX LOCATION PICKER - DIAMOND GRADE
+// MULTI-SOURCE LOCATION PICKER - ENHANCED FOR GLOBAL COVERAGE
 // ═══════════════════════════════════════════════════════════════════
 // Purpose: Search any location worldwide with hospital-grade precision
 // Features:
-// - Real-time search suggestions
+// - Multiple geocoding providers (Mapbox + OpenStreetMap)
+// - Excellent China/Asia coverage via OpenStreetMap
+// - Real-time search suggestions from both sources
 // - Hospital/City/Address detection with icons
+// - Provider indicator (🗺️ Mapbox, 🌍 OpenStreetMap)
 // - Beautiful animations
 // - Coordinates auto-filled
-// - Worldwide coverage
 // ═══════════════════════════════════════════════════════════════════
 
 // Initialize Mapbox
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
 export default function MapboxLocationPicker({ onLocationSelect, initialValue = '' }) {
-  const [searchQuery, setSearchQuery] = useState('')  // Always start empty - picker is just for searching
+  const [searchQuery, setSearchQuery] = useState('')
   const [suggestions, setSuggestions] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState(null)
   const searchTimeoutRef = useRef(null)
 
-  // No useEffect to sync with initialValue - picker is independent!
-  // Parent form displays the selected value separately
+  // Search OpenStreetMap Nominatim (excellent for China/Asia)
+  const searchOpenStreetMap = async (query) => {
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=6&addressdetails=1`
+      const response = await fetch(url, {
+        headers: { 'Accept-Language': 'en,zh' }
+      })
+      const data = await response.json()
 
-  // Debounced search function
+      return data.map((item, index) => {
+        const lat = parseFloat(item.lat)
+        const lng = parseFloat(item.lon)
+        const osmType = item.type || item.class || ''
+
+        // Detect category
+        const isHospital = ['hospital', 'clinic', 'doctors', 'health'].some(t =>
+          osmType.includes(t) || item.display_name?.toLowerCase().includes(t)
+        )
+        const isAddress = osmType === 'house' || osmType === 'building'
+        const isCity = ['city', 'town', 'village', 'municipality', 'administrative'].includes(osmType)
+
+        let icon, precision, category
+        if (isHospital) {
+          icon = '🏥'
+          precision = '±10m (Hospital)'
+          category = 'hospital'
+        } else if (isAddress) {
+          icon = '🏠'
+          precision = '±10m (Address)'
+          category = 'address'
+        } else if (isCity) {
+          icon = '🏙️'
+          precision = '±15km (City)'
+          category = 'city'
+        } else {
+          icon = '📍'
+          precision = '±100m (Location)'
+          category = 'landmark'
+        }
+
+        return {
+          id: `osm-${item.place_id || index}`,
+          name: item.name || item.display_name?.split(',')[0] || 'Unknown',
+          fullAddress: item.display_name,
+          coordinates: { lat, lng },
+          icon,
+          precision,
+          category,
+          provider: 'openstreetmap',
+          providerIcon: '🌍'
+        }
+      })
+    } catch (error) {
+      console.error('OpenStreetMap search error:', error)
+      return []
+    }
+  }
+
+  // Search Mapbox
+  const searchMapbox = async (query) => {
+    try {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&types=poi,address,place&limit=6`
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (!data.features) return []
+
+      return data.features.map(feature => {
+        const [lng, lat] = feature.center
+        const placeType = feature.place_type[0]
+        const properties = feature.properties || {}
+
+        const isHospital =
+          properties.category?.includes('hospital') ||
+          properties.category?.includes('clinic') ||
+          properties.category?.includes('medical') ||
+          feature.text?.toLowerCase().includes('hospital') ||
+          feature.text?.toLowerCase().includes('medical center')
+
+        let icon, precision, category
+        if (isHospital) {
+          icon = '🏥'
+          precision = '±10m (Hospital)'
+          category = 'hospital'
+        } else if (placeType === 'address') {
+          icon = '🏠'
+          precision = '±10m (Address)'
+          category = 'address'
+        } else if (placeType === 'poi') {
+          icon = '📍'
+          precision = '±100m (Landmark)'
+          category = 'landmark'
+        } else {
+          icon = '🏙️'
+          precision = '±15km (City)'
+          category = 'city'
+        }
+
+        return {
+          id: feature.id,
+          name: feature.text,
+          fullAddress: feature.place_name,
+          coordinates: { lat, lng },
+          icon,
+          precision,
+          category,
+          provider: 'mapbox',
+          providerIcon: '🗺️'
+        }
+      })
+    } catch (error) {
+      console.error('Mapbox search error:', error)
+      return []
+    }
+  }
+
+  // Combined search from multiple providers
   const searchLocations = async (query) => {
     if (!query || query.length < 3) {
       setSuggestions([])
@@ -39,63 +154,31 @@ export default function MapboxLocationPicker({ onLocationSelect, initialValue = 
     setIsSearching(true)
 
     try {
-      // Mapbox Geocoding API
-      // Types: poi (points of interest like hospitals), address, place (cities)
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&types=poi,address,place&limit=8`
-      
-      const response = await fetch(url)
-      const data = await response.json()
+      // Search both providers in parallel
+      const [mapboxResults, osmResults] = await Promise.all([
+        searchMapbox(query),
+        searchOpenStreetMap(query)
+      ])
 
-      if (data.features) {
-        // Process and categorize results
-        const processedSuggestions = data.features.map(feature => {
-          const [lng, lat] = feature.center
-          const placeType = feature.place_type[0]
-          const properties = feature.properties || {}
-          
-          // Detect if it's a hospital
-          const isHospital = 
-            properties.category?.includes('hospital') ||
-            properties.category?.includes('clinic') ||
-            properties.category?.includes('medical') ||
-            feature.text?.toLowerCase().includes('hospital') ||
-            feature.text?.toLowerCase().includes('medical center')
+      // Deduplicate by coordinates (within ~100m)
+      const seen = new Set()
+      const allResults = [...osmResults, ...mapboxResults] // OSM first for China coverage
 
-          // Determine icon and precision
-          let icon, precision, category
-          if (isHospital) {
-            icon = '🏥'
-            precision = '±10m (Hospital)'
-            category = 'hospital'
-          } else if (placeType === 'address') {
-            icon = '🏠'
-            precision = '±10m (Address)'
-            category = 'address'
-          } else if (placeType === 'poi') {
-            icon = '📍'
-            precision = '±100m (Landmark)'
-            category = 'landmark'
-          } else {
-            icon = '🏙️'
-            precision = '±15km (City)'
-            category = 'city'
-          }
+      const dedupedResults = allResults.filter(item => {
+        const key = `${item.coordinates.lat.toFixed(3)},${item.coordinates.lng.toFixed(3)}`
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
 
-          return {
-            id: feature.id,
-            name: feature.text,
-            fullAddress: feature.place_name,
-            coordinates: { lat, lng },
-            icon,
-            precision,
-            category,
-            placeType
-          }
-        })
+      // Sort: hospitals first, then cities, then others
+      const sorted = dedupedResults.sort((a, b) => {
+        const priority = { hospital: 0, city: 1, address: 2, landmark: 3 }
+        return (priority[a.category] || 4) - (priority[b.category] || 4)
+      })
 
-        setSuggestions(processedSuggestions)
-        setShowSuggestions(true)
-      }
+      setSuggestions(sorted.slice(0, 10)) // Max 10 results
+      setShowSuggestions(true)
     } catch (error) {
       console.error('Error searching locations:', error)
     } finally {
@@ -218,8 +301,15 @@ export default function MapboxLocationPicker({ onLocationSelect, initialValue = 
                     <div className="text-sm text-white/60 truncate">
                       {suggestion.fullAddress}
                     </div>
-                    <div className="text-xs text-cyan-400/80 mt-1">
-                      {suggestion.precision}
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-cyan-400/80">
+                        {suggestion.precision}
+                      </span>
+                      {suggestion.providerIcon && (
+                        <span className="text-xs text-white/40" title={suggestion.provider === 'openstreetmap' ? 'OpenStreetMap' : 'Mapbox'}>
+                          {suggestion.providerIcon}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -248,11 +338,14 @@ export default function MapboxLocationPicker({ onLocationSelect, initialValue = 
                 {selectedLocation.name}
               </div>
               <div className="text-white/60 text-xs">
-                {selectedLocation.coordinates.lat.toFixed(4)}°N, {Math.abs(selectedLocation.coordinates.lng).toFixed(4)}°W
+                {selectedLocation.coordinates.lat.toFixed(4)}°, {selectedLocation.coordinates.lng.toFixed(4)}°
               </div>
             </div>
-            <div className="text-xs text-cyan-400/80">
-              {selectedLocation.precision}
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-xs text-cyan-400/80">{selectedLocation.precision}</span>
+              {selectedLocation.providerIcon && (
+                <span className="text-xs text-white/40">{selectedLocation.providerIcon}</span>
+              )}
             </div>
           </div>
         </motion.div>
@@ -260,7 +353,7 @@ export default function MapboxLocationPicker({ onLocationSelect, initialValue = 
 
       {/* Helper Text */}
       <p className="text-white/40 text-xs mt-2">
-        💡 Search for your birth city, hospital, or exact address for precise calculations
+        💡 Search cities, hospitals, or addresses. Uses 🌍 OpenStreetMap + 🗺️ Mapbox for best coverage.
       </p>
     </div>
   )

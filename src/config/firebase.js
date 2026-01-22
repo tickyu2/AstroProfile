@@ -3,6 +3,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getDatabase } from "firebase/database";
+import { getFunctions } from "firebase/functions";
 // import { getAnalytics } from "firebase/analytics"; // optional
 
 // ⚠️ SECURITY: Use environment variables - NEVER hardcode API keys!
@@ -28,6 +29,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const realtimeDb = getDatabase(app);
+export const functions = getFunctions(app);
 // export const analytics = getAnalytics(app); // optional
 
 export default app;

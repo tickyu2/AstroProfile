@@ -89,10 +89,12 @@ const WX_M: number[][] = (() => {
 /**
  * Normalize percentages to sum to 1.0
  * Expects percentage object with Wood/Fire/Earth/Metal/Water keys
+ * Returns uniform distribution [0.2, 0.2, 0.2, 0.2, 0.2] if data is missing
  */
 function normalizePercentages(pct: ElementPercentages | undefined): number[] {
   if (!pct) {
-    throw new Error('Missing element percentages object.');
+    // Return uniform distribution as fallback instead of throwing
+    return [0.2, 0.2, 0.2, 0.2, 0.2];
   }
   const raw = ELEMENTS.map((e) => Math.max(0, Number(pct[e] ?? 0)));
   const sum = raw.reduce((a, b) => a + b, 0);
@@ -148,7 +150,9 @@ export function wuxingVectorSeasonal(bazi: BaziData | undefined): number[] {
   }
 
   if (!pct) {
-    throw new Error('Missing bazi percentages (neither seasonalStrength nor elements).');
+    // Return uniform distribution as fallback instead of throwing
+    console.warn('Missing bazi percentages - using uniform distribution fallback');
+    return [0.2, 0.2, 0.2, 0.2, 0.2];
   }
   return normalizePercentages(pct);
 }
@@ -190,10 +194,13 @@ const TEN_GODS_TO_GROUP: Record<TenGod, TenGodGroup> = {
 
 /**
  * Convert 10-slot tenGodSummary to normalized 5-group vector
+ * Returns uniform distribution if data is missing
  */
 function tenGodsVector5FromSummary(summary: TenGodSummary | undefined): number[] {
   if (!summary) {
-    throw new Error('Missing tenGodSummary (required).');
+    // Return uniform distribution as fallback instead of throwing
+    console.warn('Missing tenGodSummary - using uniform distribution fallback');
+    return [0.2, 0.2, 0.2, 0.2, 0.2];
   }
 
   // Normalize 10-slot
@@ -265,8 +272,8 @@ export function tenGodsCompatibilityFromSummary(
   let v2 = tenGodsVector5FromSummary(summaryB);
 
   // ENHANCEMENT: Adjust Wealth interpretation based on Day Master strength (身强/身弱)
-  // Weak DM (< 0.5): Wealth becomes pressure → reduce wealth score
-  // Strong DM (> 0.5): Wealth becomes opportunity → boost wealth score
+  // Under-supported DM (< 0.5): Wealth becomes pressure → reduce wealth score
+  // Resource-abundant DM (> 0.5): Wealth becomes opportunity → boost wealth score
   const wealthIdx = TG5.indexOf('Wealth'); // index 2
   if (opts.dmStrengthA !== undefined) {
     const strengthA = clamp01(opts.dmStrengthA);
@@ -277,6 +284,22 @@ export function tenGodsCompatibilityFromSummary(
     const strengthB = clamp01(opts.dmStrengthB);
     const wealthModB = strengthB < 0.5 ? 0.8 : 1.1;
     v2[wealthIdx] *= wealthModB;
+  }
+
+  // ENHANCEMENT: Adjust Power (官殺) interpretation based on Day Master strength
+  // Classic BaZi principle: 官杀 overwhelms under-supported DMs, but refines resource-abundant ones
+  // Under-supported DM (< 0.45): Power = pressure/stress → reduce compatibility contribution
+  // Resource-abundant DM (> 0.65): Power = discipline/leadership synergy → boost contribution
+  const powerIdx = TG5.indexOf('Power'); // index 3
+  if (opts.dmStrengthA !== undefined) {
+    const strengthA = clamp01(opts.dmStrengthA);
+    const powerModA = strengthA < 0.45 ? 0.85 : (strengthA > 0.65 ? 1.05 : 1.0);
+    v1[powerIdx] *= powerModA;
+  }
+  if (opts.dmStrengthB !== undefined) {
+    const strengthB = clamp01(opts.dmStrengthB);
+    const powerModB = strengthB < 0.45 ? 0.85 : (strengthB > 0.65 ? 1.05 : 1.0);
+    v2[powerIdx] *= powerModB;
   }
 
   // Re-normalize if modified

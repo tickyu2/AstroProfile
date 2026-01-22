@@ -567,7 +567,55 @@ Please read and analyze the above web page content to help answer my question or
                 context: 'chat_response',
                 userMessageExcerpt: message.slice(0, 200)
               });
-              console.log('?? 4-Brain Memory: Stored Luna observation in Partner STM');
+              console.log('🧠 4-Brain Memory: Stored Luna observation in Partner STM');
+            }
+
+            // -------------------------------------------------------------------
+            // BIOGRAPHIC EXTRACTION (Brain 1B → Brain 2 Consolidation)
+            // Extract life events, people, emotions, values from user messages
+            // -------------------------------------------------------------------
+            if (message.length > 50) {
+              // Only extract from substantive messages
+              try {
+                const extractionPayload = {
+                  userId: userId,
+                  profileId: profileId,
+                  conversationText: `USER: ${message}`,
+                  source: 'text_chat',
+                  sessionId: requestId || conversationId,
+                  storeToFirestore: true,
+                  ingestToNeo4j: false  // Neo4j ingestion done in nightly consolidation
+                };
+
+                // Call Python Cloud Function for extraction
+                const { getFunctions, httpsCallable } = require('firebase-functions/v2');
+
+                // Use fetch for internal Cloud Function call
+                const projectId = process.env.GCLOUD_PROJECT || 'astroprofile-391e6';
+                const region = 'us-central1';
+                const extractionUrl = `https://${region}-${projectId}.cloudfunctions.net/extract_biographic_data`;
+
+                const extractionResponse = await fetch(extractionUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(extractionPayload)
+                });
+
+                if (extractionResponse.ok) {
+                  const extractionResult = await extractionResponse.json();
+                  if (extractionResult.success && extractionResult.stored) {
+                    console.log('📚 Biographer: Extracted and stored biographic data', {
+                      events: extractionResult.extraction?.events?.length || 0,
+                      people: extractionResult.extraction?.people?.length || 0
+                    });
+                  }
+                }
+              } catch (extractionError) {
+                console.warn('[Biographer] Extraction failed (non-blocking):', extractionError.message);
+                // Non-critical - don't fail the response
+              }
             }
           } catch (memoryStoreError) {
             console.warn('[Memory] Storage failed (non-blocking):', memoryStoreError.message);
@@ -6055,5 +6103,95 @@ exports.lunaPrivateQuery = onCall({
   memory: '256MiB'
 }, async (request) => {
   return handleLunaPrivateQuery(request.data, request);
+});
+
+// ========================================
+// BIOGRAPHY JOURNAL - Text-Based Journaling
+// ========================================
+
+/**
+ * extractBiographyBullets - AI extracts key moments from biography text
+ *
+ * Uses Gemini to analyze text and extract meaningful bullet points.
+ * Part of the GENESIS Biography Journal system.
+ */
+exports.extractBiographyBullets = onCall({
+  timeoutSeconds: 30,
+  memory: '256MiB'
+}, async (request) => {
+  const { content, existingBullets = [] } = request.data;
+
+  if (!content || content.trim().length < 50) {
+    return {
+      success: false,
+      error: 'Please write more content before extracting key moments (at least 50 characters).'
+    };
+  }
+
+  try {
+    const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = gemini.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+
+    const existingText = existingBullets.length > 0
+      ? `\n\nExisting bullets (do NOT repeat these):\n${existingBullets.map(b => `- ${b}`).join('\n')}`
+      : '';
+
+    const prompt = `You are helping someone preserve their life story. Extract 3-5 key moments or facts from this text as bullet points.
+
+TEXT:
+"${content}"
+${existingText}
+
+Rules:
+- Extract NEW key moments not already captured
+- Keep bullets SHORT (one clear sentence each)
+- Be FACTUAL - don't embellish or add information
+- Focus on:
+  * Important events (births, deaths, marriages, moves)
+  * Meaningful relationships (family, friends, mentors)
+  * Achievements and milestones
+  * Lessons learned or wisdom gained
+  * Memorable experiences
+- Use past tense
+- Start each bullet with an action or event
+
+Return ONLY a JSON array of strings, no other text:
+["bullet 1", "bullet 2", "bullet 3"]
+
+If no meaningful new moments can be extracted, return an empty array: []`;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+
+    // Parse JSON response
+    const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
+    const bullets = JSON.parse(cleanedResponse);
+
+    if (!Array.isArray(bullets)) {
+      return { success: false, error: 'Invalid response format from AI.' };
+    }
+
+    // Filter out any duplicates of existing bullets
+    const newBullets = bullets.filter(b =>
+      !existingBullets.some(existing =>
+        existing.toLowerCase().includes(b.toLowerCase()) ||
+        b.toLowerCase().includes(existing.toLowerCase())
+      )
+    );
+
+    return {
+      success: true,
+      bullets: newBullets,
+      totalExtracted: bullets.length,
+      filtered: bullets.length - newBullets.length
+    };
+
+  } catch (error) {
+    console.error('[Biography] Error extracting bullets:', error.message);
+    return {
+      success: false,
+      error: 'Failed to extract key moments. Please try again.'
+    };
+  }
 });
 

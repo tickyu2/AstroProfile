@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ProfileProvider } from './contexts/ProfileContext'
 import { KnowledgeBaseProvider } from './contexts/KnowledgeBaseContext'
 import { ConversationsProvider } from './contexts/ConversationsContext'
+import { LanguageProvider } from './contexts/LanguageContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import LoginForm from './components/auth/LoginForm'
 import RegisterForm from './components/auth/RegisterForm'
@@ -47,10 +48,14 @@ const LunaVoicePage = lazy(() => import('./pages/LunaVoicePage'))
 const BiographyJournalPage = lazy(() => import('./pages/BiographyJournalPage'))
 const WesternElementalAnalysisPage = lazy(() => import('./pages/WesternElementalAnalysisPage'))
 const CompatibilityMatchPage = lazy(() => import('./pages/CompatibilityMatchPage'))
+const UnifiedCompatibilityPage = lazy(() => import('./pages/UnifiedCompatibilityPage'))
 const DynamicPersonalityPage = lazy(() => import('./pages/DynamicPersonalityPage'))
 const LunaPersonalityTunerPage = lazy(() => import('./pages/LunaPersonalityTunerPage'))
 const MemoryExplorerPage = lazy(() => import('./pages/MemoryExplorerPage'))
 const ConstellationPage = lazy(() => import('./pages/ConstellationPage'))
+const VedicAstrologyPage = lazy(() => import('./pages/VedicAstrologyPage'))
+const RelationshipCathedralPage = lazy(() => import('./pages/RelationshipCathedralPage'))
+const AdminCMSPage = lazy(() => import('./pages/AdminCMSPage'))
 
 // CCLR - Couples Cosmic Love Rejuvenation (lazy loaded)
 const CCLRHomePage = lazy(() => import('./pages/cclr').then(m => ({ default: m.CCLRHomePage })))
@@ -68,6 +73,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <LanguageProvider>
         <ProfileProvider>
           <KnowledgeBaseProvider>
           <ConversationsProvider>
@@ -137,6 +143,52 @@ function App() {
               }
             />
 
+            {/* Vedic Astrology (Jyotish) - Sidereal zodiac */}
+            <Route
+              path="/vedic"
+              element={
+                <ProtectedRoute>
+                  <VedicAstrologyPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vedic/:profileId"
+              element={
+                <ProtectedRoute>
+                  <VedicAstrologyPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Relationship Cathedral - Full Western + Vedic combined experience */}
+            <Route
+              path="/cathedral/:id"
+              element={
+                <ProtectedRoute>
+                  <RelationshipCathedralPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cathedral"
+              element={
+                <ProtectedRoute>
+                  <RelationshipCathedralPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Admin CMS - Content Management System */}
+            <Route
+              path="/cms"
+              element={
+                <ProtectedRoute>
+                  <AdminCMSPage />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/migrate"
               element={
@@ -161,6 +213,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CompatibilityMatchPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* GENESIS Unified Compatibility - 90-Dimensional Analysis */}
+            <Route
+              path="/unified-compatibility"
+              element={
+                <ProtectedRoute>
+                  <UnifiedCompatibilityPage />
                 </ProtectedRoute>
               }
             />
@@ -464,6 +526,7 @@ function App() {
           </ConversationsProvider>
           </KnowledgeBaseProvider>
         </ProfileProvider>
+        </LanguageProvider>
       </AuthProvider>
     </Router>
   )

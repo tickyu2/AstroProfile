@@ -138,14 +138,37 @@ function getDominantTenGod(tenGodsData) {
  * @returns {string} 8-character SoulDNA code
  */
 export function generateSoulDNA(fourPillars, tenGodsData = null) {
-  // Validate input
-  if (!fourPillars || !fourPillars.elementalBalance) {
-    console.error('[soulDNAEncoder] Invalid fourPillars data')
+  // Validate input - handle multiple naming conventions
+  const elementalBalance = fourPillars?.elementalBalance || fourPillars?.elementBalance || fourPillars?.elements
+  if (!fourPillars || !elementalBalance) {
+    console.error('[soulDNAEncoder] Invalid fourPillars data - missing element data')
     return null
   }
 
-  const elementalBalance = fourPillars.elementalBalance
-  const elements = elementalBalance.elements
+  // Handle multiple formats:
+  // 1. Nested: { elements: { Wood: 10, Fire: 20, ... } }
+  // 2. Flat: { Wood: 0.15, Fire: 0.20, ... } (from Python backend)
+  // 3. Canonical: { Wood: 0.25, Fire: 0.15, ..., dominant: "Wood" } (Python-First)
+  let elements = elementalBalance.elements
+  if (!elements) {
+    // Check if elementalBalance itself contains element keys directly
+    const elementKeys = ['Wood', 'Fire', 'Earth', 'Metal', 'Water']
+    const hasDirectElements = elementKeys.some(key => elementalBalance[key] !== undefined)
+    if (hasDirectElements) {
+      elements = {}
+      for (const key of elementKeys) {
+        // Convert percentages (0-1) to integer counts if needed
+        const val = elementalBalance[key] || 0
+        elements[key] = val < 1 ? Math.round(val * 100) : val
+      }
+    }
+  }
+
+  if (!elements) {
+    console.error('[soulDNAEncoder] Could not extract elements from fourPillars')
+    return null
+  }
+
   const yinYangBalance = fourPillars.yinYangBalance
 
   // Get top 3 elements
@@ -280,4 +303,69 @@ export function validateSoulDNA(soulDNA) {
   // Check format: XXX-L##Z
   const pattern = /^[WFEMA]{3}-[RIFBEHDONKX]\d{2}[YXB]$/
   return pattern.test(soulDNA)
+}
+
+// =============================================================================
+// PYTHON-FIRST CONVENIENCE FUNCTION (Phase 2B)
+// =============================================================================
+/**
+ * Generate SoulDNA from a profile using Python-First canonical structure
+ *
+ * Supports both:
+ * - New canonical: profile.bazi.elements, profile.bazi.tenGods
+ * - Legacy: profile.calculations.fourPillars.elementBalance
+ *
+ * @param {Object} profile - Profile with bazi or calculations data
+ * @returns {string|null} 8-character SoulDNA code or null
+ */
+export function generateSoulDNAFromProfile(profile) {
+  if (!profile) return null
+
+  // Priority 1: Canonical path (Python-First)
+  if (profile.bazi?.elements) {
+    const elements = profile.bazi.elements
+    const tenGodsData = profile.bazi?.tenGods ? { counts: extractTenGodCounts(profile.bazi.tenGods) } : null
+
+    // Build fourPillars-like structure for compatibility
+    const fourPillarsData = {
+      elements: elements,
+      yinYangBalance: profile.calculations?.yinYang || null
+    }
+
+    console.log('[soulDNAEncoder] ✅ Using canonical path profile.bazi.elements')
+    return generateSoulDNA(fourPillarsData, tenGodsData)
+  }
+
+  // Priority 2: Legacy path
+  if (profile.calculations?.fourPillars?.elementBalance) {
+    console.log('[soulDNAEncoder] ⚠️ Using legacy path calculations.fourPillars')
+    return generateSoulDNA(profile.calculations.fourPillars)
+  }
+
+  // Priority 3: Constitution path
+  if (profile.constitutional?.bazi?.elementBalance) {
+    console.log('[soulDNAEncoder] ⚠️ Using constitution path')
+    return generateSoulDNA({ elements: profile.constitutional.bazi.elementBalance })
+  }
+
+  console.error('[soulDNAEncoder] No BaZi element data found in profile')
+  return null
+}
+
+/**
+ * Extract Ten God counts from canonical tenGods array
+ * @param {Array} tenGods - Array of Ten God objects from Python
+ * @returns {Object} Counts by Ten God name
+ */
+function extractTenGodCounts(tenGods) {
+  if (!Array.isArray(tenGods)) return {}
+
+  const counts = {}
+  for (const tg of tenGods) {
+    const name = tg.tenGod || tg.ten_god
+    if (name) {
+      counts[name] = (counts[name] || 0) + 1
+    }
+  }
+  return counts
 }

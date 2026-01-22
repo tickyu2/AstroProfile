@@ -22,6 +22,15 @@ import {
   ELEMENTS
 } from './matchScore_baziHelpers';
 
+import {
+  calculateWesternCompatibility,
+  getWesternCompatibilityScore,
+  getWesternStrengthsAndChallenges,
+  DEFAULT_GAMMA
+} from './matchScore_westernHelpers';
+
+import type { WesternCompatibilityScore } from '../types/western.types';
+
 import type {
   Profile,
   BaziData,
@@ -33,6 +42,15 @@ import type {
   NeoDimensionScores,
   DayMasterRelationships,
 } from '../types/bazi.types';
+
+import type {
+  MatchExplain,
+  MatchScoreResultExplained,
+  ExplainOptions,
+  ExplainLevel
+} from '../types/explainability';
+
+import { generateMatchExplain, getExplanationAtLevel } from './explainabilityFormatter';
 
 // =============================================================================
 // UTILITY FUNCTIONS
@@ -66,17 +84,22 @@ function levelFromScore(s: number): CompatibilityLevel {
  * @returns Score and components
  */
 export function computeNeoSimilarity(
-  neoA30: number[],
-  neoB30: number[],
+  neoA30: number[] | undefined,
+  neoB30: number[] | undefined,
   weighted: boolean = true
 ): NeoSimilarityResult {
-  if (!Array.isArray(neoA30) || !Array.isArray(neoB30) ||
-      neoA30.length !== 30 || neoB30.length !== 30) {
-    throw new Error('computeNeoSimilarity expects two 30-length arrays.');
+  // Generate default neutral NEO vector if data is missing
+  const defaultNeo30 = Array(30).fill(0.5);
+
+  const safeA = (Array.isArray(neoA30) && neoA30.length === 30) ? neoA30 : defaultNeo30;
+  const safeB = (Array.isArray(neoB30) && neoB30.length === 30) ? neoB30 : defaultNeo30;
+
+  if (safeA === defaultNeo30 || safeB === defaultNeo30) {
+    console.warn('computeNeoSimilarity: Missing NEO30 data, using neutral fallback');
   }
 
-  const v1 = neoA30.map(Number);
-  const v2 = neoB30.map(Number);
+  const v1 = safeA.map(Number);
+  const v2 = safeB.map(Number);
 
   // Cosine similarity
   let dot = 0, n1 = 0, n2 = 0;
@@ -430,4 +453,329 @@ export function getCompatibilityInsights(
   }
 
   return insights;
+}
+
+// =============================================================================
+// EXPLAINABILITY CONTRACT INTEGRATION
+// =============================================================================
+
+/** Extended options including explainability settings */
+export interface MatchScoreOptionsExtended extends MatchScoreOptions {
+  /** Explainability options */
+  explain?: ExplainOptions;
+}
+
+/**
+ * End-to-end compatibility matching WITH full explainability contract
+ *
+ * Returns MatchScoreResultExplained with progressive depth explanations (L0-L3)
+ * for Khan Academy-style UI disclosure.
+ *
+ * @param profileA - Profile A with neo30Facets and bazi
+ * @param profileB - Profile B with neo30Facets and bazi
+ * @param opts - Options { alpha, beta, explain }
+ * @returns Complete compatibility result with explainability contract
+ */
+export function matchScoreWithExplain(
+  profileA: Profile,
+  profileB: Profile,
+  opts: MatchScoreOptionsExtended = {}
+): MatchScoreResultExplained {
+  // Get base match score
+  const result = matchScore(profileA, profileB, opts);
+
+  // Generate explainability contract
+  const explain = generateMatchExplain(result, profileA, profileB, {
+    includeL0: opts.explain?.includeL0 ?? true,
+    includeL1: opts.explain?.includeL1 ?? true,
+    includeL2: opts.explain?.includeL2 ?? false,
+    includeL3: opts.explain?.includeL3 ?? false,
+    profileA_id: opts.explain?.profileA_id || profileA.id,
+    profileB_id: opts.explain?.profileB_id || profileB.id
+  });
+
+  return {
+    total: result.total,
+    level: result.level,
+    neo: result.neo,
+    bazi: result.bazi,
+    wuxing: result.wuxing,
+    tengods: result.tengods,
+    why: result.why,
+    explain
+  };
+}
+
+/**
+ * Get explanation at a specific level from a match result
+ *
+ * @param result - MatchScoreResultExplained from matchScoreWithExplain()
+ * @param level - Desired explanation level (L0, L1, L2, L3)
+ * @returns Explanation at the specified level
+ */
+export function getMatchExplanationAtLevel<L extends ExplainLevel>(
+  result: MatchScoreResultExplained,
+  level: L
+) {
+  return getExplanationAtLevel(result.explain, level);
+}
+
+/**
+ * Check if full explainability is available
+ */
+export function hasFullExplainability(result: MatchScoreResultExplained): boolean {
+  return !!(
+    result.explain?.explanations?.L0?.summary &&
+    result.explain?.explanations?.L1?.factors?.length
+  );
+}
+
+// =============================================================================
+// WESTERN INTEGRATION
+// =============================================================================
+
+/** Extended options including Western astrology weight */
+export interface MatchScoreWithWesternOptions extends MatchScoreOptions {
+  /** Western astrology weight (γ) - default 0.15 */
+  gamma?: number;
+  /** Whether to include Western calculations (default true) */
+  includeWestern?: boolean;
+}
+
+/** Extended result including Western compatibility */
+export interface MatchScoreWithWesternResult extends MatchScoreResult {
+  /** Western compatibility score (0-100) */
+  western: number;
+  /** Detailed Western compatibility breakdown */
+  westernDetails: WesternCompatibilityScore;
+  /** Extended debug info */
+  debug: MatchScoreResult['debug'] & {
+    gamma: number;
+    western_raw: number;
+    western_contribution: number;
+  };
+}
+
+/**
+ * End-to-end compatibility matching WITH Western astrology
+ *
+ * Extended Formula:
+ * Total = (1-α-γ)*NEO + α*[(1-β)*WuXing + β*TenGods] * modifiers + γ*Western
+ *
+ * Where:
+ * - α = 0.25 (BaZi weight)
+ * - β = 0.30 (TenGods weight within BaZi)
+ * - γ = 0.15 (Western weight)
+ *
+ * @param profileA - Profile A with neo30Facets, bazi, and optional westernVector
+ * @param profileB - Profile B with neo30Facets, bazi, and optional westernVector
+ * @param opts - Options { alpha, beta, gamma, includeWestern }
+ * @returns Complete compatibility result including Western
+ */
+export function matchScoreWithWestern(
+  profileA: Profile,
+  profileB: Profile,
+  opts: MatchScoreWithWesternOptions = {}
+): MatchScoreWithWesternResult {
+  const alpha = clamp01(opts.alpha ?? 0.25);
+  const beta = clamp01(opts.beta ?? 0.30);
+  const gamma = clamp01(opts.gamma ?? DEFAULT_GAMMA);
+  const includeWestern = opts.includeWestern ?? true;
+
+  // 1) NEO (0..1)
+  const neo = computeNeoSimilarity(
+    profileA.neo30Facets as number[],
+    profileB.neo30Facets as number[],
+    true
+  );
+
+  // 2) WuXing (0..1) - POST-seasonal preferred, fallback to PRE-seasonal
+  const pctA = profileA.bazi?.seasonalStrength?.percentages || profileA.bazi?.elements?.percentages;
+  const pctB = profileB.bazi?.seasonalStrength?.percentages || profileB.bazi?.elements?.percentages;
+  const wuxing = wuxingCompatibilityFromSeasonalPercentages(pctA, pctB);
+
+  // 3) TenGods (0..1)
+  const tengods = tenGodsCompatibilityFromSummary(
+    profileA.bazi?.tenGodSummary,
+    profileB.bazi?.tenGodSummary
+  );
+
+  // 4) BaZi blend with modifiers
+  const baziBlend = clamp01((1 - beta) * wuxing + beta * tengods);
+  const modFavor = favorableElementsModifier(profileA.bazi, profileB.bazi);
+  const modInter = baziInteractionModifier(profileA.bazi, profileB.bazi);
+  const combinedModifier = Math.max(0.85, Math.min(1.15, modFavor * modInter));
+  const baziBlendAdjusted = clamp01(baziBlend * combinedModifier);
+
+  // 5) Western (0..1)
+  let westernScore = 0.5;  // Default neutral
+  let westernDetails: WesternCompatibilityScore;
+
+  if (includeWestern) {
+    westernScore = getWesternCompatibilityScore(profileA, profileB);
+    westernDetails = calculateWesternCompatibility(profileA, profileB);
+  } else {
+    // Create neutral Western details
+    westernDetails = {
+      total: 50,
+      vectorCosine: 0.5,
+      elementHarmony: 50,
+      modalityScore: 50,
+      houseOverlay: 50,
+      planetaryInterplay: 50,
+      archetypeResonance: 50,
+      aspectPatternCompat: 50,
+      dominanceAlignment: 50,
+      chartShapeCompat: 50,
+      vectorADims: 72,
+      vectorBDims: 72
+    };
+  }
+
+  // 6) Extended Total: (1-α-γ)*NEO + α*BaZi + γ*Western
+  const effectiveGamma = includeWestern ? gamma : 0;
+  const neoWeight = 1 - alpha - effectiveGamma;
+  const total = clamp01(
+    neoWeight * neo.score +
+    alpha * baziBlendAdjusted +
+    effectiveGamma * westernScore
+  );
+
+  // 7) Generate extended explanation
+  const why = generateExtendedExplanation(profileA, profileB, {
+    alpha, beta, gamma: effectiveGamma,
+    neo, wuxing, tengods,
+    baziBlend: baziBlendAdjusted,
+    modFavor, modInter,
+    westernScore, westernDetails
+  });
+
+  return {
+    total: Math.round(total * 100),
+    level: levelFromScore(total),
+
+    neo: Math.round(neo.score * 100),
+    bazi: Math.round(baziBlendAdjusted * 100),
+    wuxing: Math.round(wuxing * 100),
+    tengods: Math.round(tengods * 100),
+    western: Math.round(westernScore * 100),
+    westernDetails,
+
+    debug: {
+      alpha, beta, gamma: effectiveGamma,
+      neo_details: neo,
+      bazi_raw: baziBlend,
+      bazi_adjusted: baziBlendAdjusted,
+      modifiers: {
+        favorableElements: Number(modFavor.toFixed(3)),
+        interactions: Number(modInter.toFixed(3)),
+        combined: Number(combinedModifier.toFixed(3))
+      },
+      western_raw: westernScore,
+      western_contribution: effectiveGamma * westernScore
+    },
+
+    why
+  };
+}
+
+/**
+ * Extended explanation generator including Western
+ */
+interface ExtendedExplanationData extends ExplanationData {
+  gamma: number;
+  westernScore: number;
+  westernDetails: WesternCompatibilityScore;
+}
+
+function generateExtendedExplanation(
+  profileA: Profile,
+  profileB: Profile,
+  data: ExtendedExplanationData
+): string[] {
+  const dmA = profileA.bazi?.dayMaster?.element;
+  const dmB = profileB.bazi?.dayMaster?.element;
+
+  const relA: DayMasterRelationships | null = dmA ? dmRelationshipElements(dmA) : null;
+  const relB: DayMasterRelationships | null = dmB ? dmRelationshipElements(dmB) : null;
+
+  const domA = profileA.bazi?.seasonalStrength?.dominant ?? '?';
+  const domB = profileB.bazi?.seasonalStrength?.dominant ?? '?';
+
+  const notes: string[] = [];
+
+  // NEO alignment
+  notes.push(
+    `NEO alignment: ${Math.round(data.neo.score * 100)}% (domains: ` +
+    `N ${Math.round(data.neo.dimensionScores.N * 100)}%, ` +
+    `E ${Math.round(data.neo.dimensionScores.E * 100)}%, ` +
+    `O ${Math.round(data.neo.dimensionScores.O * 100)}%, ` +
+    `A ${Math.round(data.neo.dimensionScores.A * 100)}%, ` +
+    `C ${Math.round(data.neo.dimensionScores.C * 100)}%).`
+  );
+
+  // WuXing + TenGods
+  notes.push(
+    `BaZi overlay: WuXing ${Math.round(data.wuxing * 100)}% + Ten Gods ${Math.round(data.tengods * 100)}% ` +
+    `→ blended (β=${data.beta}) = ${Math.round(data.baziBlend * 100)}%.`
+  );
+
+  // Western compatibility
+  if (data.gamma > 0) {
+    const { strengths } = getWesternStrengthsAndChallenges(data.westernDetails);
+    notes.push(
+      `Western astrology: ${Math.round(data.westernScore * 100)}% ` +
+      `(element ${data.westernDetails.elementHarmony}%, ` +
+      `archetype ${data.westernDetails.archetypeResonance}%, ` +
+      `chart shape ${data.westernDetails.chartShapeCompat}%).`
+    );
+    if (strengths.length > 0) {
+      notes.push(`Western strengths: ${strengths.join(', ')}.`);
+    }
+  }
+
+  // Seasonal constitution
+  notes.push(`Seasonal constitution: A is ${domA}-dominant; B is ${domB}-dominant (post-seasonal 旺衰).`);
+
+  // Day Master relationships
+  if (relA) {
+    notes.push(
+      `A Day Master (${dmA}) map: Companion=${relA.Companion}, Output=${relA.Output}, Wealth=${relA.Wealth}, ` +
+      `Power=${relA.Power}, Resource=${relA.Resource}.`
+    );
+  }
+  if (relB) {
+    notes.push(
+      `B Day Master (${dmB}) map: Companion=${relB.Companion}, Output=${relB.Output}, Wealth=${relB.Wealth}, ` +
+      `Power=${relB.Power}, Resource=${relB.Resource}.`
+    );
+  }
+
+  // Modifiers summary
+  const mf = data.modFavor;
+  const mi = data.modInter;
+  if (mf !== 1 || mi !== 1) {
+    notes.push(
+      `BaZi refinements applied: favorable-elements ×${mf.toFixed(2)}, interactions ×${mi.toFixed(2)}.`
+    );
+  }
+
+  // Final blend with Western
+  const neoWeight = 1 - data.alpha - data.gamma;
+  const neoContrib = Math.round(data.neo.score * neoWeight * 100);
+  const baziContrib = Math.round(data.baziBlend * data.alpha * 100);
+  const westernContrib = Math.round(data.westernScore * data.gamma * 100);
+
+  if (data.gamma > 0) {
+    notes.push(
+      `Total blend: (1-α-γ)NEO + αBaZi + γWestern with α=${data.alpha}, γ=${data.gamma} ` +
+      `→ ${neoContrib}% + ${baziContrib}% + ${westernContrib}% contribution.`
+    );
+  } else {
+    notes.push(
+      `Total blend: (1-α)NEO + αBaZi with α=${data.alpha} → ${neoContrib}% + ${baziContrib}% contribution.`
+    );
+  }
+
+  return notes;
 }

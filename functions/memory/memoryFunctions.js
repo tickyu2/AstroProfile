@@ -1045,6 +1045,49 @@ Return JSON: { "scores": [7, 2, 9, ...] }`;
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// BIOGRAPHY EVENTS RETRIEVAL (Internal helper)
+// Queries the biography/life_events collection from biographyExtractor
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function getBiographyEventsInternal(userId, profileId, limit = 15) {
+  try {
+    const biographyRef = db
+      .collection('users').doc(userId)
+      .collection('biography').doc(profileId)
+      .collection('life_events');
+
+    const snapshot = await biographyRef
+      .orderBy('updatedAt', 'desc')
+      .limit(limit)
+      .get();
+
+    const events = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title,
+        event_type: data.event_type,
+        description: data.description,
+        ai_summary: data.ai_summary,
+        date: data.date,
+        location: data.location,
+        people_involved: data.people_involved,
+        emotions: data.emotions,
+        confidence: data.confidence,
+        mentionCount: data.mentionCount || 1
+      };
+    });
+
+    console.log(`📖 [Biography] Retrieved ${events.length} life events for context`);
+    return { events };
+
+  } catch (error) {
+    console.warn('⚠️ Biography events retrieval error:', error.message);
+    return { events: [] };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // GET FULL MEMORY CONTEXT - Unified retrieval for RAG pipeline
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -1077,6 +1120,7 @@ exports.getMemoryContext = onCall({
       anchorsResult,
       questionsResult,
       timelineResult,
+      biographyEventsResult,  // Biography events from conversation extraction
       // Luna's Brain (SoulPartner's perspective)
       lunaJournalsResult,
       lunaPatternsResult,
@@ -1114,6 +1158,9 @@ exports.getMemoryContext = onCall({
       // Get timeline with grouped questions (for navigating user's life story)
       exports.getTimelineWithQuestions.run({ data: { userId, profileId } }),
 
+      // Get biography events (Digital Souls format - from biographyExtractor)
+      getBiographyEventsInternal(userId, profileId, 15),
+
       // ═══ LUNA'S BRAIN (SoulPartner's Private Insights) ═══
       // Get Luna's recent journal entries
       exports.getRecentJournalEntries.run({ data: { userId, profileId, limit: 3 } }),
@@ -1150,6 +1197,7 @@ exports.getMemoryContext = onCall({
       pendingQuestions: questionsResult.questions || [],
       timeline: timelineResult.timeline || [],
       orphanQuestions: timelineResult.orphanQuestions || [],
+      biographyEvents: biographyEventsResult.events || [],  // Life events from conversation extraction
       // Luna's Brain
       lunaJournals: lunaJournalsResult.journals || [],
       lunaPatterns: lunaPatternsResult.patterns || [],
@@ -1181,6 +1229,7 @@ exports.getMemoryContext = onCall({
         // User's Brain
         facts: [], memories: [], people: [], happinessAnchors: [],
         pendingQuestions: [], timeline: [], orphanQuestions: [],
+        biographyEvents: [],  // Life events from conversation extraction
         // Luna's Brain
         lunaJournals: [], lunaPatterns: [], emotionTrends: null,
         // Personality Evolution

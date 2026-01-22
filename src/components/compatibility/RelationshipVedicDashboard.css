@@ -1,0 +1,105 @@
+/**
+ * RelationshipVedicDashboard.css
+ * Cathedral-themed tabbed interface styling
+ */
+
+.relationship-vedic-container {
+  --cathedral-bg: #1a1a2e;
+  --cathedral-panel: #16213e;
+  --cathedral-border: #0f3460;
+  --cathedral-accent: #e94560;
+  --cathedral-accent-dark: #c73e54;
+  --cathedral-gold: #d4a574;
+  --cathedral-text: #eaeaea;
+  --cathedral-muted: #8b8b8b;
+
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--cathedral-bg);
+  min-height: 100vh;
+}
+
+/* Tab Bar */
+.tab-bar {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  background: var(--cathedral-panel);
+  border-bottom: 1px solid var(--cathedral-border);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--cathedral-border);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--cathedral-muted);
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--cathedral-text);
+  border-color: var(--cathedral-gold);
+}
+
+.tab.active {
+  background: linear-gradient(135deg, var(--cathedral-accent) 0%, var(--cathedral-accent-dark) 100%);
+  color: white;
+  border-color: var(--cathedral-accent);
+  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+}
+
+.tab-icon {
+  font-size: 1.2rem;
+}
+
+/* Tab Description */
+.tab-description {
+  padding: 16px 24px;
+  background: rgba(212, 165, 116, 0.05);
+  border-bottom: 1px solid var(--cathedral-border);
+}
+
+.tab-description p {
+  margin: 0;
+  color: var(--cathedral-muted);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Tab Content */
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .tab-bar {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .tab {
+    justify-content: center;
+    width: 100%;
+  }
+}

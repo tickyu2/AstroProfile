@@ -527,6 +527,40 @@ class MemoryService {
       }).join('\n');
     }
 
+    // Timeline/Biography (life events from conversations)
+    if (context.timeline && Object.keys(context.timeline).length > 0) {
+      prompt += `\n\n═══ BIOGRAPHICAL TIMELINE (Life Events) ═══\n`;
+      // Sort timeline entries by year
+      const sortedYears = Object.keys(context.timeline).sort((a, b) => {
+        const yearA = parseInt(a) || 0;
+        const yearB = parseInt(b) || 0;
+        return yearA - yearB;
+      });
+      sortedYears.slice(0, 10).forEach(year => {
+        const entry = context.timeline[year];
+        if (entry.events?.length > 0) {
+          const yearLabel = entry.year || entry.era || year;
+          prompt += `\n${yearLabel}:\n`;
+          entry.events.forEach(e => {
+            const confirmed = e.confirmed ? '✓' : '?';
+            prompt += `  ${confirmed} ${e.event}\n`;
+          });
+        }
+      });
+    }
+
+    // Biography events (from biography collection - Digital Souls format)
+    if (context.biographyEvents?.length > 0) {
+      prompt += `\n\n═══ LIFE STORY (Extracted from conversations) ═══\n`;
+      context.biographyEvents.forEach(event => {
+        const yearStr = event.date?.year ? `(${event.date.year})` : '';
+        prompt += `• ${event.title} ${yearStr}\n`;
+        if (event.ai_summary) {
+          prompt += `  ${event.ai_summary}\n`;
+        }
+      });
+    }
+
     if (prompt) {
       prompt += `\n\n═══ MEMORY GUIDELINES ═══
 • Reference memories naturally, don't say "I remember you told me"

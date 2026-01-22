@@ -24,7 +24,7 @@ import { getHistoricalTimezone, formatTimezoneDisplay } from '../services/timezo
 export default function DiamondProfileForm() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { profiles, createProfile, updateProfile } = useProfiles()
+  const { profiles, createProfile, updateProfile, recalculateSovereignData } = useProfiles()
   const { syncProfileToKB } = useKnowledgeBase()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
@@ -336,6 +336,20 @@ export default function DiamondProfileForm() {
       if (isEditMode) {
         const updatedProfile = await updateProfile(editProfileId, profileData)
         console.log('✅ Profile updated')
+
+        // ═══════════════════════════════════════════════════════════════════
+        // MOTHER OF ALL CALCULATIONS: Trigger full BaZi/Sovereign recalculation
+        // This ensures all astrological data is freshly computed from birth info
+        // ═══════════════════════════════════════════════════════════════════
+        console.log('🔄 Triggering BaZi recalculation after save...')
+        try {
+          await recalculateSovereignData(editProfileId)
+          console.log('✅ BaZi recalculation complete')
+        } catch (recalcErr) {
+          console.warn('⚠️ BaZi recalculation failed (Python backend may be offline):', recalcErr.message)
+          // Don't block navigation - profile data was saved successfully
+        }
+
         // Sync the updated profile to Knowledge Base
         if (updatedProfile && syncProfileToKB) {
           console.log('🧬 Syncing updated profile to KB:', updatedProfile.displayName || updatedProfile.firstName)
@@ -345,6 +359,20 @@ export default function DiamondProfileForm() {
       } else {
         const newProfile = await createProfile(profileData)
         console.log('✅ Profile created:', newProfile)
+
+        // ═══════════════════════════════════════════════════════════════════
+        // MOTHER OF ALL CALCULATIONS: Trigger full BaZi/Sovereign calculation
+        // This ensures new profiles get complete astrological data from day 1
+        // ═══════════════════════════════════════════════════════════════════
+        console.log('🔄 Triggering BaZi calculation for new profile...')
+        try {
+          await recalculateSovereignData(newProfile.id)
+          console.log('✅ BaZi calculation complete for new profile')
+        } catch (recalcErr) {
+          console.warn('⚠️ BaZi calculation failed (Python backend may be offline):', recalcErr.message)
+          // Don't block navigation - profile was created successfully
+        }
+
         navigate(`/results/${newProfile.id}`)
       }
     } catch (err) {

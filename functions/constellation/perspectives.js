@@ -1,6 +1,6 @@
 /**
  * AI Constellation Perspectives
- * - getSecondOpinion (Gemini 3 Pro with Thinking Mode)
+ * - getSecondOpinion (Gemini 2.5 Pro with Thinking Mode)
  * - getGrokPerspective (xAI Grok)
  * - getOpusPerspective (Claude Opus 4.5)
  *
@@ -8,7 +8,7 @@
  * Modularized: December 17, 2024
  * Updated: December 18, 2024 - Upgraded to @google/genai SDK with Thinking Mode
  * Updated: December 18, 2024 - Upgraded Grok to Grok-4 with reasoning_effort: high
- * Deploy timestamp: 2024-12-18T10:00:00Z
+ * Updated: January 12, 2026 - Fixed Gemini model name (gemini-2.5-pro)
  */
 
 const { GoogleGenAI } = require('@google/genai');
@@ -158,11 +158,12 @@ Be thorough and substantive - this is a comprehensive second opinion, not just a
     }
   }
 
-  console.log('🤖 Getting Second Opinion from Gemini 3 Pro (Thinking Mode):', debateMode);
+  console.log('🤖 Getting Second Opinion from Gemini 2.5 Pro (Thinking Mode):', debateMode);
 
   try {
-    // Use Gemini 3 Pro with Thinking Mode for deep analysis
-    const model = genAI.models.get('gemini-2.5-pro-preview-06-05');
+    // Use Gemini 2.5 Pro with Thinking Mode for deep analysis
+    // Updated Jan 2026: Using stable model name
+    const model = genAI.models.get('gemini-2.5-pro');
 
     const result = await model.generateContent({
       systemInstruction: systemInstruction,
@@ -202,7 +203,7 @@ Be thorough and substantive - this is a comprehensive second opinion, not just a
         : result.response.text;
     }
 
-    console.log('✅ Gemini 3 Pro response received:', geminiText?.slice(0, 100));
+    console.log('✅ Gemini 2.5 Pro response received:', geminiText?.slice(0, 100));
 
     return {
       success: true,
@@ -213,12 +214,12 @@ Be thorough and substantive - this is a comprehensive second opinion, not just a
       thoughtProcess: thoughtProcess || null  // Include thought process for debugging
     };
   } catch (error) {
-    console.error('❌ Gemini 3 Pro error:', error.message);
+    console.error('❌ Gemini 2.5 Pro error:', error.message);
 
     // Fallback to Flash model if Pro fails
     console.log('⚡ Falling back to Gemini Flash...');
     try {
-      const flashModel = genAI.models.get('gemini-2.0-flash');
+      const flashModel = genAI.models.get('gemini-2.5-flash');
       const flashResult = await flashModel.generateContent({
         systemInstruction: systemInstruction,
         contents: [{ role: 'user', parts: [{ text: userPrompt }] }],

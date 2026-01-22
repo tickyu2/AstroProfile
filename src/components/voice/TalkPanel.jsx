@@ -20,6 +20,7 @@ import { useEmotion } from '../../hooks/useEmotion';
 import { useVoiceLoop } from '../../hooks/useVoiceLoop';
 import { cueEngine } from '../../services/cueEngine';
 import { createBehaviorSignalHandler, BEHAVIOR_SIGNALS } from '../../services/behaviorSignals';
+import { iosAudioHelper } from '../../services/iosAudioHelper';
 import SoulVisualizer from './SoulVisualizer';
 import Waveform from './Waveform';
 import { BehaviorDebugOverlay } from './BehaviorDebugOverlay';
@@ -49,6 +50,12 @@ const TalkPanel = ({
   const [audioStream, setAudioStream] = useState(null);
   const lastSpeakingRef = useRef(false);
 
+  // iOS permission state
+  const [iosPermissionGranted, setIosPermissionGranted] = useState(!iosAudioHelper.isIOS);
+  const [iosPermissionLoading, setIosPermissionLoading] = useState(false);
+  const [iosPermissionError, setIosPermissionError] = useState(null);
+  const [showIosInstructions, setShowIosInstructions] = useState(false);
+
   // Behavior tracking state
   const [behavior, setBehavior] = useState(null);
   const [sessionStats, setSessionStats] = useState(null);
@@ -66,6 +73,45 @@ const TalkPanel = ({
     const timestamp = new Date().toLocaleTimeString();
     setDebugLog(prev => [...prev.slice(-30), `[${timestamp}] ${text}`]);
   }, []);
+
+  /**
+   * iOS Permission Request Handler
+   * Must be triggered by user tap (iOS Safari requirement)
+   */
+  const handleIOSPermissionRequest = useCallback(async () => {
+    setIosPermissionLoading(true);
+    setIosPermissionError(null);
+    addLog('iOS: Requesting microphone permission...');
+
+    try {
+      // First unlock audio (required on iOS)
+      await iosAudioHelper.unlockAudio();
+      addLog('iOS: Audio unlocked');
+
+      // Request microphone permission
+      const result = await iosAudioHelper.requestMicrophonePermission();
+
+      if (result.granted) {
+        addLog('iOS: Microphone permission granted');
+        setIosPermissionGranted(true);
+
+        // Stop the stream for now - VAD will request it again
+        if (result.stream) {
+          result.stream.getTracks().forEach(track => track.stop());
+        }
+      } else {
+        addLog(`iOS: Permission denied - ${result.error}`);
+        setIosPermissionError(result.error);
+        setShowIosInstructions(true);
+      }
+    } catch (error) {
+      addLog(`iOS: Error - ${error.message}`);
+      setIosPermissionError(error.message);
+      setShowIosInstructions(true);
+    } finally {
+      setIosPermissionLoading(false);
+    }
+  }, [addLog]);
 
   /**
    * Real VAD using @ricky0123/vad-react
@@ -442,6 +488,63 @@ const TalkPanel = ({
       {vad.errored && (
         <div className="talk-panel-error">
           ⚠️ Microphone error. Please check permissions.
+        </div>
+      )}
+
+      {/* iOS Permission Prompt - shown on iOS devices before voice starts */}
+      {!iosPermissionGranted && iosAudioHelper.isIOS && (
+        <div className="ios-permission-overlay">
+          <div className="ios-badge">
+            <span className="ios-badge-icon"></span>
+            iPhone/iPad detected
+          </div>
+
+          <div className="ios-permission-icon">🎤</div>
+          <div className="ios-permission-title">Enable Voice for Luna</div>
+          <div className="ios-permission-subtitle">
+            Tap the button below to allow microphone and speaker access so Luna can hear and speak with you.
+          </div>
+
+          <button
+            className={`ios-permission-btn ${iosPermissionLoading ? 'loading' : ''}`}
+            onClick={handleIOSPermissionRequest}
+            disabled={iosPermissionLoading}
+          >
+            <span className="ios-permission-btn-icon">
+              {iosPermissionLoading ? '⏳' : '🎙️'}
+            </span>
+            {iosPermissionLoading ? 'Requesting...' : 'Enable Microphone'}
+          </button>
+
+          {iosPermissionError && (
+            <div className="ios-permission-error">
+              {iosPermissionError}
+            </div>
+          )}
+
+          {showIosInstructions && (
+            <div className="ios-permission-instructions">
+              <div className="ios-permission-instructions-title">
+                How to enable microphone on Safari:
+              </div>
+              <ol>
+                <li>Tap the "AA" icon in Safari's address bar</li>
+                <li>Select "Website Settings"</li>
+                <li>Set Microphone to "Allow"</li>
+                <li>Tap "Done" and try again</li>
+              </ol>
+              <div className="ios-permission-tip">
+                💡 iOS requires you to tap a button to start voice - it cannot start automatically.
+              </div>
+            </div>
+          )}
+
+          <button
+            className="ios-permission-skip"
+            onClick={onClose}
+          >
+            Skip for now
+          </button>
         </div>
       )}
 

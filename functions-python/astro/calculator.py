@@ -14,6 +14,95 @@ import math
 swe.set_ephe_path(None)
 
 
+# ============================================================================
+# VEDIC ASTROLOGY CONSTANTS
+# ============================================================================
+
+# Ayanamsha options (offset between Tropical and Sidereal zodiacs)
+AYANAMSHA_OPTIONS = {
+    'lahiri': swe.SIDM_LAHIRI,           # Most widely used (Chitrapaksha)
+    'raman': swe.SIDM_RAMAN,             # B.V. Raman
+    'krishnamurti': swe.SIDM_KRISHNAMURTI,  # KP system
+    'fagan_bradley': swe.SIDM_FAGAN_BRADLEY,
+    'deluce': swe.SIDM_DELUCE,
+    'yukteshwar': swe.SIDM_YUKTESHWAR,
+    'true_chitra': swe.SIDM_TRUE_CITRA,
+}
+
+# Sanskrit names for zodiac signs (Rashis)
+RASHIS = [
+    {'index': 0, 'sanskrit': 'Mesha', 'english': 'Aries', 'lord': 'Mars', 'element': 'Fire', 'symbol': '♈'},
+    {'index': 1, 'sanskrit': 'Vrishabha', 'english': 'Taurus', 'lord': 'Venus', 'element': 'Earth', 'symbol': '♉'},
+    {'index': 2, 'sanskrit': 'Mithuna', 'english': 'Gemini', 'lord': 'Mercury', 'element': 'Air', 'symbol': '♊'},
+    {'index': 3, 'sanskrit': 'Karka', 'english': 'Cancer', 'lord': 'Moon', 'element': 'Water', 'symbol': '♋'},
+    {'index': 4, 'sanskrit': 'Simha', 'english': 'Leo', 'lord': 'Sun', 'element': 'Fire', 'symbol': '♌'},
+    {'index': 5, 'sanskrit': 'Kanya', 'english': 'Virgo', 'lord': 'Mercury', 'element': 'Earth', 'symbol': '♍'},
+    {'index': 6, 'sanskrit': 'Tula', 'english': 'Libra', 'lord': 'Venus', 'element': 'Air', 'symbol': '♎'},
+    {'index': 7, 'sanskrit': 'Vrishchika', 'english': 'Scorpio', 'lord': 'Mars', 'element': 'Water', 'symbol': '♏'},
+    {'index': 8, 'sanskrit': 'Dhanu', 'english': 'Sagittarius', 'lord': 'Jupiter', 'element': 'Fire', 'symbol': '♐'},
+    {'index': 9, 'sanskrit': 'Makara', 'english': 'Capricorn', 'lord': 'Saturn', 'element': 'Earth', 'symbol': '♑'},
+    {'index': 10, 'sanskrit': 'Kumbha', 'english': 'Aquarius', 'lord': 'Saturn', 'element': 'Air', 'symbol': '♒'},
+    {'index': 11, 'sanskrit': 'Meena', 'english': 'Pisces', 'lord': 'Jupiter', 'element': 'Water', 'symbol': '♓'},
+]
+
+# 27 Nakshatras (Lunar Mansions) - each spans 13°20' (800 arc-minutes)
+NAKSHATRAS = [
+    {'index': 0, 'name': 'Ashwini', 'lord': 'Ketu', 'deity': 'Ashwini Kumaras', 'symbol': '🐴', 'quality': 'Light/Swift'},
+    {'index': 1, 'name': 'Bharani', 'lord': 'Venus', 'deity': 'Yama', 'symbol': '🔺', 'quality': 'Fierce/Severe'},
+    {'index': 2, 'name': 'Krittika', 'lord': 'Sun', 'deity': 'Agni', 'symbol': '🔥', 'quality': 'Mixed'},
+    {'index': 3, 'name': 'Rohini', 'lord': 'Moon', 'deity': 'Brahma', 'symbol': '🐂', 'quality': 'Fixed/Permanent'},
+    {'index': 4, 'name': 'Mrigashira', 'lord': 'Mars', 'deity': 'Soma', 'symbol': '🦌', 'quality': 'Soft/Mild'},
+    {'index': 5, 'name': 'Ardra', 'lord': 'Rahu', 'deity': 'Rudra', 'symbol': '💎', 'quality': 'Sharp/Dreadful'},
+    {'index': 6, 'name': 'Punarvasu', 'lord': 'Jupiter', 'deity': 'Aditi', 'symbol': '🏹', 'quality': 'Movable/Ephemeral'},
+    {'index': 7, 'name': 'Pushya', 'lord': 'Saturn', 'deity': 'Brihaspati', 'symbol': '🌸', 'quality': 'Light/Swift'},
+    {'index': 8, 'name': 'Ashlesha', 'lord': 'Mercury', 'deity': 'Sarpas', 'symbol': '🐍', 'quality': 'Sharp/Dreadful'},
+    {'index': 9, 'name': 'Magha', 'lord': 'Ketu', 'deity': 'Pitris', 'symbol': '👑', 'quality': 'Fierce/Severe'},
+    {'index': 10, 'name': 'Purva Phalguni', 'lord': 'Venus', 'deity': 'Bhaga', 'symbol': '🛏️', 'quality': 'Fierce/Severe'},
+    {'index': 11, 'name': 'Uttara Phalguni', 'lord': 'Sun', 'deity': 'Aryaman', 'symbol': '🛏️', 'quality': 'Fixed/Permanent'},
+    {'index': 12, 'name': 'Hasta', 'lord': 'Moon', 'deity': 'Savitar', 'symbol': '✋', 'quality': 'Light/Swift'},
+    {'index': 13, 'name': 'Chitra', 'lord': 'Mars', 'deity': 'Vishvakarman', 'symbol': '💎', 'quality': 'Soft/Mild'},
+    {'index': 14, 'name': 'Swati', 'lord': 'Rahu', 'deity': 'Vayu', 'symbol': '🌱', 'quality': 'Movable/Ephemeral'},
+    {'index': 15, 'name': 'Vishakha', 'lord': 'Jupiter', 'deity': 'Indra-Agni', 'symbol': '🎯', 'quality': 'Mixed'},
+    {'index': 16, 'name': 'Anuradha', 'lord': 'Saturn', 'deity': 'Mitra', 'symbol': '🪷', 'quality': 'Soft/Mild'},
+    {'index': 17, 'name': 'Jyeshtha', 'lord': 'Mercury', 'deity': 'Indra', 'symbol': '👂', 'quality': 'Sharp/Dreadful'},
+    {'index': 18, 'name': 'Mula', 'lord': 'Ketu', 'deity': 'Nirriti', 'symbol': '🦁', 'quality': 'Sharp/Dreadful'},
+    {'index': 19, 'name': 'Purva Ashadha', 'lord': 'Venus', 'deity': 'Apas', 'symbol': '🐘', 'quality': 'Fierce/Severe'},
+    {'index': 20, 'name': 'Uttara Ashadha', 'lord': 'Sun', 'deity': 'Vishvadevas', 'symbol': '🐘', 'quality': 'Fixed/Permanent'},
+    {'index': 21, 'name': 'Shravana', 'lord': 'Moon', 'deity': 'Vishnu', 'symbol': '👂', 'quality': 'Movable/Ephemeral'},
+    {'index': 22, 'name': 'Dhanishta', 'lord': 'Mars', 'deity': 'Vasus', 'symbol': '🥁', 'quality': 'Movable/Ephemeral'},
+    {'index': 23, 'name': 'Shatabhisha', 'lord': 'Rahu', 'deity': 'Varuna', 'symbol': '⭕', 'quality': 'Movable/Ephemeral'},
+    {'index': 24, 'name': 'Purva Bhadrapada', 'lord': 'Jupiter', 'deity': 'Aja Ekapada', 'symbol': '🛏️', 'quality': 'Fierce/Severe'},
+    {'index': 25, 'name': 'Uttara Bhadrapada', 'lord': 'Saturn', 'deity': 'Ahir Budhnya', 'symbol': '🛏️', 'quality': 'Fixed/Permanent'},
+    {'index': 26, 'name': 'Revati', 'lord': 'Mercury', 'deity': 'Pushan', 'symbol': '🐟', 'quality': 'Soft/Mild'},
+]
+
+# Vedic planets (Grahas) - traditional 9 grahas
+VEDIC_GRAHAS = {
+    'surya': swe.SUN,       # Sun
+    'chandra': swe.MOON,    # Moon
+    'mangala': swe.MARS,    # Mars
+    'budha': swe.MERCURY,   # Mercury
+    'guru': swe.JUPITER,    # Jupiter
+    'shukra': swe.VENUS,    # Venus
+    'shani': swe.SATURN,    # Saturn
+    'rahu': swe.MEAN_NODE,  # North Node (ascending)
+    'ketu': -1,             # South Node (calculated from Rahu)
+}
+
+# Graha English names mapping
+GRAHA_ENGLISH = {
+    'surya': 'Sun',
+    'chandra': 'Moon',
+    'mangala': 'Mars',
+    'budha': 'Mercury',
+    'guru': 'Jupiter',
+    'shukra': 'Venus',
+    'shani': 'Saturn',
+    'rahu': 'Rahu (North Node)',
+    'ketu': 'Ketu (South Node)',
+}
+
+
 class SwissEphemerisCalculator:
     """
     Swiss Ephemeris Calculator for precision astrology calculations.
@@ -518,3 +607,249 @@ class SwissEphemerisCalculator:
             "challengingAspects": challenging_count,
             "elementalDynamic": elemental.get("dynamic", "Unknown")
         }
+
+    # ========================================================================
+    # VEDIC ASTROLOGY (JYOTISH) CALCULATIONS
+    # ========================================================================
+
+    def calculate_vedic_chart(
+        self,
+        birth_date: str,
+        birth_time: str,
+        latitude: float,
+        longitude: float,
+        timezone: str = "UTC",
+        ayanamsha: str = "lahiri",
+        house_system: str = "whole_sign"
+    ) -> Dict:
+        """
+        Calculate a complete Vedic (Jyotish) natal chart using sidereal zodiac.
+
+        Args:
+            birth_date: Birth date in YYYY-MM-DD format
+            birth_time: Birth time in HH:MM format
+            latitude: Birth location latitude
+            longitude: Birth location longitude
+            timezone: Timezone string (e.g., "Asia/Kolkata")
+            ayanamsha: Ayanamsha system ('lahiri', 'raman', 'krishnamurti', etc.)
+            house_system: House system ('whole_sign', 'equal', 'placidus')
+
+        Returns:
+            Complete Vedic chart with grahas, rashis, nakshatras, and bhavas
+        """
+        # Parse datetime
+        dt = self._parse_datetime(birth_date, birth_time, timezone)
+        jd = self._datetime_to_julian(dt)
+
+        # Set sidereal mode with chosen ayanamsha
+        ayanamsha_id = AYANAMSHA_OPTIONS.get(ayanamsha, swe.SIDM_LAHIRI)
+        swe.set_sid_mode(ayanamsha_id)
+
+        # Get ayanamsha value for this date
+        ayanamsha_value = swe.get_ayanamsa_ut(jd)
+
+        # Calculate graha (planet) positions in sidereal zodiac
+        grahas = self._calculate_vedic_grahas(jd)
+
+        # Calculate houses (bhavas)
+        bhavas = self._calculate_vedic_houses(jd, latitude, longitude, house_system)
+
+        # Calculate Moon's nakshatra (most important in Vedic)
+        moon_nakshatra = self._calculate_nakshatra(grahas.get('chandra', {}).get('longitude', 0))
+
+        # Calculate Lagna (Ascendant) nakshatra
+        lagna_longitude = bhavas.get('lagna', {}).get('longitude', 0)
+        lagna_nakshatra = self._calculate_nakshatra(lagna_longitude)
+
+        # Reset to tropical mode for subsequent Western calculations
+        swe.set_sid_mode(swe.SIDM_FAGAN_BRADLEY)  # Reset
+
+        return {
+            "zodiacSystem": "sidereal",
+            "ayanamsha": ayanamsha,
+            "ayanamshaName": self._get_ayanamsha_name(ayanamsha),
+            "ayanamshaValue": round(ayanamsha_value, 4),
+            "birthData": {
+                "date": birth_date,
+                "time": birth_time,
+                "latitude": latitude,
+                "longitude": longitude,
+                "timezone": timezone,
+                "julianDay": jd
+            },
+            "grahas": grahas,
+            "bhavas": bhavas,
+            "lagna": {
+                "longitude": lagna_longitude,
+                "rashi": bhavas.get('lagna', {}).get('rashi', {}),
+                "nakshatra": lagna_nakshatra
+            },
+            "moonNakshatra": moon_nakshatra,
+            "calculationMethod": "Swiss Ephemeris (Sidereal)",
+            "houseSystem": house_system
+        }
+
+    def _calculate_vedic_grahas(self, jd: float) -> Dict:
+        """Calculate positions for all Vedic grahas (planets) in sidereal zodiac"""
+        grahas = {}
+        rahu_longitude = None
+
+        for graha_name, graha_id in VEDIC_GRAHAS.items():
+            try:
+                if graha_name == 'ketu':
+                    # Ketu is exactly opposite to Rahu (180°)
+                    if rahu_longitude is not None:
+                        ketu_longitude = (rahu_longitude + 180) % 360
+                        rashi_data = self._longitude_to_rashi(ketu_longitude)
+                        nakshatra_data = self._calculate_nakshatra(ketu_longitude)
+
+                        grahas['ketu'] = {
+                            "longitude": ketu_longitude,
+                            "latitude": 0,
+                            "speed": grahas['rahu']['speed'],  # Same speed as Rahu
+                            "retrograde": True,  # Nodes always retrograde
+                            "rashi": rashi_data,
+                            "nakshatra": nakshatra_data,
+                            "english": GRAHA_ENGLISH['ketu']
+                        }
+                    continue
+
+                # Calculate position with sidereal flag
+                result, flag = swe.calc_ut(jd, graha_id, swe.FLG_SIDEREAL | swe.FLG_SPEED)
+
+                longitude = result[0]
+                latitude = result[1]
+                lon_speed = result[3]
+
+                # Store Rahu longitude for Ketu calculation
+                if graha_name == 'rahu':
+                    rahu_longitude = longitude
+
+                rashi_data = self._longitude_to_rashi(longitude)
+                nakshatra_data = self._calculate_nakshatra(longitude)
+
+                grahas[graha_name] = {
+                    "longitude": longitude,
+                    "latitude": latitude,
+                    "speed": lon_speed,
+                    "retrograde": lon_speed < 0 or graha_name == 'rahu',
+                    "rashi": rashi_data,
+                    "nakshatra": nakshatra_data,
+                    "english": GRAHA_ENGLISH[graha_name]
+                }
+
+            except Exception as e:
+                grahas[graha_name] = {"error": str(e)}
+
+        return grahas
+
+    def _longitude_to_rashi(self, longitude: float) -> Dict:
+        """Convert sidereal longitude to Rashi (Vedic sign)"""
+        rashi_index = int(longitude / 30) % 12
+        degree_in_rashi = longitude % 30
+        rashi = RASHIS[rashi_index]
+
+        return {
+            "index": rashi_index,
+            "sanskrit": rashi['sanskrit'],
+            "english": rashi['english'],
+            "lord": rashi['lord'],
+            "element": rashi['element'],
+            "symbol": rashi['symbol'],
+            "degree": round(degree_in_rashi, 4),
+            "formatted": f"{degree_in_rashi:.2f}° {rashi['sanskrit']}"
+        }
+
+    def _calculate_nakshatra(self, longitude: float) -> Dict:
+        """
+        Calculate Nakshatra (lunar mansion) from sidereal longitude.
+        Each nakshatra spans 13°20' (13.333...°), with 4 padas of 3°20' each.
+        """
+        nakshatra_span = 360 / 27  # 13.333...°
+        pada_span = nakshatra_span / 4  # 3.333...°
+
+        nakshatra_index = int(longitude / nakshatra_span) % 27
+        degree_in_nakshatra = longitude % nakshatra_span
+        pada = int(degree_in_nakshatra / pada_span) + 1
+
+        nakshatra = NAKSHATRAS[nakshatra_index]
+
+        return {
+            "index": nakshatra_index,
+            "name": nakshatra['name'],
+            "lord": nakshatra['lord'],
+            "deity": nakshatra['deity'],
+            "symbol": nakshatra['symbol'],
+            "quality": nakshatra['quality'],
+            "pada": pada,
+            "degreeInNakshatra": round(degree_in_nakshatra, 4),
+            "formatted": f"{nakshatra['name']} Pada {pada}"
+        }
+
+    def _calculate_vedic_houses(self, jd: float, lat: float, lon: float, house_system: str) -> Dict:
+        """Calculate Vedic houses (bhavas)"""
+        try:
+            # Map house system to Swiss Ephemeris code
+            house_codes = {
+                'whole_sign': b'W',
+                'equal': b'E',
+                'placidus': b'P',
+                'koch': b'K'
+            }
+            house_code = house_codes.get(house_system, b'W')
+
+            # Calculate houses with sidereal positions
+            cusps, ascmc = swe.houses_ex(jd, lat, lon, house_code, swe.FLG_SIDEREAL)
+
+            lagna_longitude = ascmc[0]
+            lagna_rashi = self._longitude_to_rashi(lagna_longitude)
+
+            bhavas = {
+                "lagna": {
+                    "longitude": lagna_longitude,
+                    "rashi": lagna_rashi
+                },
+                "midheaven": {
+                    "longitude": ascmc[1],
+                    "rashi": self._longitude_to_rashi(ascmc[1])
+                },
+                "cusps": {}
+            }
+
+            # For Whole Sign houses, each house starts at 0° of a sign
+            if house_system == 'whole_sign':
+                lagna_sign_index = int(lagna_longitude / 30)
+                for i in range(1, 13):
+                    house_sign_index = (lagna_sign_index + i - 1) % 12
+                    house_longitude = house_sign_index * 30
+                    bhavas["cusps"][f"bhava_{i}"] = {
+                        "longitude": house_longitude,
+                        "rashi": self._longitude_to_rashi(house_longitude),
+                        "number": i
+                    }
+            else:
+                # Use calculated cusps
+                for i, cusp in enumerate(cusps[1:13], 1):
+                    bhavas["cusps"][f"bhava_{i}"] = {
+                        "longitude": cusp,
+                        "rashi": self._longitude_to_rashi(cusp),
+                        "number": i
+                    }
+
+            return bhavas
+
+        except Exception as e:
+            return {"error": str(e)}
+
+    def _get_ayanamsha_name(self, ayanamsha: str) -> str:
+        """Get display name for ayanamsha"""
+        names = {
+            'lahiri': 'Lahiri (Chitrapaksha)',
+            'raman': 'B.V. Raman',
+            'krishnamurti': 'Krishnamurti (KP)',
+            'fagan_bradley': 'Fagan-Bradley',
+            'deluce': 'DeLuce',
+            'yukteshwar': 'Sri Yukteshwar',
+            'true_chitra': 'True Chitra'
+        }
+        return names.get(ayanamsha, ayanamsha.title())

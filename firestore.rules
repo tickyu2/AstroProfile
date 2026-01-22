@@ -32,17 +32,26 @@ service cloud.firestore {
     // ========================================
 
     match /brain3_active_text/{messageId} {
-      // Read access: User, guest if in visible_to, or Primary SoulPartner
+      // Read access: User who owns the conversation, guest if in visible_to, or Primary SoulPartner
+      // Must handle multiple formats:
+      // - New format: chatting_as.auth_uid = Firebase auth UID
+      // - Legacy: sender = auth UID (for user messages only, guest messages have partnerId)
+      // - Old legacy: chatting_as.profile_id might equal auth UID
       allow read: if isAuthenticated() &&
         (
-          isOwner(resource.data.chatting_as.profile_id) ||
+          request.auth.uid == resource.data.chatting_as.auth_uid ||  // New format (both user & guest msgs)
+          request.auth.uid == resource.data.sender ||                 // Legacy user messages
+          request.auth.uid == resource.data.chatting_as.profile_id || // Old legacy (profile_id = auth UID)
           canSeeMessage(resource.data) ||
           isPrimarySoulPartner()
         );
 
       // Write access: Only user who owns the conversation
       allow create: if isAuthenticated() &&
-        isOwner(request.resource.data.chatting_as.profile_id);
+        (
+          request.auth.uid == request.resource.data.chatting_as.auth_uid ||
+          request.auth.uid == request.resource.data.sender
+        );
 
       // No updates or deletes (immutable messages)
       allow update, delete: if false;
@@ -69,16 +78,21 @@ service cloud.firestore {
     // ========================================
 
     match /brain5_active_audio/{messageId} {
-      // Same rules as Brain 3
+      // Same rules as Brain 3 - handle multiple formats for ownership
       allow read: if isAuthenticated() &&
         (
-          isOwner(resource.data.chatting_as.profile_id) ||
+          request.auth.uid == resource.data.chatting_as.auth_uid ||
+          request.auth.uid == resource.data.sender ||
+          request.auth.uid == resource.data.chatting_as.profile_id ||
           canSeeMessage(resource.data) ||
           isPrimarySoulPartner()
         );
 
       allow create: if isAuthenticated() &&
-        isOwner(request.resource.data.chatting_as.profile_id);
+        (
+          request.auth.uid == request.resource.data.chatting_as.auth_uid ||
+          request.auth.uid == request.resource.data.sender
+        );
 
       allow update, delete: if false;
     }
@@ -103,11 +117,11 @@ service cloud.firestore {
     // ========================================
 
     match /brain7_unified_witness/{entryId} {
-      // Read: ONLY Primary SoulPartner OR the user themselves
+      // Read: ONLY Primary SoulPartner OR the user themselves (by auth_uid)
       allow read: if isAuthenticated() &&
         (
           isPrimarySoulPartner() ||
-          isOwner(resource.data.profile_id)
+          request.auth.uid == resource.data.auth_uid
         );
 
       // Write: Cloud Function with Admin SDK (bypasses rules)
@@ -123,11 +137,11 @@ service cloud.firestore {
     // ========================================
 
     match /brain8_long_term_knowledge/{patternId} {
-      // Read: ONLY Primary SoulPartner OR the user themselves
+      // Read: ONLY Primary SoulPartner OR the user themselves (by auth_uid)
       allow read: if isAuthenticated() &&
         (
           isPrimarySoulPartner() ||
-          isOwner(resource.data.profile_id)
+          request.auth.uid == resource.data.auth_uid
         );
 
       // Write: ONLY System (Luna synthesis)
@@ -163,6 +177,71 @@ service cloud.firestore {
         allow read: if request.auth != null;
         allow write: if request.auth != null &&
           get(/databases/$(database)/documents/profiles/$(profileId)).data.userId == request.auth.uid;
+      }
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // PROFILE-SCOPED BRAIN ARCHITECTURE
+      // Each profile has its own complete brain - enables portable souls
+      // Path: profiles/{profileId}/brains/{brainType}/{docId}
+      // ═══════════════════════════════════════════════════════════════════════
+
+      // Helper: Check if user owns this profile
+      function isProfileOwner() {
+        return request.auth != null &&
+          get(/databases/$(database)/documents/profiles/$(profileId)).data.userId == request.auth.uid;
+      }
+
+      // Brain 1B - What each partner learned about THIS profile
+      // Path: profiles/{profileId}/b1b_learned/{partnerId} (valid 4-segment document path)
+      match /b1b_learned/{partnerId} {
+        allow read: if isProfileOwner();
+        allow write: if false; // Cloud Function only
+      }
+
+      // Brain 2 - Biography/Life Story
+      match /brains/b2_biography/{docId} {
+        allow read: if isProfileOwner();
+        allow write: if false; // Cloud Function only (nightly consolidation)
+      }
+
+      // Brain 3 - Active Text Conversations
+      // Path: profiles/{profileId}/b3_conversations/{messageId} (valid 4-segment document path)
+      match /b3_conversations/{messageId} {
+        allow read: if isProfileOwner();
+        allow create: if false; // Cloud Function only
+        allow update, delete: if false; // Immutable
+      }
+
+      // Brain 4 - Archived Text Conversations
+      match /brains/b4_conversations_archive/{archiveId} {
+        allow read: if isProfileOwner();
+        allow write: if false; // Cloud Function only
+      }
+
+      // Brain 5 - Active Voice Conversations
+      match /brains/b5_voice/{messageId} {
+        allow read: if isProfileOwner();
+        allow create: if false; // Cloud Function only
+        allow update, delete: if false;
+      }
+
+      // Brain 6 - Archived Voice Conversations
+      match /brains/b6_voice_archive/{archiveId} {
+        allow read: if isProfileOwner();
+        allow write: if false; // Cloud Function only
+      }
+
+      // Brain 7 - Luna's Witness (observations of THIS profile)
+      // Path: profiles/{profileId}/b7_witness/{entryId} (valid 4-segment document path)
+      match /b7_witness/{entryId} {
+        allow read: if isProfileOwner();
+        allow write: if false; // Cloud Function only
+      }
+
+      // Brain 8 - Long-term Patterns learned about THIS profile
+      match /brains/b8_patterns/{patternId} {
+        allow read: if isProfileOwner();
+        allow write: if false; // Cloud Function only
       }
     }
 
@@ -404,6 +483,26 @@ service cloud.firestore {
           allow delete: if request.auth != null && request.auth.uid == userId;
         }
       }
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // BIOGRAPHY JOURNAL - Personal Life Stories
+      // ═══════════════════════════════════════════════════════════════════════
+
+      // Biography Stories - User's written life stories
+      match /biography_stories/{storyId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Biography Trash - Deleted stories with 15-day recovery
+      match /biography_trash/{trashId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -490,6 +589,40 @@ service cloud.firestore {
         allow read, write: if isAuthenticated() &&
           request.auth.uid == resource.data.userId;
       }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // GENESIS ACADEMY CMS - Content Management System
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // CMS Modules - Top-level content containers
+    match /cms_modules/{moduleId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() &&
+        (resource.data.createdBy == request.auth.uid || request.auth.token.admin == true);
+      allow delete: if isAuthenticated() &&
+        (resource.data.createdBy == request.auth.uid || request.auth.token.admin == true);
+    }
+
+    // CMS Sections - Sections within modules
+    match /cms_sections/{sectionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() &&
+        (resource.data.createdBy == request.auth.uid || request.auth.token.admin == true);
+      allow delete: if isAuthenticated() &&
+        (resource.data.createdBy == request.auth.uid || request.auth.token.admin == true);
+    }
+
+    // CMS Subsections - Actual lesson content
+    match /cms_subsections/{subsectionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() &&
+        (resource.data.createdBy == request.auth.uid || request.auth.token.admin == true);
+      allow delete: if isAuthenticated() &&
+        (resource.data.createdBy == request.auth.uid || request.auth.token.admin == true);
     }
 
     // Default deny all

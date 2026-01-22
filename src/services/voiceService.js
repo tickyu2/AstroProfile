@@ -15,6 +15,7 @@
  */
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { iosAudioHelper } from './iosAudioHelper';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -221,10 +222,16 @@ class VoiceService {
       // Initialize Firebase Functions
       this.functions = getFunctions();
 
-      // Create Audio Context
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
-        sampleRate: AUDIO_CONFIG.sampleRate
-      });
+      // Create Audio Context (use iOS helper for proper handling)
+      if (iosAudioHelper.isIOS) {
+        this.audioContext = await iosAudioHelper.createAudioContext({
+          sampleRate: AUDIO_CONFIG.sampleRate
+        });
+      } else {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
+          sampleRate: AUDIO_CONFIG.sampleRate
+        });
+      }
 
       // Create analyser for visualization
       this.analyserNode = this.audioContext.createAnalyser();
@@ -259,16 +266,25 @@ class VoiceService {
    */
   async requestMicrophoneAccess() {
     try {
-      // Request microphone permission
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          channelCount: AUDIO_CONFIG.channelCount,
-          sampleRate: AUDIO_CONFIG.sampleRate,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
+      // iOS: Use helper for proper permission handling
+      if (iosAudioHelper.isIOS) {
+        const result = await iosAudioHelper.requestMicrophonePermission();
+        if (!result.granted) {
+          throw new Error(result.error || 'Microphone access denied');
         }
-      });
+        this.mediaStream = result.stream;
+      } else {
+        // Request microphone permission (standard flow)
+        this.mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: AUDIO_CONFIG.channelCount,
+            sampleRate: AUDIO_CONFIG.sampleRate,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+      }
 
       // Create media stream source
       this.mediaStreamSource = this.audioContext.createMediaStreamSource(this.mediaStream);
@@ -336,9 +352,13 @@ class VoiceService {
       if (!hasAccess) return false;
     }
 
-    // Resume audio context if suspended
+    // Resume audio context if suspended (required on iOS after user gesture)
     if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
+      if (iosAudioHelper.isIOS) {
+        await iosAudioHelper.resumeAudioContext(this.audioContext);
+      } else {
+        await this.audioContext.resume();
+      }
     }
 
     try {
@@ -793,15 +813,27 @@ class VoiceService {
 
   /**
    * Check if voice is supported in this browser
-   * @returns {boolean} - Whether voice is supported
+   * @returns {Object} - Support status with details
    */
   static isSupported() {
-    return !!(
-      navigator.mediaDevices &&
-      navigator.mediaDevices.getUserMedia &&
-      (window.AudioContext || window.webkitAudioContext) &&
-      window.WebSocket
-    );
+    const support = iosAudioHelper.checkVoiceSupport();
+    return support.isSupported;
+  }
+
+  /**
+   * Get detailed voice support info (including iOS status)
+   * @returns {Object} - Detailed support information
+   */
+  static getVoiceSupportDetails() {
+    return iosAudioHelper.checkVoiceSupport();
+  }
+
+  /**
+   * Check if running on iOS
+   * @returns {boolean}
+   */
+  static isIOS() {
+    return iosAudioHelper.isIOS;
   }
 
   /**

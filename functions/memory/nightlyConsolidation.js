@@ -14,6 +14,8 @@
  */
 
 const functions = require('firebase-functions');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
 const { runConsolidation: consolidateBrain1B } = require('./brain1BService');
 
@@ -734,22 +736,31 @@ async function runNightlyConsolidation() {
 
 /**
  * Scheduled function - runs at 3:00 AM UTC daily
+ * Uses firebase-functions v2 scheduler API
  */
-const scheduledConsolidation = functions.pubsub
-  .schedule('0 3 * * *')
-  .timeZone('UTC')
-  .onRun(async (context) => {
-    return await runNightlyConsolidation();
-  });
+const scheduledConsolidation = onSchedule({
+  schedule: '0 3 * * *',
+  timeZone: 'UTC',
+  memory: '1GiB',
+  timeoutSeconds: 540
+}, async (event) => {
+  return await runNightlyConsolidation();
+});
 
 /**
  * HTTP trigger for manual consolidation (admin only)
+ * Uses firebase-functions v2 onCall API
  */
-const manualConsolidation = functions.https.onCall(async (data, context) => {
+const manualConsolidation = onCall({
+  memory: '1GiB',
+  timeoutSeconds: 540
+}, async (request) => {
   // Require admin authentication
-  if (!context.auth || !context.auth.token.admin) {
-    throw new functions.https.HttpsError('permission-denied', 'Admin only');
+  if (!request.auth || !request.auth.token.admin) {
+    throw new HttpsError('permission-denied', 'Admin only');
   }
+
+  const data = request.data;
 
   // Optional: consolidate single user
   if (data.userId) {

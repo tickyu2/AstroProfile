@@ -23,15 +23,18 @@ import {
   calculateYinYang,
   calculateNumerology
 } from '../utils/calculations'
-import {
-  calculateSovereignChartWithFallback,
-  mergeWithSovereignData
-} from '../services/sovereignChartService'
-import {
-  getBaziPillarsWithPrecision,
-  checkSolarTermBoundary
-} from '../services/sovereignSolarTermService'
+import { storeProfileNode, computeUnifiedProfile } from '../services/pythonFunctionsService'
 import { populateConstitution } from '../services/constitutionService'
+import { getHistoricalTimezone } from '../services/timezoneService'
+import { calculateSovereignChartWithFallback, mergeWithSovereignData } from '../services/sovereignChartService'
+
+// =============================================================================
+// PYTHON-FIRST ARCHITECTURE (Phase 2A)
+// =============================================================================
+// All astrological computations now handled by Python backend.
+// Output is stored directly in Firebase at profile.bazi, profile.western, etc.
+// No JavaScript transformations - compute once, store raw, read directly.
+// =============================================================================
 
 const ProfileContext = createContext({})
 
@@ -161,25 +164,25 @@ export function ProfileProvider({ children }) {
       // Sovereign precision data
       sovereignBazi: sovereignBazi ? {
         calculationType,
-        liChun: liChunInfo,
-        baziYear: sovereignBazi.baziYear,
-        baziMonth: sovereignBazi.baziMonth,
+        liChun: liChunInfo || null,
+        baziYear: sovereignBazi.baziYear || null,
+        baziMonth: sovereignBazi.baziMonth || null,  // Fix: prevent undefined in Firestore
         precision: '~1 second'
       } : null
     }
   }
 
   // Create new profile with full GENESIS schema
+  // Phase 2A: Python-First Architecture - call Python endpoint, store canonical output directly
   const createProfile = async (formData) => {
     try {
       setError(null)
 
-      // Run all calculations
+      // Run basic JS calculations (trivial, no external API)
       const age = calculateAge(formData.birthDate)
       const chinese = getChineseZodiac(formData.birthDate)
       const western = getWesternZodiac(formData.birthDate)
       const dayOfWeek = getDayOfWeek(formData.birthDate)
-      // Enhanced Yin/Yang calculation with all factors
       const yinYang = calculateYinYang(chinese, western, formData.gender, dayOfWeek, formData.birthTime)
       const numerology = calculateNumerology(
         formData.firstName,
@@ -187,40 +190,71 @@ export function ProfileProvider({ children }) {
         formData.birthDate
       )
 
-      // 🌟 Sovereign Astronomical Calculation - Real Sun/Moon/Rising
-      const sovereignData = await calculateSovereignChartWithFallback({
-        birthDate: formData.birthDate,
-        birthTime: formData.birthTime,
-        latitude: formData.birthLat,
-        longitude: formData.birthLng,
-        timezone: formData.timezone
-      })
-
-      // 🎯 Sovereign BaZi Precision - Exact Solar Term boundaries
-      let sovereignBazi = null
-      try {
-        const [year, month, day] = formData.birthDate.split('-').map(Number)
-        const [hour, minute] = (formData.birthTime || '12:00').split(':').map(Number)
-        sovereignBazi = await getBaziPillarsWithPrecision({
-          year, month, day, hour, minute,
-          timezone: 0 // UTC - timezone conversion handled server-side
-        })
-        console.log('🎯 [createProfile] Sovereign BaZi precision:', sovereignBazi)
-      } catch (baziError) {
-        console.warn('⚠️ [createProfile] Sovereign BaZi failed, using fallback:', baziError.message)
+      // 🕐 Look up historical timezone for accurate calculations
+      let historicalTimezone = null
+      let timezoneString = formData.timezone || 'UTC'
+      if (formData.birthLat && formData.birthLng) {
+        try {
+          const tzResult = await getHistoricalTimezone({
+            latitude: formData.birthLat,
+            longitude: formData.birthLng,
+            birthDate: formData.birthDate,
+            birthTime: formData.birthTime || '12:00'
+          })
+          if (tzResult?.success && tzResult.timezone) {
+            historicalTimezone = tzResult.timezone
+            timezoneString = tzResult.timezone.zoneName || 'UTC'
+            console.log('🕐 [createProfile] Historical timezone resolved:', {
+              zone: timezoneString,
+              offset: tzResult.timezone.formattedOffset,
+              dst: tzResult.timezone.dst
+            })
+          }
+        } catch (tzError) {
+          console.warn('⚠️ [createProfile] Timezone lookup failed, using UTC:', tzError.message)
+        }
       }
 
-      // Enhanced Chinese zodiac with sovereign precision
-      const enhancedChinese = getEnhancedChineseZodiac(formData.birthDate, sovereignBazi)
+      // 🐍 PYTHON-FIRST: Call unified profile endpoint for all astrological computations
+      // This returns canonical BaZi + Western + Vedic + Unified - store directly in Firebase
+      let canonicalProfile = null
+      try {
+        canonicalProfile = await computeUnifiedProfile({
+          birthDate: formData.birthDate,
+          birthTime: formData.birthTime || '12:00',
+          latitude: formData.birthLat || 0,
+          longitude: formData.birthLng || 0,
+          timezone: timezoneString,
+          gender: formData.gender || 'male'
+        })
+        console.log('🐍 [createProfile] Python canonical profile received:', {
+          hasBazi: !!canonicalProfile?.bazi,
+          hasWestern: !!canonicalProfile?.western,
+          hasVedic: !!canonicalProfile?.vedic,
+          hasUnified: !!canonicalProfile?.unified
+        })
+      } catch (pythonError) {
+        console.error('❌ [createProfile] Python endpoint failed:', pythonError.message)
+        // For now, continue without Python data - frontend can handle missing fields
+        // TODO: In production, consider blocking profile creation if Python fails
+      }
 
-      // Merge sovereign data with simple calculation
-      const enhancedWestern = mergeWithSovereignData(western, sovereignData)
+      // Enhanced Chinese zodiac using Python BaZi data if available
+      const enhancedChinese = canonicalProfile?.bazi
+        ? getEnhancedChineseZodiac(formData.birthDate, {
+            baziYear: {
+              baziYear: canonicalProfile.bazi.pillars.year.ganzhi,
+              bornBeforeLiChun: false, // TODO: Extract from Python response
+              liChun: null
+            }
+          })
+        : getEnhancedChineseZodiac(formData.birthDate, null)
 
-      // Build profile document following GENESIS schema
+      // Build profile document - CANONICAL SCHEMA (Python-First)
       const profileData = {
         // Ownership & Metadata
         userId: currentUser.uid,
-        relationshipType: formData.relationshipType || 'self', // Use form value or default to self
+        relationshipType: formData.relationshipType || 'self',
         isFavorite: false,
         tags: [],
 
@@ -241,9 +275,9 @@ export function ProfileProvider({ children }) {
         // Birth Information
         birthDate: formData.birthDate,
         birthTime: formData.birthTime || null,
-        timezone: null, // Will add with location services
+        timezone: historicalTimezone,
 
-        // Birth Location (basic structure - Google Places integration in Phase 3)
+        // Birth Location
         location: {
           fullAddress: formData.birthLocation || '',
           placeId: null,
@@ -262,7 +296,7 @@ export function ProfileProvider({ children }) {
           distanceFromCityCenter: null
         },
 
-        // Chinese Zodiac - ENHANCED with Year Range
+        // Chinese Zodiac - Enhanced
         chineseZodiac: enhancedChinese,
 
         // Optional Fields
@@ -278,7 +312,7 @@ export function ProfileProvider({ children }) {
         enneagram: null,
         bloodType: null,
 
-        // Self-Description (AI-enhanced in Phase 4)
+        // Self-Description
         selfDescription: {
           rawText: null,
           refinedText: null,
@@ -299,12 +333,33 @@ export function ProfileProvider({ children }) {
           lastRefinedAt: null
         },
 
-        // Calculated Astrological Data
+        // =====================================================================
+        // CANONICAL ASTROLOGICAL DATA (Python-First)
+        // These fields come directly from Python - NO TRANSFORMATIONS
+        // =====================================================================
+
+        // BaZi (Chinese Metaphysics) - canonical schema from Python
+        bazi: canonicalProfile?.bazi || null,
+
+        // Western Astrology - canonical schema from Python
+        western: canonicalProfile?.western || null,
+
+        // Vedic Astrology - canonical schema from Python
+        vedic: canonicalProfile?.vedic || null,
+
+        // Unified Vector Space - 90-dim expression vector
+        unified: canonicalProfile?.unified || null,
+
+        // =====================================================================
+        // LEGACY CALCULATIONS (kept for backward compatibility)
+        // TODO: Migrate frontend to read from bazi/western directly
+        // =====================================================================
         calculations: {
           age,
           chinese,
           western: {
-            ...enhancedWestern,
+            sign: western.sign,
+            element: western.element,
             dateRange: getZodiacDateRange(western.sign),
             rulingPlanet: getRulingPlanet(western.sign)
           },
@@ -316,7 +371,11 @@ export function ProfileProvider({ children }) {
           numerology
         },
 
-        // Sharing & QR (Phase 3)
+        // Computation metadata
+        computedAt: canonicalProfile?.computedAt || new Date().toISOString(),
+        computeVersion: canonicalProfile?.computeVersion || '2.0.0',
+
+        // Sharing & QR
         qrCode: null,
         encryptedToken: null,
         shareableLink: null,
@@ -344,6 +403,26 @@ export function ProfileProvider({ children }) {
       populateConstitution(createdProfile).catch(err => {
         console.warn('Brain 1A population failed (non-blocking):', err)
       })
+
+      // Sync to Neo4j for Soul Family matching (non-blocking)
+      if (canonicalProfile?.western?.elements) {
+        storeProfileNode(docRef.id, {
+          sunSign: canonicalProfile.western.sun?.sign,
+          moonSign: canonicalProfile.western.moon?.sign,
+          risingSign: canonicalProfile.western.ascendant?.sign,
+          elements: {
+            fire: canonicalProfile.western.elements.fire,
+            earth: canonicalProfile.western.elements.earth,
+            air: canonicalProfile.western.elements.air,
+            water: canonicalProfile.western.elements.water,
+            dominant: { element: canonicalProfile.western.elements.dominant }
+          }
+        }).then(() => {
+          console.log('👥 [Neo4j] Profile synced for Soul Family:', docRef.id)
+        }).catch(err => {
+          console.warn('👥 [Neo4j] Soul Family sync failed (non-blocking):', err.message)
+        })
+      }
 
       return createdProfile
     } catch (err) {
@@ -418,7 +497,31 @@ export function ProfileProvider({ children }) {
         // Get location from updates or current profile
         const birthLat = updates.birthLat || currentProfile?.location?.coordinates?.lat || 0
         const birthLng = updates.birthLng || currentProfile?.location?.coordinates?.lng || 0
-        const timezone = updates.timezone || currentProfile?.timezone || 'UTC'
+
+        // 🕐 Look up historical timezone for accurate Rising sign calculation
+        let historicalTimezone = currentProfile?.timezone || null
+        let timezoneString = currentProfile?.timezone?.zoneName || 'UTC'
+        if (birthLat && birthLng && (!historicalTimezone || updates.birthLat || updates.birthLng || updates.birthDate || updates.birthTime)) {
+          try {
+            const tzResult = await getHistoricalTimezone({
+              latitude: birthLat,
+              longitude: birthLng,
+              birthDate,
+              birthTime: birthTime || '12:00'
+            })
+            if (tzResult?.success && tzResult.timezone) {
+              historicalTimezone = tzResult.timezone
+              timezoneString = tzResult.timezone.zoneName || 'UTC'
+              console.log('🕐 [updateProfile] Historical timezone resolved:', {
+                zone: timezoneString,
+                offset: tzResult.timezone.formattedOffset,
+                dst: tzResult.timezone.dst
+              })
+            }
+          } catch (tzError) {
+            console.warn('⚠️ [updateProfile] Timezone lookup failed, using existing:', tzError.message)
+          }
+        }
 
         const age = calculateAge(birthDate)
         const chinese = getChineseZodiac(birthDate)
@@ -434,7 +537,7 @@ export function ProfileProvider({ children }) {
           birthTime,
           latitude: birthLat,
           longitude: birthLng,
-          timezone
+          timezone: timezoneString
         })
 
         // 🎯 Sovereign BaZi Precision - Exact Solar Term boundaries
@@ -459,6 +562,7 @@ export function ProfileProvider({ children }) {
 
         recalculatedData = {
           displayName: `${firstName} ${lastName}`,
+          timezone: historicalTimezone, // Store resolved historical timezone
           chineseZodiac: enhancedChinese,
           calculations: {
             age,
@@ -473,7 +577,9 @@ export function ProfileProvider({ children }) {
               ...yinYang,
               interpretation: getYinYangInterpretation(yinYang)
             },
-            numerology
+            numerology,
+            // BaZi Four Pillars - saved for Brain 1A constitution extraction
+            fourPillars: sovereignBazi ? buildFourPillarsData(sovereignBazi) : null
           }
         }
       }
@@ -484,6 +590,27 @@ export function ProfileProvider({ children }) {
         ...recalculatedData,
         updatedAt: serverTimestamp()
       })
+
+      // Sync to Neo4j if sovereign data was recalculated
+      const sovereignData = recalculatedData?.calculations?.western?.sovereignCalculation
+      if (sovereignData?.elementBalance) {
+        storeProfileNode(profileId, {
+          sunSign: sovereignData.sun?.sign,
+          moonSign: sovereignData.moon?.sign,
+          risingSign: sovereignData.rising?.sign,
+          elements: {
+            fire: sovereignData.elementBalance.fire,
+            earth: sovereignData.elementBalance.earth,
+            air: sovereignData.elementBalance.air,
+            water: sovereignData.elementBalance.water,
+            dominant: { element: sovereignData.elementBalance.dominant }
+          }
+        }).then(() => {
+          console.log('👥 [Neo4j] Profile synced for Soul Family:', profileId)
+        }).catch(err => {
+          console.warn('👥 [Neo4j] Soul Family sync failed (non-blocking):', err.message)
+        })
+      }
 
       // Return the complete updated profile for KB sync
       // Merge current profile with updates for immediate use
@@ -697,8 +824,8 @@ export function ProfileProvider({ children }) {
     }
   }
 
-  // Recalculate sovereign astronomical data for a profile
-  // Used when API has been updated with new features (e.g., retrograde detection)
+  // Recalculate all astrological data for a profile using Python-First Architecture
+  // Used when API has been updated with new features or to refresh stale data
   const recalculateSovereignData = async (profileId) => {
     try {
       setError(null)
@@ -707,18 +834,42 @@ export function ProfileProvider({ children }) {
         throw new Error('Profile not found')
       }
 
-      console.log('🔄 [recalculateSovereignData] Starting recalculation for:', profile.displayName)
+      console.log('🔄 [recalculateSovereignData] Starting Python-First recalculation for:', profile.displayName)
 
       const birthDate = profile.birthDate
       const birthTime = profile.birthTime || '12:00'
       const birthLat = profile.location?.coordinates?.lat || 0
       const birthLng = profile.location?.coordinates?.lng || 0
-      const timezone = profile.timezone || 'UTC'
       const firstName = profile.firstName
       const lastName = profile.lastName
       const gender = profile.gender
 
-      // Recalculate all data
+      // 🕐 Look up historical timezone
+      let historicalTimezone = profile.timezone || null
+      let timezoneString = profile.timezone?.zoneName || 'UTC'
+      if (birthLat && birthLng) {
+        try {
+          const tzResult = await getHistoricalTimezone({
+            latitude: birthLat,
+            longitude: birthLng,
+            birthDate,
+            birthTime
+          })
+          if (tzResult?.success && tzResult.timezone) {
+            historicalTimezone = tzResult.timezone
+            timezoneString = tzResult.timezone.zoneName || 'UTC'
+            console.log('🕐 [recalculateSovereignData] Historical timezone resolved:', {
+              zone: timezoneString,
+              offset: tzResult.timezone.formattedOffset,
+              dst: tzResult.timezone.dst
+            })
+          }
+        } catch (tzError) {
+          console.warn('⚠️ [recalculateSovereignData] Timezone lookup failed:', tzError.message)
+        }
+      }
+
+      // Basic JS calculations (trivial, no external API)
       const age = calculateAge(birthDate)
       const chinese = getChineseZodiac(birthDate)
       const western = getWesternZodiac(birthDate)
@@ -726,50 +877,64 @@ export function ProfileProvider({ children }) {
       const yinYang = calculateYinYang(chinese, western, gender, dayOfWeek, birthTime)
       const numerology = calculateNumerology(firstName, lastName, birthDate)
 
-      // 🌟 Sovereign Astronomical Calculation - Real Sun/Moon/Rising
-      console.log('🌟 [recalculateSovereignData] Fetching fresh sovereign data...')
-      const sovereignData = await calculateSovereignChartWithFallback({
-        birthDate,
-        birthTime,
-        latitude: birthLat,
-        longitude: birthLng,
-        timezone
-      })
-      console.log('✅ [recalculateSovereignData] Sovereign data received:', {
-        hasSun: !!sovereignData?.sun,
-        hasPlanets: !!sovereignData?.planets,
-        hasRetrograde: sovereignData?.planets?.mars?.isRetrograde !== undefined
-      })
-
-      // 🎯 Sovereign BaZi Precision - Exact Solar Term boundaries
-      let sovereignBazi = null
+      // 🐍 PYTHON-FIRST: Call unified profile endpoint for all astrological computations
+      let canonicalProfile = null
       try {
-        const [year, month, day] = birthDate.split('-').map(Number)
-        const [hour, minute] = (birthTime || '12:00').split(':').map(Number)
-        sovereignBazi = await getBaziPillarsWithPrecision({
-          year, month, day, hour, minute,
-          timezone: 0
+        console.log('🐍 [recalculateSovereignData] Calling Python endpoint...')
+        canonicalProfile = await computeUnifiedProfile({
+          birthDate,
+          birthTime,
+          latitude: birthLat,
+          longitude: birthLng,
+          timezone: timezoneString,
+          gender: gender || 'male'
         })
-        console.log('🎯 [recalculateSovereignData] Sovereign BaZi precision:', sovereignBazi)
-      } catch (baziError) {
-        console.warn('⚠️ [recalculateSovereignData] Sovereign BaZi failed:', baziError.message)
+        console.log('✅ [recalculateSovereignData] Python canonical profile received:', {
+          hasBazi: !!canonicalProfile?.bazi,
+          hasWestern: !!canonicalProfile?.western,
+          hasVedic: !!canonicalProfile?.vedic,
+          hasUnified: !!canonicalProfile?.unified,
+          computeVersion: canonicalProfile?.computeVersion
+        })
+      } catch (pythonError) {
+        console.error('❌ [recalculateSovereignData] Python endpoint failed:', pythonError.message)
+        throw new Error(`Python computation failed: ${pythonError.message}`)
       }
 
-      // Enhanced Chinese zodiac with sovereign precision
-      const enhancedChinese = getEnhancedChineseZodiac(birthDate, sovereignBazi)
+      // Enhanced Chinese zodiac using Python BaZi data
+      const enhancedChinese = canonicalProfile?.bazi
+        ? getEnhancedChineseZodiac(birthDate, {
+            baziYear: {
+              baziYear: canonicalProfile.bazi.pillars.year.ganzhi,
+              bornBeforeLiChun: false,
+              liChun: null
+            }
+          })
+        : getEnhancedChineseZodiac(birthDate, null)
 
-      // Merge sovereign data with simple calculation
-      const enhancedWestern = mergeWithSovereignData(western, sovereignData)
-
-      // Update Firestore
+      // Update Firestore with canonical data
       const profileRef = doc(db, 'profiles', profileId)
       await updateDoc(profileRef, {
+        timezone: historicalTimezone,
         chineseZodiac: enhancedChinese,
+
+        // =====================================================================
+        // CANONICAL ASTROLOGICAL DATA (Python-First)
+        // =====================================================================
+        bazi: canonicalProfile?.bazi || null,
+        western: canonicalProfile?.western || null,
+        vedic: canonicalProfile?.vedic || null,
+        unified: canonicalProfile?.unified || null,
+
+        // =====================================================================
+        // LEGACY CALCULATIONS (kept for backward compatibility)
+        // =====================================================================
         calculations: {
           age,
           chinese,
           western: {
-            ...enhancedWestern,
+            sign: western.sign,
+            element: western.element,
             dateRange: getZodiacDateRange(western.sign),
             rulingPlanet: getRulingPlanet(western.sign)
           },
@@ -780,16 +945,47 @@ export function ProfileProvider({ children }) {
           },
           numerology
         },
+
+        // Computation metadata
+        computedAt: canonicalProfile?.computedAt || new Date().toISOString(),
+        computeVersion: canonicalProfile?.computeVersion || '2.0.0',
         updatedAt: serverTimestamp()
       })
 
-      console.log('✅ [recalculateSovereignData] Profile updated successfully!')
+      console.log('✅ [recalculateSovereignData] Profile updated successfully with Python-First data!')
 
-      // Populate Brain 1A constitution (re-compute after sovereign recalculation)
-      const updatedProfile = { ...profile, id: profileId, calculations: { western: sovereignData } }
+      // Populate Brain 1A constitution (re-compute after recalculation)
+      const updatedProfile = {
+        ...profile,
+        id: profileId,
+        bazi: canonicalProfile?.bazi,
+        western: canonicalProfile?.western,
+        vedic: canonicalProfile?.vedic,
+        unified: canonicalProfile?.unified
+      }
       populateConstitution(updatedProfile).catch(err => {
         console.warn('Brain 1A population failed (non-blocking):', err)
       })
+
+      // Sync to Neo4j for Soul Family matching (non-blocking)
+      if (canonicalProfile?.western?.elements) {
+        storeProfileNode(profileId, {
+          sunSign: canonicalProfile.western.sun?.sign,
+          moonSign: canonicalProfile.western.moon?.sign,
+          risingSign: canonicalProfile.western.ascendant?.sign,
+          elements: {
+            fire: canonicalProfile.western.elements.fire,
+            earth: canonicalProfile.western.elements.earth,
+            air: canonicalProfile.western.elements.air,
+            water: canonicalProfile.western.elements.water,
+            dominant: { element: canonicalProfile.western.elements.dominant }
+          }
+        }).then(() => {
+          console.log('👥 [Neo4j] Profile synced for Soul Family:', profileId)
+        }).catch(err => {
+          console.warn('👥 [Neo4j] Soul Family sync failed (non-blocking):', err.message)
+        })
+      }
 
       return { success: true, profileId }
     } catch (err) {

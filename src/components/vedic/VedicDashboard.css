@@ -1,0 +1,146 @@
+/**
+ * VedicDashboard.css
+ * Cathedral-themed styling for the Vedic Dashboard
+ */
+
+.vedic-dashboard {
+  --cathedral-bg: #1a1a2e;
+  --cathedral-panel: #16213e;
+  --cathedral-border: #0f3460;
+  --cathedral-accent: #e94560;
+  --cathedral-gold: #d4a574;
+  --cathedral-text: #eaeaea;
+  --cathedral-muted: #8b8b8b;
+
+  background: var(--cathedral-bg);
+  color: var(--cathedral-text);
+  padding: 24px;
+  min-height: 100vh;
+}
+
+/* Header */
+.vedic-dashboard-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--cathedral-border);
+}
+
+.vedic-dashboard-header h1 {
+  font-size: 2rem;
+  color: var(--cathedral-gold);
+  margin: 0 0 16px 0;
+  font-weight: 300;
+  letter-spacing: 2px;
+}
+
+.vedic-dashboard-summary {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.vedic-dashboard-summary span {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.lagna-badge {
+  background: rgba(233, 69, 96, 0.2);
+  color: #e94560;
+  border: 1px solid rgba(233, 69, 96, 0.3);
+}
+
+.moon-badge {
+  background: rgba(212, 165, 116, 0.2);
+  color: var(--cathedral-gold);
+  border: 1px solid rgba(212, 165, 116, 0.3);
+}
+
+.dasha-badge {
+  background: rgba(100, 149, 237, 0.2);
+  color: #6495ed;
+  border: 1px solid rgba(100, 149, 237, 0.3);
+}
+
+/* Panels */
+.vedic-panel {
+  background: var(--cathedral-panel);
+  border: 1px solid var(--cathedral-border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.vedic-panel h2 {
+  color: var(--cathedral-gold);
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+}
+
+.panel-subtitle {
+  color: var(--cathedral-muted);
+  font-size: 0.9rem;
+  margin: 0 0 20px 0;
+}
+
+.panel-subtitle strong {
+  color: var(--cathedral-text);
+}
+
+/* Wheel Container */
+.wheel-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+/* Interpretation Box */
+.interpretation-box {
+  background: rgba(212, 165, 116, 0.08);
+  border-left: 3px solid var(--cathedral-gold);
+  padding: 16px 20px;
+  margin-top: 20px;
+  border-radius: 0 8px 8px 0;
+}
+
+.interpretation-box p {
+  margin: 0;
+  color: var(--cathedral-text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.interpretation-box.highlight {
+  background: rgba(233, 69, 96, 0.08);
+  border-left-color: var(--cathedral-accent);
+}
+
+/* Synthesis Panel */
+.synthesis-panel {
+  background: linear-gradient(135deg, var(--cathedral-panel) 0%, rgba(233, 69, 96, 0.1) 100%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .vedic-dashboard {
+    padding: 16px;
+  }
+
+  .vedic-dashboard-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .vedic-dashboard-summary {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .vedic-panel {
+    padding: 16px;
+  }
+}

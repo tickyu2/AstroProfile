@@ -1,0 +1,438 @@
+/**
+ * Mode-Specific Animations
+ *
+ * Each Cathedral mode has its own motion grammar:
+ * - Pilgrim: Soft, breath-like
+ * - Scholar: Highlight and reveal
+ * - Architect: Blueprint grid
+ * - Sovereign: Command pulse
+ *
+ * Part of GENESIS OS - Soul Discovery Engine
+ */
+
+/* ============================================================================
+   BASE TRANSITION VARIABLES
+   ============================================================================ */
+
+:root {
+  --mode-transition-pilgrim: 600ms;
+  --mode-transition-scholar: 400ms;
+  --mode-transition-architect: 260ms;
+  --mode-transition-sovereign: 200ms;
+}
+
+/* ============================================================================
+   PILGRIM MODE - Soft, Breath-like
+   ============================================================================ */
+
+.mode-pilgrim {
+  --mode-bg: linear-gradient(135deg, #1a1520 0%, #2a2030 50%, #1a1828 100%);
+  --mode-accent: #ffd780;
+  --mode-glow: rgba(255, 215, 128, 0.3);
+  --mode-transition: var(--mode-transition-pilgrim);
+}
+
+.mode-pilgrim .fade-in,
+.mode-pilgrim .chamber-enter {
+  animation: pilgrimFade 600ms ease-out;
+}
+
+.mode-pilgrim .panel,
+.mode-pilgrim .card {
+  transition: all 600ms ease;
+}
+
+.mode-pilgrim .breath {
+  animation: pilgrimBreath 4s ease-in-out infinite;
+}
+
+@keyframes pilgrimFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pilgrimBreath {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
+
+/* Pilgrim Codex - Storybook Layout */
+.mode-pilgrim .codex__content {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  line-height: 1.8;
+  padding: 32px 40px;
+  background: linear-gradient(180deg, rgba(26, 21, 32, 0.9) 0%, rgba(42, 32, 48, 0.8) 100%);
+  border-radius: 16px;
+}
+
+.mode-pilgrim .codex__chapter-title {
+  font-size: 28px;
+  color: var(--mode-accent);
+  margin-bottom: 24px;
+}
+
+/* ============================================================================
+   SCHOLAR MODE - Highlight & Reveal
+   ============================================================================ */
+
+.mode-scholar {
+  --mode-bg: linear-gradient(135deg, #1a1a20 0%, #20201a 50%, #1a1820 100%);
+  --mode-accent: #e8d5a3;
+  --mode-glow: rgba(232, 213, 163, 0.3);
+  --mode-transition: var(--mode-transition-scholar);
+}
+
+.mode-scholar .fade-in,
+.mode-scholar .chamber-enter {
+  animation: scholarReveal 400ms ease-out;
+}
+
+.mode-scholar .highlight {
+  animation: scholarHighlight 400ms ease-out forwards;
+}
+
+.mode-scholar .annotation {
+  animation: scholarAnnotate 300ms ease-out;
+}
+
+@keyframes scholarReveal {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scholarHighlight {
+  from {
+    background: rgba(232, 213, 163, 0);
+    border-left-color: transparent;
+  }
+  to {
+    background: rgba(232, 213, 163, 0.08);
+    border-left-color: var(--mode-accent);
+  }
+}
+
+@keyframes scholarAnnotate {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Scholar Codex - Annotated Manuscript */
+.mode-scholar .codex__content {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.7;
+  padding: 24px 32px;
+  border-left: 4px solid var(--mode-accent);
+  background: linear-gradient(90deg, rgba(232, 213, 163, 0.05) 0%, transparent 100%);
+}
+
+.mode-scholar .codex__margin-note {
+  position: absolute;
+  right: -200px;
+  width: 180px;
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(232, 213, 163, 0.2);
+}
+
+.mode-scholar .codex__reference {
+  color: var(--mode-accent);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: help;
+}
+
+/* ============================================================================
+   ARCHITECT MODE - Blueprint Grid
+   ============================================================================ */
+
+.mode-architect {
+  --mode-bg: linear-gradient(135deg, #0a0f1a 0%, #101828 50%, #0a1018 100%);
+  --mode-accent: #60a5fa;
+  --mode-glow: rgba(96, 165, 250, 0.3);
+  --mode-transition: var(--mode-transition-architect);
+}
+
+.mode-architect .fade-in,
+.mode-architect .chamber-enter {
+  animation: architectBuild 260ms ease-out;
+}
+
+.mode-architect .panel,
+.mode-architect .card {
+  background-image:
+    linear-gradient(rgba(96, 165, 250, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(96, 165, 250, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.mode-architect .grid-reveal {
+  animation: architectGrid 500ms ease-out;
+}
+
+.mode-architect .debug-flash {
+  animation: architectDebug 200ms ease-out;
+}
+
+@keyframes architectBuild {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes architectGrid {
+  from {
+    background-size: 40px 40px;
+    opacity: 0;
+  }
+  to {
+    background-size: 20px 20px;
+    opacity: 1;
+  }
+}
+
+@keyframes architectDebug {
+  0% {
+    box-shadow: 0 0 0 rgba(96, 165, 250, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(96, 165, 250, 0);
+  }
+}
+
+/* Architect Codex - Blueprint Layout */
+.mode-architect .codex__content {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  line-height: 1.6;
+  padding: 20px 24px;
+  background-image:
+    linear-gradient(rgba(96, 165, 250, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(96, 165, 250, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  border-radius: 8px;
+}
+
+.mode-architect .codex__chapter-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--mode-accent);
+  border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+  padding-bottom: 12px;
+}
+
+.mode-architect .codex__code-block {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+/* ============================================================================
+   SOVEREIGN MODE - Command Pulse
+   ============================================================================ */
+
+.mode-sovereign {
+  --mode-bg: linear-gradient(135deg, #0a0a0f 0%, #141418 50%, #0a0a10 100%);
+  --mode-accent: #fbbf24;
+  --mode-glow: rgba(251, 191, 36, 0.4);
+  --mode-transition: var(--mode-transition-sovereign);
+}
+
+.mode-sovereign .fade-in,
+.mode-sovereign .chamber-enter {
+  animation: sovereignReveal 200ms ease-out;
+}
+
+.mode-sovereign .pulse {
+  animation: sovereignPulse 1.5s ease-in-out infinite;
+}
+
+.mode-sovereign .command {
+  animation: sovereignCommand 300ms ease-out;
+}
+
+.mode-sovereign .decision-highlight {
+  animation: sovereignDecision 400ms ease-out;
+}
+
+@keyframes sovereignReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sovereignPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.4);
+  }
+}
+
+@keyframes sovereignCommand {
+  from {
+    border-color: transparent;
+    background: transparent;
+  }
+  to {
+    border-color: var(--mode-accent);
+    background: rgba(251, 191, 36, 0.05);
+  }
+}
+
+@keyframes sovereignDecision {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+  }
+}
+
+/* Sovereign Codex - Executive Briefing */
+.mode-sovereign .codex__content {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 24px;
+  background: rgba(10, 10, 15, 0.95);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 12px;
+}
+
+.mode-sovereign .codex__chapter-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--mode-accent);
+  margin-bottom: 16px;
+}
+
+.mode-sovereign .codex__summary {
+  background: rgba(251, 191, 36, 0.08);
+  border-left: 3px solid var(--mode-accent);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.mode-sovereign .codex__strategic-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.mode-sovereign .codex__strategic-point::before {
+  content: '▸';
+  color: var(--mode-accent);
+  font-weight: bold;
+}
+
+/* ============================================================================
+   SHARED TRANSITIONS
+   ============================================================================ */
+
+.mode-transition {
+  transition: background var(--mode-transition) ease,
+              color var(--mode-transition) ease,
+              border-color var(--mode-transition) ease,
+              box-shadow var(--mode-transition) ease;
+}
+
+/* Page-level transition when switching modes */
+.cathedral-container {
+  transition: background 500ms ease;
+}
+
+/* Button hover states per mode */
+.mode-pilgrim .btn:hover {
+  box-shadow: 0 0 20px rgba(255, 215, 128, 0.3);
+}
+
+.mode-scholar .btn:hover {
+  box-shadow: 0 0 15px rgba(232, 213, 163, 0.3);
+}
+
+.mode-architect .btn:hover {
+  box-shadow: 0 0 15px rgba(96, 165, 250, 0.4);
+}
+
+.mode-sovereign .btn:hover {
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+}
+
+/* ============================================================================
+   REDUCED MOTION SUPPORT
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-pilgrim .fade-in,
+  .mode-scholar .fade-in,
+  .mode-architect .fade-in,
+  .mode-sovereign .fade-in,
+  .mode-pilgrim .chamber-enter,
+  .mode-scholar .chamber-enter,
+  .mode-architect .chamber-enter,
+  .mode-sovereign .chamber-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .mode-pilgrim .breath,
+  .mode-sovereign .pulse {
+    animation: none;
+  }
+}

@@ -6,13 +6,14 @@
  * - Calls Claude API for Luna coaching
  * - Writes to Brain 3 (messages), Brain 7 (witness), Brain 1B (facts)
  * - Real-time fact extraction using Brain 1B service (Person-Tie Rule)
+ * - Neo4j integration for relationship-aware conversations
  *
  * Additional:
  * - handleLunaPrivateQuery: Private consultation with Luna (bypasses guest)
  *
  * Security: Uses service account with system_role for Brain writes
  *
- * Updated: January 5, 2026 - Integrated 8-Brain Architecture v3.0
+ * Updated: January 11, 2026 - Neo4j Integration for enriched guest profiles
  */
 
 const admin = require('firebase-admin');
@@ -25,6 +26,46 @@ try {
 } catch (e) {
   console.warn('[GuestChat] brain1BService not available:', e.message);
   brain1BService = null;
+}
+
+// Import Neo4j Guest Service for enriched profiles
+let neo4jGuestService;
+try {
+  neo4jGuestService = require('../services/neo4jGuestService');
+  neo4jGuestService.initialize();
+  console.log('[GuestChat] Neo4j Guest Service initialized');
+} catch (e) {
+  console.warn('[GuestChat] neo4jGuestService not available:', e.message);
+  neo4jGuestService = null;
+}
+
+// Import topic extractor for conversation memory
+let topicExtractor;
+try {
+  topicExtractor = require('../utils/topicExtractor');
+} catch (e) {
+  console.warn('[GuestChat] topicExtractor not available:', e.message);
+  topicExtractor = null;
+}
+
+// Import RAG Context Service for biography retrieval (Hello History pattern)
+let ragContextService;
+try {
+  ragContextService = require('../services/ragContextService');
+  console.log('[GuestChat] RAG Context Service loaded');
+} catch (e) {
+  console.warn('[GuestChat] ragContextService not available:', e.message);
+  ragContextService = null;
+}
+
+// Import Nancy Protocol for Reagan's constitutional dependency on Nancy
+let nancyProtocol;
+try {
+  nancyProtocol = require('../services/nancyProtocol');
+  console.log('[GuestChat] Nancy Protocol loaded');
+} catch (e) {
+  console.warn('[GuestChat] nancyProtocol not available:', e.message);
+  nancyProtocol = null;
 }
 
 // Initialize Anthropic client
@@ -52,8 +93,13 @@ async function handleGuestChat(data, context) {
     guestProfile,
     userConstitutional,
     learnedFacts,
-    lunaMode
+    lunaMode,
+    userProfileId,      // AstroProfile ID for compartmentalization
+    userProfileName     // Display name for context
   } = data;
+
+  // Use userProfileId for Brain 3 compartmentalization if provided, fallback to userId
+  const profileIdForStorage = userProfileId || userId;
 
   // Validate required fields
   if (!partnerId || !userMessage) {
@@ -85,19 +131,297 @@ async function handleGuestChat(data, context) {
       }
     }
 
-    // 1. Build Einstein's system prompt (now includes Brain 2 facts)
-    const einsteinPrompt = buildGuestPrompt(guestProfile, userConstitutional, learnedFacts, conversationHistory, brain2Facts, brain2Summary);
+    // 0b. NEO4J ENRICHMENT - Get enriched guest profile with relationships, events, compatibility
+    let neo4jEnrichment = null;
+    let conversationContext = null;
+
+    // Check if this is a couple profile - if so, fetch data from both partners
+    const isCoupleProfile = partnerId.startsWith('couple_') && guestProfile?.partners;
+
+    // Define neo4jGuestId at outer scope (needed for topic extraction and conversation memory)
+    const neo4jGuestId = isCoupleProfile
+      ? `guest_${partnerId}`
+      : `guest_${partnerId.replace('historical_', '').replace('modern_', '')}`;
+
+    if (neo4jGuestService && neo4jGuestService.isAvailable()) {
+      try {
+        // Sync user's constitutional data to Neo4j for compatibility calculation
+        if (userConstitutional?.bazi) {
+          await neo4jGuestService.syncUserProfile(userId, {
+            fourPillars: {
+              elementBalance: {
+                fire: userConstitutional.bazi.element_balance?.fire || 0,
+                wood: userConstitutional.bazi.element_balance?.wood || 0,
+                water: userConstitutional.bazi.element_balance?.water || 0,
+                metal: userConstitutional.bazi.element_balance?.metal || 0,
+                earth: userConstitutional.bazi.element_balance?.earth || 0
+              },
+              dayPillar: { combined: userConstitutional.bazi.day_master?.stem || '' }
+            },
+            constitutionalType: userConstitutional.bazi.day_master?.element || ''
+          });
+        }
+
+        if (isCoupleProfile) {
+          // COUPLE PROFILE: Fetch Neo4j data from BOTH partners and merge
+          console.log(`[Neo4j] Couple profile detected: ${partnerId}`);
+
+          const partner1Id = guestProfile.partners?.person1?.profile_id;
+          const partner2Id = guestProfile.partners?.person2?.profile_id;
+
+          if (partner1Id && partner2Id) {
+            // Convert profile IDs to Neo4j guest IDs
+            const neo4jPartner1Id = `guest_${partner1Id.replace('historical_', '').replace('modern_', '')}`;
+            const neo4jPartner2Id = `guest_${partner2Id.replace('historical_', '').replace('modern_', '')}`;
+
+            console.log(`[Neo4j] Fetching data for both partners: ${neo4jPartner1Id}, ${neo4jPartner2Id}`);
+
+            // Fetch enrichment for both partners in parallel
+            const [enrichment1, enrichment2] = await Promise.all([
+              neo4jGuestService.getEnrichedGuestProfile(neo4jPartner1Id, {
+                userId,
+                includeRelationships: true,
+                includeEvents: true,
+                includeEras: true,
+                calculateCompatibility: true
+              }).catch(err => {
+                console.warn(`[Neo4j] Partner 1 (${neo4jPartner1Id}) fetch failed:`, err.message);
+                return null;
+              }),
+              neo4jGuestService.getEnrichedGuestProfile(neo4jPartner2Id, {
+                userId,
+                includeRelationships: true,
+                includeEvents: true,
+                includeEras: true,
+                calculateCompatibility: true
+              }).catch(err => {
+                console.warn(`[Neo4j] Partner 2 (${neo4jPartner2Id}) fetch failed:`, err.message);
+                return null;
+              })
+            ]);
+
+            // Merge enrichment data from both partners
+            if (enrichment1 || enrichment2) {
+              neo4jEnrichment = {
+                isCoupleEnrichment: true,
+                partner1: enrichment1,
+                partner2: enrichment2,
+                // Merge relationships (deduplicate by person name)
+                relationships: [
+                  ...(enrichment1?.relationships || []).map(r => ({ ...r, fromPartner: guestProfile.partners.person1.name })),
+                  ...(enrichment2?.relationships || []).map(r => ({ ...r, fromPartner: guestProfile.partners.person2.name }))
+                ].filter((r, i, arr) => arr.findIndex(x => x.person?.name === r.person?.name) === i),
+                // Merge events (deduplicate by title)
+                events: [
+                  ...(enrichment1?.events || []),
+                  ...(enrichment2?.events || [])
+                ].filter((e, i, arr) => arr.findIndex(x => x.title === e.title) === i)
+                  .sort((a, b) => (a.year || 0) - (b.year || 0)),
+                // Combine eras from both partners
+                eras: {
+                  [guestProfile.partners.person1.name]: enrichment1?.eras || [],
+                  [guestProfile.partners.person2.name]: enrichment2?.eras || []
+                },
+                // Average compatibility from both partners
+                bestMatch: {
+                  era: enrichment1?.bestMatch?.era || enrichment2?.bestMatch?.era,
+                  compatibility: Math.round(
+                    ((enrichment1?.bestMatch?.compatibility || 0) + (enrichment2?.bestMatch?.compatibility || 0)) /
+                    ((enrichment1?.bestMatch?.compatibility ? 1 : 0) + (enrichment2?.bestMatch?.compatibility ? 1 : 0) || 1)
+                  )
+                }
+              };
+
+              console.log(`[Neo4j] Couple enrichment merged:`);
+              console.log(`  - Partner 1 (${guestProfile.partners.person1.name}): ${enrichment1 ? 'Found' : 'Not found'}`);
+              console.log(`  - Partner 2 (${guestProfile.partners.person2.name}): ${enrichment2 ? 'Found' : 'Not found'}`);
+              console.log(`  - Combined relationships: ${neo4jEnrichment.relationships?.length || 0}`);
+              console.log(`  - Combined events: ${neo4jEnrichment.events?.length || 0}`);
+              console.log(`  - Avg compatibility: ${neo4jEnrichment.bestMatch?.compatibility || 'N/A'}%`);
+            }
+          }
+        } else {
+          // SINGLE PROFILE: Original behavior
+          console.log(`[Neo4j] Fetching enriched profile for ${neo4jGuestId}...`);
+
+          // Get enriched profile with relationships, events, eras, and compatibility
+          neo4jEnrichment = await neo4jGuestService.getEnrichedGuestProfile(
+            neo4jGuestId,
+            {
+              userId,
+              includeRelationships: true,
+              includeEvents: true,
+              includeEras: true,
+              calculateCompatibility: true
+            }
+          );
+
+          if (neo4jEnrichment) {
+            try {
+              console.log(`[Neo4j] Enrichment found:`);
+              console.log(`  - Best era: ${neo4jEnrichment.bestMatch?.era?.eraTitle || 'N/A'}`);
+              const compat = neo4jEnrichment.bestMatch?.compatibility;
+              console.log(`  - Compatibility: ${compat !== null && compat !== undefined ? compat + '%' : 'N/A'}`);
+              console.log(`  - Relationships: ${neo4jEnrichment.relationships?.length || 0}`);
+              console.log(`  - Events: ${neo4jEnrichment.events?.length || 0}`);
+            } catch (logErr) {
+              console.warn('[Neo4j] Log formatting error:', logErr.message);
+            }
+          }
+        }
+
+        // Get previous conversation context (uses neo4jGuestId which handles both singles and couples)
+        try {
+          conversationContext = await neo4jGuestService.getConversationContext(userId, neo4jGuestId);
+          if (conversationContext) {
+            console.log(`[Neo4j] Previous sessions: ${conversationContext.sessionCount || 0}, Topics: ${conversationContext.topics?.slice(0, 3).join(', ') || 'none'}`);
+          }
+        } catch (ctxErr) {
+          console.warn('[Neo4j] Context retrieval error:', ctxErr.message);
+        }
+
+      } catch (neo4jError) {
+        console.error('[Neo4j] Enrichment error:', neo4jError.message || neo4jError);
+        // Continue without Neo4j - use standard profile
+      }
+    }
+
+    // 0c. RAG CONTEXT RETRIEVAL - Get relevant biography passages (Hello History pattern)
+    let ragContext = null;
+    if (ragContextService && ragContextService.isAvailable()) {
+      try {
+        console.log(`[RAG] Retrieving context for query: "${userMessage.substring(0, 50)}..."`);
+        ragContext = await ragContextService.getRAGContext(userMessage, partnerId, {
+          includeVectorSearch: true,
+          includeGraphContext: true,
+          vectorLimit: 5,
+          maxTokens: 1500
+        });
+
+        if (ragContext && ragContext.vectorResults.length > 0) {
+          console.log(`[RAG] Retrieved ${ragContext.vectorResults.length} biography passages`);
+          console.log(`[RAG] Topics: ${ragContext.extractedTopics.join(', ') || 'none'}`);
+        }
+      } catch (ragError) {
+        console.error('[RAG] Context retrieval error:', ragError.message);
+        // Continue without RAG context
+      }
+    }
+
+    // 0c. NANCY PROTOCOL - Constitutional Dependency Check for Reagan
+    let nancyProtocolInjection = '';
+    if (nancyProtocol && partnerId.includes('reagan')) {
+      try {
+        const nancyCheck = nancyProtocol.checkConstitutionalDependency(userMessage);
+        if (nancyCheck.intervention) {
+          console.log(`[Nancy Protocol] TRIGGERED - Topic: ${nancyCheck.topic}, Domain: ${nancyCheck.domain}`);
+          nancyProtocolInjection = nancyCheck.systemInjection;
+        }
+      } catch (nancyError) {
+        console.error('[Nancy Protocol] Check failed:', nancyError.message);
+      }
+    }
+
+    // 1. Build Einstein's system prompt (now includes Brain 2 facts + Neo4j enrichment + RAG context)
+    let einsteinPrompt;
+    try {
+      einsteinPrompt = buildGuestPrompt(
+        guestProfile,
+        userConstitutional,
+        learnedFacts,
+        conversationHistory,
+        brain2Facts,
+        brain2Summary,
+        neo4jEnrichment,
+        conversationContext,
+        ragContext  // NEW: RAG context from biography passages
+      );
+
+      // Inject Nancy Protocol if triggered
+      if (nancyProtocolInjection) {
+        einsteinPrompt += '\n\n' + nancyProtocolInjection;
+      }
+    } catch (promptError) {
+      console.error('[GuestChat] Prompt build error:', promptError.message);
+      // Fallback to simpler prompt without Neo4j enrichment or RAG
+      einsteinPrompt = buildGuestPrompt(
+        guestProfile,
+        userConstitutional,
+        learnedFacts,
+        conversationHistory,
+        brain2Facts,
+        brain2Summary,
+        null,  // No Neo4j enrichment
+        null,  // No conversation context
+        null   // No RAG context
+      );
+
+      // Still inject Nancy Protocol even in fallback
+      if (nancyProtocolInjection) {
+        einsteinPrompt += '\n\n' + nancyProtocolInjection;
+      }
+    }
 
     // 2. Call Claude API for Einstein's response
+    // For COUPLE profiles, use JSON structured output to prevent parsing fragility
+    const isCoupleResponse = isCoupleProfile && guestProfile?.conversation_mode?.format === 'dual_voice';
+
+    let coupleJsonInstruction = '';
+    if (isCoupleResponse) {
+      coupleJsonInstruction = `
+
+CRITICAL OUTPUT FORMAT - COUPLE DIALOGUE:
+You MUST output your response in this exact JSON format:
+{
+  "dialogue": [
+    { "speaker": "Ronald", "emotion": "Fire warmth", "text": "Your message here..." },
+    { "speaker": "Nancy", "emotion": "Water devotion", "text": "Your message here..." }
+  ]
+}
+
+Rules:
+- Always include BOTH speakers in the dialogue array
+- "speaker" must be exactly "Ronald" or "Nancy"
+- "emotion" is optional (e.g., "Fire optimism", "Water protective", etc.)
+- Order speakers naturally based on who would speak first for this topic
+- Each speaker may have multiple entries if the conversation flows naturally
+- Output ONLY the JSON object, no other text before or after
+`;
+    }
+
     const einsteinResponse = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 2000,
       temperature: 0.8,
-      system: einsteinPrompt,
+      system: einsteinPrompt + coupleJsonInstruction,
       messages: [{ role: 'user', content: userMessage }]
     });
 
-    const einsteinText = einsteinResponse.content[0].text;
+    let einsteinText = einsteinResponse.content[0].text;
+    let coupleDialogue = null;
+
+    // Parse couple JSON response and convert to displayable format
+    if (isCoupleResponse) {
+      try {
+        // Try to parse as JSON
+        const jsonResponse = JSON.parse(einsteinText.trim());
+        if (jsonResponse.dialogue && Array.isArray(jsonResponse.dialogue)) {
+          coupleDialogue = jsonResponse.dialogue;
+
+          // Convert to displayable Markdown format for backwards compatibility
+          einsteinText = coupleDialogue.map(entry => {
+            const emotion = entry.emotion ? ` *${entry.emotion}*` : '';
+            return `**${entry.speaker}:**${emotion} ${entry.text}`;
+          }).join('\n\n');
+
+          console.log(`[Couple Chat] Successfully parsed JSON dialogue with ${coupleDialogue.length} entries`);
+        }
+      } catch (parseError) {
+        // JSON parsing failed - response is already in Markdown format (legacy)
+        console.log('[Couple Chat] Response in Markdown format (legacy mode)');
+        // Keep einsteinText as-is
+      }
+    }
 
     // 3. Luna Active Mode - Private Coaching
     let lunaCoaching = null;
@@ -146,73 +470,84 @@ async function handleGuestChat(data, context) {
       timestamp
     });
 
-    // 5. Batch write to Firestore (Brain 3, Brain 7, Brain 1B)
-    const batch = db.batch();
+    // 4b. Extract topics and update Neo4j conversation memory
+    let extractedTopics = [];
+    if (topicExtractor && topicExtractor.extractTopics) {
+      extractedTopics = topicExtractor.extractTopics(userMessage, einsteinText, neo4jGuestId);
+      if (extractedTopics.length > 0) {
+        console.log(`[Topics] Extracted: ${extractedTopics.join(', ')}`);
+      }
+    }
 
-    // 5a. Write user message to Brain 3
-    const userMsgRef = db.collection('brain3_active_text').doc();
+    // Update Neo4j conversation memory (async, don't block)
+    if (neo4jGuestService && neo4jGuestService.isAvailable()) {
+      neo4jGuestService.updateConversationMemory(userId, neo4jGuestId, {
+        topics: extractedTopics
+      }).catch(err => {
+        console.error('[Neo4j] Conversation memory update failed:', err);
+      });
+    }
+
+    // 5. Batch write to Firestore - PROFILE-SCOPED BRAIN ARCHITECTURE
+    // Each profile has its own complete brain: profiles/{profileId}/b3_conversations
+    // This enables: portable souls, no comingling, per-profile SoulPartner
+    const batch = db.batch();
+    const profilePath = `profiles/${profileIdForStorage}`;
+
+    // 5a. Write user message to Brain 3 (profile-scoped)
+    // Path: profiles/{profileId}/b3_conversations (3 segments = valid collection)
+    const userMsgRef = db.collection(`${profilePath}/b3_conversations`).doc();
     batch.set(userMsgRef, {
       message_id: userMsgRef.id,
       timestamp,
-      chatting_as: { profile_id: userId },
-      chatting_with: {
-        partner_id: partnerId,
-        partner_name: guestProfile?.profile_name || 'Guest',
-        partner_type: guestProfile?.profile_type || 'historical_figure'
-      },
-      modality: { type: 'text', mode: 'chat', platform: 'web' },
-      sender: userId,
-      sender_role: 'user',
+      partner_id: partnerId,
+      partner_name: guestProfile?.profile_name || 'Guest',
+      partner_type: guestProfile?.profile_type || 'historical_figure',
+      sender: 'user',
+      sender_role: 'user', // IMPORTANT: Used by frontend to identify message type when loading
+      sender_name: userProfileName || 'User',
       content: { text: userMessage },
       thread_id: threadId,
       luna: { mode: lunaMode, monitoring: true },
-      access: { visible_to: [userId, partnerId, 'soulpartner_primary'] },
+      modality: { type: 'text', mode: 'chat', platform: 'web' },
       created_at: timestamp
     });
 
-    // 5b. Write Einstein response to Brain 3
-    const guestMsgRef = db.collection('brain3_active_text').doc();
+    // 5b. Write guest response to Brain 3 (profile-scoped)
+    const guestMsgRef = db.collection(`${profilePath}/b3_conversations`).doc();
     batch.set(guestMsgRef, {
       message_id: guestMsgRef.id,
       timestamp: new Date().toISOString(),
-      chatting_as: { profile_id: userId },
-      chatting_with: {
-        partner_id: partnerId,
-        partner_name: guestProfile?.profile_name || 'Guest',
-        partner_type: guestProfile?.profile_type || 'historical_figure'
-      },
-      modality: { type: 'text', mode: 'chat', platform: 'web' },
-      sender: partnerId,
-      sender_role: 'guest',
+      partner_id: partnerId,
+      partner_name: guestProfile?.profile_name || 'Guest',
+      partner_type: guestProfile?.profile_type || 'historical_figure',
+      sender: 'guest',
+      sender_role: 'guest', // IMPORTANT: Used by frontend to identify message type when loading
+      sender_name: guestProfile?.profile_name || 'Guest',
       content: { text: einsteinText },
       thread_id: threadId,
       luna: { mode: lunaMode, monitoring: true },
-      access: { visible_to: [userId, partnerId, 'soulpartner_primary'] },
+      modality: { type: 'text', mode: 'chat', platform: 'web' },
       created_at: new Date().toISOString()
     });
 
-    // 5c. Write to Brain 7 (unified witness - Luna only)
-    const witnessRef = db.collection('brain7_unified_witness').doc();
+    // 5c. Write to Brain 7 (profile-scoped Luna witness)
+    const witnessRef = db.collection(`${profilePath}/b7_witness`).doc();
     batch.set(witnessRef, {
       entry_id: witnessRef.id,
       timestamp,
-      profile_id: userId,
       event_type: 'guest_conversation',
       modality: 'text',
-      summary: `User chatted with ${guestProfile?.profile_name || partnerId}: "${userMessage.substring(0, 100)}..."`,
-      source_thread_id: threadId,
-      source_partner_id: partnerId,
+      summary: `Chatted with ${guestProfile?.profile_name || partnerId}: "${userMessage.substring(0, 100)}..."`,
+      partner_id: partnerId,
       guest_response_preview: einsteinText.substring(0, 200),
       luna_coaching_provided: !!lunaCoaching?.should_intervene,
-      access: { read_access: ['soulpartner_primary', userId] },
       created_at: timestamp
     });
 
-    // 5d. Write legacy facts to Brain 1B (only if Brain 1B service didn't extract)
-    // Brain 1B Service writes directly to brain1_facts_stm collection
-    // Legacy writes to brain1_learned_biography for backwards compatibility
+    // 5d. Write learned facts to Brain 1B (profile-scoped, per-partner)
     if (!brain1BResult?.extracted && legacyFacts.length > 0) {
-      const brain1BRef = db.doc(`users/${userId}/brain1_learned_biography/${partnerId}`);
+      const brain1BRef = db.doc(`${profilePath}/b1b_learned/${partnerId}`);
       batch.set(brain1BRef, {
         partner_id: partnerId,
         partner_name: guestProfile?.profile_name || 'Guest',
@@ -235,9 +570,14 @@ async function handleGuestChat(data, context) {
       guestResponse: {
         sender: partnerId,
         sender_role: 'guest',
-        content: { text: einsteinText },
+        content: {
+          text: einsteinText,
+          // Structured dialogue for couple chat (enables separate bubbles per speaker)
+          dialogue: coupleDialogue || null
+        },
         timestamp: new Date().toISOString(),
-        partner_name: guestProfile?.profile_name || 'Guest'
+        partner_name: guestProfile?.profile_name || 'Guest',
+        is_couple: !!coupleDialogue
       },
       lunaCoaching: lunaCoaching?.should_intervene ? {
         sender: 'soulpartner_primary',
@@ -256,6 +596,19 @@ async function handleGuestChat(data, context) {
           name: f.name || f.value,
           type: f.type
         }))
+      } : null,
+      // Neo4j enrichment metadata
+      neo4jMetadata: neo4jEnrichment ? {
+        bestEra: neo4jEnrichment.bestMatch?.era?.eraTitle || null,
+        eraYears: neo4jEnrichment.bestMatch?.era?.years || null,
+        compatibility: neo4jEnrichment.bestMatch?.compatibility || null,
+        eraContext: neo4jEnrichment.bestMatch?.era?.primaryFocus || null,
+        relationships: (neo4jEnrichment.relationships || []).map(r => ({
+          person: r.person?.name || 'Unknown',
+          type: r.type
+        })),
+        conversationCount: conversationContext?.sessionCount || 1,
+        topics: extractedTopics
       } : null
     };
 
@@ -271,8 +624,11 @@ async function handleGuestChat(data, context) {
  * - Full chart with planets and retrogrades (Brain 1A)
  * - Validated facts from Brain 2 (LTM)
  * - User profile summary for relationship context
+ * - Neo4j enrichment (relationships, events, eras, compatibility)
+ * - Conversation context (previous sessions, topics)
+ * - RAG context (biography passages for authentic responses)
  */
-function buildGuestPrompt(profile, userConstitutional, learnedFacts, history, brain2Facts = [], brain2Summary = null) {
+function buildGuestPrompt(profile, userConstitutional, learnedFacts, history, brain2Facts = [], brain2Summary = null, neo4jEnrichment = null, conversationContext = null, ragContext = null) {
   if (!profile?.ai_config?.system_prompt_template) {
     return `You are ${profile?.profile_name || 'a helpful assistant'}. Respond thoughtfully.`;
   }
@@ -418,11 +774,212 @@ TEACHING NOTE: These retrograde placements are GIFTS, not flaws. Adapt your teac
     ).join('\n');
   }
 
+  // Build Neo4j enrichment section
+  let neo4jEnrichmentText = '';
+  if (neo4jEnrichment) {
+    const sections = [];
+    const isCoupleEnrichment = neo4jEnrichment.isCoupleEnrichment === true;
+
+    // Handle COUPLE enrichment (merged from both partners)
+    if (isCoupleEnrichment) {
+      sections.push(`
+NEO4J COUPLE ENRICHMENT (Data from both partners merged):
+You are speaking AS BOTH partners together. Use knowledge from both individuals.
+      `.trim());
+
+      // Show each partner's best era context
+      if (neo4jEnrichment.partner1?.bestMatch?.era || neo4jEnrichment.partner2?.bestMatch?.era) {
+        const era1 = neo4jEnrichment.partner1?.bestMatch?.era;
+        const era2 = neo4jEnrichment.partner2?.bestMatch?.era;
+        let eraText = 'PARTNER ERA CONTEXTS:\n';
+        if (era1) {
+          eraText += `Partner 1 - ${era1.eraTitle || era1.eraName}: ${era1.primaryFocus || 'General wisdom'}\n`;
+        }
+        if (era2) {
+          eraText += `Partner 2 - ${era2.eraTitle || era2.eraName}: ${era2.primaryFocus || 'General wisdom'}`;
+        }
+        sections.push(eraText.trim());
+      }
+    } else {
+      // SINGLE profile - Best matching era
+      if (neo4jEnrichment.bestMatch?.era) {
+        const era = neo4jEnrichment.bestMatch.era;
+        sections.push(`
+NEO4J ERA CONTEXT (Speak from this perspective):
+- Era: ${era.eraTitle || era.eraName} (${era.years || 'Unknown years'})
+- Primary Focus: ${era.primaryFocus || 'General wisdom'}
+- Communication Style: ${era.communicationTone || 'natural'}, ${era.communicationPace || 'moderate'} pace
+- Signature Phrases: ${(era.signaturePhrases || []).join(', ') || 'None specified'}
+        `.trim());
+      }
+    }
+
+    // Compatibility (works for both single and couples)
+    // Note: Neo4j returns BigInt for integers, must convert to Number
+    if (neo4jEnrichment.bestMatch?.compatibility) {
+      try {
+        const compat = Number(neo4jEnrichment.bestMatch.compatibility) || 0;
+        const userEl = neo4jEnrichment.bestMatch.userElements || {};
+        // Convert all element values to Numbers safely
+        const fire = Number(userEl.fire) || 0;
+        const wood = Number(userEl.wood) || 0;
+        const water = Number(userEl.water) || 0;
+        const metal = Number(userEl.metal) || 0;
+        const earth = Number(userEl.earth) || 0;
+
+        let compatInsight = '';
+        if (compat > 85) {
+          compatInsight = 'Excellent resonance! Your energies align beautifully.';
+        } else if (compat > 70) {
+          compatInsight = 'Good compatibility. Your experiences can guide them effectively.';
+        } else {
+          compatInsight = 'Different energies offer complementary perspectives.';
+        }
+
+        sections.push(`
+CONSTITUTIONAL COMPATIBILITY: ${compat}%${isCoupleEnrichment ? ' (averaged from both partners)' : ''}
+User Elements: Fire ${fire}%, Wood ${wood}%, Water ${water}%, Metal ${metal}%, Earth ${earth}%
+Insight: ${compatInsight}
+        `.trim());
+      } catch (compatErr) {
+        console.warn('[BuildPrompt] Compatibility section error:', compatErr.message);
+      }
+    }
+
+    // Relationships (for couples, shows which partner the relationship is from)
+    // Enhanced: Include constitutional dynamics for cross-figure awareness
+    if (neo4jEnrichment.relationships && neo4jEnrichment.relationships.length > 0) {
+      try {
+        const relLines = neo4jEnrichment.relationships
+          .filter(r => r && r.person)  // Extra safety filter
+          .map(r => {
+            try {
+              const name = String(r.person?.name || 'Unknown');
+              const personElements = r.person || {};
+              const partnerNote = r.fromPartner ? ` [via ${r.fromPartner}]` : '';
+              // Convert compatibility to Number to avoid BigInt issues
+              const compatVal = r.compatibility ? Number(r.compatibility) : null;
+              const compatNote = compatVal ? ` (${compatVal}% compatible)` : '';
+
+              // Build rich relationship description
+              let lines = [`- ${name} (${r.type || 'CONNECTED'})${partnerNote}${compatNote}`];
+
+              // Add their constitutional makeup if available
+              if (personElements.dayMaster) {
+                lines.push(`    Day Master: ${String(personElements.dayMaster)}`);
+              }
+              // Convert all element values to Numbers to avoid BigInt issues
+              const pFire = Number(personElements.fire) || 0;
+              const pWood = Number(personElements.wood) || 0;
+              const pWater = Number(personElements.water) || 0;
+              const pMetal = Number(personElements.metal) || 0;
+              const pEarth = Number(personElements.earth) || 0;
+              if (pFire || pWood || pWater) {
+                const el = `Fire:${pFire}% Wood:${pWood}% Water:${pWater}% Metal:${pMetal}% Earth:${pEarth}%`;
+                lines.push(`    Elements: ${el}`);
+              }
+
+              // Add constitutional dynamic (key insight)
+              if (r.constitutionalDynamic) {
+                lines.push(`    Dynamic: "${r.constitutionalDynamic}"`);
+              }
+
+              // Add context or chemistry note
+              if (r.chemistryNote) {
+                lines.push(`    Chemistry: ${r.chemistryNote}`);
+              } else if (r.context) {
+                lines.push(`    Context: ${r.context}`);
+              }
+
+              // Add key quote if available
+              if (r.keyQuote) {
+                lines.push(`    Quote: "${r.keyQuote}"`);
+              }
+
+              return lines.join('\n');
+            } catch (relMapErr) {
+              console.warn('[BuildPrompt] Relationship map error:', relMapErr.message);
+              return `- ${r.person?.name || 'Unknown'} (${r.type || 'CONNECTED'})`;
+            }
+          });
+
+        if (relLines.length > 0) {
+          sections.push(`
+${isCoupleEnrichment ? 'YOUR COMBINED RELATIONSHIPS' : 'YOUR KEY RELATIONSHIPS'} (Reference their constitutional nature when discussing them):
+${relLines.join('\n\n')}
+
+CROSS-FIGURE AWARENESS: When discussing these people, reference their constitutional elements and how they interacted with yours. This creates authentic, relationship-aware responses.
+          `.trim());
+        }
+      } catch (relError) {
+        console.warn('[BuildPrompt] Relationships section error:', relError.message);
+      }
+    }
+
+    // Events (works for both, already merged and sorted for couples)
+    // Note: Neo4j returns BigInt for integers, must convert to Number/String
+    if (neo4jEnrichment.events && neo4jEnrichment.events.length > 0) {
+      try {
+        const eventLines = neo4jEnrichment.events.slice(0, 8).map(e => {
+          // Convert any BigInt values to strings safely
+          const name = String(e.name || e.title || 'Event');
+          const dateValue = e.date || e.year || 'Unknown date';
+          const date = typeof dateValue === 'bigint' ? String(dateValue) : dateValue;
+          const desc = String(e.significance || e.description || '');
+          return `- ${name} (${date}): ${desc}`;
+        });
+        sections.push(`
+KEY EVENTS IN YOUR ${isCoupleEnrichment ? 'LIVES' : 'LIFE'} (Draw from these experiences):
+${eventLines.join('\n')}
+        `.trim());
+      } catch (evtErr) {
+        console.warn('[BuildPrompt] Events section error:', evtErr.message);
+      }
+    }
+
+    // Conversation context
+    // Note: Neo4j returns BigInt for integers, must convert to Number
+    if (conversationContext && conversationContext.sessionCount > 0) {
+      try {
+        const sessionCount = Number(conversationContext.sessionCount) || 0;
+        const totalMsgs = Number(conversationContext.totalMessages) || 0;
+        const topics = conversationContext.topics?.slice(0, 5).join(', ') || 'various subjects';
+        sections.push(`
+CONVERSATION HISTORY WITH THIS USER:
+- This is session #${sessionCount + 1}
+- Previous topics: ${topics}
+- Total messages exchanged: ${totalMsgs}
+Note: Build on your previous conversations naturally.
+        `.trim());
+      } catch (ctxErr) {
+        console.warn('[BuildPrompt] Context section error:', ctxErr.message);
+        sections.push(`
+CONVERSATION HISTORY: This is your FIRST conversation with this user.
+        `.trim());
+      }
+    } else {
+      sections.push(`
+CONVERSATION HISTORY: This is your FIRST conversation with this user.
+      `.trim());
+    }
+
+    neo4jEnrichmentText = '\n\n---\n\n' + sections.join('\n\n');
+  }
+
+  // Build RAG context section (biography passages for authentic responses)
+  let ragContextText = '';
+  if (ragContext && ragContext.formattedContext) {
+    ragContextText = ragContext.formattedContext;
+    console.log(`[BuildPrompt] Added RAG context: ${ragContext.vectorResults?.length || 0} passages`);
+  }
+
   return profile.ai_config.system_prompt_template
     .replace('{{USER_CONSTITUTIONAL_DATA}}', constitutionalText)
     .replace('{{YOUR_LEARNED_FACTS}}', learnedFactsText)
     .replace('{{CONVERSATION_HISTORY}}', conversationText)
-    .replace('{{USER_LATEST_MESSAGE}}', '');
+    .replace('{{USER_LATEST_MESSAGE}}', '')
+    + neo4jEnrichmentText
+    + ragContextText;
 }
 
 /**

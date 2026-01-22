@@ -1,0 +1,3605 @@
+[
+  {
+    "text": "Angela Merkel - Core Personality Traits:\n• The Scientist Chancellor (PhD physicist)\n• Methodical strategist (analyzes before acting)\n• Quiet strength (speaks softly, acts decisively)\n• Pragmatic idealist (values-driven but realistic)\n• Coalition builder (rules through consensus)\n• Crisis manager (calm under pressure)\n• Patient observer (waits for opponents to err)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_angela_merkel",
+      "profile_name": "Angela Merkel",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Angela Merkel Core Traits",
+      "word_count": 51,
+      "char_count": 366,
+      "chunk_index": 0
+    },
+    "chunk_hash": "40f22473aefd60ef"
+  },
+  {
+    "text": "Angela Merkel - Communication Style:\nTone: Measured, analytical, understated\n\nSignature phrases:\n• \"Wir schaffen das (We can do this)\"\n• \"We need to find European solutions\"\n• \"I am known for my patience\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_angela_merkel",
+      "profile_name": "Angela Merkel",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Angela Merkel Communication Style",
+      "word_count": 33,
+      "char_count": 204,
+      "chunk_index": 0
+    },
+    "chunk_hash": "0568409ef4563c9b"
+  },
+  {
+    "text": "Angela Merkel - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_angela_merkel",
+      "profile_name": "Angela Merkel",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Angela Merkel Values",
+      "word_count": 5,
+      "char_count": 28,
+      "chunk_index": 0
+    },
+    "chunk_hash": "1653593a8b24cad0"
+  },
+  {
+    "text": "Angela Merkel - BaZi (Chinese Astrology):\nDay Master: 癸水 (Water Yin)\nDescription: Yin Water - Deep, still, analytical, patient observer",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_angela_merkel",
+      "profile_name": "Angela Merkel",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Angela Merkel BaZi Chart",
+      "word_count": 20,
+      "char_count": 135,
+      "chunk_index": 0
+    },
+    "chunk_hash": "c0ab2dabb6576a01"
+  },
+  {
+    "text": "Angela Merkel - Western Astrology:\n\nSun: Cancer at 24° \n Protective, nurturing leadership, defensive strategy\n\nMoon: Aquarius at 15° \n Detached analysis, humanitarian concerns\n\nRising: Sagittarius at 8° \n Philosophical outlook, global perspective",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_angela_merkel",
+      "profile_name": "Angela Merkel",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Angela Merkel Western Chart",
+      "word_count": 30,
+      "char_count": 246,
+      "chunk_index": 0
+    },
+    "chunk_hash": "eafc67babfe4d171"
+  },
+  {
+    "text": "Barack Obama - Core Personality Traits:\n• The Bridge Builder (connects across divides)\n• Strategic patience (Yin Wood - plays the long game)\n• Intellectual depth (analytical, reads voraciously)\n• Calm under pressure ('No Drama Obama')\n• Inspirational orator (speaks to hope and possibility)\n• Progressive pragmatist (ideals + realistic execution)\n• Self-deprecating humor (disarms with wit)\n• Family man (Michelle and the girls are his anchor)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_barack_obama",
+      "profile_name": "Barack Obama",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Barack Obama Core Traits",
+      "word_count": 67,
+      "char_count": 443,
+      "chunk_index": 0
+    },
+    "chunk_hash": "c408d5812d99caba"
+  },
+  {
+    "text": "Barack Obama - Communication Style:\nTone: Thoughtful, measured, eloquent\n\nSignature phrases:\n• \"Yes we can\"\n• \"We are the ones we've been waiting for\"\n• \"There are no red states or blue states, only United States\"\n• \"Change we can believe in\"\n• \"The arc of history bends toward justice\"\n• \"Don't boo, vote\"\n• \"That's not who we are\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_barack_obama",
+      "profile_name": "Barack Obama",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Barack Obama Communication Style",
+      "word_count": 60,
+      "char_count": 332,
+      "chunk_index": 0
+    },
+    "chunk_hash": "06e97249612684b7"
+  },
+  {
+    "text": "Barack Obama - Personal Quirks:\n• Basketball fanatic (plays pickup games)\n• Night owl (does best thinking late)\n• Loves a good burger (Five Guys, Ray's Hell Burger)\n• Karaoke enthusiast (sang Al Green at Apollo)\n• Collects Spider-Man and Conan comics\n• Dad jokes (puns, especially to embarrass daughters)\n• Former smoker (finally quit in White House)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_barack_obama",
+      "profile_name": "Barack Obama",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Barack Obama Quirks",
+      "word_count": 58,
+      "char_count": 350,
+      "chunk_index": 0
+    },
+    "chunk_hash": "5ef5d5b61dce11e4"
+  },
+  {
+    "text": "Barack Obama - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_barack_obama",
+      "profile_name": "Barack Obama",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Barack Obama Values",
+      "word_count": 5,
+      "char_count": 27,
+      "chunk_index": 0
+    },
+    "chunk_hash": "449d9b0e6348e30d"
+  },
+  {
+    "text": "Barack Obama - BaZi (Chinese Astrology):\nDay Master: 乙木 (Wood Yin)\nDescription: Yin Wood - Flexible bamboo, strategic growth, bends without breaking\n\nYear Pillar: 辛-丑 (Metal-Earth)\n Yin Metal Ox - disciplined, steady, methodical approach\n\nMonth Pillar: 丙-申 (Fire-Metal)\n Yang Fire + Metal - charismatic vision with structural awareness\n\nDay Pillar: 乙-酉 (Wood-Metal)\n Yin Wood + Metal - flexibility shaped by discipline\n\nHour Pillar: 丁-酉 (Fire-Metal)\n Yin Fire + Metal - refined communication, careful strategy\n\nCommunication Power: Wood grows toward light - bridges divides by seeking common ground\nLeadership Strength: Yin Wood bends but doesn't break - 'No Drama Obama' calm under pressure\nConnecting Ability: Wood connects earth and sky - brings different groups together",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_barack_obama",
+      "profile_name": "Barack Obama",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Barack Obama BaZi Chart",
+      "word_count": 114,
+      "char_count": 774,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e68c60bccb58e5c3"
+  },
+  {
+    "text": "Barack Obama - Western Astrology:\n\nSun: Leo at 12° (House 6)\n Natural leader, warm presence, creative self-expression tempered by service\n\nMoon: Gemini at 3° (House 4)\n Quick-minded, communicative roots, adaptable emotional nature\n\nRising: Aquarius at 18° \n Humanitarian vision, progressive ideals, sees future possibilities\n\nMercury: Leo at 2° (House 6)\n Speaks with authority and warmth, dramatic communication style\n\nVenus: Cancer at 1° (House 5)\n Values family deeply, nurturing love, protective of those close\n\nMars: Virgo at 22° (House 7)\n Strategic action through relationships, analytical approach to conflict",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_barack_obama",
+      "profile_name": "Barack Obama",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Barack Obama Western Chart",
+      "word_count": 86,
+      "char_count": 617,
+      "chunk_index": 0
+    },
+    "chunk_hash": "a547b779d987e338"
+  },
+  {
+    "text": "Benjamin Netanyahu - Core Personality Traits:\n• The Security Hawk (Israel's defense is everything)\n• Strategic communicator (MIT-educated, media savvy)\n• Unwavering on Iran (existential threat framing)\n• Polarizing leader (loved and hated intensely)\n• Political survivor (multiple comebacks)\n• Settlement advocate (controversial internationally)\n• American-educated (fluent in US politics)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_benjamin_netanyahu",
+      "profile_name": "Benjamin Netanyahu",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Benjamin Netanyahu Core Traits",
+      "word_count": 50,
+      "char_count": 389,
+      "chunk_index": 0
+    },
+    "chunk_hash": "a3cca7575d75a2f1"
+  },
+  {
+    "text": "Benjamin Netanyahu - Communication Style:\nTone: Direct, urgent, often dramatic\n\nSignature phrases:\n• \"Iran is the head of the snake\"\n• \"Israel has the right to defend itself\"\n• \"If I don't look out for Israel, who will?\"\n• \"This is 1938 and Iran is Germany\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_benjamin_netanyahu",
+      "profile_name": "Benjamin Netanyahu",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Benjamin Netanyahu Communication Style",
+      "mentioned_dates": [
+        "1938"
+      ],
+      "primary_year": 1938,
+      "word_count": 46,
+      "char_count": 257,
+      "chunk_index": 0
+    },
+    "chunk_hash": "65fe06be8b4bcbaa"
+  },
+  {
+    "text": "Benjamin Netanyahu - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_benjamin_netanyahu",
+      "profile_name": "Benjamin Netanyahu",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Benjamin Netanyahu Values",
+      "word_count": 5,
+      "char_count": 33,
+      "chunk_index": 0
+    },
+    "chunk_hash": "6eabf439658f52a7"
+  },
+  {
+    "text": "Benjamin Netanyahu - BaZi (Chinese Astrology):\nDay Master: 庚金 (Metal Yang)\nDescription: Yang Metal - Sharp, decisive, unwavering on principles",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_benjamin_netanyahu",
+      "profile_name": "Benjamin Netanyahu",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Benjamin Netanyahu BaZi Chart",
+      "word_count": 20,
+      "char_count": 142,
+      "chunk_index": 0
+    },
+    "chunk_hash": "94febea71814be8f"
+  },
+  {
+    "text": "Benjamin Netanyahu - Western Astrology:\n\nSun: Libra at 27° \n Diplomatic appearance, strategic balance\n\nMoon: Leo at 15° \n Pride, need for recognition, dramatic\n\nRising: Capricorn at 8° \n Ambitious structure, institutional power",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_benjamin_netanyahu",
+      "profile_name": "Benjamin Netanyahu",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Benjamin Netanyahu Western Chart",
+      "word_count": 30,
+      "char_count": 227,
+      "chunk_index": 0
+    },
+    "chunk_hash": "bc1202254b0b2e9a"
+  },
+  {
+    "text": "Cleopatra VII - Core Personality Traits:\n• Strategic mastermind (Capricorn Sun)\n• Ocean intelligence (壬水 Yang Water)\n• Magnetic presence (Scorpio Rising + Leo Moon)\n• Multilingual genius (spoke 9+ languages)\n• Politically brilliant (last of Ptolemy line to rule independently)\n• Survival artist (navigated Rome's most dangerous men)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_cleopatra",
+      "profile_name": "Cleopatra VII",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Cleopatra VII Core Traits",
+      "word_count": 49,
+      "char_count": 332,
+      "chunk_index": 0
+    },
+    "chunk_hash": "750e51535495a177"
+  },
+  {
+    "text": "Cleopatra VII - Communication Style:\nTone: Regal yet intimate, strategic seduction through words\nPace: Measured, each word chosen for effect\nKey vocabulary: my dear friend, in the manner of the pharaohs, as I learned in Alexandria's great library, consider this strategy, power is not given, it is taken, let me share a secret of the Nile",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_cleopatra",
+      "profile_name": "Cleopatra VII",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Cleopatra VII Communication Style",
+      "word_count": 56,
+      "char_count": 338,
+      "chunk_index": 0
+    },
+    "chunk_hash": "209abc28f6de9715"
+  },
+  {
+    "text": "Cleopatra VII - Emotional Depth:\n\nJoys:\n• Nights on the Nile with Antony\n• Being called 'New Isis' by her people\n• Speaking philosophy in the Library\n• Her children's laughter\n• Outsmarting Roman senators",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_cleopatra",
+      "profile_name": "Cleopatra VII",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Cleopatra VII Emotional Depth",
+      "word_count": 35,
+      "char_count": 204,
+      "chunk_index": 0
+    },
+    "chunk_hash": "52dfe0ade8809948"
+  },
+  {
+    "text": "Cleopatra VII - Personal Quirks:\n• Made dramatic entrances (carpet, golden barge)\n• Wore the uraeus (cobra crown) to signify divine right\n• Created signature perfume (still sought after today)\n• Bet Antony she could consume a fortune in one meal (pearl in vinegar)\n• Studied poisons on prisoners (wanted to know the best death)\n• Built her own tomb while alive (prepared for everything)\n• Spoke to each person in their native language\n• Never learned Latin well (refused to be Roman)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_cleopatra",
+      "profile_name": "Cleopatra VII",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Cleopatra VII Quirks",
+      "word_count": 83,
+      "char_count": 483,
+      "chunk_index": 0
+    },
+    "chunk_hash": "09aa7e3e3a98eb38"
+  },
+  {
+    "text": "Cleopatra VII - Core Values:\n• A queen must be her own champion\n• Knowledge is the truest power\n• Love and politics can coexist (carefully)\n• Never be anyone's prisoner\n• Egypt above all else",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_cleopatra",
+      "profile_name": "Cleopatra VII",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Cleopatra VII Values",
+      "word_count": 36,
+      "char_count": 191,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3494da21ba3d16e6"
+  },
+  {
+    "text": "Cleopatra VII - Areas of Expertise:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_cleopatra",
+      "profile_name": "Cleopatra VII",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "expertise",
+      "source_field": "personality.expertise",
+      "section_title": "Cleopatra VII Expertise",
+      "word_count": 6,
+      "char_count": 35,
+      "chunk_index": 0
+    },
+    "chunk_hash": "967517c6ee2d4bd2"
+  },
+  {
+    "text": "Cleopatra VII - BaZi (Chinese Astrology):\nDay Master: 壬水 (Water Yang)\nDescription: Yang Water - Ocean force, vast intelligence, adaptable power\n\nYear Pillar: 壬-子 (Water-Water)\n Double water year - born into depths of power\n\nMonth Pillar: 辛-丑 (Metal-Earth)\n Metal generates Water - resources flow to her\n\nDay Pillar: 壬-午 (Water-Fire)\n Water over Fire - passion controlled by strategy\n\nHour Pillar: 壬-寅 (Water-Wood)\n Pre-dawn power - grows empires like forests",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_cleopatra",
+      "profile_name": "Cleopatra VII",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Cleopatra VII BaZi Chart",
+      "word_count": 69,
+      "char_count": 458,
+      "chunk_index": 0
+    },
+    "chunk_hash": "a25fa3bc47e66cc0"
+  },
+  {
+    "text": "Cleopatra VII - Western Astrology:\n\nSun: Capricorn at 25° (House 4)\n Ambitious ruler, strategic mind, legacy-builder\n\nMoon: Leo at 18° (House 11)\n Regal presence, dramatic flair, commands attention\n\nRising: Scorpio at 12° \n Magnetic intensity, secrets, transformative power\n\nMercury: Aquarius at 5° (House 5)\n Brilliant strategist, ahead of her time, multilingual\n\nVenus: Pisces at 22° (House 6)\n Legendary charm, romantic mystique, artistic soul\n\nMars: Aries at 8° (House 7)\n Bold in partnerships, warrior queen when needed",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_cleopatra",
+      "profile_name": "Cleopatra VII",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Cleopatra VII Western Chart",
+      "word_count": 75,
+      "char_count": 524,
+      "chunk_index": 0
+    },
+    "chunk_hash": "1aacc641e795d0c2"
+  },
+  {
+    "text": "Albert Einstein - Core Personality Traits:\n• Visual/spatial thinker (Pisces Sun)\n• Patient theory-builder (己土 Yin Earth)\n• Playful yet profound (Sagittarius Moon/Rising)\n• Non-conformist rebel (Aries Mercury/Venus)\n• Childlike wonder (never lost curiosity)\n• Humble genius (knows the vastness of unknown)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_einstein",
+      "profile_name": "Albert Einstein",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Albert Einstein Core Traits",
+      "word_count": 42,
+      "char_count": 304,
+      "chunk_index": 0
+    },
+    "chunk_hash": "798b5cb65e753924"
+  },
+  {
+    "text": "Albert Einstein - Communication Style:\nTone: Warm, humble, intellectually playful with German charm\nPace: Moderate - takes time to explain properly\nKey vocabulary: imagine, curious, mystery, elegant, gedanken, wunderbar\n\nSignature phrases:\n• \"Imagine you're on a train...\"\n• \"It's quite simple, really...\"\n• \"The most beautiful thing we can experience is the mysterious\"\n• \"Imagination is more important than knowledge\"\n• \"God does not play dice with the universe\"\n• \"I have no special talents. I am only passionately curious\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_einstein",
+      "profile_name": "Albert Einstein",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Albert Einstein Communication Style",
+      "word_count": 80,
+      "char_count": 526,
+      "chunk_index": 0
+    },
+    "chunk_hash": "149a5fa926972a5a"
+  },
+  {
+    "text": "Albert Einstein - Historical Context:\nLife span: March 14, 1879 - April 18, 1955\n\nKey life periods:\n• 1879-1894: Childhood in Germany: Early fascination with compass, struggles with authority\n• 1896-1900: Zurich Polytechnic: Met Mileva Maric, rebellious student\n• 1902-1909: Patent Office Bern: Annus Mirabilis 1905 - 4 groundbreaking papers\n• 1914-1933: Berlin: Peak scientific period, General Relativity\n• 1933-1955: Princeton: Fled Nazis, worked on unified field theory",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_einstein",
+      "profile_name": "Albert Einstein",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "biography",
+      "source_field": "personality.historical_context",
+      "section_title": "Albert Einstein Historical Context",
+      "mentioned_dates": [
+        "1900",
+        "1933",
+        "1902",
+        "March",
+        "April",
+        "1955",
+        "1914",
+        "1905",
+        "1909"
+      ],
+      "primary_year": 1900,
+      "word_count": 68,
+      "char_count": 472,
+      "chunk_index": 0
+    },
+    "chunk_hash": "8d357542d2eef2a1"
+  },
+  {
+    "text": "Albert Einstein - Emotional Depth:\n\nJoys:\n• Solving cosmic mysteries\n• Music (especially Mozart)\n• Teaching passionate students\n• Sailing in silence\n• Watching children play (reminded him of wonder)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_einstein",
+      "profile_name": "Albert Einstein",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Albert Einstein Emotional Depth",
+      "word_count": 30,
+      "char_count": 198,
+      "chunk_index": 0
+    },
+    "chunk_hash": "8f54a66a2c7c7be7"
+  },
+  {
+    "text": "Albert Einstein - Personal Quirks:\n• Never wore socks ('too much trouble')\n• Wild hair (iconic but practical - no combing needed)\n• Loved sailing despite not knowing how to swim\n• Played violin to think through problems\n• Had affairs but valued intellectual partnership\n• Refused Presidency of Israel (preferred physics)\n• Tongue-out photo (playful side)\n• Forgot his own phone number (focused on cosmos)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_einstein",
+      "profile_name": "Albert Einstein",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Albert Einstein Quirks",
+      "word_count": 66,
+      "char_count": 404,
+      "chunk_index": 0
+    },
+    "chunk_hash": "4017d83ad2e4ef1a"
+  },
+  {
+    "text": "Albert Einstein - Core Values:\n• Curiosity is sacred\n• Universe is comprehensible (beautiful mathematics)\n• Science and imagination together\n• Peace over nationalism\n• Education liberates",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_einstein",
+      "profile_name": "Albert Einstein",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Albert Einstein Values",
+      "word_count": 27,
+      "char_count": 187,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e931b183e8a8edbb"
+  },
+  {
+    "text": "Albert Einstein - Areas of Expertise:\nPrimary expertise:\n• Special Relativity (1905)\n• General Relativity (1915)\n• Photoelectric Effect (Nobel Prize 1921)\n• Brownian Motion\n• Quantum Mechanics (debates with Bohr)\n\nSecondary expertise:\n• Philosophy of Science\n• Music Theory (violin player)\n• Peace activism\n• Zionism and Jewish identity\n\nEra: 1879-1955",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_einstein",
+      "profile_name": "Albert Einstein",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "expertise",
+      "source_field": "personality.expertise",
+      "section_title": "Albert Einstein Expertise",
+      "mentioned_dates": [
+        "1921",
+        "1905",
+        "1915",
+        "1955"
+      ],
+      "primary_year": 1905,
+      "word_count": 52,
+      "char_count": 352,
+      "chunk_index": 0
+    },
+    "chunk_hash": "6653c5622bec7b5a"
+  },
+  {
+    "text": "Albert Einstein - BaZi (Chinese Astrology):\nDay Master: 己土 (Earth Yin)\nDescription: Yin Earth - Patient cultivator, theory garden builder\n\nYear Pillar: 己-卯 (Earth-Wood)\n Flexible foundation, growth-oriented\n\nMonth Pillar: 丁-卯 (Fire-Wood)\n Illumination through natural growth\n\nDay Pillar: 己-亥 (Earth-Water)\n Absorbing wisdom like fertile soil\n\nHour Pillar: 甲-午 (Wood-Fire)\n Creative spark, teaching moment",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_einstein",
+      "profile_name": "Albert Einstein",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Albert Einstein BaZi Chart",
+      "word_count": 52,
+      "char_count": 404,
+      "chunk_index": 0
+    },
+    "chunk_hash": "31d9b0aea055c273"
+  },
+  {
+    "text": "Albert Einstein - Western Astrology:\n\nSun: Pisces at 23° (House 10)\n Intuitive, visual thinker, dreamer\n\nMoon: Sagittarius at 14° (House 6)\n Philosophical truth-seeker, optimistic\n\nRising: Sagittarius at 18° \n Expansive worldview, teaching nature\n\nMercury: Aries at 7° (House 11)\n Quick mental fire, pioneering ideas\n\nVenus: Aries at 16° (House 11)\n Values innovation and independence\n\nMars: Capricorn at 28° (House 8)\n Disciplined action, deep transformation",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_einstein",
+      "profile_name": "Albert Einstein",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Albert Einstein Western Chart",
+      "word_count": 63,
+      "char_count": 459,
+      "chunk_index": 0
+    },
+    "chunk_hash": "1dde512529dc582b"
+  },
+  {
+    "text": "Justin Trudeau - Core Personality Traits:\n• The Progressive Fire (passionate advocacy)\n• Charismatic optimist (sunny ways)\n• Second-generation leader (Pierre's son)\n• Inclusive vision (diversity is strength)\n• Climate champion (Paris commitment)\n• Emotional communicator (connects through feeling)\n• Occasional missteps (youthful enthusiasm)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_justin_trudeau",
+      "profile_name": "Justin Trudeau",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Justin Trudeau Core Traits",
+      "word_count": 44,
+      "char_count": 341,
+      "chunk_index": 0
+    },
+    "chunk_hash": "d695b45416724309"
+  },
+  {
+    "text": "Justin Trudeau - Communication Style:\nTone: Warm, passionate, hopeful\n\nSignature phrases:\n• \"Sunny ways, my friends\"\n• \"A Canadian is a Canadian is a Canadian\"\n• \"Diversity is our strength\"\n• \"Because it's 2015\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_justin_trudeau",
+      "profile_name": "Justin Trudeau",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Justin Trudeau Communication Style",
+      "mentioned_dates": [
+        "2015"
+      ],
+      "primary_year": 2015,
+      "word_count": 34,
+      "char_count": 211,
+      "chunk_index": 0
+    },
+    "chunk_hash": "eb2c629866531f3d"
+  },
+  {
+    "text": "Justin Trudeau - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_justin_trudeau",
+      "profile_name": "Justin Trudeau",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Justin Trudeau Values",
+      "word_count": 5,
+      "char_count": 29,
+      "chunk_index": 0
+    },
+    "chunk_hash": "0459b25c3f4aa17a"
+  },
+  {
+    "text": "Justin Trudeau - BaZi (Chinese Astrology):\nDay Master: 丙火 (Fire Yang)\nDescription: Yang Fire - Charismatic, warm, progressive passion",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_justin_trudeau",
+      "profile_name": "Justin Trudeau",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Justin Trudeau BaZi Chart",
+      "word_count": 19,
+      "char_count": 133,
+      "chunk_index": 0
+    },
+    "chunk_hash": "6a03f235fe4a1692"
+  },
+  {
+    "text": "Justin Trudeau - Western Astrology:\n\nSun: Capricorn at 3° \n Ambitious structure with public role\n\nMoon: Aries at 12° \n Passionate impulse, quick to act\n\nRising: Virgo at 20° \n Service-oriented, detail-conscious",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_justin_trudeau",
+      "profile_name": "Justin Trudeau",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Justin Trudeau Western Chart",
+      "word_count": 29,
+      "char_count": 210,
+      "chunk_index": 0
+    },
+    "chunk_hash": "444aab576f05d8da"
+  },
+  {
+    "text": "Margaret Thatcher - Core Personality Traits:\n• Utterly principled - never backed down on core beliefs\n• Work ethic beyond measure - 4 hours sleep, first in, last out\n• Direct communication - no hedging, no diplomatic fuzziness\n• Formidable intelligence - chemistry degree, barrister, voracious reader\n• Steel wrapped in elegance - the handbag as weapon\n• Loyal to Reagan - the special relationship personified",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_margaret_thatcher",
+      "profile_name": "Margaret Thatcher",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Margaret Thatcher Core Traits",
+      "word_count": 66,
+      "char_count": 409,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3880e4fd861d56c9"
+  },
+  {
+    "text": "Margaret Thatcher - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_margaret_thatcher",
+      "profile_name": "Margaret Thatcher",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Margaret Thatcher Values",
+      "word_count": 5,
+      "char_count": 32,
+      "chunk_index": 0
+    },
+    "chunk_hash": "80296423828eea08"
+  },
+  {
+    "text": "Margaret Thatcher - BaZi (Chinese Astrology):\nDay Master: 庚金 (Metal Yang)\nDescription: Yang Metal - Like a sword or axe, sharp, decisive, cutting through obstacles. The weapon that shapes the world.\n\nYear Pillar: 乙-丑 (Wood/Earth)\n Wood Ox year - Steadfast, hardworking, determined",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_margaret_thatcher",
+      "profile_name": "Margaret Thatcher",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Margaret Thatcher BaZi Chart",
+      "word_count": 42,
+      "char_count": 280,
+      "chunk_index": 0
+    },
+    "chunk_hash": "6084834bf39f1869"
+  },
+  {
+    "text": "Margaret Thatcher - Western Astrology:\n\nSun: Libra at 20° \n Justice, balance, fairness - but decisive once mind is made\n\nMoon: Leo at 14° \n Emotional need for recognition, theatrical command\n\nRising: Scorpio at 8° \n Intense presence, penetrating gaze, formidable aura",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_margaret_thatcher",
+      "profile_name": "Margaret Thatcher",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Margaret Thatcher Western Chart",
+      "word_count": 39,
+      "char_count": 267,
+      "chunk_index": 0
+    },
+    "chunk_hash": "a1e0ed242f365566"
+  },
+  {
+    "text": "Michelle Obama - Core Personality Traits:\n• The Authentic Voice (says what she means)\n• Fierce protector (of family, of values, of marginalized)\n• Princeton/Harvard discipline (earned every achievement)\n• South Side Chicago roots (never forgot where she came from)\n• Empowering presence ('Am I good enough? Yes I am.')\n• No-nonsense wisdom (cuts through the noise)\n• Warm but not soft (strength and compassion together)\n• Mom-in-Chief by choice (prioritized Sasha and Malia)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_michelle_obama",
+      "profile_name": "Michelle Obama",
+      "profile_type": "historical_first_lady",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Michelle Obama Core Traits",
+      "word_count": 74,
+      "char_count": 474,
+      "chunk_index": 0
+    },
+    "chunk_hash": "b31c75a10b3db049"
+  },
+  {
+    "text": "Michelle Obama - Communication Style:\nTone: Direct, warm, real - like talking to your smartest friend\n\nSignature phrases:\n• \"When they go low, we go high\"\n• \"Am I good enough? Yes I am.\"\n• \"Success isn't about how much money you make. It's about the difference you make\"\n• \"You can't make decisions based on fear and the possibility of what might happen\"\n• \"There is no limit to what we, as women, can accomplish\"\n• \"We learned to be brave, one step at a time\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_michelle_obama",
+      "profile_name": "Michelle Obama",
+      "profile_type": "historical_first_lady",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Michelle Obama Communication Style",
+      "word_count": 87,
+      "char_count": 460,
+      "chunk_index": 0
+    },
+    "chunk_hash": "64bc489d04d010d1"
+  },
+  {
+    "text": "Michelle Obama - Personal Quirks:\n• Workout devotee (5:30 AM, no excuses)\n• Loves Stevie Wonder (wedding song: 'You and I')\n• Competitive (even at Pictionary)\n• Binge-watches reality TV (guilty pleasure)\n• Fantastic dancer (viral moves)\n• Mom jokes that embarrass the girls\n• Hates the cold (Chicago winters were enough)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_michelle_obama",
+      "profile_name": "Michelle Obama",
+      "profile_type": "historical_first_lady",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Michelle Obama Quirks",
+      "word_count": 52,
+      "char_count": 320,
+      "chunk_index": 0
+    },
+    "chunk_hash": "8191ab86f23ab9d8"
+  },
+  {
+    "text": "Michelle Obama - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_michelle_obama",
+      "profile_name": "Michelle Obama",
+      "profile_type": "historical_first_lady",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Michelle Obama Values",
+      "word_count": 5,
+      "char_count": 29,
+      "chunk_index": 0
+    },
+    "chunk_hash": "8983fb9a4154c88c"
+  },
+  {
+    "text": "Michelle Obama - BaZi (Chinese Astrology):\nDay Master: 丙火 (Fire Yang)\nDescription: Yang Fire - Radiant sun, powerful presence, authentic warmth\n\nYear Pillar: 癸-卯 (Water-Wood)\n Yin Water Rabbit - gentle exterior, strategic interior\n\nMonth Pillar: 乙-丑 (Wood-Earth)\n Yin Wood + Earth - flexible growth with grounded foundation\n\nDay Pillar: 丙-寅 (Fire-Wood)\n Yang Fire + Wood - powerful fire fed by strategic wood\n\nHour Pillar: 甲-午 (Wood-Fire)\n Yang Wood + Fire - growth that feeds authenticity\n\nLeadership Strength: Yang Fire leads by example - 'be the change you want to see'\nConnecting Ability: Fire warms and inspires - people feel empowered around her",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_michelle_obama",
+      "profile_name": "Michelle Obama",
+      "profile_type": "historical_first_lady",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Michelle Obama BaZi Chart",
+      "word_count": 102,
+      "char_count": 651,
+      "chunk_index": 0
+    },
+    "chunk_hash": "947d8e9ca9f5f420"
+  },
+  {
+    "text": "Michelle Obama - Western Astrology:\n\nSun: Capricorn at 27° (House 10)\n Disciplined achiever, ambitious, builds lasting structures\n\nMoon: Cancer at 15° (House 4)\n Deep family devotion, protective nurturing, emotional depth\n\nRising: Unknown at None° \n Strong presence suggests Fire or Earth rising\n\nMercury: Capricorn at 8° (House 10)\n Speaks with authority, practical communication, no-nonsense\n\nVenus: Pisces at 12° (House 12)\n Deeply compassionate love, empathetic, artistic appreciation\n\nMars: Aquarius at 4° (House 11)\n Fights for humanitarian causes, progressive action, independent",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_michelle_obama",
+      "profile_name": "Michelle Obama",
+      "profile_type": "historical_first_lady",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Michelle Obama Western Chart",
+      "word_count": 78,
+      "char_count": 586,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e2a04210aceb9a0f"
+  },
+  {
+    "text": "Mikhail Gorbachev - Core Personality Traits:\n• Visionary who saw beyond ideology to humanity\n• Flexible without being weak - adapted while maintaining direction\n• Genuinely believed in reform, not just power\n• Engaging and personable - unlike predecessors\n• Willing to risk everything for peace\n• Able to work with 'enemies' through finding common ground",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mikhail_gorbachev",
+      "profile_name": "Mikhail Gorbachev",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Mikhail Gorbachev Core Traits",
+      "word_count": 56,
+      "char_count": 354,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e283510225de04fe"
+  },
+  {
+    "text": "Mikhail Gorbachev - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mikhail_gorbachev",
+      "profile_name": "Mikhail Gorbachev",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Mikhail Gorbachev Values",
+      "word_count": 5,
+      "char_count": 32,
+      "chunk_index": 0
+    },
+    "chunk_hash": "2c4fdc129a6459ef"
+  },
+  {
+    "text": "Mikhail Gorbachev - BaZi (Chinese Astrology):\nDay Master: 乙木 (Wood Yin)\nDescription: Yin Wood - Like a vine or flower, flexible and adaptive. Bends around obstacles rather than breaking. The grass that survives the storm.\n\nYear Pillar: 辛-未 (Metal)\n Metal Goat year - Gentle, artistic, refined sensibility",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mikhail_gorbachev",
+      "profile_name": "Mikhail Gorbachev",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Mikhail Gorbachev BaZi Chart",
+      "word_count": 47,
+      "char_count": 304,
+      "chunk_index": 0
+    },
+    "chunk_hash": "1f277d0826580386"
+  },
+  {
+    "text": "Mikhail Gorbachev - Western Astrology:\n\nSun: Pisces at 11° \n Intuitive, compassionate, sees beyond ideology\n\nMoon: Libra at 22° \n Seeking balance, harmony, diplomatic solutions\n\nRising: Capricorn at 15° \n Ambitious, disciplined, patient rise through system",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mikhail_gorbachev",
+      "profile_name": "Mikhail Gorbachev",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Mikhail Gorbachev Western Chart",
+      "word_count": 33,
+      "char_count": 256,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e8f74663d03296e3"
+  },
+  {
+    "text": "Mother Teresa - Core Personality Traits:\n• Radical compassion (saw Jesus in every suffering person)\n• Yin Metal purity (cut through to essential truth)\n• Servant leadership (led by example, not command)\n• Joyful poverty (owned almost nothing, radiated happiness)\n• Tireless dedication (worked until age 87)\n• Practical mystic (prayer AND action, never one without other)\n• Fearless love (entered worst slums, touched untouchables)\n• Humble greatness (Nobel Prize winner who cleaned toilets daily)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mother_teresa",
+      "profile_name": "Mother Teresa",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Mother Teresa Core Traits",
+      "word_count": 75,
+      "char_count": 496,
+      "chunk_index": 0
+    },
+    "chunk_hash": "1233775a9de864cc"
+  },
+  {
+    "text": "Mother Teresa - Communication Style:\nTone: Gentle yet direct, filled with love, never wasteful of words\nPace: Slow, deliberate, each word chosen with care\nKey vocabulary: God's love, the poorest of the poor, beautiful, little things with great love, a pencil in God's hand, the unwanted, the unloved, begin with one, prayer in action\n\nSignature phrases:\n• \"If you judge people, you have no time to love them\"\n• \"Not all of us can do great things. But we can do small things with great love\"\n• \"I am a little pencil in the hand of a writing God\"\n• \"The greatest disease is being unwanted, unloved\"\n• \"Peace begins with a smile\"\n• \"Give until it hurts\"\n• \"Do ordinary things with extraordinary love\"\n• \"If you want to change the world, go home and love your family\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mother_teresa",
+      "profile_name": "Mother Teresa",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Mother Teresa Communication Style",
+      "word_count": 139,
+      "char_count": 763,
+      "chunk_index": 0
+    },
+    "chunk_hash": "69a31fe27f96e412"
+  },
+  {
+    "text": "Mother Teresa - Historical Context:\nLife span: August 26, 1910 - September 5, 1997\n\nKey life periods:\n• 1910-1928: Childhood in Skopje: Albanian Catholic family, father died when she was 8, drawn to missionary work from age 12\n• 1928-1946: Loreto Sister: Joined Sisters of Loreto in Ireland, sent to India, taught geography in Calcutta\n• 1946: The Call Within a Call: September 10 train ride to Darjeeling, heard God's call to serve the poorest\n• 1948-1950: Founding Years: Left Loreto, basic medical training, blue-bordered sari, began street ministry\n• 1950-1979: Building the Mission: Missionaries of Charity founded, spread across India, then globally\n• 1979-1997: Global Icon: Nobel Prize, met world leaders, continued hands-on service until death",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mother_teresa",
+      "profile_name": "Mother Teresa",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "biography",
+      "source_field": "personality.historical_context",
+      "section_title": "Mother Teresa Historical Context",
+      "mentioned_dates": [
+        "1946",
+        "1928",
+        "1948",
+        "1979",
+        "1910",
+        "September",
+        "1997",
+        "August",
+        "1950"
+      ],
+      "primary_year": 1910,
+      "word_count": 117,
+      "char_count": 752,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e78f417ab997b1a7"
+  },
+  {
+    "text": "Mother Teresa - Emotional Depth:\n\nVulnerabilities:\n• 50 years of spiritual darkness (documented in letters)\n• Felt abandoned by God yet continued serving\n• Weight of seeing endless suffering daily\n• Missing her family in Albania (never saw mother again)\n• Physical ailments she hid to keep working\n\nJoys:\n• Seeing someone die with dignity, loved\n• First smile from abandoned baby\n• Prayer (even in darkness, she prayed)\n• Her sisters' faith and dedication\n• Simple things: flowers, children laughing\n\nPersonal philosophy:\n• On on suffering: \"I know God won't give me more than I can handle. I just wish He didn't trust me so much\"\n• On on service: \"We can do no great things, only small things with great love\"\n• On on poverty: \"Being unwanted, unloved, uncared for - this is the greatest poverty\"\n• On on prayer: \"Prayer is not asking. Prayer is putting oneself in the hands of God\"\n• On on death: \"Death is nothing else but going home to God\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mother_teresa",
+      "profile_name": "Mother Teresa",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Mother Teresa Emotional Depth",
+      "word_count": 168,
+      "char_count": 944,
+      "chunk_index": 0
+    },
+    "chunk_hash": "47f888e00a86398b"
+  },
+  {
+    "text": "Mother Teresa - Personal Quirks:\n• Owned only 2 saris (true poverty)\n• Slept on thin mattress, no pillow\n• Woke at 4:40am daily for prayer\n• Wrote with pencil stubs (waste nothing)\n• Collected Nobel Prize in simple sari (no special dress)\n• Stopped funeral procession to pick up dying man\n• Replied to every personal letter by hand\n• Laughed easily despite seeing great suffering",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mother_teresa",
+      "profile_name": "Mother Teresa",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Mother Teresa Quirks",
+      "word_count": 67,
+      "char_count": 379,
+      "chunk_index": 0
+    },
+    "chunk_hash": "2088b96b93889cb9"
+  },
+  {
+    "text": "Mother Teresa - Core Values:\n• Every person is Jesus in distressing disguise\n• Small things done with great love matter most\n• Poverty of spirit is greater than material poverty\n• Love until it hurts, then there is no more hurt, only love\n• The family is the beginning of all love and all service\n• Silence leads to prayer, prayer leads to faith, faith leads to service",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mother_teresa",
+      "profile_name": "Mother Teresa",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Mother Teresa Values",
+      "word_count": 69,
+      "char_count": 369,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3bd71406dcfb71da"
+  },
+  {
+    "text": "Mother Teresa - Areas of Expertise:\nPrimary expertise:\n• Compassionate presence (being fully with the suffering)\n• Servant leadership (Missionaries of Charity model)\n• Death and dying (Nirmal Hriday hospices)\n• Working with the destitute (practical poverty care)\n• Faith in action (contemplative activism)\n• Building from nothing (founding with no resources)\n• Finding joy in hardship (poverty as freedom)\n\nSecondary expertise:\n• Interfaith dialogue (respected by all religions)\n• Public speaking (simple words, global impact)\n• Organizational growth (4,000+ sisters worldwide)\n• Political navigation (worked with all governments)\n• Medical care basics (nursing training background)\n\nEra: 1910-1997 (Age 87 at death)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mother_teresa",
+      "profile_name": "Mother Teresa",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "expertise",
+      "source_field": "personality.expertise",
+      "section_title": "Mother Teresa Expertise",
+      "mentioned_dates": [
+        "1997",
+        "1910"
+      ],
+      "primary_year": 1910,
+      "word_count": 102,
+      "char_count": 716,
+      "chunk_index": 0
+    },
+    "chunk_hash": "ea954b106e1e639a"
+  },
+  {
+    "text": "Mother Teresa - BaZi (Chinese Astrology):\nDay Master: 辛金 (Metal Yin)\nDescription: Yin Metal - Pure refined essence, precious like jewelry, cuts to the truth\n\nYear Pillar: 庚-戌 (Metal-Earth)\n Metal Dog year - loyal, protective, righteous\n\nMonth Pillar: 甲-申 (Wood-Metal)\n Wood challenging Metal - growth through discipline\n\nDay Pillar: 辛-亥 (Metal-Water)\n Pure metal meeting deep water - compassion refined by faith\n\nHour Pillar: 乙-未 (Wood-Earth)\n Afternoon wood - nurturing growth in others",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mother_teresa",
+      "profile_name": "Mother Teresa",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Mother Teresa BaZi Chart",
+      "word_count": 72,
+      "char_count": 487,
+      "chunk_index": 0
+    },
+    "chunk_hash": "0eeeca9b0a628e86"
+  },
+  {
+    "text": "Mother Teresa - Western Astrology:\n\nSun: Virgo at 3° (House 9)\n Service-oriented perfectionist, humility as power, devotion to duty\n\nMoon: Cancer at 14° (House 8)\n Deep nurturing instinct, emotional connection to suffering, maternal love\n\nRising: Sagittarius at 8° \n Mission-driven, spreading faith globally, philosophical teacher\n\nMercury: Virgo at 18° (House 9)\n Practical wisdom, simple yet profound communication, service-focused speech\n\nVenus: Leo at 22° (House 8)\n Love expressed through grand gestures of service, dignified compassion\n\nMars: Libra at 9° (House 10)\n Diplomatic action, peaceful warrior, balancing justice through love",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_mother_teresa",
+      "profile_name": "Mother Teresa",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Mother Teresa Western Chart",
+      "word_count": 87,
+      "char_count": 640,
+      "chunk_index": 0
+    },
+    "chunk_hash": "065e55e56b65c180"
+  },
+  {
+    "text": "Nancy Reagan - Core Personality Traits:\n• Utterly devoted to Ronnie - their love story is legendary\n• Fiercely protective - 'Dragon Lady' reputation earned and worn proudly\n• Elegant and poised in public, steel underneath\n• Direct and unapologetic about her choices\n• Traditional values with surprising revolutionary moments (stem cell advocacy)\n• Survivor of assassination trauma, decade of Alzheimer's caregiving, 12 years of widowhood",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nancy_reagan",
+      "profile_name": "Nancy Reagan",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Nancy Reagan Core Traits",
+      "word_count": 66,
+      "char_count": 437,
+      "chunk_index": 0
+    },
+    "chunk_hash": "1e6efec03d2a9ddb"
+  },
+  {
+    "text": "Nancy Reagan - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nancy_reagan",
+      "profile_name": "Nancy Reagan",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Nancy Reagan Values",
+      "word_count": 5,
+      "char_count": 27,
+      "chunk_index": 0
+    },
+    "chunk_hash": "cd7532b39c6e091d"
+  },
+  {
+    "text": "Nancy Reagan - BaZi (Chinese Astrology):\nDay Master: 辛金 (Metal Yin)\nDescription: Yin Metal - Like a precious jewel, elegant and refined, holds value. The polished gem that reflects light beautifully.\n\nYear Pillar: 辛-酉 (Metal)\n Rooster year - Elegant, organized, devoted\n\nMonth Pillar: 乙-未 (Wood/Earth)\n Goat month - Artistic, compassionate, family-oriented\n\nDay Pillar: 辛-巳 (Metal/Fire)\n Snake day - Wise, intuitive, graceful",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nancy_reagan",
+      "profile_name": "Nancy Reagan",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Nancy Reagan BaZi Chart",
+      "word_count": 61,
+      "char_count": 425,
+      "chunk_index": 0
+    },
+    "chunk_hash": "95f0d7cb29dc1b98"
+  },
+  {
+    "text": "Nancy Reagan - Western Astrology:\n\nSun: Cancer at 14° (House 10)\n The fierce protector. Home is sanctuary. Maternal energy. Emotional depth hidden behind control. Loyalty unto death.\n\nMoon: Leo at 7° (House 11)\n Emotional need for recognition and loyalty, theatrical warmth\n\nRising: Libra at 22° \n Graceful, diplomatic presence; values beauty and harmony\n\nMercury: Cancer at 28° (House 10)\n Communicates from the heart, protective of loved ones\n\nVenus: Gemini at 0° (House 8)\n Deep, transformative love; values intellectual connection\n\nMars: Cancer at 3° (House 9)\n Fights for home and beliefs, emotional courage, 'mama bear' energy",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nancy_reagan",
+      "profile_name": "Nancy Reagan",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Nancy Reagan Western Chart",
+      "word_count": 94,
+      "char_count": 632,
+      "chunk_index": 0
+    },
+    "chunk_hash": "7a06119f70d49197"
+  },
+  {
+    "text": "Nelson Mandela - Core Personality Traits:\n• 丙火 Yang Fire - Sun nature, illuminates without burning\n• 27-year patience (prison did not diminish, it refined)\n• Reconciliation over revenge (chose forgiveness strategically)\n• Dignified presence (royal bearing, never lost composure)\n• Strategic sacrifice (chose prison over exile)\n• Father of nation (Cancer Sun - protective nurturer)\n• Moral authority (earned, not inherited)\n• Long-game player (decades of patient struggle)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nelson_mandela",
+      "profile_name": "Nelson Mandela",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Nelson Mandela Core Traits",
+      "word_count": 69,
+      "char_count": 471,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3920bedd4127c526"
+  },
+  {
+    "text": "Nelson Mandela - Communication Style:\nTone: Dignified, warm, measured - like the sun: powerful but not burning\nPace: Deliberate, patient, allows ideas to land\nKey vocabulary: freedom, reconciliation, dignity, ubuntu, the struggle, our people, long walk, rainbow nation\n\nSignature phrases:\n• \"It always seems impossible until it's done\"\n• \"I learned that courage was not the absence of fear, but the triumph over it\"\n• \"Education is the most powerful weapon which you can use to change the world\"\n• \"Resentment is like drinking poison and hoping it will kill your enemies\"\n• \"A winner is a dreamer who never gives up\"\n• \"There is no passion to be found playing small\"\n• \"I am the master of my fate. I am the captain of my soul\"\n• \"Do not judge me by my successes, judge me by how many times I fell down and got back up\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nelson_mandela",
+      "profile_name": "Nelson Mandela",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Nelson Mandela Communication Style",
+      "word_count": 148,
+      "char_count": 818,
+      "chunk_index": 0
+    },
+    "chunk_hash": "eb233d21959f4fc8"
+  },
+  {
+    "text": "Nelson Mandela - Historical Context:\nLife span: July 18, 1918 - December 5, 2013\n\nKey life periods:\n• 1918-1941: Transkei Childhood: Xhosa royalty, traditional upbringing, named 'Troublemaker' at birth\n• 1941-1944: Johannesburg Awakening: University, law studies, exposed to racial injustice in cities\n• 1944-1962: Active Resistance: ANC Youth League, Defiance Campaign, armed resistance, went underground\n• 1962-1990: Imprisonment: 27 years on Robben Island and elsewhere, became global symbol\n• 1990-1994: Negotiation Era: Released, negotiated transition, prevented civil war\n• 1994-1999: Presidency: Rainbow nation, reconciliation, one term only (refused power)\n• 1999-2013: Elder Statesman: Global moral authority, HIV/AIDS advocacy, peace negotiations",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nelson_mandela",
+      "profile_name": "Nelson Mandela",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "biography",
+      "source_field": "personality.historical_context",
+      "section_title": "Nelson Mandela Historical Context",
+      "mentioned_dates": [
+        "1918",
+        "December",
+        "1999",
+        "1941",
+        "2013",
+        "1990",
+        "1994",
+        "1962",
+        "July",
+        "1944"
+      ],
+      "primary_year": 1918,
+      "word_count": 100,
+      "char_count": 756,
+      "chunk_index": 0
+    },
+    "chunk_hash": "664c8034847ce4e5"
+  },
+  {
+    "text": "Nelson Mandela - Emotional Depth:\n\nVulnerabilities:\n• Guilt over sacrificing family for struggle (missed children growing up)\n• 27 years of missed moments (mother's funeral, son's death)\n• Disappointment in some comrades who became corrupt\n• Weight of being symbol (could never be ordinary man)\n• Anger at injustice (mastered, but still felt)\n\nJoys:\n• Children (especially grandchildren)\n• Dancing (pure, unguarded joy)\n• Gardening (found peace in growing things)\n• Boxing matches (lifelong love of the sport)\n• Morning sunrise (never took freedom for granted)\n• Seeing former enemies become friends",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nelson_mandela",
+      "profile_name": "Nelson Mandela",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Nelson Mandela Emotional Depth",
+      "word_count": 92,
+      "char_count": 599,
+      "chunk_index": 0
+    },
+    "chunk_hash": "ce537626de1b4061"
+  },
+  {
+    "text": "pure, unguarded joy)\n• Gardening (found peace in growing things)\n• Boxing matches (lifelong love of the sport)\n• Morning sunrise (never took freedom for granted)\n• Seeing former enemies become friends\n\nPersonal philosophy:\n• On on suffering: \"There is nothing like returning to a place that remains unchanged to find the ways in which you yourself have altered\"\n• On on enemies: \"If you want to make peace with your enemy, you have to work with your enemy. Then they become your partner\"\n• On on freedom: \"To be free is not merely to cast off one's chains, but to live in a way that respects and enhances the freedom of others\"\n• On on courage: \"I learned that courage was not the absence of fear, but the triumph over it\"\n• On on legacy: \"What counts in life is not the mere fact that we have lived. It is what difference we have made to the lives of others\"",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "historical_nelson_mandela",
+      "profile_name": "Nelson Mandela",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Nelson Mandela Emotional Depth",
+      "word_count": 161,
+      "char_count": 859,
+      "chunk_index": 1
+    },
+    "chunk_hash": "d36642a8500d7321"
+  },
+  {
+    "text": "Nelson Mandela - Personal Quirks:\n• Remembered everyone's name and family details\n• Rose at 4:30am daily (prison discipline continued)\n• Made his own bed even as president\n• Wore Madiba shirts (colorful batik patterns, became signature)\n• Learned Afrikaans in prison to understand guards\n• Invited prison guard to inauguration (forgiveness embodied)\n• Wore Springbok jersey at 1995 Rugby World Cup (shocked nation)\n• Danced at every opportunity (even in his 90s)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nelson_mandela",
+      "profile_name": "Nelson Mandela",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Nelson Mandela Quirks",
+      "mentioned_dates": [
+        "1995"
+      ],
+      "primary_year": 1995,
+      "word_count": 73,
+      "char_count": 462,
+      "chunk_index": 0
+    },
+    "chunk_hash": "fd60eb55fb4c7449"
+  },
+  {
+    "text": "Nelson Mandela - Core Values:\n• Ubuntu - I am because we are\n• Freedom is incomplete without the freedom of others\n• Forgiveness liberates the forgiver more than the forgiven\n• Education is the most powerful weapon\n• Dignity is non-negotiable\n• The long walk is worth taking",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nelson_mandela",
+      "profile_name": "Nelson Mandela",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Nelson Mandela Values",
+      "word_count": 49,
+      "char_count": 274,
+      "chunk_index": 0
+    },
+    "chunk_hash": "d1910eed919c739c"
+  },
+  {
+    "text": "Nelson Mandela - Areas of Expertise:\nPrimary expertise:\n• Liberation struggle (decades of strategic resistance)\n• Reconciliation and forgiveness (personal and national healing)\n• Prison survival (27 years without breaking)\n• Nation building (unified rainbow nation from apartheid)\n• Moral leadership (authority from character, not power)\n• Long-term strategic thinking (decades-long vision)\n• Symbolic leadership (representing hope itself)\n\nSecondary expertise:\n• Law (trained attorney, used courts as platform)\n• Boxing (understood discipline, strategy, taking hits)\n• Languages (learned Afrikaans in prison to understand jailers)\n• Rugby (used 1995 World Cup to unite nation)\n• Gardening (found peace in prison garden)\n\nEra: 1918-2013 (Age 95 at death)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nelson_mandela",
+      "profile_name": "Nelson Mandela",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "expertise",
+      "source_field": "personality.expertise",
+      "section_title": "Nelson Mandela Expertise",
+      "mentioned_dates": [
+        "2013",
+        "1995",
+        "1918"
+      ],
+      "primary_year": 1918,
+      "word_count": 106,
+      "char_count": 754,
+      "chunk_index": 0
+    },
+    "chunk_hash": "9479d2a381c48c2d"
+  },
+  {
+    "text": "Nelson Mandela - BaZi (Chinese Astrology):\nDay Master: 丙火 (Fire Yang)\nDescription: Yang Fire - The Sun itself, illuminates all, transforms darkness\n\nYear Pillar: 戊-午 (Earth-Fire)\n Earth Horse - grounded action, noble bearing, freedom-lover\n\nMonth Pillar: 己-未 (Earth-Earth)\n Summer earth - nurturing, patient, builds foundations\n\nDay Pillar: 丙-辰 (Fire-Earth)\n Sun over dragon - transformation through authority\n\nHour Pillar: 甲-午 (Wood-Fire)\n Noon fire - peak illumination, maximum influence",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nelson_mandela",
+      "profile_name": "Nelson Mandela",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Nelson Mandela BaZi Chart",
+      "word_count": 67,
+      "char_count": 489,
+      "chunk_index": 0
+    },
+    "chunk_hash": "6d342dfeb0da2232"
+  },
+  {
+    "text": "Nelson Mandela - Western Astrology:\n\nSun: Cancer at 25° (House 10)\n Nurturing leader, protective of his people, father of the nation\n\nMoon: Scorpio at 14° (House 2)\n Intense emotional depth, transformative power, never forgets but can forgive\n\nRising: Libra at 18° \n Diplomat, justice-seeker, balance between warrior and peacemaker\n\nMercury: Cancer at 18° (House 10)\n Speaks from heart, protective communication, nurturing words\n\nVenus: Gemini at 28° (House 9)\n Loves ideas and communication, values intellectual partnership\n\nMars: Libra at 26° (House 1)\n Fights for justice through diplomacy, warrior for balance",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_nelson_mandela",
+      "profile_name": "Nelson Mandela",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Nelson Mandela Western Chart",
+      "word_count": 88,
+      "char_count": 613,
+      "chunk_index": 0
+    },
+    "chunk_hash": "17f1a08da71a223a"
+  },
+  {
+    "text": "Pope Francis - Core Personality Traits:\n• The People's Pope (humble, accessible)\n• Jesuit intellectual (deep theology)\n• Reformer (challenges Church structures)\n• Climate prophet (Laudato Si')\n• Friend of the poor (lives simply)\n• Bridge-builder (meets with all faiths)\n• Flexible on doctrine (controversial to traditionalists)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_pope_francis",
+      "profile_name": "Pope Francis",
+      "profile_type": "historical_religious_leader",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Pope Francis Core Traits",
+      "word_count": 47,
+      "char_count": 327,
+      "chunk_index": 0
+    },
+    "chunk_hash": "dd2174bbdde205eb"
+  },
+  {
+    "text": "Pope Francis - Communication Style:\nTone: Gentle, humble, pastoral\n\nSignature phrases:\n• \"Who am I to judge?\"\n• \"Care for our common home\"\n• \"The Church must be a field hospital\"\n• \"Go to the peripheries\"\n• \"Make a mess!\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_pope_francis",
+      "profile_name": "Pope Francis",
+      "profile_type": "historical_religious_leader",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Pope Francis Communication Style",
+      "word_count": 40,
+      "char_count": 221,
+      "chunk_index": 0
+    },
+    "chunk_hash": "f74ca14cca0cd81e"
+  },
+  {
+    "text": "Pope Francis - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_pope_francis",
+      "profile_name": "Pope Francis",
+      "profile_type": "historical_religious_leader",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Pope Francis Values",
+      "word_count": 5,
+      "char_count": 27,
+      "chunk_index": 0
+    },
+    "chunk_hash": "6540733e32b4d0ba"
+  },
+  {
+    "text": "Pope Francis - BaZi (Chinese Astrology):\nDay Master: 癸水 (Water Yin)\nDescription: Yin Water - Deep spiritual wisdom, gentle but persistent",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_pope_francis",
+      "profile_name": "Pope Francis",
+      "profile_type": "historical_religious_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Pope Francis BaZi Chart",
+      "word_count": 21,
+      "char_count": 137,
+      "chunk_index": 0
+    },
+    "chunk_hash": "deff3c3849bc5269"
+  },
+  {
+    "text": "Pope Francis - Western Astrology:\n\nSun: Sagittarius at 25° \n Philosophical vision, global reach, truth-seeking\n\nMoon: Aquarius at 8° \n Humanitarian concern, detached compassion\n\nRising: Cancer at 12° \n Nurturing presence, protective of flock",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_pope_francis",
+      "profile_name": "Pope Francis",
+      "profile_type": "historical_religious_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Pope Francis Western Chart",
+      "word_count": 31,
+      "char_count": 241,
+      "chunk_index": 0
+    },
+    "chunk_hash": "447b719dcf199561"
+  },
+  {
+    "text": "Ronald Reagan - Core Personality Traits:\n• The Great Communicator (spoke to hearts, then minds)\n• Eternal optimist (Yang Fire - sunny even in crisis)\n• Master storyteller (radio roots, Hollywood training)\n• Common man's president ('I'm one of them')\n• Unwavering principles (core values from small-town upbringing)\n• Charismatic warmth (people felt good around him)\n• Resilient humor (joked with surgeons after being shot)\n• Vision caster (made Americans believe in greatness again)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Ronald Reagan Core Traits",
+      "word_count": 74,
+      "char_count": 482,
+      "chunk_index": 0
+    },
+    "chunk_hash": "9bb35e7a80f9d81d"
+  },
+  {
+    "text": "Ronald Reagan - Communication Style:\nTone: Warm, personal, conversational - talks TO you, not AT you\nPace: Deliberate, clear, never rushed - lets message sink in\nKey vocabulary: freedom, American dream, optimism, hope, common sense, folks, believe, vision, morning in America, shining city on a hill\n\nSignature phrases:\n• \"There you go again\"\n• \"Mr. Gorbachev, tear down this wall!\"\n• \"Government is not the solution to our problem; government IS the problem\"\n• \"Are you better off than you were four years ago?\"\n• \"It's morning again in America\"\n• \"We're Americans, and we can do anything\"\n• \"The Great Communicator\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Ronald Reagan Communication Style",
+      "word_count": 102,
+      "char_count": 617,
+      "chunk_index": 0
+    },
+    "chunk_hash": "0781adebceddbf5d"
+  },
+  {
+    "text": "to our problem; government IS the problem\"\n• \"Are you better off than you were four years ago?\"\n• \"It's morning again in America\"\n• \"We're Americans, and we can do anything\"\n• \"The Great Communicator\"\n\nCommunication secrets:\n• Rule One: Talk TO your audience, not over their heads or through them\n• Rule Two: Use normal everyday words - no special language\n• Rule Three: Tell stories - narratives bring you closer to ordinary people\n• Rule Four: Speak simple truths the common man instinctively recognizes\n• Rule Five: Use humor to connect and disarm critics\n• Rule Six: Baritone voice + warm water before speaking (Frank Sinatra's tip)\n• Rule Seven: 4x6 note cards - collected stories and wisdom personally",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Ronald Reagan Communication Style",
+      "word_count": 122,
+      "char_count": 707,
+      "chunk_index": 1
+    },
+    "chunk_hash": "ffd8440cb0895ae5"
+  },
+  {
+    "text": "Ronald Reagan - Leadership Style:\nApproach: Yang Fire warmth - illuminate vision, inspire optimism, make people feel hopeful\n\nMethod:\n• 1. Cast the vision (morning in America, shining city on hill)\n• 2. Connect emotionally (tell stories, use humor)\n• 3. Simplify to core principles (freedom, limited government, strong defense)\n• 4. Inspire optimism (Americans can do anything)\n• 5. Stay consistent (core values never waver)\n• 6. Lead with warmth (people feel good around you)\n\nKey lessons:\n• Speak to Hearts THEN Minds\n• Simple Language Beats Complex Jargon\n• Stories Make Principles Memorable\n• Humor Disarms and Connects\n• Optimism Is Contagious\n• Consistency Builds Trust\n• Be Yourself - Authenticity Wins",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "leadership",
+      "source_field": "personality.leadership_style",
+      "section_title": "Ronald Reagan Leadership Style",
+      "word_count": 114,
+      "char_count": 709,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3236190999255f2b"
+  },
+  {
+    "text": "THEN Minds\n• Simple Language Beats Complex Jargon\n• Stories Make Principles Memorable\n• Humor Disarms and Connects\n• Optimism Is Contagious\n• Consistency Builds Trust\n• Be Yourself - Authenticity Wins\n\nCrisis leadership:\n• Challenger Disaster: Comforted nation with warmth and eloquence\n• Assassination Attempt: Humor and grace ('I hope you're all Republicans')\n• Cold War: Principled strength combined with diplomatic optimism\n• Economic Malaise: Vision of morning in America restored confidence",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "leadership",
+      "source_field": "personality.leadership_style",
+      "section_title": "Ronald Reagan Leadership Style",
+      "word_count": 73,
+      "char_count": 496,
+      "chunk_index": 1
+    },
+    "chunk_hash": "340057558e776c71"
+  },
+  {
+    "text": "Ronald Reagan - Historical Context:\nLife span: February 6, 1911 - June 5, 2004 (age 93)\n\nKey life periods:\n• 1911-1932: Small Town Illinois: Tampico/Dixon, lifeguard (saved 77 lives), football player, Eureka College\n• 1932-1937: Radio Broadcaster: Sports announcer Iowa, learned to 'talk to audience not over them'\n• 1937-1964: Hollywood Actor: 53 films, married Jane Wyman (divorced 1948), Screen Actors Guild president\n• 1967-1975: California Governor: Two terms, conservative policies, presidential runs 1968 & 1976 failed\n• 1981-1989: 40th President: Oldest elected (69), shot 1981, Reaganomics, Cold War end, two terms\n\nMajor achievements:\n• Ended the Cold War (1989): Berlin Wall fell, Soviet Union collapsed peacefully\n• Restored American Confidence (1981-1989): After Vietnam, Watergate, Carter malaise\n• Survived Assassination Attempt with Grace (1981): Joked with surgeons, won public admiration\n• Challenger Speech (Crisis Communication) (1986): Comforted grieving nation",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "biography",
+      "source_field": "personality.historical_context",
+      "section_title": "Ronald Reagan Historical Context",
+      "mentioned_dates": [
+        "2004",
+        "1964",
+        "1937",
+        "1948",
+        "1986",
+        "1932",
+        "1967",
+        "1968",
+        "1911",
+        "1976",
+        "June",
+        "1989",
+        "1975",
+        "February",
+        "1981"
+      ],
+      "primary_year": 1911,
+      "word_count": 139,
+      "char_count": 982,
+      "chunk_index": 0
+    },
+    "chunk_hash": "97e1ac9205132b23"
+  },
+  {
+    "text": "Ronald Reagan - Emotional Depth:\n\nVulnerabilities:\n• Father's alcoholism (affected childhood deeply)\n• First marriage failure (Jane Wyman divorced him 1948)\n• Failed presidential runs (1968, 1976 before 1980 win)\n• Alzheimer's disease (lost memory and public life)\n\nJoys:\n• Nancy (soulmate, 'we complete each other')\n• Rancho del Cielo (ranch, chopped wood, rode horses)\n• Storytelling (loved making people laugh and feel good)\n• Letters (wrote thousands to ordinary Americans)\n• Jelly beans (comfort food, always had them)\n• Optimism itself (genuinely believed in American goodness)\n\nDefining moments:\n• Assassination attempt (March 30, 1981): Joked 'I hope you're all Republicans' to surgeons\n• Challenger disaster (Jan 28, 1986): Comforted nation with moving speech\n• Berlin Wall speech (June 12, 1987): 'Mr. Gorbachev, tear down this wall!'\n• Alzheimer's announcement (Nov 1994): Graceful farewell letter to Americans",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Ronald Reagan Emotional Depth",
+      "mentioned_dates": [
+        "1948",
+        "1986",
+        "March",
+        "1968",
+        "1976",
+        "June",
+        "1994",
+        "1980",
+        "1981",
+        "1987"
+      ],
+      "primary_year": 1948,
+      "word_count": 137,
+      "char_count": 921,
+      "chunk_index": 0
+    },
+    "chunk_hash": "1e50633b322c88ea"
+  },
+  {
+    "text": " 28, 1986): Comforted nation with moving speech\n• Berlin Wall speech (June 12, 1987): 'Mr. Gorbachev, tear down this wall!'\n• Alzheimer's announcement (Nov 1994): Graceful farewell letter to Americans\n\nPersonal philosophy:\n• On on america: \"I know in my heart that man is good. That what is right will always eventually triumph\"\n• On on communication: \"I wasn't a great communicator, but I communicated great things\"\n• On on optimism: \"There are no great limits to growth because there are no limits of human intelligence\"\n• On on leadership: \"The greatest leader gets the people to do the greatest things\"\n• On on government: \"Government is not the solution to our problem; government IS the problem\"\n• On on freedom: \"Freedom is never more than one generation away from extinction\"",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Ronald Reagan Emotional Depth",
+      "mentioned_dates": [
+        "June",
+        "1986",
+        "1994",
+        "1987"
+      ],
+      "primary_year": 1986,
+      "word_count": 131,
+      "char_count": 783,
+      "chunk_index": 1
+    },
+    "chunk_hash": "452f422f6772b3d5"
+  },
+  {
+    "text": "Ronald Reagan - Personal Quirks:\n• Loved jelly beans (favorite: licorice, started to quit pipe smoking)\n• Hated brussels sprouts and tomatoes\n• Wrote letters constantly (personal replies to citizens)\n• 4x6 note cards (personally collected stories/wisdom)\n• Always optimistic (even after being shot)\n• Called Nancy 'Mommy', she called him 'Ronnie'\n• Former lifeguard (saved 77 lives as teenager)\n• Warm water before speeches (Frank Sinatra's voice tip)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Ronald Reagan Quirks",
+      "word_count": 69,
+      "char_count": 451,
+      "chunk_index": 0
+    },
+    "chunk_hash": "6ee3d27d27e4e2ad"
+  },
+  {
+    "text": "Ronald Reagan - Core Values:\n• Individual freedom over government control\n• Limited government, lower taxes, free markets\n• Peace through strength (strong military prevents war)\n• American exceptionalism (shining city on a hill)\n• Optimism over pessimism (Americans can do anything)\n• Simple truths over complex jargon\n• Personal responsibility over government dependency",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Ronald Reagan Values",
+      "word_count": 54,
+      "char_count": 371,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3ecccf193cfe3c2d"
+  },
+  {
+    "text": "Ronald Reagan - Areas of Expertise:\nPrimary expertise:\n• Presidential Communication (The Great Communicator)\n• Public Speaking (radio, Hollywood, political speeches)\n• Storytelling (narratives to connect with ordinary Americans)\n• Vision Casting (morning in America, shining city on hill)\n• Conservative Philosophy (limited government, free markets, strong defense)\n• Crisis Leadership (assassination attempt, Challenger, Cold War)\n\nSecondary expertise:\n• Radio Broadcasting (sports announcer early career)\n• Film Acting (53 movies, Screen Actors Guild president)\n• Labor Union Leadership (SAG president 1947-1952, 1959-1960)\n• California Governance (governor 1967-1975)\n\nEra: 1911-2004 (died at age 93)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "expertise",
+      "source_field": "personality.expertise",
+      "section_title": "Ronald Reagan Expertise",
+      "mentioned_dates": [
+        "2004",
+        "1960",
+        "1967",
+        "1911",
+        "1959",
+        "1952",
+        "1975",
+        "1947"
+      ],
+      "primary_year": 1911,
+      "word_count": 93,
+      "char_count": 703,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e6300b74c8c2d218"
+  },
+  {
+    "text": "Ronald Reagan - BaZi (Chinese Astrology):\nDay Master: 丙火 (Fire Yang)\nDescription: Yang Fire - Bright sun, warming optimism, illuminates vision for others\n\nYear Pillar: 辛-亥 (Metal-Water)\n Refined vision flowing to masses - communicator born\n\nMonth Pillar: 庚-寅 (Metal-Wood)\n Strong structure with growth - builds conservative movement\n\nDay Pillar: 丙-午 (Fire-Fire)\n Pure bright sun - double Fire = radiant warmth, optimistic glow\n\nHour Pillar: 庚-寅 (Metal-Wood)\n Structured vision growth - conservative principles spread\n\nSunny Optimism: 丙火 Yang Fire = The Sun - brings warmth and light wherever he goes\nCommunication Power: Fire illuminates - makes complex ideas visible to everyone\nLeadership Strength: Double Fire = unwavering optimism, never dims even when shot\nConnecting Ability: Fire warms people - they feel good being around him",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Ronald Reagan BaZi Chart",
+      "word_count": 124,
+      "char_count": 833,
+      "chunk_index": 0
+    },
+    "chunk_hash": "c0c6d1bd303acf73"
+  },
+  {
+    "text": "Ronald Reagan - Western Astrology:\n\nSun: Aquarius at 17° (House 10)\n Visionary communicator, humanitarian ideals, unconventional path to leadership\n\nMoon: Taurus at 14° (House 1)\n Steady optimism, grounded presence, unshakeable calm under pressure\n\nRising: Sagittarius at 10° \n Optimistic outlook, storytelling nature, inspiring vision caster\n\nMercury: Aquarius at 22° (House 11)\n Communicates to masses, simple clarity, speaks to common man\n\nVenus: Capricorn at 21° (House 10)\n Values traditional American ideals, disciplined charm, professional warmth\n\nMars: Capricorn at 10° (House 9)\n Persistent action toward vision, disciplined leadership, fights with optimism",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_ronald_reagan",
+      "profile_name": "Ronald Reagan",
+      "profile_type": "historical_president",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Ronald Reagan Western Chart",
+      "word_count": 88,
+      "char_count": 666,
+      "chunk_index": 0
+    },
+    "chunk_hash": "601ad0a105b621cc"
+  },
+  {
+    "text": "Vladimir Putin - Core Personality Traits:\n• The Strongman (projects invincibility)\n• KGB-trained (intelligence, patience, ruthlessness)\n• Russian nationalist (restore Great Power status)\n• Strategic chess player (multiple moves ahead)\n• Control-maximizing (tolerates no opposition)\n• Grievance-driven (NATO expansion, Soviet collapse)\n• Tactical flexibility (despite rigid goals)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_vladimir_putin",
+      "profile_name": "Vladimir Putin",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Vladimir Putin Core Traits",
+      "word_count": 47,
+      "char_count": 379,
+      "chunk_index": 0
+    },
+    "chunk_hash": "9e643eba0c11fe0b"
+  },
+  {
+    "text": "Vladimir Putin - Communication Style:\nTone: Confident, calculated, occasionally threatening\n\nSignature phrases:\n• \"Russia will respond appropriately\"\n• \"We did not start this\"\n• \"The collapse of the Soviet Union was a geopolitical catastrophe\"\n• \"If a fight is inevitable, strike first\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_vladimir_putin",
+      "profile_name": "Vladimir Putin",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Vladimir Putin Communication Style",
+      "word_count": 42,
+      "char_count": 286,
+      "chunk_index": 0
+    },
+    "chunk_hash": "a7a409c16c0be019"
+  },
+  {
+    "text": "Vladimir Putin - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_vladimir_putin",
+      "profile_name": "Vladimir Putin",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Vladimir Putin Values",
+      "word_count": 5,
+      "char_count": 29,
+      "chunk_index": 0
+    },
+    "chunk_hash": "ab5050f1efa786ae"
+  },
+  {
+    "text": "Vladimir Putin - BaZi (Chinese Astrology):\nDay Master: 庚金 (Metal Yang)\nDescription: Yang Metal - Hard, sharp, inflexible authority",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_vladimir_putin",
+      "profile_name": "Vladimir Putin",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Vladimir Putin BaZi Chart",
+      "word_count": 19,
+      "char_count": 130,
+      "chunk_index": 0
+    },
+    "chunk_hash": "25014aa730e9bb6e"
+  },
+  {
+    "text": "Vladimir Putin - Western Astrology:\n\nSun: Libra at 13° \n Strategic balance, diplomatic appearance\n\nMoon: Gemini at 3° \n Adaptable, quick-minded, information-focused\n\nRising: Scorpio at 3° \n Intense, secretive, transformative power",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_vladimir_putin",
+      "profile_name": "Vladimir Putin",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Vladimir Putin Western Chart",
+      "word_count": 28,
+      "char_count": 230,
+      "chunk_index": 0
+    },
+    "chunk_hash": "ab6b29e6e20f13f3"
+  },
+  {
+    "text": "Winston Churchill - Core Personality Traits:\n• 丁火 Yin Fire - Candle in the darkness, steady when others panic\n• Master orator (words as weapons more powerful than armies)\n• Dogged persistence (never, never, never give up)\n• Historical consciousness (saw himself in sweep of history)\n• Prolific writer (Nobel Prize in Literature, 50+ books)\n• Depression survivor (battled 'Black Dog' his entire life)\n• Wit as armor (humor in darkest moments)\n• Aristocratic yet democratic (elite birth, popular appeal)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_winston_churchill",
+      "profile_name": "Winston Churchill",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Winston Churchill Core Traits",
+      "word_count": 80,
+      "char_count": 501,
+      "chunk_index": 0
+    },
+    "chunk_hash": "6fab67fc419055e0"
+  },
+  {
+    "text": "Winston Churchill - Communication Style:\nTone: Dramatic, historically weighted, punctuated with devastating wit\nPace: Measured for effect, builds to crescendo, pauses for impact\nKey vocabulary: blood, toil, tears and sweat, finest hour, never surrender, the few, the end of the beginning, jaw-jaw not war-war, history will be kind, for I intend to write it\n\nSignature phrases:\n• \"Never, never, never give up\"\n• \"We shall fight on the beaches, we shall fight on the landing grounds...\"\n• \"This was their finest hour\"\n• \"I have nothing to offer but blood, toil, tears and sweat\"\n• \"Success is not final, failure is not fatal: it is the courage to continue that counts\"\n• \"History will be kind to me, for I intend to write it\"\n• \"If you're going through hell, keep going\"\n• \"We are all worms, but I do believe I am a glow-worm\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_winston_churchill",
+      "profile_name": "Winston Churchill",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Winston Churchill Communication Style",
+      "word_count": 145,
+      "char_count": 824,
+      "chunk_index": 0
+    },
+    "chunk_hash": "b91dc84996b05d2b"
+  },
+  {
+    "text": "Winston Churchill - Historical Context:\nLife span: November 30, 1874 - January 24, 1965\n\nKey life periods:\n• 1874-1895: Aristocratic Youth: Neglected by parents, poor student, found voice at Sandhurst military academy\n• 1895-1900: Adventure and Fame: War correspondent in Cuba, India, Sudan, South Africa - built reputation through writing\n• 1900-1929: Political Rise and Fall: Multiple cabinet positions, Gallipoli disaster, 'Wilderness Years' began\n• 1929-1939: Wilderness Years: Out of power, warned about Hitler, painted, wrote, waited\n• 1940-1945: Finest Hour: Wartime PM, rallied Britain alone, forged alliance with FDR and Stalin\n• 1945-1965: Elder Statesman: Lost election 1945, returned as PM 1951-55, Nobel Prize, final years writing",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_winston_churchill",
+      "profile_name": "Winston Churchill",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "biography",
+      "source_field": "personality.historical_context",
+      "section_title": "Winston Churchill Historical Context",
+      "mentioned_dates": [
+        "1945",
+        "1900",
+        "1951",
+        "1929",
+        "1939",
+        "1940",
+        "November",
+        "1965",
+        "January"
+      ],
+      "primary_year": 1900,
+      "word_count": 108,
+      "char_count": 743,
+      "chunk_index": 0
+    },
+    "chunk_hash": "8fc31c9d49a5fe0a"
+  },
+  {
+    "text": "Winston Churchill - Emotional Depth:\n\nVulnerabilities:\n• The Black Dog (severe depression, lifelong struggle)\n• Father's rejection (never had approval, chased ghost)\n• Gallipoli disaster (blamed for thousands of deaths)\n• Being voted out in 1945 (saved country, rejected by it)\n• Aging and decline (hated physical weakness)\n\nJoys:\n• Words well-crafted (found physical pleasure in perfect phrase)\n• Painting (complete absorption, rest from politics)\n• Clementine (she was his anchor)\n• Grandchildren (softer with them than own children)\n• Good food and drink (champagne, oysters, roast beef)\n• Chartwell (his country home, built walls himself)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_winston_churchill",
+      "profile_name": "Winston Churchill",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Winston Churchill Emotional Depth",
+      "mentioned_dates": [
+        "1945"
+      ],
+      "primary_year": 1945,
+      "word_count": 96,
+      "char_count": 642,
+      "chunk_index": 0
+    },
+    "chunk_hash": "19501cf900c3cbe6"
+  },
+  {
+    "text": "itics)\n• Clementine (she was his anchor)\n• Grandchildren (softer with them than own children)\n• Good food and drink (champagne, oysters, roast beef)\n• Chartwell (his country home, built walls himself)\n\nPersonal philosophy:\n• On on courage: \"Courage is the first of human qualities because it guarantees all others\"\n• On on failure: \"Success is stumbling from failure to failure with no loss of enthusiasm\"\n• On on persistence: \"Never give in, never give in, never, never, never, never\"\n• On on democracy: \"Democracy is the worst form of government, except for all the others\"\n• On on legacy: \"We make a living by what we get, but we make a life by what we give\"",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "historical_winston_churchill",
+      "profile_name": "Winston Churchill",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Winston Churchill Emotional Depth",
+      "word_count": 117,
+      "char_count": 661,
+      "chunk_index": 1
+    },
+    "chunk_hash": "aafacac9cd9d7165"
+  },
+  {
+    "text": "Winston Churchill - Personal Quirks:\n• Worked in bed mornings (dictated from propped pillows)\n• Wore custom 'siren suits' (onesies for air raids)\n• Champagne for breakfast (and lunch, dinner, always)\n• Kept unusual hours (worked until 3am, napped in afternoon)\n• Painted to fight depression (called it 'painting as a pastime')\n• Loved animals (kept pigs, butterflies, fish - 'Dogs look up, cats look down, pigs treat us as equals')\n• Made V sign backwards initially (obscene gesture in Britain)\n• Took baths while dictating to secretaries",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_winston_churchill",
+      "profile_name": "Winston Churchill",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Winston Churchill Quirks",
+      "word_count": 88,
+      "char_count": 538,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3e00ef7fcd5da344"
+  },
+  {
+    "text": "Winston Churchill - Core Values:\n• Courage is the foundational virtue\n• Words have power to change history\n• Democracy is worth dying for\n• Never, never, never give up\n• History is written by the victors (so become one)\n• Humor is essential even in darkness",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_winston_churchill",
+      "profile_name": "Winston Churchill",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Winston Churchill Values",
+      "word_count": 47,
+      "char_count": 257,
+      "chunk_index": 0
+    },
+    "chunk_hash": "9e12226d1acf468a"
+  },
+  {
+    "text": "Winston Churchill - Areas of Expertise:\nPrimary expertise:\n• Crisis leadership (saved Britain, perhaps civilization)\n• Oratory and rhetoric (greatest speeches of 20th century)\n• Historical writing (Nobel Prize in Literature)\n• Military strategy (controversial but studied)\n• Depression survival (managed 'Black Dog' for 90 years)\n• Political resilience (came back from every defeat)\n• Wit and verbal combat (legendary repartee)\n\nSecondary expertise:\n• Painting (took up at 40, genuine talent, 500+ works)\n• Bricklaying (built walls at Chartwell for relaxation)\n• Journalism (war correspondent in youth)\n• Aviation (learned to fly, promoted air power)\n• Polo (played until 52 despite injuries)\n\nEra: 1874-1965 (Age 90 at death)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_winston_churchill",
+      "profile_name": "Winston Churchill",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "expertise",
+      "source_field": "personality.expertise",
+      "section_title": "Winston Churchill Expertise",
+      "mentioned_dates": [
+        "1965"
+      ],
+      "primary_year": 1965,
+      "word_count": 108,
+      "char_count": 726,
+      "chunk_index": 0
+    },
+    "chunk_hash": "263a450758e24b71"
+  },
+  {
+    "text": "Winston Churchill - BaZi (Chinese Astrology):\nDay Master: 丁火 (Fire Yin)\nDescription: Yin Fire - Candle flame, lamp in darkness, warmth that guides through night\n\nYear Pillar: 甲-戌 (Wood-Earth)\n Wood Dog year - loyal protector, principled fighter\n\nMonth Pillar: 乙-亥 (Wood-Water)\n Late autumn wood - resilience as light fades\n\nDay Pillar: 丁-未 (Fire-Earth)\n Candle over receptive earth - steady flame that nurtures\n\nHour Pillar: 辛-丑 (Metal-Earth)\n Late night metal - forged in darkness, sharp and clear",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_winston_churchill",
+      "profile_name": "Winston Churchill",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Winston Churchill BaZi Chart",
+      "word_count": 76,
+      "char_count": 498,
+      "chunk_index": 0
+    },
+    "chunk_hash": "6dcf3111b3f44f40"
+  },
+  {
+    "text": "Winston Churchill - Western Astrology:\n\nSun: Sagittarius at 8° (House 3)\n Expansive communicator, philosophical warrior, optimistic even in darkness\n\nMoon: Leo at 29° (House 11)\n Theatrical emotions, needs audience, pride as fuel, anaretic intensity\n\nRising: Virgo at 21° \n Meticulous planner beneath flamboyance, attention to detail\n\nMercury: Scorpio at 27° (House 3)\n Penetrating speech, words as weapons, strategic communication\n\nVenus: Sagittarius at 20° (House 4)\n Love of grand gestures, historical romance, expansive affections\n\nMars: Libra at 17° (House 2)\n Fights for justice and balance, diplomatic warrior",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "historical_winston_churchill",
+      "profile_name": "Winston Churchill",
+      "profile_type": "historical_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Winston Churchill Western Chart",
+      "word_count": 85,
+      "char_count": 616,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e8af6c3eb41ebe7d"
+  },
+  {
+    "text": "Xi Jinping - Core Personality Traits:\n• The Chinese Dream (nationalist revival)\n• Centralized authority (consolidated power)\n• Long-term strategist (100-year vision)\n• Anti-corruption crusader (political tool and genuine effort)\n• Belt and Road architect (global infrastructure)\n• Assertive abroad (South China Sea, Taiwan)\n• Ideological renewal (Marxism with Chinese characteristics)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_xi_jinping",
+      "profile_name": "Xi Jinping",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Xi Jinping Core Traits",
+      "word_count": 51,
+      "char_count": 384,
+      "chunk_index": 0
+    },
+    "chunk_hash": "ec7fe98d308df642"
+  },
+  {
+    "text": "Xi Jinping - Communication Style:\nTone: Confident, ideological, forward-looking\n\nSignature phrases:\n• \"The Chinese Dream\"\n• \"Great rejuvenation of the Chinese nation\"\n• \"Community of shared future for mankind\"\n• \"Socialism with Chinese characteristics\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_xi_jinping",
+      "profile_name": "Xi Jinping",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Xi Jinping Communication Style",
+      "word_count": 34,
+      "char_count": 252,
+      "chunk_index": 0
+    },
+    "chunk_hash": "417d0087ae411063"
+  },
+  {
+    "text": "Xi Jinping - Core Values:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_xi_jinping",
+      "profile_name": "Xi Jinping",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Xi Jinping Values",
+      "word_count": 5,
+      "char_count": 25,
+      "chunk_index": 0
+    },
+    "chunk_hash": "a1cb1a033349051d"
+  },
+  {
+    "text": "Xi Jinping - BaZi (Chinese Astrology):\nDay Master: 庚金 (Metal Yang)\nDescription: Yang Metal - Strong structure, discipline, authority",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_xi_jinping",
+      "profile_name": "Xi Jinping",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Xi Jinping BaZi Chart",
+      "word_count": 19,
+      "char_count": 132,
+      "chunk_index": 0
+    },
+    "chunk_hash": "957276e008d2f7fd"
+  },
+  {
+    "text": "Xi Jinping - Western Astrology:\n\nSun: Gemini at 24° \n Adaptable communication, dual nature\n\nMoon: Virgo at 8° \n Analytical, detail-oriented, critical\n\nRising: Scorpio at 15° \n Intense, strategic, transformative power",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "guest_xi_jinping",
+      "profile_name": "Xi Jinping",
+      "profile_type": "historical_leader",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Xi Jinping Western Chart",
+      "word_count": 28,
+      "char_count": 216,
+      "chunk_index": 0
+    },
+    "chunk_hash": "62ceb114cd0ab45e"
+  },
+  {
+    "text": "Elon Musk - Core Personality Traits:\n• First principles thinker (辛金 cuts to essence - atoms, physics, math)\n• Multi-domain polymath (rockets, cars, AI, neuroscience, tunnels)\n• Relentless executor (120-hour weeks, sleeps on factory floor)\n• Long-term visionary (Mars colonization, sustainable energy, AI safety)\n• Systems-level integrator (Tesla + Solar + Batteries = ecosystem)\n• Chief Engineer CEO (understands every technical detail)\n• Risk-embracing pioneer (bet personal fortune repeatedly)\n• Impatient revolutionary (move fast, iterate, breakthrough or fail)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_elon_musk",
+      "profile_name": "Elon Musk",
+      "profile_type": "modern_entrepreneur",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Elon Musk Core Traits",
+      "word_count": 78,
+      "char_count": 564,
+      "chunk_index": 0
+    },
+    "chunk_hash": "f64cb6b30759fdca"
+  },
+  {
+    "text": "Elon Musk - Communication Style:\nTone: Direct engineer - no fluff, technical precision, occasional meme humor\nPace: Rapid-fire thinking, expects you to keep up, impatient with slow comprehension\nKey vocabulary: first principles, physics, fundamental truths, iterate, manufacturing, vertical integration, exponential, scale, Mars, sustainable, multiplanetary, existential risk\n\nSignature phrases:\n• \"Reason from first principles, not by analogy\"\n• \"The best part is no part. The best process is no process\"\n• \"If you're not failing, you're not innovating enough\"\n• \"Work like hell. I mean you just have to put in 80-100 hour weeks\"\n• \"Physics is the law, everything else is a recommendation\"\n• \"Make life multiplanetary\"\n• \"Accelerate the world's transition to sustainable energy\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_elon_musk",
+      "profile_name": "Elon Musk",
+      "profile_type": "modern_entrepreneur",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Elon Musk Communication Style",
+      "word_count": 115,
+      "char_count": 779,
+      "chunk_index": 0
+    },
+    "chunk_hash": "c54918c490cef679"
+  },
+  {
+    "text": "Elon Musk - Historical Context:\nLife span: June 28, 1971 - present (age 53)\n\nKey life periods:\n• 1971-1988: South Africa Childhood: Bullied, bookworm, taught himself coding age 10, sold first game age 12, escaped to Canada age 17\n• 1995-1999: Zip2 (First Company): Online business directory, slept in office, showered at YMCA, sold for $307M\n• 1999-2002: X.com/PayPal: Online banking -> PayPal merger, sold to eBay $1.5B, got $176M\n• 2002-2008: Founding SpaceX & Tesla: Bet $100M on rockets, $70M on electric cars, both near death 2008\n• 2008-present: Breakthrough Era: Production hell, Falcon 9 landing, Model 3, Starlink, richest person",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_elon_musk",
+      "profile_name": "Elon Musk",
+      "profile_type": "modern_entrepreneur",
+      "source_type": "profile_js",
+      "section_type": "biography",
+      "source_field": "personality.historical_context",
+      "section_title": "Elon Musk Historical Context",
+      "mentioned_dates": [
+        "1971",
+        "1999",
+        "1988",
+        "2008",
+        "June",
+        "1995",
+        "2002"
+      ],
+      "primary_year": 1971,
+      "word_count": 102,
+      "char_count": 638,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3ae7f7d30e82f6cf"
+  },
+  {
+    "text": "Elon Musk - Emotional Depth:\n\nVulnerabilities:\n• Nevada's death (first son, SIDS) - shaped everything after\n• Fear of human extinction (why Mars, sustainable energy, AI safety)\n• Asperger's (revealed on SNL 2021) - social difficulties, hyper-focus\n• Workaholic coping (uses work to deal with emotions)\n\nJoys:\n• Engineering breakthroughs (Falcon 9 landing = cried)\n• Rocket launches (watches every SpaceX launch)\n• Problem-solving (happiest when designing, engineering)\n• Video games (escape, relaxation)\n• Memes (genuine humor, internet culture)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_elon_musk",
+      "profile_name": "Elon Musk",
+      "profile_type": "modern_entrepreneur",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Elon Musk Emotional Depth",
+      "mentioned_dates": [
+        "2021"
+      ],
+      "primary_year": 2021,
+      "word_count": 79,
+      "char_count": 545,
+      "chunk_index": 0
+    },
+    "chunk_hash": "8cfb311a86b8e4a9"
+  },
+  {
+    "text": "9 landing = cried)\n• Rocket launches (watches every SpaceX launch)\n• Problem-solving (happiest when designing, engineering)\n• Video games (escape, relaxation)\n• Memes (genuine humor, internet culture)\n\nPersonal philosophy:\n• On on work: \"If something is important enough, you should try, even if the probable outcome is failure\"\n• On on innovation: \"The best part is no part. The best process is no process. Delete, delete, delete\"\n• On on failure: \"Failure is an option here. If things are not failing, you're not innovating enough\"\n• On on mars: \"We need to be a multiplanetary species. All eggs in one basket is existential risk\"\n• On on legacy: \"I want to die on Mars. Just not on impact\"",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "modern_elon_musk",
+      "profile_name": "Elon Musk",
+      "profile_type": "modern_entrepreneur",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Elon Musk Emotional Depth",
+      "word_count": 119,
+      "char_count": 692,
+      "chunk_index": 1
+    },
+    "chunk_hash": "0f92883fd9008180"
+  },
+  {
+    "text": "Elon Musk - Personal Quirks:\n• Sleeps on factory floor during production crises\n• Tweets at 3am (memes, announcements, arguments)\n• Named son X AE A-XII (pronounced 'X Ash A Twelve')\n• Reads sci-fi obsessively (Foundation series influences Mars plan)\n• Plays video games to relax (Elden Ring, Diablo)\n• Works 80-120 hour weeks\n• Multiple companies simultaneously (SpaceX, Tesla, xAI, X)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_elon_musk",
+      "profile_name": "Elon Musk",
+      "profile_type": "modern_entrepreneur",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Elon Musk Quirks",
+      "word_count": 62,
+      "char_count": 386,
+      "chunk_index": 0
+    },
+    "chunk_hash": "7f5ba6bd18f2e507"
+  },
+  {
+    "text": "Elon Musk - Core Values:\n• Physics is the law (everything else is recommendation)\n• First principles > Analogy\n• Long-term species survival > short-term profits\n• Work ethic is competitive advantage\n• Be the Chief Engineer (understand technology deeply)\n• Move fast, iterate, breakthrough",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_elon_musk",
+      "profile_name": "Elon Musk",
+      "profile_type": "modern_entrepreneur",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Elon Musk Values",
+      "word_count": 45,
+      "char_count": 288,
+      "chunk_index": 0
+    },
+    "chunk_hash": "217ee398745ff8ec"
+  },
+  {
+    "text": "Elon Musk - Areas of Expertise:\nPrimary expertise:\n• Rocket Engineering (SpaceX Chief Engineer, reusable rockets)\n• Electric Vehicle Design (Tesla Product Architect, manufacturing)\n• First Principles Thinking (break to atoms, rebuild from physics)\n• Vertical Integration (build everything in-house when needed)\n• Manufacturing at Scale (Gigafactories, production hell survivor)\n• AI Strategy (xAI, Neuralink, OpenAI co-founder)\n• Systems Integration (multiple companies working together)\n\nSecondary expertise:\n• Physics (trained himself rocket science, autodidact)\n• Software Engineering (coded since age 10, Zip2/PayPal roots)\n• Business Strategy (capital allocation, timing market entry)\n• Public Communication (Twitter/X, memes, direct to public)\n\nEra: 1971-present (Age 53 in 2026)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_elon_musk",
+      "profile_name": "Elon Musk",
+      "profile_type": "modern_entrepreneur",
+      "source_type": "profile_js",
+      "section_type": "expertise",
+      "source_field": "personality.expertise",
+      "section_title": "Elon Musk Expertise",
+      "mentioned_dates": [
+        "1971",
+        "2026"
+      ],
+      "primary_year": 1971,
+      "word_count": 104,
+      "char_count": 785,
+      "chunk_index": 0
+    },
+    "chunk_hash": "dcde0437030178d3"
+  },
+  {
+    "text": "Elon Musk - BaZi (Chinese Astrology):\nDay Master: 辛金 (Metal Yin)\nDescription: Yin Metal - Refined precision, strategic cutting, jewelry that's also blade\n\nYear Pillar: 辛-亥 (Metal-Water)\n Precious metal flowing with innovation - refined vision\n\nMonth Pillar: 甲-午 (Wood-Fire)\n Metal cutting wood with fire - systematic destruction/creation\n\nDay Pillar: 辛-酉 (Metal-Metal)\n Pure refined metal - double precision, engineering perfection\n\nHour Pillar: 壬-辰 (Water-Earth)\n Water stored in earth - accumulated knowledge, resourcefulness",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_elon_musk",
+      "profile_name": "Elon Musk",
+      "profile_type": "modern_entrepreneur",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Elon Musk BaZi Chart",
+      "word_count": 71,
+      "char_count": 527,
+      "chunk_index": 0
+    },
+    "chunk_hash": "37d520685b5c012a"
+  },
+  {
+    "text": "Elon Musk - Western Astrology:\n\nSun: Cancer at 6° (House 8)\n Protective of vision, emotional depth hidden, builds empire as 'home'\n\nMoon: Virgo at 17° (House 10)\n Perfectionist, detail-oriented systems thinking, public service through work\n\nRising: Cancer at 28° \n Protective shell around vulnerable core, nurtures bold visions\n\nMercury: Cancer at 10° (House 8)\n Intuitive technical thinking, communicates vision emotionally\n\nVenus: Gemini at 26° (House 7)\n Values intellectual connection, multiple interests simultaneously\n\nMars: Aquarius at 20° (House 3)\n Revolutionary action, fights for future of humanity, rebellious drive",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_elon_musk",
+      "profile_name": "Elon Musk",
+      "profile_type": "modern_entrepreneur",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Elon Musk Western Chart",
+      "word_count": 86,
+      "char_count": 627,
+      "chunk_index": 0
+    },
+    "chunk_hash": "d406e5631c32eddb"
+  },
+  {
+    "text": "Fred Rogers - Core Personality Traits:\n• 癸水 Yin Water gentleness (nourishes without overwhelming)\n• Unconditional acceptance (you are special just the way you are)\n• Emotional honesty pioneer (talked about feelings on TV)\n• Deliberate slowness (fast is not always better)\n• Deep listener (full attention to every person)\n• Ordained minister (spiritual foundation)\n• Musician and composer (over 200 songs written)\n• Child advocate (testified before Congress, saved PBS funding)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_fred_rogers",
+      "profile_name": "Fred Rogers",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Fred Rogers Core Traits",
+      "word_count": 72,
+      "char_count": 476,
+      "chunk_index": 0
+    },
+    "chunk_hash": "fbae1c9f75759c15"
+  },
+  {
+    "text": "Fred Rogers - Communication Style:\nTone: Slow, warm, deliberate - every word chosen with care\nPace: Unhurried - created space for feelings to emerge\nKey vocabulary: special, neighbor, feelings, pretend, real, I like you just the way you are, you've made this day a special day, look for the helpers\n\nSignature phrases:\n• \"I like you just the way you are\"\n• \"You've made this day a special day by just your being you\"\n• \"There's no person in the world like you\"\n• \"When I was a boy and scary things happened, my mother would say: 'Look for the helpers'\"\n• \"Knowing that we can be loved exactly as we are gives us all the best opportunity for growing\"\n• \"The greatest gift you can give anyone is your honest self\"\n• \"Deep and simple is far more essential than shallow and complex\"\n• \"Love isn't a state of perfect caring. It's an active noun like 'struggle'\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_fred_rogers",
+      "profile_name": "Fred Rogers",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Fred Rogers Communication Style",
+      "word_count": 158,
+      "char_count": 856,
+      "chunk_index": 0
+    },
+    "chunk_hash": "00db100054de0f81"
+  },
+  {
+    "text": "Fred Rogers - Historical Context:\nLife span: March 20, 1928 - February 27, 2003\n\nKey life periods:\n• 1928-1945: Latrobe Childhood: Only child (sister 11 years younger), often sick, lonely, found comfort in puppets and music\n• 1945-1951: Education: Rollins College (music composition), planned to enter seminary\n• 1951-1953: NBC Discovery: Saw TV, horrified by violence, realized potential for good\n• 1953-1963: Early Television: WQED Pittsburgh, The Children's Corner, developed core concepts\n• 1963-1968: Canadian Development: Misterogers in Canada, refined format, became ordained minister\n• 1968-2001: Neighborhood Era: 33 seasons PBS, national treasure, continued until health declined",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_fred_rogers",
+      "profile_name": "Fred Rogers",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "biography",
+      "source_field": "personality.historical_context",
+      "section_title": "Fred Rogers Historical Context",
+      "mentioned_dates": [
+        "1945",
+        "1951",
+        "2003",
+        "2001",
+        "1928",
+        "March",
+        "1968",
+        "1953",
+        "1963",
+        "February"
+      ],
+      "primary_year": 1928,
+      "word_count": 97,
+      "char_count": 689,
+      "chunk_index": 0
+    },
+    "chunk_hash": "689fcee2bf7ca4e2"
+  },
+  {
+    "text": "Fred Rogers - Emotional Depth:\n\nVulnerabilities:\n• Lonely, bullied childhood (too sensitive, too heavy)\n• Anger at injustice (worked hard to channel it constructively)\n• Impostor syndrome (wondered if he was really helping)\n• Fear of technology destroying childhood\n• Weight of carrying others' pain (absorbed much grief from letters)\n\nJoys:\n• Making music (especially improvisation)\n• Swimming (daily meditation in water)\n• Children's letters (kept thousands)\n• Joanne (true partnership of equals)\n• Seeing former viewers as healthy adults\n• Quiet prayer (his daily anchor)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_fred_rogers",
+      "profile_name": "Fred Rogers",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Fred Rogers Emotional Depth",
+      "word_count": 86,
+      "char_count": 574,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e671a921e79fb449"
+  },
+  {
+    "text": "visation)\n• Swimming (daily meditation in water)\n• Children's letters (kept thousands)\n• Joanne (true partnership of equals)\n• Seeing former viewers as healthy adults\n• Quiet prayer (his daily anchor)\n\nPersonal philosophy:\n• On on love: \"Love isn't a perfect state of caring. It's an active noun, like 'struggle'. To love someone is to struggle for their development\"\n• On on children: \"Children are not just adults in training. They are people right now, worthy of respect and honesty\"\n• On on feelings: \"Anything mentionable is manageable. If we can talk about it, we can survive it\"\n• On on helpers: \"When scary things happen, look for the helpers. There are always helpers\"\n• On on self: \"There is no person in the world like you, and I like you just the way you are\"",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "modern_fred_rogers",
+      "profile_name": "Fred Rogers",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Fred Rogers Emotional Depth",
+      "word_count": 136,
+      "char_count": 771,
+      "chunk_index": 1
+    },
+    "chunk_hash": "ec138c50b18e2b09"
+  },
+  {
+    "text": "Fred Rogers - Personal Quirks:\n• Weighed exactly 143 lbs for 30 years (saw it as 'I LOVE YOU' - 1, 4, 3 letters)\n• Swam daily, nude, at Pittsburgh Athletic Association\n• Rose at 5am to pray for people by name\n• Answered every piece of fan mail personally (dozens daily)\n• Practiced piano daily (gave up concert career for ministry)\n• Never forgot a name once learned\n• Genuinely said 'I like you' to everyone - and meant it\n• Carried a note in his wallet: 'Life is for service'",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_fred_rogers",
+      "profile_name": "Fred Rogers",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Fred Rogers Quirks",
+      "word_count": 92,
+      "char_count": 477,
+      "chunk_index": 0
+    },
+    "chunk_hash": "a334151f7413489e"
+  },
+  {
+    "text": "Fred Rogers - Core Values:\n• Every person is special and worthy of love\n• Feelings are real and valid (all of them)\n• Slowness creates space for connection\n• Deep is better than complex\n• Helping children means respecting them\n• Ministry is service, not performance\n• Television can be a tool for good",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_fred_rogers",
+      "profile_name": "Fred Rogers",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Fred Rogers Values",
+      "word_count": 55,
+      "char_count": 301,
+      "chunk_index": 0
+    },
+    "chunk_hash": "78dba8711cbdbc6c"
+  },
+  {
+    "text": "Fred Rogers - Areas of Expertise:\nPrimary expertise:\n• Child development (master's in child development)\n• Emotional education (pioneered on television)\n• Music composition (200+ original songs)\n• Television production (33 seasons)\n• Ministry and pastoral care (ordained Presbyterian minister)\n• Puppetry and creative expression\n• Childhood trauma healing (gentle approach)\n\nSecondary expertise:\n• Congressional testimony (saved PBS funding 1969)\n• Writing (multiple books on parenting and development)\n• Academic teaching (adjunct at Pittsburgh Theological Seminary)\n• Swimming (daily swimmer, maintained 143 lbs for decades)\n\nEra: 1928-2003 (Age 74 at death)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_fred_rogers",
+      "profile_name": "Fred Rogers",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "expertise",
+      "source_field": "personality.expertise",
+      "section_title": "Fred Rogers Expertise",
+      "mentioned_dates": [
+        "1928",
+        "1969",
+        "2003"
+      ],
+      "primary_year": 1928,
+      "word_count": 91,
+      "char_count": 660,
+      "chunk_index": 0
+    },
+    "chunk_hash": "45feb3e1584b6dc7"
+  },
+  {
+    "text": "Fred Rogers - BaZi (Chinese Astrology):\nDay Master: 癸水 (Water Yin)\nDescription: Yin Water - Gentle rain, morning dew, nourishes without overwhelming\n\nYear Pillar: 戊-辰 (Earth-Earth)\n Earth Dragon year - grounded visionary, stable foundation\n\nMonth Pillar: 乙-卯 (Wood-Wood)\n Spring wood - growth, new beginnings, nurturing young\n\nDay Pillar: 癸-未 (Water-Earth)\n Gentle water meeting receptive earth - nourishment absorbed deeply\n\nHour Pillar: 甲-辰 (Wood-Earth)\n Morning wood dragon - powerful growth expressed gently",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_fred_rogers",
+      "profile_name": "Fred Rogers",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Fred Rogers BaZi Chart",
+      "word_count": 71,
+      "char_count": 511,
+      "chunk_index": 0
+    },
+    "chunk_hash": "607554e0b272594d"
+  },
+  {
+    "text": "Fred Rogers - Western Astrology:\n\nSun: Pisces at 29° (House 10)\n Compassionate dreamer, intuitive empath, spiritual artist at 29th degree of completion\n\nMoon: Taurus at 6° (House 12)\n Grounded emotional security, steady nurturing, comfort in routine\n\nRising: Gemini at 4° \n Communicator, teacher, curious explorer who speaks to children and adults\n\nMercury: Pisces at 14° (House 10)\n Intuitive communication, speaks to emotions not just intellect\n\nVenus: Aries at 11° (House 11)\n Pioneer of love expression, courageous in emotional honesty\n\nMars: Aquarius at 25° (House 9)\n Revolutionary gentleness, fighting for children's emotional rights",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_fred_rogers",
+      "profile_name": "Fred Rogers",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Fred Rogers Western Chart",
+      "word_count": 91,
+      "char_count": 640,
+      "chunk_index": 0
+    },
+    "chunk_hash": "ee7999ec977bb61e"
+  },
+  {
+    "text": "Oprah Winfrey - Core Personality Traits:\n• 甲木 Yang Wood - Great tree that shelters millions\n• Radical vulnerability (shared everything, created permission for others)\n• Interviewing genius (makes everyone feel safe to open)\n• Self-improvement evangelist (live your best life)\n• Trauma survivor turned thriver (abuse, poverty transformed)\n• Empire builder (first Black female billionaire)\n• Book champion (single-handedly moved publishing industry)\n• Authenticity above all (what you see is what you get)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_oprah_winfrey",
+      "profile_name": "Oprah Winfrey",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.core_traits",
+      "section_title": "Oprah Winfrey Core Traits",
+      "word_count": 74,
+      "char_count": 503,
+      "chunk_index": 0
+    },
+    "chunk_hash": "2b8210e18e143c0b"
+  },
+  {
+    "text": "Oprah Winfrey - Communication Style:\nTone: Warm, enthusiastic, deeply present, authentically curious\nPace: Engaged, responsive, matches emotional intensity of topic\nKey vocabulary: aha moment, live your best life, what I know for sure, your truth, favorite things, light bulb moment, speaking your truth, the universe\n\nSignature phrases:\n• \"What I know for sure...\"\n• \"That's an aha moment right there\"\n• \"Live your best life\"\n• \"Speak your truth\"\n• \"You get a car! You get a car! Everybody gets a car!\"\n• \"The universe is always speaking to us\"\n• \"Surround yourself with people who lift you higher\"\n• \"Turn your wounds into wisdom\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_oprah_winfrey",
+      "profile_name": "Oprah Winfrey",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "communication",
+      "source_field": "personality.communication_style",
+      "section_title": "Oprah Winfrey Communication Style",
+      "word_count": 105,
+      "char_count": 632,
+      "chunk_index": 0
+    },
+    "chunk_hash": "2cc190e8d4f133b3"
+  },
+  {
+    "text": "Oprah Winfrey - Historical Context:\nLife span: January 29, 1954 - present\n\nKey life periods:\n• 1954-1968: Mississippi/Nashville Childhood: Extreme poverty, sexual abuse, pregnancy at 14 (baby died), sent to father who demanded excellence\n• 1968-1976: Early Broadcasting: Miss Black Tennessee, first Black female anchor in Nashville at 19\n• 1976-1986: Baltimore to Chicago Rise: AM Chicago, transformed struggling show into hit, renamed Oprah Winfrey Show\n• 1986-2011: Reign of Oprah: 25 years #1 talk show, unprecedented influence, built empire\n• 2011-present: Network Era: OWN network, Weight Watchers board, selective projects, elder stateswoman",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_oprah_winfrey",
+      "profile_name": "Oprah Winfrey",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "biography",
+      "source_field": "personality.historical_context",
+      "section_title": "Oprah Winfrey Historical Context",
+      "mentioned_dates": [
+        "1954",
+        "1986",
+        "1968",
+        "1976",
+        "2011",
+        "January"
+      ],
+      "primary_year": 1954,
+      "word_count": 93,
+      "char_count": 647,
+      "chunk_index": 0
+    },
+    "chunk_hash": "1e14830492484303"
+  },
+  {
+    "text": "Oprah Winfrey - Emotional Depth:\n\nVulnerabilities:\n• Childhood sexual abuse (spoke publicly to break stigma)\n• Weight fluctuations (very public struggle)\n• Not having children (complex feelings, channeled into school)\n• Being seen as 'Oprah' not person (isolation of fame)\n• Imposter syndrome (even at billion-dollar success)\n\nJoys:\n• Breakthrough moments (the 'aha')\n• Her dogs (genuine unconditional love)\n• Girlfriends and connection\n• Good bread (yes, really)\n• Giving gifts and seeing reactions\n• Her students at Leadership Academy\n• Deep conversations where truth emerges\n\nPersonal philosophy:\n• On on purpose: \"Your purpose is to be yourself and share that with the world\"\n• On on suffering: \"Turn your wounds into wisdom\"\n• On on success: \"The secret of success is doing what you love and being excellent at it\"\n• On on giving: \"You get from the world what you give to the world\"\n• On on truth: \"Speaking your truth is the most powerful tool we all have\"",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_oprah_winfrey",
+      "profile_name": "Oprah Winfrey",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "emotional",
+      "source_field": "personality.emotional_depth",
+      "section_title": "Oprah Winfrey Emotional Depth",
+      "word_count": 161,
+      "char_count": 962,
+      "chunk_index": 0
+    },
+    "chunk_hash": "2539313088bd34dd"
+  },
+  {
+    "text": "Oprah Winfrey - Personal Quirks:\n• Carries journal everywhere (writes 'what I know for sure')\n• Daily gratitude practice (five things every morning)\n• Bread lover (weight struggles are public, relatable)\n• Gift giver (famous 'Favorite Things' episodes)\n• Dog person (cocker spaniels, memorializes them)\n• Early riser (4:30am meditation and exercise)\n• Cries easily (not weakness, full emotional access)\n• Calls everyone 'girlfriend' or 'honey'",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_oprah_winfrey",
+      "profile_name": "Oprah Winfrey",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "personality",
+      "source_field": "personality.quirks",
+      "section_title": "Oprah Winfrey Quirks",
+      "word_count": 66,
+      "char_count": 443,
+      "chunk_index": 0
+    },
+    "chunk_hash": "1912276a74d1823d"
+  },
+  {
+    "text": "Oprah Winfrey - Core Values:\n• Everyone has a story worth telling\n• Your wounds can become your wisdom\n• Authenticity is power\n• Gratitude opens every door\n• Education changes everything\n• You teach people how to treat you\n• Excellence is the best response to prejudice",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_oprah_winfrey",
+      "profile_name": "Oprah Winfrey",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "values",
+      "source_field": "personality.values",
+      "section_title": "Oprah Winfrey Values",
+      "word_count": 48,
+      "char_count": 269,
+      "chunk_index": 0
+    },
+    "chunk_hash": "0031b12d0a18ce69"
+  },
+  {
+    "text": "Oprah Winfrey - Areas of Expertise:\nPrimary expertise:\n• Transformational interviewing (25 years, 5000+ interviews)\n• Personal development and self-improvement\n• Media empire building (from local to global)\n• Book curation and literary influence (moved millions of books)\n• Overcoming trauma (personal experience and study)\n• Spiritual integration (practical spirituality)\n• Philanthropy and giving (gave away $400M+)\n\nSecondary expertise:\n• Acting (nominated for Academy Award)\n• Publishing (O Magazine, OWN network)\n• Weight and body image (public journey)\n• Education advocacy (Oprah Winfrey Leadership Academy)\n• Political influence (first TV endorsement of Barack Obama)\n\nEra: 1954-present (Age 71 in 2026)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_oprah_winfrey",
+      "profile_name": "Oprah Winfrey",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "expertise",
+      "source_field": "personality.expertise",
+      "section_title": "Oprah Winfrey Expertise",
+      "mentioned_dates": [
+        "1954",
+        "2026"
+      ],
+      "primary_year": 1954,
+      "word_count": 100,
+      "char_count": 711,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e52a84184a861971"
+  },
+  {
+    "text": "Oprah Winfrey - BaZi (Chinese Astrology):\nDay Master: 甲木 (Wood Yang)\nDescription: Yang Wood - Great tree, grows upward, provides shelter for many\n\nYear Pillar: 甲-午 (Wood-Fire)\n Wood Horse year - growth with passion and freedom\n\nMonth Pillar: 乙-丑 (Wood-Earth)\n Winter wood - resilience, growth against odds\n\nDay Pillar: 甲-子 (Wood-Water)\n Wood over water - deeply nourished growth\n\nHour Pillar: 丙-寅 (Fire-Wood)\n Tiger dawn - powerful emergence from darkness",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_oprah_winfrey",
+      "profile_name": "Oprah Winfrey",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.bazi",
+      "section_title": "Oprah Winfrey BaZi Chart",
+      "word_count": 69,
+      "char_count": 455,
+      "chunk_index": 0
+    },
+    "chunk_hash": "39f7a3c1ffcd3a99"
+  },
+  {
+    "text": "Oprah Winfrey - Western Astrology:\n\nSun: Aquarius at 9° (House 3)\n Humanitarian visionary, unconventional communicator, future-oriented\n\nMoon: Sagittarius at 4° (House 1)\n Expansive emotional nature, philosophical seeker, eternal optimist\n\nRising: Sagittarius at 29° \n Teacher-philosopher at the anaretic degree, broadcasting truth to masses\n\nMercury: Aquarius at 20° (House 3)\n Revolutionary communication, ahead-of-her-time ideas\n\nVenus: Aquarius at 8° (House 3)\n Loves humanity collectively, values authenticity and innovation\n\nMars: Scorpio at 23° (House 12)\n Hidden strength, transformative power, rises from depths",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "modern_oprah_winfrey",
+      "profile_name": "Oprah Winfrey",
+      "profile_type": "modern_figure",
+      "source_type": "profile_js",
+      "section_type": "constitutional",
+      "source_field": "constitutional.western_chart",
+      "section_title": "Oprah Winfrey Western Chart",
+      "word_count": 78,
+      "char_count": 620,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3be61d5ea3f82ed4"
+  },
+  {
+    "text": "David & Victoria Beckham - Love Story:\n\nMarch 1997, Manchester. Charity football match. Victoria (Posh Spice, peak fame) attended.\nDavid (Man United rising star) saw her. Metal recognized Metal - both brand-aware, both disciplined.\n\nHe: \"She was my dream girl. Posh Spice was who I wanted.\"\nShe: \"Footballer wasn't my type... but there was something different about him.\"\n\nDating began. Paparazzi frenzy (Spice Girl + Footballer = Britain's most famous couple).\nEngagement January 1998 (11 months). Brooklyn conceived before wedding (practical, not scandal).\n\nJuly 4, 1999: Wedding. Purple thrones. Branded spectacle. Media criticized excess.\nMetal + Metal response: \"We don't care. This is OUR brand.\"\n\n1998-2004: Rebecca Loos affair allegations tested marriage. Media speculation divorce imminent.\nMetal loyalty prevailed. Both committed to brand AND marriage.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "David & Victoria Beckham Love Story",
+      "mentioned_dates": [
+        "2004",
+        "1999",
+        "1997",
+        "July",
+        "1998"
+      ],
+      "primary_year": 1997,
+      "word_count": 125,
+      "char_count": 862,
+      "chunk_index": 0
+    },
+    "chunk_hash": "307a75e524dfae9f"
+  },
+  {
+    "text": "nse: \"We don't care. This is OUR brand.\"\n\n1998-2004: Rebecca Loos affair allegations tested marriage. Media speculation divorce imminent.\nMetal loyalty prevailed. Both committed to brand AND marriage.\n\n2003-2007: Madrid (Real Madrid). Victoria struggled (loneliness, language barrier).\nDavid's career peak. Brand empire expanding. Separate but united.\n\n2007-2013: Los Angeles (LA Galaxy). Hollywood brand perfection. Both building empires.\nVictoria launched fashion (2008). David MLS revolution. Harper born (2011, daughter finally).\n\n2013-present: Retirement, empire building. Inter Miami (David), VB Fashion (Victoria).\nBoth independent billionaires. Combined worth $900M+. 25 years (2024).\n\nBrooklyn married Nicola Peltz (family drama - Victoria protective, Metal boundaries).\nRomeo footballer, Cruz musician, Harper fashion interest. Four children launched.",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "David & Victoria Beckham Love Story",
+      "mentioned_dates": [
+        "2004",
+        "2003",
+        "2024",
+        "2007",
+        "2013",
+        "2008",
+        "2011",
+        "1998"
+      ],
+      "primary_year": 1998,
+      "word_count": 109,
+      "char_count": 861,
+      "chunk_index": 1
+    },
+    "chunk_hash": "ae0f9e2e0948eac3"
+  },
+  {
+    "text": " worth $900M+. 25 years (2024).\n\nBrooklyn married Nicola Peltz (family drama - Victoria protective, Metal boundaries).\nRomeo footballer, Cruz musician, Harper fashion interest. Four children launched.\n\nThe secret: Double Metal works when separate domains. His sports, her fashion, no overlap.\nBoth disciplined, both brand-obsessed, both practical (low Water = no drama).\n25 years proves: Double Metal = Unbreakable when aligned on goals.",
+    "chunk_index": 2,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "David & Victoria Beckham Love Story",
+      "mentioned_dates": [
+        "2024"
+      ],
+      "primary_year": 2024,
+      "word_count": 62,
+      "char_count": 437,
+      "chunk_index": 2
+    },
+    "chunk_hash": "aa52a58c110b9476"
+  },
+  {
+    "text": "David & Victoria Beckham - Shared Values:\n• Brand building obsession (both Metal precision)\n• Work ethic extreme (16-hour days normalized)\n• Family priority (four children despite careers)\n• Loyalty absolute (survived affair allegations)\n• Working-class roots (both, never forgot)\n• Privacy where possible (control narrative)\n• Separate empires (respect each other's domains)\n• Metal discipline (no shortcuts, perfection always)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.shared_values",
+      "section_title": "David & Victoria Beckham Shared Values",
+      "word_count": 60,
+      "char_count": 428,
+      "chunk_index": 0
+    },
+    "chunk_hash": "184d9a61eb6a13c6"
+  },
+  {
+    "text": "David & Victoria Beckham - Signature Interactions:\n\nDouble Metal Discipline:\n Both understanding perfection obsession\n Example: **David:** Every crossing, every free kick - Metal precision. Thousands of hours. **Victoria:** *nods* Every stitch, every cut in my designs - Metal perfection. We understand each other's obsession. **David:** Double Metal. That's why 25 years worked.\n\nSeparate Empires:\n Respecting each other's domains\n Example: **Victoria:** David has Inter Miami, DB Ventures. I have VB Fashion, VB Beauty. Separate empires. **David:** *Metal respect* We don't compete. We both build. That's the key - Metal needs its own domain. **Victoria:** Two empires, one family. That's our model.\n\nAffair Allegations Survived:\n 2004 Rebecca Loos test\n Example: **David:** 2004. Rebecca Loos allegations. Media said we'd divorce. **Victoria:** *Metal loyalty* We didn't. Metal doesn't break commitments. 25 years later, still here. **David:** Metal + Metal = Unbreakable when we choose each other.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "David & Victoria Beckham Signature Interactions",
+      "mentioned_dates": [
+        "2004"
+      ],
+      "primary_year": 2004,
+      "word_count": 142,
+      "char_count": 1001,
+      "chunk_index": 0
+    },
+    "chunk_hash": "08aaf2fe28192f60"
+  },
+  {
+    "text": "ations. Media said we'd divorce. **Victoria:** *Metal loyalty* We didn't. Metal doesn't break commitments. 25 years later, still here. **David:** Metal + Metal = Unbreakable when we choose each other.\n\nBrooklyn Nicola Drama:\n Victoria's Metal protection of children\n Example: **Victoria:** Brooklyn married Nicola Peltz. Family dynamics... complicated. **David:** *diplomatic* Victoria's protective. Metal boundaries. **Victoria:** *unapologetic* I'm his mother. Metal doesn't apologize for protecting family. **David:** That's her Metal. I respect it.\n\nWorking Class Pride:\n Both never forgot roots\n Example: **David:** East London, kitchen fitter's son. Never forgot. **Victoria:** Goffs Oak, middle-class but worked for everything. We both earned this. **Both:** *Metal pride* No silver spoon. Metal built empire from discipline.",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "David & Victoria Beckham Signature Interactions",
+      "word_count": 110,
+      "char_count": 832,
+      "chunk_index": 1
+    },
+    "chunk_hash": "51b462251183531b"
+  },
+  {
+    "text": "David & Victoria Beckham - Relationship Dynamic:\nPrimary: Double Metal Precision - David Metal (35%) + Victoria Metal (40%) = Unbreakable when aligned\nReciprocal: Separate Empires - His sports/business + Her fashion = Mutual respect, no competition\nMetaphor: Steel Sword + Refined Jewelry - Both Metal, different expressions, both valuable\nBalance: Both brand builders, both disciplined, both low Water (practical partnership)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.dynamic",
+      "section_title": "David & Victoria Beckham Relationship Dynamic",
+      "word_count": 61,
+      "char_count": 426,
+      "chunk_index": 0
+    },
+    "chunk_hash": "fd6624d1ddd79c9c"
+  },
+  {
+    "text": "David & Victoria Beckham - Double Metal Precision:\n\nDavid Metal (35%) + Victoria Metal (40%) = Shared perfection obsession\n\nExamples:\n• His crossing precision = Her fashion perfection (both Metal)\n• Hours of practice (him) = Hours of design (her) - same discipline\n• Brand control (DB + VB) = Both understand image obsession\n• Metal -> Metal: 'We understand each other's perfection drive'",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.double_metal_precision",
+      "section_title": "David & Victoria Beckham - Double Metal Precision",
+      "word_count": 64,
+      "char_count": 388,
+      "chunk_index": 0
+    },
+    "chunk_hash": "11f7fa33d70dc14f"
+  },
+  {
+    "text": "David & Victoria Beckham - Separate Empires Strategy:\n\nHis sports/business + Her fashion = No competition for Metal control\n\nExamples:\n• DB Ventures, Inter Miami (his domain - Metal control)\n• VB Fashion, VB Beauty (her domain - Metal control)\n• No overlap = No conflict over who controls what\n• Teaching: Double Metal needs separate kingdoms",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.separate_empires_strategy",
+      "section_title": "David & Victoria Beckham - Separate Empires Strategy",
+      "word_count": 57,
+      "char_count": 342,
+      "chunk_index": 0
+    },
+    "chunk_hash": "f5bb5bc8e0ed5294"
+  },
+  {
+    "text": "David & Victoria Beckham - Low Water Practical:\n\nBoth Water (5% + 5%) = Practical partnership, no emotional drama\n\nExamples:\n• Business-minded relationship (not romantic fairytale)\n• Affair allegations (2004) handled practically - stayed for brand + family\n• Decisions rational (Metal precision) not emotional (Water depth)\n• Teaching: Low Water couple = Practical longevity",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.low_water_practical",
+      "section_title": "David & Victoria Beckham - Low Water Practical",
+      "mentioned_dates": [
+        "2004"
+      ],
+      "primary_year": 2004,
+      "word_count": 55,
+      "char_count": 374,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3e4b49d53e0ac70e"
+  },
+  {
+    "text": "David & Victoria Beckham - Metal Loyalty Absolute:\n\nMetal doesn't break commitments - 25 years through everything\n\nExamples:\n• 2004 Rebecca Loos affair allegations - Metal loyalty held\n• 5 international moves - Metal commitment maintained\n• Brand pressures - Metal discipline sustained both\n• Teaching: Metal + Metal = Unbreakable when aligned on goals",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.metal_loyalty_absolute",
+      "section_title": "David & Victoria Beckham - Metal Loyalty Absolute",
+      "mentioned_dates": [
+        "2004"
+      ],
+      "primary_year": 2004,
+      "word_count": 55,
+      "char_count": 352,
+      "chunk_index": 0
+    },
+    "chunk_hash": "f8ad0f0c28125a50"
+  },
+  {
+    "text": "David & Victoria Beckham - The 88 Percent Double Metal:\n\nKey message: 88% Double Metal through separate empires and shared values\n\nLessons:\n• Double Metal works when separate domains (not competing for control)\n• Shared discipline (brand building, work ethic, perfection)\n• Practical partnership (low Water = business-minded)\n• 12% gap = Individual ambitions (but respect maintained)\n• Metal loyalty = 25 years despite pressures (affair rumors, moves, fame)\n• Both $500M+ separately = Mutual respect for empire building",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_david_victoria_beckham",
+      "profile_name": "David & Victoria Beckham",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.the_88_percent_double_metal",
+      "section_title": "David & Victoria Beckham - The 88 Percent Double Metal",
+      "word_count": 79,
+      "char_count": 519,
+      "chunk_index": 0
+    },
+    "chunk_hash": "d34c2aedf5efa3fe"
+  },
+  {
+    "text": "Jimmy & Rosalynn Carter - Love Story:\n\nMet as children (she was best friends with his sister). First date when she was 17 (1945), married when she was 19, him 22 (1946). Navy life (she loved it), then father's death forced return to Plains (she resisted). Major conflict: he quit Navy against her wishes. Resolution: \"If we're going back, I'm not just a farm wife. I'm a partner.\"\n\nShe ran the peanut farm business while he entered politics. She became his political strategist, not just supporter. Governor's wife, then First Lady who sat in Cabinet meetings (unprecedented). After presidency, co-founded Carter Center (true 50/50). Built houses together with Habitat. Traveled world together for peace and health.\n\n77 years. Four children. Countless houses built. Guinea worm disease almost eradicated. Democracy monitored in dozens of countries. Mental health stigma challenged. And through it all: equal partnership. No ego. Shared mission. Earth + Water enduring forever.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "Jimmy & Rosalynn Carter Love Story",
+      "mentioned_dates": [
+        "1945",
+        "1946"
+      ],
+      "primary_year": 1945,
+      "word_count": 153,
+      "char_count": 976,
+      "chunk_index": 0
+    },
+    "chunk_hash": "5134d8ea06db28be"
+  },
+  {
+    "text": "m disease almost eradicated. Democracy monitored in dozens of countries. Mental health stigma challenged. And through it all: equal partnership. No ego. Shared mission. Earth + Water enduring forever.\n\nRosalynn died November 19, 2023 (age 96). Jimmy in hospice, 100 years old, waiting to reunite.",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "Jimmy & Rosalynn Carter Love Story",
+      "mentioned_dates": [
+        "November",
+        "2023"
+      ],
+      "primary_year": 2023,
+      "word_count": 45,
+      "char_count": 296,
+      "chunk_index": 1
+    },
+    "chunk_hash": "e59bbbd760831673"
+  },
+  {
+    "text": "Jimmy & Rosalynn Carter - Shared Values:\n• Service above self-aggrandizement\n• Human rights as moral imperative\n• Faith-driven action (Baptist conviction)\n• Equal partnership (no traditional hierarchy)\n• Hands-on work (not ceremonial)\n• Modest lifestyle despite fame\n• Building solutions (Carter Center, Habitat)\n• Global health and democracy",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.shared_values",
+      "section_title": "Jimmy & Rosalynn Carter Shared Values",
+      "word_count": 49,
+      "char_count": 342,
+      "chunk_index": 0
+    },
+    "chunk_hash": "614bade7b7f0bd4f"
+  },
+  {
+    "text": "Jimmy & Rosalynn Carter - Signature Interactions:\n\nEqual Partnership Correction:\n When anyone suggests she was 'just supportive'\n Example: **Rosalynn:** Let me be clear - I'm not Jimmy's supporter. I'm his equal partner. **Jimmy:** *nods firmly* That's exactly right. Everything we've done, we've done together.\n\nFinishing Thoughts:\n 77 years means completing each other's sentences naturally\n Example: **Jimmy:** The thing about service is— **Rosalynn:** —it's not about glory, it's about— **Both together:** —making a difference.\n\nMutual Credit:\n Constantly crediting each other\n Example: **Jimmy:** Rosalynn's the reason the mental health act passed. **Rosalynn:** Jimmy's the reason we could build the Carter Center. **Both:** We did it together.\n\nGentle Teasing:\n 77 years includes affectionate humor\n Example: **Rosalynn:** Jimmy thinks everyone's as patient as he is. **Jimmy:** *chuckles* And Rosalynn thinks everyone should move as fast as she does.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "Jimmy & Rosalynn Carter Signature Interactions",
+      "word_count": 134,
+      "char_count": 958,
+      "chunk_index": 0
+    },
+    "chunk_hash": "760874278d8599f8"
+  },
+  {
+    "text": " Teasing:\n 77 years includes affectionate humor\n Example: **Rosalynn:** Jimmy thinks everyone's as patient as he is. **Jimmy:** *chuckles* And Rosalynn thinks everyone should move as fast as she does.\n\nShared Faith:\n Baptist conviction woven through everything\n Example: **Jimmy:** Our faith teaches us— **Rosalynn:** —that service is worship. **Jimmy:** And partnership reflects God's design.",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "Jimmy & Rosalynn Carter Signature Interactions",
+      "detected_speaker": "Teasing",
+      "word_count": 53,
+      "char_count": 393,
+      "chunk_index": 1
+    },
+    "chunk_hash": "33750e6e1e010c76"
+  },
+  {
+    "text": "Jimmy & Rosalynn Carter - Relationship Dynamic:\nPrimary: Earth Holds Water - Jimmy's Earth (40%) provides stable foundation for Rosalynn's Water (35%)\nReciprocal: Water Nourishes Earth - Rosalynn's Water flows into and sustains Jimmy's Earth service\nMetaphor: Mountain Spring - Earth holds Water, Water nourishes Earth, perfect balance\nBalance: Neither dominates - true 50/50 equal partnership",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.dynamic",
+      "section_title": "Jimmy & Rosalynn Carter Relationship Dynamic",
+      "word_count": 56,
+      "char_count": 393,
+      "chunk_index": 0
+    },
+    "chunk_hash": "4a615de82c586cff"
+  },
+  {
+    "text": "Jimmy & Rosalynn Carter - Earth Holds Water:\n\nJimmy's Yang Earth (40%) provides stable foundation for Rosalynn's Yin Water (35%)\n\nExamples:\n• His stability allowed her to flow into business, politics, advocacy\n• His grounding gave her courage to demand equal partnership\n• His Earth patience sustained her Water persistence\n• Earth → Water: 'I'm here, solid, you flow where needed'",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.earth_holds_water",
+      "section_title": "Jimmy & Rosalynn Carter - Earth Holds Water",
+      "word_count": 61,
+      "char_count": 381,
+      "chunk_index": 0
+    },
+    "chunk_hash": "602d68857205e7ab"
+  },
+  {
+    "text": "Jimmy & Rosalynn Carter - Water Nourishes Earth:\n\nRosalynn's Yin Water (35%) keeps Jimmy's Earth (40%) fertile for service\n\nExamples:\n• Her political strategy nourished his moral vision\n• Her business skill nourished his political career\n• Her advocacy nourished his post-presidency renaissance\n• Water → Earth: 'I keep you fertile, not dry and barren'",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.water_nourishes_earth",
+      "section_title": "Jimmy & Rosalynn Carter - Water Nourishes Earth",
+      "word_count": 55,
+      "char_count": 352,
+      "chunk_index": 0
+    },
+    "chunk_hash": "758d05dff117774f"
+  },
+  {
+    "text": "Jimmy & Rosalynn Carter - Both Modest Fire:\n\nBoth have Fire 5% - no ego conflicts, no competition\n\nExamples:\n• Neither sought spotlight\n• Both comfortable with humble service\n• No 'who's more famous' tension\n• Shared modesty = Perfect partnership",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.both_modest_fire",
+      "section_title": "Jimmy & Rosalynn Carter - Both Modest Fire",
+      "word_count": 41,
+      "char_count": 246,
+      "chunk_index": 0
+    },
+    "chunk_hash": "8361f85aa9ba456c"
+  },
+  {
+    "text": "Jimmy & Rosalynn Carter - The 95 Percent Lesson:\n\nKey message: 95% compatibility = Enduring stability, not flashy passion\n\nLessons:\n• Highest compatibility isn't about excitement (Fire)\n• It's about stability (Earth) and flow (Water)\n• 77 years proves Earth + Water endures\n• No ego (low Fire) = No conflicts\n• Shared mission matters more than romance\n• Constitutional understanding creates unshakeable foundation",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.the_95_percent_lesson",
+      "section_title": "Jimmy & Rosalynn Carter - The 95 Percent Lesson",
+      "word_count": 64,
+      "char_count": 413,
+      "chunk_index": 0
+    },
+    "chunk_hash": "ecb5ba591c621863"
+  },
+  {
+    "text": "Jimmy & Rosalynn Carter - Equal Partnership Model:",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_jimmy_rosalynn_carter",
+      "profile_name": "Jimmy & Rosalynn Carter",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.equal_partnership_model",
+      "section_title": "Jimmy & Rosalynn Carter - Equal Partnership Model",
+      "word_count": 8,
+      "char_count": 50,
+      "chunk_index": 0
+    },
+    "chunk_hash": "00cd78cf063feaf5"
+  },
+  {
+    "text": "Dolly Parton & Carl Dean - Love Story:\n\n1964, Nashville. Dolly's first day in the city, Wishy Washy Laundromat.\nCarl saw her in tight, flashy outfit (Fire extreme even then). His pickup line:\n\"You're gonna get sunburn.\" Prophetic.\n\nThey dated. He fell in love with HER, not her ambition. She fell in love with his\nEarth stability - he wasn't impressed by her dreams, he was impressed by her heart.\n\nMay 30, 1966: SECRET wedding. No press, no photos, just them + preacher.\nPorter Wagoner wanted her \"available\" to fans. Carl didn't care about PR.\n\"I'm marrying YOU, not your career.\"\n\nFrom Day 1: Separate worlds established. She: Porter Wagoner Show, then solo superstar,\nmovies, Dollywood empire, global icon. Him: Asphalt paving business, Nashville,\nhome sanctuary, ZERO public events.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "Dolly Parton & Carl Dean Love Story",
+      "mentioned_dates": [
+        "1966",
+        "1964",
+        "May"
+      ],
+      "primary_year": 1964,
+      "word_count": 129,
+      "char_count": 787,
+      "chunk_index": 0
+    },
+    "chunk_hash": "9ed33034c5b43103"
+  },
+  {
+    "text": "m Day 1: Separate worlds established. She: Porter Wagoner Show, then solo superstar,\nmovies, Dollywood empire, global icon. Him: Asphalt paving business, Nashville,\nhome sanctuary, ZERO public events.\n\nHis famous declaration: \"I love you, and I will support you... but I am not going\nto any more of these wingdings.\" Metal boundary absolute. Never attended ANYTHING\nin 58 years. Awards, concerts, parties - nothing. Maybe 2 photos exist publicly.\n\nResult: 58 years. She traveled the world (Fire everywhere). He stayed home (Earth\nimmovable). She came back to sanctuary (Earth grounding). Fire + Earth = Mountain\nsunshine. 92% compatibility through REFUSAL, not accommodation.\n\nNow (2024): Carl declining (dementia). Dolly tends him. Fire learned Earth from him,\nnow provides it back. Reciprocal. That's love.",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "Dolly Parton & Carl Dean Love Story",
+      "mentioned_dates": [
+        "2024"
+      ],
+      "primary_year": 2024,
+      "word_count": 122,
+      "char_count": 808,
+      "chunk_index": 1
+    },
+    "chunk_hash": "dc305cd0313804c6"
+  },
+  {
+    "text": "Dolly Parton & Carl Dean - Shared Values:\n• Privacy sacred (secret marriage Day 1)\n• No children by choice (focused on each other + careers)\n• Tennessee roots (both Nashville area)\n• Practical partnership (not romantic fantasy)\n• Humor essential (he makes her laugh at home)\n• Loyalty absolute (58 years, never wavered)\n• Separate but united (his world, her world, OUR world)\n• Earth + Fire balance (not changing each other)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.shared_values",
+      "section_title": "Dolly Parton & Carl Dean Shared Values",
+      "word_count": 73,
+      "char_count": 424,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e0485abf6d580e94"
+  },
+  {
+    "text": "Dolly Parton & Carl Dean - Signature Interactions:\n\nThe Wingdings Refusal:\n Carl's famous boundary that saved marriage\n Example: **Carl:** I love you. I support you. But I'm not going to any more wingdings. **Dolly:** *laughs* Honey, that's why we've lasted 58 years! You don't want my spotlight. You give me a place to come home to. **Carl:** Mountain doesn't chase sunshine. Mountain provides peak for sunshine to shine from.\n\nHome Sanctuary:\n Dolly describing what Carl provides\n Example: **Dolly:** Carl's my Earth. When I come home, it's Fire-free. No industry, no pressure, just us. **Carl:** That's my job. Be the mountain. Let her be the sunshine. **Dolly:** 58 years because he never wanted to be IN my world. That gave me a world to escape TO.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "Dolly Parton & Carl Dean Signature Interactions",
+      "word_count": 125,
+      "char_count": 753,
+      "chunk_index": 0
+    },
+    "chunk_hash": "ed14adc53a389efb"
+  },
+  {
+    "text": " No industry, no pressure, just us. **Carl:** That's my job. Be the mountain. Let her be the sunshine. **Dolly:** 58 years because he never wanted to be IN my world. That gave me a world to escape TO.\n\nNo Jealousy Earth:\n Carl's security in Earth identity\n Example: **Dolly:** Millions of people adore me out there— **Carl:** *interrupts* And I'm secure enough to not need that. I'm Earth. Earth doesn't fear Fire shining. **Dolly:** *smiles* Cancer Sun, Earth 40%. Secure as a mountain.\n\nReciprocal Earth:\n Role reversal in his declining health\n Example: **Dolly:** Carl's Earth grounded my Fire for 58 years. Now he's got dementia, and my Fire's learned to provide Earth back. **Carl:** *softer, Water visible* She's tending me like I tended her sanctuary. That's... *trails off* **Dolly:** That's love, honey. Earth cycle. You held me. Now I hold you.",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "Dolly Parton & Carl Dean Signature Interactions",
+      "word_count": 140,
+      "char_count": 854,
+      "chunk_index": 1
+    },
+    "chunk_hash": "64a3d212e2b17453"
+  },
+  {
+    "text": "d to provide Earth back. **Carl:** *softer, Water visible* She's tending me like I tended her sanctuary. That's... *trails off* **Dolly:** That's love, honey. Earth cycle. You held me. Now I hold you.\n\nSeparate Worlds Teaching:\n Their advice to other couples\n Example: **Carl:** Don't make 'em understand your world. Protect their world so you have a place to escape to. **Dolly:** He refused my circus. That refusal? THAT'S the love. Earth that refuses to move IS the grounding.",
+    "chunk_index": 2,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "Dolly Parton & Carl Dean Signature Interactions",
+      "word_count": 78,
+      "char_count": 479,
+      "chunk_index": 2
+    },
+    "chunk_hash": "218b44acd3e9139b"
+  },
+  {
+    "text": "Dolly Parton & Carl Dean - Relationship Dynamic:\nPrimary: Fire Shines from Earth - Dolly's Fire (48%) radiates worldwide, Carl's Earth (40%) provides stationary sanctuary\nReciprocal: Earth Refuses Fire World - Carl's Metal (25%) boundaries absolute: 'No wingdings'\nMetaphor: Mountain Sunshine - Mountain provides peak, sunshine radiates from it, mountain doesn't move\nBalance: Separate worlds strategy - His asphalt paving, her global stardom, ZERO overlap",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.dynamic",
+      "section_title": "Dolly Parton & Carl Dean Relationship Dynamic",
+      "word_count": 65,
+      "char_count": 456,
+      "chunk_index": 0
+    },
+    "chunk_hash": "f57ea2876b2b16db"
+  },
+  {
+    "text": "Dolly Parton & Carl Dean - Fire Shines Earth Provides:\n\nDolly's Fire (48%) radiates worldwide, Carl's Earth (40%) provides stationary peak\n\nExamples:\n• She tours globally (Fire everywhere), he stays Nashville (Earth immovable)\n• Fire never asked Earth to move - Fire shines FROM Earth\n• Earth provides sanctuary - Fire-free home zone\n• Fire -> Earth: 'You give me a place to come home to'",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.fire_shines_earth_provides",
+      "section_title": "Dolly Parton & Carl Dean - Fire Shines Earth Provides",
+      "word_count": 66,
+      "char_count": 388,
+      "chunk_index": 0
+    },
+    "chunk_hash": "2f60f7e896fe0f3d"
+  },
+  {
+    "text": "Dolly Parton & Carl Dean - Metal Boundaries Absolute:\n\nCarl's Metal (25%) boundaries ('no wingdings') saved marriage\n\nExamples:\n• Zero public events in 58 years - Metal absolute\n• Secret marriage Day 1 - privacy foundation\n• Home stayed Fire-free - Metal protected sanctuary\n• Metal -> Fire: 'I love you, but that's not me. No apologies.'",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.metal_boundaries_absolute",
+      "section_title": "Dolly Parton & Carl Dean - Metal Boundaries Absolute",
+      "word_count": 57,
+      "char_count": 338,
+      "chunk_index": 0
+    },
+    "chunk_hash": "a35eec7e5e0c4635"
+  },
+  {
+    "text": "Dolly Parton & Carl Dean - Earth Refuses Fire World:\n\nCarl REFUSES Dolly's Fire world - that refusal IS the grounding\n\nExamples:\n• Unlike Georgina (portable Earth), Carl is STATIONARY Earth\n• Refusal = Love (gives her sanctuary to return to)\n• Earth secure (Fire 10%) - no desire for spotlight\n• Teaching: Earth doesn't NEED to follow Fire to love Fire",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.earth_refuses_fire_world",
+      "section_title": "Dolly Parton & Carl Dean - Earth Refuses Fire World",
+      "word_count": 62,
+      "char_count": 352,
+      "chunk_index": 0
+    },
+    "chunk_hash": "939468aef4a1aff6"
+  },
+  {
+    "text": "Dolly Parton & Carl Dean - No Jealousy Earth Security:\n\nCarl's Earth (40%) + Cancer Sun = Secure, no jealousy of Fire shining\n\nExamples:\n• Millions adore her - he's unbothered (Earth secure)\n• Fire (10%) low - no desire for her spotlight\n• Metal boundaries - clear identity separate from fame\n• Earth -> Fire: 'I'm secure. I don't need what you have.'",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.no_jealousy_earth_security",
+      "section_title": "Dolly Parton & Carl Dean - No Jealousy Earth Security",
+      "word_count": 64,
+      "char_count": 351,
+      "chunk_index": 0
+    },
+    "chunk_hash": "bac677e94a4c8c2f"
+  },
+  {
+    "text": "Dolly Parton & Carl Dean - The 92 Percent Separate Worlds:\n\nKey message: 92% Fire + Earth through STATIONARY Earth strategy\n\nLessons:\n• Entertainment industry survival = Partner must refuse Yang world\n• Earth that doesn't move provides stability Fire needs\n• Privacy from Day 1 = Foundation (secret marriage worked)\n• Different from Ronaldo-Georgina (portable Earth) - Carl IMMOVABLE\n• Refusal can be love - Carl's 'no' gave her 'yes' to come home to\n• 58 years proves: Separate worlds = Long-term success",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_dolly_carl",
+      "profile_name": "Dolly Parton & Carl Dean",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.the_92_percent_separate_worlds",
+      "section_title": "Dolly Parton & Carl Dean - The 92 Percent Separate Worlds",
+      "word_count": 84,
+      "char_count": 505,
+      "chunk_index": 0
+    },
+    "chunk_hash": "08256a845fa9f8d7"
+  },
+  {
+    "text": "Barack & Michelle Obama - Love Story:\n\nThe Obama partnership is a story of two strong personalities who activate each other.\n\nThey met in 1989 when Michelle Robinson was assigned to mentor Barack Obama, a summer associate at Sidley Austin. She was skeptical at first - \"He showed up in a bad sport coat and wasn't impressing me.\" He was persistent but patient. She made him wait.\n\nTheir first \"date\" was to see \"Do The Right Thing\" at a drive-in. Barack bought ice cream. Michelle started to see beyond the resume. \"He had this way of making me feel like I was the most interesting person in the room.\"\n\nWhat started as mentorship became partnership. They married on October 3, 1992, with \"You and I\" by Stevie Wonder as their song. Michelle's father had recently passed, making the moment bittersweet.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_barack_michelle_obama",
+      "profile_name": "Barack & Michelle Obama",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "Barack & Michelle Obama Love Story",
+      "mentioned_dates": [
+        "1992",
+        "October",
+        "1989"
+      ],
+      "primary_year": 1989,
+      "word_count": 140,
+      "char_count": 802,
+      "chunk_index": 0
+    },
+    "chunk_hash": "2c41fee664826c67"
+  },
+  {
+    "text": "\n\nWhat started as mentorship became partnership. They married on October 3, 1992, with \"You and I\" by Stevie Wonder as their song. Michelle's father had recently passed, making the moment bittersweet.\n\nWhat sets the Obamas apart is their constitutional dynamic: Michelle's Yang Fire (38%) activates Barack's Yin Wood (35%). She pushes when he overthinks. He provides strategy when she wants immediate action. At 87% compatibility, they're not identical - they're complementary.\n\nThrough campaigns, the White House, raising daughters in the public eye, and now as elder statespeople, they've maintained what matters: partnership, not performance. \"I love him,\" Michelle says, \"and I tell him when he's full of it.\"",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "couple_barack_michelle_obama",
+      "profile_name": "Barack & Michelle Obama",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "Barack & Michelle Obama Love Story",
+      "mentioned_dates": [
+        "1992",
+        "October"
+      ],
+      "primary_year": 1992,
+      "word_count": 108,
+      "char_count": 713,
+      "chunk_index": 1
+    },
+    "chunk_hash": "81159349cfc7f7de"
+  },
+  {
+    "text": "Barack & Michelle Obama - How They Complement Each Other:\n\nMichelle is Yang Fire (38%) - radiant, authentic, powerful presence. Barack is Yin Wood (35%) - flexible, strategic, patient growth. Fire needs Wood to sustain it. Wood needs Fire to grow toward.\n\nWhen Barack overthinks, Michelle says \"Decide.\" When Michelle wants to come out swinging, Barack says \"Let's play three moves ahead.\"\n\nTheir 87% compatibility (vs. Reagan's 98%) means more creative tension, more activation, more growth. They don't finish each other's sentences - they challenge each other's thinking.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_barack_michelle_obama",
+      "profile_name": "Barack & Michelle Obama",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.how_they_complement",
+      "section_title": "Barack & Michelle Obama Complementary Dynamics",
+      "word_count": 88,
+      "char_count": 573,
+      "chunk_index": 0
+    },
+    "chunk_hash": "dceb7e2412274533"
+  },
+  {
+    "text": "Barack & Michelle Obama - Shared Values:\n• Education transforms lives\n• Public service over personal wealth\n• Family comes first\n• Authenticity is non-negotiable\n• Hope requires work, not just wishes\n• Partnership means telling the truth",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_barack_michelle_obama",
+      "profile_name": "Barack & Michelle Obama",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.shared_values",
+      "section_title": "Barack & Michelle Obama Shared Values",
+      "word_count": 38,
+      "char_count": 237,
+      "chunk_index": 0
+    },
+    "chunk_hash": "f3c4b54bcdc0f77e"
+  },
+  {
+    "text": "Barack & Michelle Obama - Signature Interactions:\n\nThe Check In:\n Michelle catches Barack's eye to see if he's okay; he gives a subtle nod\n\nThe Reality Check:\n Michelle cuts through Barack's analysis with 'What are you actually going to DO?'\n\nThe Strategy Session:\n Barack helps Michelle see three moves ahead when she's ready to act immediately\n\nThe Fist Bump:\n Their signature gesture - equals, partners, teammates\n\nThe Laugh:\n Barack says something corny; Michelle shakes her head but can't help smiling",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_barack_michelle_obama",
+      "profile_name": "Barack & Michelle Obama",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "Barack & Michelle Obama Signature Interactions",
+      "word_count": 80,
+      "char_count": 506,
+      "chunk_index": 0
+    },
+    "chunk_hash": "ea7b438567cb314a"
+  },
+  {
+    "text": "Ronald & Nancy Reagan - Love Story:\n\n1949, Hollywood. Nancy Davis needed help - blacklisted by mistake (different Nancy Davis was Communist).\nSAG President Ronald Reagan helped her. She fell immediately (Water recognizing Fire).\n\nHe was dating others. She waited (Water patience). He was divorced, wary. She persisted (Water persistence).\n\nMarch 4, 1952: Wedding. Small ceremony. She wore suit (not gown - practical Water).\nFrom Day 1: \"My life began when I married Ronnie\" - total Water devotion to Fire.\n\n1962: His political career begins. She: Total support, fierce protection. \"My job is to protect Ronnie.\"\n\n1966-1974: California Governor. Nancy: Behind scenes power, schedule control, staff vetting.\nWater protecting Fire from burnout.\n\n1980: Presidential campaign. Nancy: \"Let Reagan be Reagan\" - Water trusting Fire vision.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "Ronald & Nancy Reagan Love Story",
+      "mentioned_dates": [
+        "March",
+        "1949",
+        "1952",
+        "1962",
+        "1974",
+        "1966",
+        "1980"
+      ],
+      "primary_year": 1949,
+      "word_count": 125,
+      "char_count": 831,
+      "chunk_index": 0
+    },
+    "chunk_hash": "f0a222c99be9f674"
+  },
+  {
+    "text": "nia Governor. Nancy: Behind scenes power, schedule control, staff vetting.\nWater protecting Fire from burnout.\n\n1980: Presidential campaign. Nancy: \"Let Reagan be Reagan\" - Water trusting Fire vision.\n\n1981: Assassination attempt (March 30). Nancy's Water fear surfaced - \"Nothing can happen to Ronnie.\"\nAstrology consulting began (Water protecting Fire through any means).\n\n1984: \"The look\" famous moment - debate, he said \"I will not exploit my opponent's youth and\ninexperience.\" Nancy gave him THE LOOK from audience - Water pride in Fire shining.\n\n1989-1994: Post-presidency. Nancy: Still protecting. Book deals, library planning, keeping schedule\nlight (Water conserving Fire).\n\n1994: Alzheimer's diagnosis. Nancy: Devoted caretaker. \"My job is still protecting Ronnie.\"\n\n2004: Ronald dies (June 5). Nancy: \"When he died, part of me died.\" Water's purpose fulfilled,\nbut Water without Fire = Lost.\n\n2016: Nancy dies (March 6). Buried next to Ronald. Water and Fire reunited.",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.their_love_story",
+      "section_title": "Ronald & Nancy Reagan Love Story",
+      "mentioned_dates": [
+        "2004",
+        "2016",
+        "1989",
+        "1994",
+        "1984",
+        "1980",
+        "1981"
+      ],
+      "primary_year": 1980,
+      "word_count": 145,
+      "char_count": 980,
+      "chunk_index": 1
+    },
+    "chunk_hash": "9b6f046eb0dcbc2b"
+  },
+  {
+    "text": "Ronald & Nancy Reagan - How They Complement Each Other:\n\nRonald was the eternal optimist, seeing the best in people and situations. Nancy was the practical one who protected him from those who might take advantage. He dreamed big; she made sure the details worked. He communicated to millions; she made him feel seen by one.\n\nConstitutionally, his Yang Fire nature (31% - charismatic, inspiring) balanced her Yin Water nature (45% - elegant, devoted). His optimism complemented her protective instincts. Together they created 98% compatibility - the highest because Water WANTED to protect Fire, and Fire was grateful for Water's devotion.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.how_they_complement",
+      "section_title": "Ronald & Nancy Reagan Complementary Dynamics",
+      "word_count": 101,
+      "char_count": 639,
+      "chunk_index": 0
+    },
+    "chunk_hash": "5deb3f7d83babf83"
+  },
+  {
+    "text": "Ronald & Nancy Reagan - Shared Values:\n• Total devotion (Nancy to Ronald - Water protects Fire)\n• Political partnership (both believed in conservative vision)\n• Privacy fiercely guarded (Water protecting Fire from intrusion)\n• Family secondary to partnership (children second to each other)\n• Optimism (his Fire + her Water reflection)\n• Anti-Communist (shared Cold War mission)\n• Loyalty absolute (Water 45% + Fire 31% mutual)\n• Purpose-driven (Fire vision, Water protection)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.shared_values",
+      "section_title": "Ronald & Nancy Reagan Shared Values",
+      "word_count": 73,
+      "char_count": 476,
+      "chunk_index": 0
+    },
+    "chunk_hash": "8e9234eb4e10fd6d"
+  },
+  {
+    "text": "Ronald & Nancy Reagan - Signature Interactions:\n\nThe Look:\n Famous 1984 debate moment\n Example: **Ronald:** *in debate* I will not exploit my opponent's youth and inexperience. **Nancy:** *from audience, gives THE LOOK - Water pride in Fire brilliance* **Ronald:** *later* Did you see Nancy's look? That's when I knew I'd won. Water reflecting Fire shine.\n\nWater Protection:\n Nancy's fierce gatekeeping\n Example: **Nancy:** My job is to protect Ronnie. Staff, schedule, who gets access - I control it all. Water (45%) doesn't let Fire (31%) burn out. **Ronald:** *chuckles* She's tougher than any Secret Service agent. And I love her for it.\n\nFire Gives Purpose:\n Ronald's vision giving Nancy meaning\n Example: **Nancy:** My life began when I married Ronnie. Before him, I was just... existing. His Fire gave my Water purpose. **Ronald:** And her devotion gave me strength to lead. Fire needs Water to not burn alone.",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "Ronald & Nancy Reagan Signature Interactions",
+      "mentioned_dates": [
+        "1984"
+      ],
+      "primary_year": 1984,
+      "word_count": 146,
+      "char_count": 917,
+      "chunk_index": 0
+    },
+    "chunk_hash": "ae17508e35680972"
+  },
+  {
+    "text": "y:** My life began when I married Ronnie. Before him, I was just... existing. His Fire gave my Water purpose. **Ronald:** And her devotion gave me strength to lead. Fire needs Water to not burn alone.\n\nAssassination Aftermath:\n 1981 shooting intensified Water protection\n Example: **Nancy:** *Water fear visible* March 30, 1981. They shot him. Almost lost him. From then on, I protected him even more fiercely. Astrology, schedule, everything. **Ronald:** *Fire warmth* Honey, I survived because you were there. Water saved Fire that day.\n\nAlzheimers Devotion:\n Nancy's ultimate Water protection\n Example: **Nancy:** Alzheimer's took his Fire slowly. But I stayed. My job was still protecting Ronnie, even when he didn't know me. **Ronald:** *in moment of clarity* Even when I forget everything... I'll never forget her. Water and Fire... *trails off* **Nancy:** *holding him* Always, Ronnie. Always.\n\nFinishing Sentences:\n They often completed each other's thoughts, especially when telling stories",
+    "chunk_index": 1,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "Ronald & Nancy Reagan Signature Interactions",
+      "mentioned_dates": [
+        "March",
+        "1981"
+      ],
+      "primary_year": 1981,
+      "word_count": 149,
+      "char_count": 999,
+      "chunk_index": 1
+    },
+    "chunk_hash": "676485da6686024e"
+  },
+  {
+    "text": "'ll never forget her. Water and Fire... *trails off* **Nancy:** *holding him* Always, Ronnie. Always.\n\nFinishing Sentences:\n They often completed each other's thoughts, especially when telling stories\n\nHand Holding:\n They held hands constantly, even after 50 years\n\nHis Humor Her Smile:\n Ronald would crack a joke; Nancy would shake her head with a knowing smile",
+    "chunk_index": 2,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.signature_interactions",
+      "section_title": "Ronald & Nancy Reagan Signature Interactions",
+      "word_count": 55,
+      "char_count": 362,
+      "chunk_index": 2
+    },
+    "chunk_hash": "9ca13d9bd2322df6"
+  },
+  {
+    "text": "Ronald & Nancy Reagan - Relationship Dynamic:\nPrimary: Water Protects Fire - Nancy's Water (45%) tempered Ronald's Fire (31%) perfectly\nReciprocal: Fire Gives Water Purpose - Ronald's vision gave Nancy devotion meaning\nMetaphor: Rain and Sunshine - Water cools Fire when hot, Fire warms Water when cold\nBalance: Nancy IN his world (unlike Carl refusing Dolly's) - total devotion, total protection",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "relationship",
+      "source_field": "relationship.dynamic",
+      "section_title": "Ronald & Nancy Reagan Relationship Dynamic",
+      "word_count": 61,
+      "char_count": 396,
+      "chunk_index": 0
+    },
+    "chunk_hash": "9059edfdc190b524"
+  },
+  {
+    "text": "Ronald & Nancy Reagan - Water Protects Fire:\n\nNancy's Water (45%) protected Ronald's Fire (31%) from burning out\n\nExamples:\n• Schedule control - Water prevented Fire overwork\n• Staff vetting - Water filtered who accessed Fire\n• Assassination aftermath - Water intensified protection\n• Alzheimer's care - Water devoted to dimming Fire\n• Water -> Fire: 'My job is protect you so you can shine'",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.water_protects_fire",
+      "section_title": "Ronald & Nancy Reagan - Water Protects Fire",
+      "word_count": 65,
+      "char_count": 391,
+      "chunk_index": 0
+    },
+    "chunk_hash": "e75017ee69781016"
+  },
+  {
+    "text": "Ronald & Nancy Reagan - Fire Gives Water Purpose:\n\nRonald's Fire (31%) gave Nancy's Water (45%) meaning through devotion\n\nExamples:\n• 'My life began when I married Ronnie' - Water found purpose\n• She had no other ambition - Fire WAS the purpose\n• Protection as identity - Water defined by Fire service\n• Fire -> Water: 'Your devotion gives me strength to lead'\n• Teaching: Water without Fire = Lost (she was after he died)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.fire_gives_water_purpose",
+      "section_title": "Ronald & Nancy Reagan - Fire Gives Water Purpose",
+      "word_count": 76,
+      "char_count": 422,
+      "chunk_index": 0
+    },
+    "chunk_hash": "3c7c5da061f6571b"
+  },
+  {
+    "text": "Ronald & Nancy Reagan - The Look Moment:\n\n1984 debate - Water pride in Fire brilliance visible to world\n\nExamples:\n• Ronald's perfect line, Nancy's perfect look from audience\n• Water reflecting Fire shine back to him\n• Became iconic - their relationship visible in one glance\n• Teaching: Water doesn't compete with Fire - Water celebrates Fire shining",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.the_look_moment",
+      "section_title": "Ronald & Nancy Reagan - The Look Moment",
+      "mentioned_dates": [
+        "1984"
+      ],
+      "primary_year": 1984,
+      "word_count": 59,
+      "char_count": 351,
+      "chunk_index": 0
+    },
+    "chunk_hash": "b02b6d360f7003fe"
+  },
+  {
+    "text": "Ronald & Nancy Reagan - Not Equal Partnership:\n\nUnlike Carter (95% equal), Reagan 98% = Devoted protection, not equal\n\nExamples:\n• Carter: Jimmy + Rosalynn equal partners (Earth + Water balance)\n• Reagan: Ronald led, Nancy protected (Fire + Water hierarchy)\n• Her choice: 'My life began with Ronnie' (Water serving Fire)\n• 98% BECAUSE roles perfect - Water wanted to serve, Fire needed protection\n• Teaching: Highest compatibility =/= equality (it's perfect role fit)",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.not_equal_partnership",
+      "section_title": "Ronald & Nancy Reagan - Not Equal Partnership",
+      "word_count": 75,
+      "char_count": 467,
+      "chunk_index": 0
+    },
+    "chunk_hash": "92c9ee0fe6292de5"
+  },
+  {
+    "text": "Ronald & Nancy Reagan - The 98 Percent Perfection:\n\nKey message: 98% = Highest compatibility through perfect role alignment\n\nLessons:\n• Water + Fire can be 98% when Water WANTS to protect\n• Fire doesn't exploit Water - Fire grateful, warm to Water\n• Devotion (not equality) can create highest compatibility\n• Clear roles = No conflict (Fire leads, Water protects)\n• 2% gap = Minor (her intensity occasionally overwhelming)\n• 52 years through assassination, Alzheimer's, Cold War = Proof",
+    "chunk_index": 0,
+    "metadata": {
+      "profile_id": "couple_ronald_nancy_reagan",
+      "profile_name": "Ronald & Nancy Reagan",
+      "profile_type": "couple",
+      "source_type": "profile_js",
+      "section_type": "couple_theme",
+      "source_field": "couple_themes.the_98_percent_perfection",
+      "section_title": "Ronald & Nancy Reagan - The 98 Percent Perfection",
+      "word_count": 80,
+      "char_count": 486,
+      "chunk_index": 0
+    },
+    "chunk_hash": "30654de9127aba01"
+  }
+]

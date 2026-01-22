@@ -1,0 +1,2498 @@
+/* ============================================================================
+   GENESIS BIOGRAPHY JOURNAL - STYLES (CSS)
+   ============================================================================
+   File: src/pages/BiographyJournalPage.css
+   Version: 1.0
+   Date: January 6, 2026
+
+   Features:
+   - Elderly-friendly (large text, high contrast, generous spacing)
+   - Clean, minimal design
+   - Responsive
+   - Accessibility-first
+   ============================================================================ */
+
+/* ROOT VARIABLES */
+.bio-journal-app {
+  --color-primary: #4CAF50;
+  --color-secondary: #2196F3;
+  --color-danger: #f44336;
+  --color-warning: #FF9800;
+  --bg-primary: #e8e8e8;
+  --bg-secondary: #f5f5f5;
+  --bg-editor: #fafaf8;
+  --text-primary: #333;
+  --text-secondary: #555;
+  --border-color: #ccc;
+  --spacing-small: 10px;
+  --spacing-medium: 20px;
+  --spacing-large: 30px;
+
+  min-height: 100vh;
+  background: linear-gradient(180deg, #d0d0d0 0%, #e5e5e5 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* FONT SIZE VARIANTS */
+.bio-journal-app.font-medium { font-size: 18px; }
+.bio-journal-app.font-large { font-size: 22px; }
+.bio-journal-app.font-xlarge { font-size: 26px; }
+
+/* HIGH CONTRAST MODE */
+.bio-journal-app.high-contrast {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --border-color: #000000;
+}
+
+.bio-journal-app.high-contrast .btn-primary {
+  background: #000;
+  color: #fff;
+  border: 3px solid #000;
+}
+
+/* HEADERS */
+.bio-journal-app h1 {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.bio-journal-app h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: var(--spacing-medium);
+  color: var(--text-primary);
+}
+
+.bio-journal-app h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-bottom: var(--spacing-small);
+  color: var(--text-secondary);
+}
+
+/* BUTTONS */
+.bio-journal-app button {
+  font-size: 1em;
+  font-weight: 600;
+  padding: 15px 25px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.bio-journal-app button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.bio-journal-app button:active {
+  transform: translateY(0);
+}
+
+.bio-journal-app button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.bio-journal-app .btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.bio-journal-app .btn-secondary {
+  background: #e0e0e0;
+  color: var(--text-primary);
+}
+
+.bio-journal-app .btn-danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+.bio-journal-app .btn-cancel {
+  background: #9e9e9e;
+  color: white;
+}
+
+.bio-journal-app .btn-back {
+  background: #757575;
+  color: white;
+  min-width: 100px;
+}
+
+.bio-journal-app .btn-large {
+  padding: 20px 40px;
+  font-size: 1.2em;
+}
+
+.bio-journal-app .btn-ai {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.bio-journal-app .btn-add {
+  background: var(--color-primary);
+  color: white;
+  padding: 12px 20px;
+}
+
+.bio-journal-app .btn-remove {
+  background: var(--color-danger);
+  color: white;
+  padding: 8px 12px;
+  min-width: 40px;
+}
+
+.bio-journal-app .btn-trash {
+  width: 100%;
+  background: var(--color-warning);
+  color: white;
+  margin-bottom: var(--spacing-large);
+  font-size: 1.1em;
+}
+
+.bio-journal-app .btn-new {
+  background: var(--color-primary);
+  color: white;
+  margin-bottom: var(--spacing-medium);
+}
+
+/* HEADER */
+.bio-journal-app .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-large);
+  background: var(--bg-secondary);
+  border-bottom: 2px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: var(--spacing-medium);
+}
+
+.bio-journal-app .header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* PROFILE SELECTOR */
+.bio-journal-app .profile-selector-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px var(--spacing-large);
+  background: linear-gradient(135deg, #d8e8d8 0%, #c5d8c5 100%);
+  border-bottom: 2px solid #8aba8a;
+}
+
+.bio-journal-app .profile-selector-bar label {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.bio-journal-app .profile-select {
+  padding: 12px 20px;
+  font-size: 1.1em;
+  font-weight: 500;
+  border: 2px solid var(--color-primary);
+  border-radius: 10px;
+  background: white;
+  color: var(--text-primary);
+  cursor: pointer;
+  min-width: 200px;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .profile-select:hover {
+  border-color: #2e7d32;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.25);
+}
+
+.bio-journal-app .profile-select:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
+}
+
+.bio-journal-app .no-profiles-message {
+  background: #fff3e0;
+  border: 2px solid #ff9800;
+  border-radius: 10px;
+  padding: 15px 20px;
+  margin: var(--spacing-large);
+  text-align: center;
+  font-size: 1.1em;
+  color: #e65100;
+}
+
+.bio-journal-app .profile-info {
+  font-size: 0.95em;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* STORY LIST */
+.bio-journal-app .story-list {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-large);
+}
+
+.bio-journal-app .stories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--spacing-medium);
+}
+
+/* STORY CARD */
+.bio-journal-app .story-card {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: var(--spacing-medium);
+  transition: all 0.3s ease;
+}
+
+.bio-journal-app .story-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.bio-journal-app .card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.bio-journal-app .emoji {
+  font-size: 2em;
+}
+
+.bio-journal-app .card-header h3 {
+  font-size: 1.3em;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.bio-journal-app .card-meta {
+  display: flex;
+  gap: 15px;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.bio-journal-app .card-preview {
+  font-size: 1em;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: 15px;
+  min-height: 60px;
+}
+
+.bio-journal-app .card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bio-journal-app .card-actions button {
+  flex: 1;
+  min-width: 80px;
+  padding: 12px 15px;
+}
+
+/* CREATE FORM */
+.bio-journal-app .create-form {
+  background: var(--bg-secondary);
+  border: 2px solid var(--color-primary);
+  border-radius: 12px;
+  padding: var(--spacing-large);
+  margin-bottom: var(--spacing-large);
+}
+
+.bio-journal-app .form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.bio-journal-app .title-input {
+  flex: 1;
+  padding: 15px;
+  font-size: 1.1em;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.bio-journal-app .emoji-input {
+  width: 80px;
+  padding: 15px;
+  font-size: 1.5em;
+  text-align: center;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.bio-journal-app .form-actions {
+  display: flex;
+  gap: 15px;
+}
+
+/* EMPTY STATE */
+.bio-journal-app .empty-state {
+  text-align: center;
+  padding: 60px var(--spacing-large);
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 2px dashed var(--border-color);
+}
+
+.bio-journal-app .empty-state p {
+  font-size: 1.2em;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-large);
+}
+
+.bio-journal-app .loading {
+  text-align: center;
+  padding: 60px;
+  font-size: 1.2em;
+  color: var(--text-secondary);
+}
+
+/* STORY EDITOR */
+.bio-journal-app .story-editor {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--spacing-large);
+}
+
+.bio-journal-app .editor-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-medium);
+  margin-bottom: var(--spacing-large);
+  flex-wrap: wrap;
+}
+
+.bio-journal-app .editor-header h2 {
+  flex: 1;
+  margin: 0;
+}
+
+.bio-journal-app .save-status {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  padding: 8px 15px;
+  background: #e8f5e9;
+  border-radius: 20px;
+}
+
+/* BULLETS SECTION */
+.bio-journal-app .bullets-section {
+  background: linear-gradient(135deg, #f5f0d8 0%, #ede8c8 100%);
+  border: 2px solid #d4c896;
+  border-radius: 12px;
+  padding: var(--spacing-medium);
+  margin-bottom: var(--spacing-large);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.bio-journal-app .bullets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-medium);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bio-journal-app .bullets-list {
+  margin-bottom: var(--spacing-medium);
+}
+
+.bio-journal-app .bullet-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  gap: 10px;
+}
+
+.bio-journal-app .bullet-item:hover {
+  border-color: var(--color-primary);
+}
+
+.bio-journal-app .bullet-number {
+  font-weight: bold;
+  color: var(--color-primary);
+  min-width: 30px;
+}
+
+.bio-journal-app .bullet-text {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.bio-journal-app .bullet-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.bio-journal-app .bullet-actions button {
+  padding: 6px 10px;
+  font-size: 0.85em;
+}
+
+.bio-journal-app .add-bullet {
+  display: flex;
+  gap: 10px;
+}
+
+.bio-journal-app .add-bullet input {
+  flex: 1;
+  padding: 12px 15px;
+  font-size: 1em;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+}
+
+/* TEXT EDITOR */
+.bio-journal-app .text-editor-section {
+  background: #f0f0ee;
+  border: 2px solid #c5c5c5;
+  border-radius: 12px;
+  padding: var(--spacing-medium);
+  margin-bottom: var(--spacing-large);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.bio-journal-app .editor-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-small);
+}
+
+.bio-journal-app .word-count {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  padding: 5px 12px;
+  background: #f5f5f5;
+  border-radius: 15px;
+}
+
+.bio-journal-app .main-textarea {
+  width: 100%;
+  padding: 20px;
+  font-size: 1.1em;
+  line-height: 1.8;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  resize: vertical;
+  font-family: inherit;
+  min-height: 400px;
+  background: #fffff8;
+}
+
+.bio-journal-app .main-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: #fffef5;
+}
+
+.bio-journal-app .main-textarea::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+/* VOICE CONTROLS */
+.bio-journal-app .voice-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: var(--spacing-medium);
+  flex-wrap: wrap;
+}
+
+.bio-journal-app .btn-voice {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: white;
+  padding: 12px 20px;
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bio-journal-app .btn-voice-active {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.02); }
+}
+
+.bio-journal-app .btn-tts {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  padding: 12px 20px;
+}
+
+.bio-journal-app .btn-tts-off {
+  background: #9e9e9e;
+}
+
+.bio-journal-app .btn-stop-speech {
+  background: #f44336;
+  color: white;
+  padding: 12px 20px;
+}
+
+.bio-journal-app .listening-indicator {
+  background: rgba(139, 92, 246, 0.15);
+  border: 2px solid #8b5cf6;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: var(--spacing-medium);
+  text-align: center;
+  font-size: 1.1em;
+  color: #7c3aed;
+  animation: pulse 1.5s infinite;
+}
+
+.bio-journal-app .voice-status {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 2px solid #2196F3;
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin-bottom: var(--spacing-medium);
+  text-align: center;
+  font-size: 1em;
+  font-weight: 600;
+  color: #1565c0;
+}
+
+.bio-journal-app .browser-warning {
+  background: #fff3e0;
+  border: 2px solid #ff9800;
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin-bottom: var(--spacing-medium);
+  text-align: center;
+  font-size: 0.95em;
+  color: #e65100;
+}
+
+.bio-journal-app .btn-read-cursor {
+  background: linear-gradient(135deg, #66bb6a, #43a047);
+  color: white;
+  padding: 12px 20px;
+}
+
+.bio-journal-app .btn-read-cursor:hover {
+  background: linear-gradient(135deg, #43a047, #2e7d32);
+}
+
+.bio-journal-app .btn-read-cursor:disabled {
+  background: #9e9e9e;
+  cursor: not-allowed;
+}
+
+.bio-journal-app .btn-test-tts {
+  background: linear-gradient(135deg, #42a5f5, #1e88e5);
+  color: white;
+  padding: 12px 15px;
+}
+
+.bio-journal-app .btn-test-tts:hover {
+  background: linear-gradient(135deg, #1e88e5, #1565c0);
+}
+
+.bio-journal-app .btn-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #9e9e9e !important;
+}
+
+.bio-journal-app .btn-disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.bio-journal-app .toolbar-right {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.bio-journal-app .cursor-pos {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  background: #f0f0f0;
+  border-radius: 12px;
+}
+
+/* TTS PREVIEW SECTION */
+.bio-journal-app .tts-preview-section {
+  background: #e8f5e9;
+  border: 2px solid var(--color-primary);
+  border-radius: 12px;
+  padding: var(--spacing-medium);
+  margin-bottom: var(--spacing-large);
+}
+
+.bio-journal-app .tts-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-small);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bio-journal-app .tts-preview-header h3 {
+  margin: 0;
+}
+
+.bio-journal-app .tts-hint {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.bio-journal-app .tts-preview-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  font-size: 1.1em;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  max-height: 300px;
+  overflow-y: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.bio-journal-app .tts-preview-content.tts-clickable {
+  cursor: text;
+}
+
+.bio-journal-app .tts-preview-content.tts-clickable:hover {
+  background: #fafafa;
+}
+
+.bio-journal-app .speaking-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-top: var(--spacing-small);
+  padding: 10px;
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 8px;
+  font-size: 1em;
+  color: #7c3aed;
+}
+
+.bio-journal-app .btn-inline-stop {
+  background: #f44336;
+  color: white;
+  padding: 6px 15px;
+  font-size: 0.9em;
+  border-radius: 6px;
+}
+
+/* EDITOR FOOTER */
+.bio-journal-app .editor-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.bio-journal-app .btn-save {
+  min-width: 200px;
+  padding: 18px 40px;
+  font-size: 1.2em;
+}
+
+/* TRASH SCREEN */
+.bio-journal-app .trash-screen {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--spacing-large);
+}
+
+.bio-journal-app .trash-info {
+  background: #fff9c4;
+  border: 2px solid #fbc02d;
+  border-radius: 12px;
+  padding: 15px 20px;
+  font-size: 1em;
+  margin-bottom: var(--spacing-large);
+}
+
+.bio-journal-app .empty-trash {
+  text-align: center;
+  padding: 60px;
+  font-size: 1.2em;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-radius: 12px;
+}
+
+.bio-journal-app .trash-items {
+  display: grid;
+  gap: var(--spacing-medium);
+}
+
+.bio-journal-app .trash-item {
+  background: #f5f5f5;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: var(--spacing-medium);
+}
+
+.bio-journal-app .item-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.bio-journal-app .item-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+}
+
+.bio-journal-app .item-meta {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+  font-size: 0.95em;
+  color: var(--text-secondary);
+}
+
+.bio-journal-app .item-meta .urgent {
+  color: var(--color-danger);
+  font-weight: bold;
+  animation: urgent-pulse 1s ease-in-out infinite;
+}
+
+@keyframes urgent-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.bio-journal-app .item-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.bio-journal-app .item-actions button {
+  flex: 1;
+}
+
+/* IMPORT DIALOG */
+.bio-journal-app .import-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--spacing-medium);
+}
+
+.bio-journal-app .import-dialog {
+  background: white;
+  padding: var(--spacing-large);
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.bio-journal-app .import-dialog h2 {
+  margin-bottom: var(--spacing-large);
+}
+
+.bio-journal-app .file-input-label {
+  display: inline-block;
+  padding: 20px 35px;
+  font-size: 1.1em;
+  font-weight: bold;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.bio-journal-app .file-input-label input {
+  display: none;
+}
+
+.bio-journal-app .import-preview {
+  background: #f5f5f5;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: var(--spacing-medium);
+  margin-top: var(--spacing-medium);
+}
+
+.bio-journal-app .preview-text {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 0.95em;
+  line-height: 1.6;
+  margin-bottom: var(--spacing-medium);
+  max-height: 250px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+.bio-journal-app .import-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.bio-journal-app .import-actions button {
+  flex: 1;
+}
+
+/* SETTINGS SCREEN */
+.bio-journal-app .settings-screen {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: var(--spacing-large);
+}
+
+.bio-journal-app .settings-section {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: var(--spacing-medium);
+  margin-bottom: var(--spacing-large);
+}
+
+.bio-journal-app .settings-section h2 {
+  font-size: 1.3em;
+  margin-bottom: var(--spacing-medium);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.bio-journal-app .setting-item {
+  margin-bottom: var(--spacing-medium);
+}
+
+.bio-journal-app .setting-item label {
+  display: block;
+  font-size: 1em;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.bio-journal-app .setting-item input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.bio-journal-app .button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bio-journal-app .button-group button {
+  flex: 1;
+  min-width: 100px;
+  background: #f5f5f5;
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+}
+
+.bio-journal-app .button-group button.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .bio-journal-app .header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .bio-journal-app .header-actions {
+    flex-direction: column;
+  }
+
+  .bio-journal-app .profile-selector-bar {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--spacing-medium);
+  }
+
+  .bio-journal-app .profile-select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .bio-journal-app .stories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bio-journal-app .card-actions {
+    flex-direction: column;
+  }
+
+  .bio-journal-app .card-actions button {
+    width: 100%;
+  }
+
+  .bio-journal-app .form-row {
+    flex-direction: column;
+  }
+
+  .bio-journal-app .emoji-input {
+    width: 100%;
+  }
+
+  .bio-journal-app .bullets-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bio-journal-app .add-bullet {
+    flex-direction: column;
+  }
+
+  .bio-journal-app .bullet-actions {
+    flex-direction: column;
+  }
+
+  .bio-journal-app .bullet-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bio-journal-app .editor-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .bio-journal-app .item-actions {
+    flex-direction: column;
+  }
+
+  .bio-journal-app .import-actions {
+    flex-direction: column;
+  }
+}
+
+/* FOCUS STYLES FOR ACCESSIBILITY */
+.bio-journal-app :focus {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.bio-journal-app button:focus {
+  outline: 3px solid #fff;
+  outline-offset: -3px;
+}
+
+/* ============================================================================
+   BRAIN TICKLERS SECTION - Guided question prompts (v3.4)
+   ============================================================================ */
+
+.bio-journal-app .brain-ticklers-section {
+  background: linear-gradient(135deg, #fef9e7 0%, #fcf3cf 100%);
+  border: 2px solid #f7dc6f;
+  border-radius: 16px;
+  margin: var(--spacing-large) 0;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(247, 220, 111, 0.3);
+}
+
+.bio-journal-app .brain-ticklers-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: var(--spacing-medium) var(--spacing-large);
+  background: linear-gradient(135deg, #f9e79f 0%, #f7dc6f 100%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-wrap: wrap;
+}
+
+.bio-journal-app .brain-ticklers-header:hover {
+  background: linear-gradient(135deg, #f7dc6f 0%, #f4d03f 100%);
+}
+
+.bio-journal-app .brain-ticklers-icon {
+  font-size: 2em;
+  animation: pulse-brain 2s ease-in-out infinite;
+}
+
+@keyframes pulse-brain {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.bio-journal-app .brain-ticklers-header h2 {
+  margin: 0;
+  font-size: 1.4em;
+  font-weight: 700;
+  color: #7d6608;
+}
+
+.bio-journal-app .brain-ticklers-subtitle {
+  flex: 1;
+  font-size: 0.95em;
+  color: #9a7d0a;
+  font-style: italic;
+}
+
+.bio-journal-app .toggle-arrow {
+  font-size: 1.2em;
+  color: #7d6608;
+  transition: transform 0.3s ease;
+}
+
+.bio-journal-app .toggle-arrow.open {
+  transform: rotate(0deg);
+}
+
+.bio-journal-app .brain-ticklers-content {
+  padding: var(--spacing-medium) var(--spacing-large);
+  background: white;
+  animation: slideDownFade 0.3s ease-out;
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+    transform: translateY(0);
+  }
+}
+
+/* Category Pills */
+.bio-journal-app .tickler-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: var(--spacing-large);
+  padding-bottom: var(--spacing-medium);
+  border-bottom: 2px solid #f7dc6f;
+}
+
+.bio-journal-app .category-pill {
+  padding: 10px 18px;
+  border-radius: 25px;
+  border: 2px solid #ddd;
+  background: white;
+  font-size: 0.95em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.bio-journal-app .category-pill:hover {
+  border-color: var(--category-color, #f7dc6f);
+  background: rgba(247, 220, 111, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bio-journal-app .category-pill.active {
+  background: var(--category-color, #f7dc6f);
+  border-color: var(--category-color, #f7dc6f);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Questions Grid */
+.bio-journal-app .tickler-questions {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.bio-journal-app .tickler-category-group {
+  margin-bottom: var(--spacing-large);
+}
+
+.bio-journal-app .tickler-category-group:last-child {
+  margin-bottom: 0;
+}
+
+.bio-journal-app .category-group-title {
+  font-size: 1.1em;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-small) 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid currentColor;
+  opacity: 0.9;
+}
+
+.bio-journal-app .questions-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.bio-journal-app .question-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #fdfefe 0%, #f8f9fa 100%);
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  min-height: 80px;
+}
+
+.bio-journal-app .question-card:hover {
+  border-color: var(--hover-color, #f7dc6f);
+  background: linear-gradient(135deg, #fff 0%, rgba(247, 220, 111, 0.1) 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.bio-journal-app .question-card:active {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bio-journal-app .question-text {
+  font-size: 1.05em;
+  line-height: 1.4;
+  color: #2c3e50;
+  font-weight: 500;
+  flex: 1;
+}
+
+.bio-journal-app .question-action {
+  font-size: 0.85em;
+  color: var(--hover-color, #f7dc6f);
+  font-weight: 700;
+  opacity: 0;
+  transition: all 0.2s ease;
+  text-align: right;
+}
+
+.bio-journal-app .question-card:hover .question-action {
+  opacity: 1;
+  transform: translateX(5px);
+}
+
+/* Scrollbar styling for tickler questions */
+.bio-journal-app .tickler-questions::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bio-journal-app .tickler-questions::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.bio-journal-app .tickler-questions::-webkit-scrollbar-thumb {
+  background: #f7dc6f;
+  border-radius: 4px;
+}
+
+.bio-journal-app .tickler-questions::-webkit-scrollbar-thumb:hover {
+  background: #f4d03f;
+}
+
+/* Responsive - Brain Ticklers */
+@media (max-width: 768px) {
+  .bio-journal-app .brain-ticklers-header {
+    padding: var(--spacing-small) var(--spacing-medium);
+    justify-content: center;
+    text-align: center;
+  }
+
+  .bio-journal-app .brain-ticklers-header h2 {
+    font-size: 1.2em;
+    width: 100%;
+  }
+
+  .bio-journal-app .brain-ticklers-subtitle {
+    width: 100%;
+    text-align: center;
+    margin: 8px 0;
+  }
+
+  .bio-journal-app .tickler-categories {
+    justify-content: center;
+  }
+
+  .bio-journal-app .category-pill {
+    padding: 8px 14px;
+    font-size: 0.9em;
+  }
+
+  .bio-journal-app .questions-list {
+    grid-template-columns: 1fr;
+  }
+
+  .bio-journal-app .question-card {
+    padding: 14px 16px;
+  }
+
+  .bio-journal-app .question-text {
+    font-size: 1em;
+  }
+
+  .bio-journal-app .question-action {
+    opacity: 1;
+    font-size: 0.8em;
+  }
+}
+
+@media (max-width: 480px) {
+  .bio-journal-app .brain-ticklers-icon {
+    font-size: 1.5em;
+  }
+
+  .bio-journal-app .brain-ticklers-header h2 {
+    font-size: 1.1em;
+  }
+
+  .bio-journal-app .category-pill {
+    padding: 6px 12px;
+    font-size: 0.85em;
+  }
+
+  .bio-journal-app .tickler-questions {
+    max-height: 400px;
+  }
+}
+
+/* ============================================================================
+   BRAIN TICKLERS v2 - HIERARCHICAL ACCORDION
+   ============================================================================ */
+
+/* Actions Bar */
+.bio-journal-app .ticklers-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: var(--spacing-medium);
+  padding-bottom: var(--spacing-medium);
+  border-bottom: 2px solid #f7dc6f;
+  flex-wrap: wrap;
+}
+
+.bio-journal-app .btn-inspiration {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1em;
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+  transition: all 0.3s ease;
+}
+
+.bio-journal-app .btn-inspiration:hover {
+  background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
+}
+
+.bio-journal-app .tickler-stats {
+  font-size: 0.9em;
+  color: #7d6608;
+  font-weight: 500;
+}
+
+/* Random Inspiration Modal */
+.bio-journal-app .inspiration-modal {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #9b59b6;
+  border-radius: 16px;
+  padding: var(--spacing-medium);
+  margin-bottom: var(--spacing-medium);
+  box-shadow: 0 8px 24px rgba(155, 89, 182, 0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bio-journal-app .inspiration-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-medium);
+}
+
+.bio-journal-app .inspiration-header h3 {
+  margin: 0;
+  font-size: 1.3em;
+  color: #8e44ad;
+}
+
+.bio-journal-app .btn-close-inspiration {
+  background: #e74c3c;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.4em;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bio-journal-app .btn-close-inspiration:hover {
+  background: #c0392b;
+}
+
+.bio-journal-app .inspiration-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: var(--spacing-medium);
+}
+
+.bio-journal-app .inspiration-question-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+  background: white;
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.bio-journal-app .inspiration-question-card:hover {
+  border-color: var(--hover-color, #9b59b6);
+  background: linear-gradient(135deg, #fff 0%, rgba(155, 89, 182, 0.05) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.bio-journal-app .inspiration-category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: white;
+  width: fit-content;
+}
+
+.bio-journal-app .inspiration-question-text {
+  font-size: 1.1em;
+  line-height: 1.5;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.bio-journal-app .btn-more-inspiration {
+  width: 100%;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.bio-journal-app .btn-more-inspiration:hover {
+  background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+}
+
+/* Hierarchical Accordion */
+.bio-journal-app .tickler-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Category Level */
+.bio-journal-app .accordion-category {
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .accordion-category:has(.accordion-category-header.expanded) {
+  border-color: var(--category-color, #f7dc6f);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.bio-journal-app .accordion-category-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #fdfefe 0%, #f8f9fa 100%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 4px solid transparent;
+}
+
+.bio-journal-app .accordion-category-header:hover {
+  background: linear-gradient(135deg, #fff 0%, rgba(247, 220, 111, 0.1) 100%);
+}
+
+.bio-journal-app .accordion-category-header.expanded {
+  background: linear-gradient(135deg, rgba(247, 220, 111, 0.2) 0%, rgba(247, 220, 111, 0.1) 100%);
+  border-left-color: var(--category-color, #f7dc6f);
+}
+
+.bio-journal-app .accordion-category-header .category-icon {
+  font-size: 1.5em;
+}
+
+.bio-journal-app .accordion-category-header .category-title {
+  flex: 1;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.bio-journal-app .accordion-category-header .category-count {
+  font-size: 0.85em;
+  color: #7f8c8d;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 15px;
+}
+
+.bio-journal-app .accordion-arrow {
+  font-size: 0.9em;
+  color: #95a5a6;
+  transition: transform 0.3s ease;
+}
+
+/* Subcategories Level */
+.bio-journal-app .accordion-subcategories {
+  border-top: 1px solid #e8e8e8;
+  background: #fafafa;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; max-height: 0; }
+  to { opacity: 1; max-height: 1000px; }
+}
+
+.bio-journal-app .accordion-subcategory {
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.bio-journal-app .accordion-subcategory:last-child {
+  border-bottom: none;
+}
+
+.bio-journal-app .accordion-subcategory-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px 12px 32px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.bio-journal-app .accordion-subcategory-header:hover {
+  background: rgba(247, 220, 111, 0.1);
+}
+
+.bio-journal-app .accordion-subcategory-header.expanded {
+  background: rgba(247, 220, 111, 0.15);
+}
+
+.bio-journal-app .accordion-subcategory-header .subcategory-title {
+  flex: 1;
+  font-size: 1em;
+  font-weight: 500;
+  color: #34495e;
+}
+
+.bio-journal-app .accordion-subcategory-header .subcategory-count {
+  font-size: 0.8em;
+  color: #95a5a6;
+}
+
+/* Questions Level */
+.bio-journal-app .accordion-questions {
+  padding: 12px 18px 16px 48px;
+  background: white;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  animation: fadeIn 0.3s ease;
+}
+
+.bio-journal-app .accordion-questions .question-card {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border: 1px solid #e0e0e0;
+  padding: 14px 18px;
+  min-height: auto;
+}
+
+.bio-journal-app .accordion-questions .question-card:hover {
+  border-color: var(--hover-color, #f7dc6f);
+  background: linear-gradient(135deg, #fff 0%, rgba(247, 220, 111, 0.08) 100%);
+}
+
+.bio-journal-app .accordion-questions .question-text {
+  font-size: 1em;
+}
+
+/* Scrollbar for accordion */
+.bio-journal-app .tickler-accordion::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bio-journal-app .tickler-accordion::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.bio-journal-app .tickler-accordion::-webkit-scrollbar-thumb {
+  background: #f7dc6f;
+  border-radius: 4px;
+}
+
+.bio-journal-app .tickler-accordion::-webkit-scrollbar-thumb:hover {
+  background: #f4d03f;
+}
+
+/* Responsive - Hierarchical Accordion */
+@media (max-width: 768px) {
+  .bio-journal-app .ticklers-actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .bio-journal-app .btn-inspiration {
+    width: 100%;
+  }
+
+  .bio-journal-app .tickler-stats {
+    text-align: center;
+  }
+
+  .bio-journal-app .accordion-category-header {
+    padding: 12px 14px;
+  }
+
+  .bio-journal-app .accordion-category-header .category-icon {
+    font-size: 1.3em;
+  }
+
+  .bio-journal-app .accordion-category-header .category-title {
+    font-size: 1em;
+  }
+
+  .bio-journal-app .accordion-subcategory-header {
+    padding-left: 24px;
+  }
+
+  .bio-journal-app .accordion-questions {
+    padding-left: 36px;
+    padding-right: 14px;
+  }
+
+  .bio-journal-app .inspiration-question-card {
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bio-journal-app .accordion-category-header .category-count {
+    display: none;
+  }
+
+  .bio-journal-app .accordion-subcategory-header .subcategory-count {
+    font-size: 0.75em;
+  }
+
+  .bio-journal-app .accordion-questions .question-card {
+    padding: 12px 14px;
+  }
+
+  .bio-journal-app .tickler-accordion {
+    max-height: 500px;
+  }
+}
+
+/* ============================================================================
+   SEARCH BAR STYLES
+   ============================================================================ */
+
+.bio-journal-app .search-section {
+  background: linear-gradient(135deg, #e8f4fd 0%, #d6eaf8 100%);
+  border-bottom: 2px solid #85c1e9;
+  padding: var(--spacing-medium) var(--spacing-large);
+}
+
+.bio-journal-app .search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border: 2px solid #bdc3c7;
+  border-radius: 12px;
+  padding: 8px 15px;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .search-bar:focus-within {
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+}
+
+.bio-journal-app .search-icon {
+  font-size: 1.3em;
+  opacity: 0.7;
+}
+
+.bio-journal-app .search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1.1em;
+  padding: 10px 0;
+  background: transparent;
+  min-width: 200px;
+}
+
+.bio-journal-app .search-input::placeholder {
+  color: #95a5a6;
+  font-style: italic;
+}
+
+.bio-journal-app .btn-clear-search {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.3em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .btn-clear-search:hover {
+  background: #c0392b;
+  transform: scale(1.1);
+}
+
+.bio-journal-app .btn-filter-toggle {
+  background: #f8f9fa;
+  border: 2px solid #bdc3c7;
+  color: var(--text-primary);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.bio-journal-app .btn-filter-toggle:hover {
+  background: #ecf0f1;
+  border-color: #95a5a6;
+}
+
+.bio-journal-app .btn-filter-toggle.active {
+  background: var(--color-secondary);
+  color: white;
+  border-color: var(--color-secondary);
+}
+
+.bio-journal-app .search-filters {
+  margin-top: var(--spacing-medium);
+  padding-top: var(--spacing-medium);
+  border-top: 1px solid #d5dbdb;
+}
+
+.bio-journal-app .filter-label {
+  font-weight: 600;
+  margin-right: 15px;
+  color: var(--text-secondary);
+}
+
+.bio-journal-app .filter-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.bio-journal-app .btn-filter {
+  background: white;
+  border: 2px solid #bdc3c7;
+  color: var(--text-primary);
+  padding: 10px 18px;
+  border-radius: 25px;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .btn-filter:hover {
+  background: #f8f9fa;
+  border-color: var(--color-secondary);
+}
+
+.bio-journal-app .btn-filter.active {
+  background: var(--color-secondary);
+  color: white;
+  border-color: var(--color-secondary);
+}
+
+.bio-journal-app .search-results-info {
+  margin-top: var(--spacing-small);
+  padding: 10px 15px;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.95em;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.bio-journal-app .search-highlight {
+  background: #fff59d;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   TAGS SECTION STYLES
+   ============================================================================ */
+
+.bio-journal-app .tags-section {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 2px solid #81c784;
+  border-radius: 12px;
+  padding: var(--spacing-medium);
+  margin-bottom: var(--spacing-large);
+}
+
+.bio-journal-app .tags-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-medium);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bio-journal-app .tags-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bio-journal-app .btn-small {
+  padding: 8px 15px;
+  font-size: 0.9em;
+}
+
+.bio-journal-app .tags-display {
+  background: white;
+  border-radius: 10px;
+  padding: var(--spacing-medium);
+  min-height: 60px;
+}
+
+.bio-journal-app .tag-group {
+  margin-bottom: var(--spacing-small);
+}
+
+.bio-journal-app .tag-group:last-child {
+  margin-bottom: 0;
+}
+
+.bio-journal-app .tag-group-label {
+  font-weight: 600;
+  font-size: 0.95em;
+  color: var(--text-secondary);
+  margin-right: 10px;
+}
+
+.bio-journal-app .tag-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.bio-journal-app .tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.bio-journal-app .tag-chip.tag-people {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.bio-journal-app .tag-chip.tag-places {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc80;
+}
+
+.bio-journal-app .tag-chip.tag-emotions {
+  background: #fce4ec;
+  color: #c2185b;
+  border: 1px solid #f48fb1;
+}
+
+.bio-journal-app .tag-chip.tag-themes {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+/* Clickable tags - for search on click */
+.bio-journal-app .tag-chip.tag-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .tag-chip.tag-clickable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bio-journal-app .tag-chip.tag-people.tag-clickable:hover {
+  background: #bbdefb;
+  border-color: #42a5f5;
+}
+
+.bio-journal-app .tag-chip.tag-places.tag-clickable:hover {
+  background: #ffe0b2;
+  border-color: #ff9800;
+}
+
+.bio-journal-app .tag-chip.tag-emotions.tag-clickable:hover {
+  background: #f8bbd9;
+  border-color: #ec407a;
+}
+
+.bio-journal-app .tag-chip.tag-themes.tag-clickable:hover {
+  background: #c8e6c9;
+  border-color: #66bb6a;
+}
+
+.bio-journal-app .tag-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1.1em;
+  padding: 0;
+  margin: 0;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  line-height: 1;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bio-journal-app .tag-remove:hover {
+  opacity: 1;
+  transform: none;
+  box-shadow: none;
+}
+
+.bio-journal-app .no-tags {
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  padding: var(--spacing-small);
+}
+
+.bio-journal-app .tag-editor {
+  display: flex;
+  gap: 10px;
+  margin-top: var(--spacing-medium);
+  padding-top: var(--spacing-medium);
+  border-top: 2px solid #a5d6a7;
+  flex-wrap: wrap;
+}
+
+.bio-journal-app .tag-category-select {
+  padding: 12px 15px;
+  font-size: 1em;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.bio-journal-app .tag-input {
+  flex: 1;
+  padding: 12px 15px;
+  font-size: 1em;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  min-width: 200px;
+}
+
+.bio-journal-app .tags-hint {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: var(--spacing-small);
+  text-align: center;
+}
+
+/* ============================================================================
+   FIND IN DOCUMENT PANEL
+   ============================================================================ */
+
+.bio-journal-app .find-panel {
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  padding: var(--spacing-medium);
+  margin-bottom: var(--spacing-large);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.bio-journal-app .find-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: var(--spacing-small);
+  border-bottom: 2px solid rgba(255, 193, 7, 0.3);
+  margin-bottom: var(--spacing-small);
+}
+
+.bio-journal-app .find-icon {
+  font-size: 1.5em;
+}
+
+.bio-journal-app .find-term {
+  font-weight: 700;
+  font-size: 1.1em;
+  color: #e65100;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #ffcc80;
+}
+
+.bio-journal-app .find-count {
+  font-size: 0.95em;
+  color: #5d4037;
+  flex: 1;
+}
+
+.bio-journal-app .find-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.bio-journal-app .btn-find-nav {
+  background: white;
+  border: 2px solid #ffc107;
+  color: #5d4037;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .btn-find-nav:hover:not(:disabled) {
+  background: #ffc107;
+  color: white;
+}
+
+.bio-journal-app .btn-find-nav:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bio-journal-app .btn-find-close {
+  background: #ff5722;
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.1em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .btn-find-close:hover {
+  background: #e64a19;
+  transform: scale(1.1);
+}
+
+.bio-journal-app .find-matches {
+  margin-top: var(--spacing-small);
+}
+
+.bio-journal-app .find-matches-label {
+  font-size: 0.9em;
+  color: #5d4037;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.bio-journal-app .find-matches-list {
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #ffcc80;
+}
+
+.bio-journal-app .find-match-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid #fff3e0;
+}
+
+.bio-journal-app .find-match-item:last-child {
+  border-bottom: none;
+}
+
+.bio-journal-app .find-match-item:hover {
+  background: #fff8e1;
+}
+
+.bio-journal-app .find-match-item.active {
+  background: #ffecb3;
+  border-left: 4px solid #ffc107;
+}
+
+.bio-journal-app .match-number {
+  font-weight: 700;
+  color: #ff9800;
+  font-size: 0.85em;
+  min-width: 30px;
+}
+
+.bio-journal-app .match-context {
+  font-size: 0.9em;
+  color: #5d4037;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.bio-journal-app .find-highlight {
+  background: #ffeb3b;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-weight: 700;
+  color: #e65100;
+}
+
+.bio-journal-app .find-actions {
+  margin-top: var(--spacing-medium);
+  padding-top: var(--spacing-small);
+  border-top: 2px solid rgba(255, 193, 7, 0.3);
+  display: flex;
+  justify-content: center;
+}
+
+.bio-journal-app .btn-search-all {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.95em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .btn-search-all:hover {
+  background: linear-gradient(135deg, #1976D2, #1565C0);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+/* Responsive - Find Panel */
+@media (max-width: 768px) {
+  .bio-journal-app .find-header {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .bio-journal-app .find-count {
+    width: 100%;
+    text-align: center;
+    order: 3;
+  }
+
+  .bio-journal-app .find-nav {
+    order: 2;
+  }
+
+  .bio-journal-app .btn-find-close {
+    order: 4;
+  }
+}
+
+/* Card Tags (on story cards) */
+.bio-journal-app .card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.bio-journal-app .card-tags .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.bio-journal-app .card-tags .tag-people {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.bio-journal-app .card-tags .tag-places {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.bio-journal-app .card-tags .tag-emotions {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.bio-journal-app .card-tags .tag-themes {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Clickable card tags */
+.bio-journal-app .card-tags .tag.tag-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .card-tags .tag.tag-clickable:hover {
+  transform: scale(1.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.bio-journal-app .card-tags .tag-people.tag-clickable:hover {
+  background: #bbdefb;
+}
+
+.bio-journal-app .card-tags .tag-places.tag-clickable:hover {
+  background: #ffe0b2;
+}
+
+.bio-journal-app .card-tags .tag-emotions.tag-clickable:hover {
+  background: #f8bbd9;
+}
+
+.bio-journal-app .card-tags .tag-themes.tag-clickable:hover {
+  background: #c8e6c9;
+}
+
+/* RESPONSIVE - Search and Tags */
+@media (max-width: 768px) {
+  .bio-journal-app .search-bar {
+    flex-wrap: wrap;
+  }
+
+  .bio-journal-app .search-input {
+    min-width: 100%;
+    order: -1;
+  }
+
+  .bio-journal-app .btn-filter-toggle {
+    flex: 1;
+  }
+
+  .bio-journal-app .tags-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bio-journal-app .tags-actions {
+    justify-content: center;
+  }
+
+  .bio-journal-app .tag-editor {
+    flex-direction: column;
+  }
+
+  .bio-journal-app .tag-category-select,
+  .bio-journal-app .tag-input {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+/* ============================================================================
+   SELECTION TO TAG TOOLTIP (v3.3)
+   ============================================================================ */
+
+.bio-journal-app .selection-tooltip {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 2px solid #4CAF50;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4), 0 4px 8px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  max-width: 300px;
+  animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bio-journal-app .selection-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.bio-journal-app .selection-tooltip .selection-text {
+  font-weight: 700;
+  color: #2e7d32;
+  font-size: 1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-close {
+  background: #f44336;
+  border: none;
+  color: white;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 50%;
+  font-size: 1em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-close:hover {
+  background: #d32f2f;
+  transform: scale(1.1);
+}
+
+.bio-journal-app .selection-tooltip-label {
+  font-size: 0.85em;
+  color: #558b2f;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.bio-journal-app .selection-tooltip-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-btn {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bio-journal-app .selection-tooltip .tooltip-btn-people {
+  background: #e3f2fd;
+  color: #1565c0;
+  border-color: #90caf9;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-btn-people:hover {
+  background: #bbdefb;
+  border-color: #64b5f6;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-btn-places {
+  background: #fff3e0;
+  color: #e65100;
+  border-color: #ffcc80;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-btn-places:hover {
+  background: #ffe0b2;
+  border-color: #ffb74d;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-btn-emotions {
+  background: #fce4ec;
+  color: #c2185b;
+  border-color: #f48fb1;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-btn-emotions:hover {
+  background: #f8bbd9;
+  border-color: #f06292;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-btn-themes {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #a5d6a7;
+}
+
+.bio-journal-app .selection-tooltip .tooltip-btn-themes:hover {
+  background: #c8e6c9;
+  border-color: #81c784;
+}
+
+/* Responsive - Selection Tooltip */
+@media (max-width: 480px) {
+  .bio-journal-app .selection-tooltip {
+    min-width: 180px;
+    max-width: 260px;
+    padding: 10px 12px;
+  }
+
+  .bio-journal-app .selection-tooltip-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .bio-journal-app .selection-tooltip .tooltip-btn {
+    padding: 8px 10px;
+  }
+}
+
+/* PRINT STYLES */
+@media print {
+  .bio-journal-app button,
+  .bio-journal-app .header-actions,
+  .bio-journal-app .card-actions,
+  .bio-journal-app .bullet-actions,
+  .bio-journal-app .editor-footer,
+  .bio-journal-app .search-section {
+    display: none;
+  }
+}

@@ -118,12 +118,12 @@ export function determineArchetype(elementData, tenGodsData = null) {
  * @returns {Object} Element data formatted for archetype mapping
  */
 export function getElementDataFromFourPillars(fourPillars) {
-  if (!fourPillars || !fourPillars.elementalBalance) {
-    console.error('[archetypeMapper] Invalid fourPillars data');
+  // Handle both elementalBalance and elementBalance naming
+  const elementalBalance = fourPillars?.elementalBalance || fourPillars?.elementBalance;
+  if (!fourPillars || !elementalBalance) {
+    console.error('[archetypeMapper] Invalid fourPillars data - missing elementalBalance/elementBalance');
     return null;
   }
-
-  const elementalBalance = fourPillars.elementalBalance;
 
   // Check for elements object (base + hidden combined)
   if (elementalBalance.elements) {
@@ -131,6 +131,21 @@ export function getElementDataFromFourPillars(fourPillars) {
       elements: elementalBalance.elements,
       total: elementalBalance.total || 0
     };
+  }
+
+  // Check if elementalBalance itself is a flat element object (from Python backend)
+  // Format: { Wood: 0.15, Fire: 0.20, Earth: 0.25, Metal: 0.25, Water: 0.15 }
+  const elementKeys = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
+  const hasDirectElements = elementKeys.some(key => elementalBalance[key] !== undefined);
+  if (hasDirectElements) {
+    const elements = {};
+    for (const key of elementKeys) {
+      // Convert percentages (0-1) to integer counts if needed
+      const val = elementalBalance[key] || 0;
+      elements[key] = val < 1 ? Math.round(val * 100) : val;
+    }
+    const total = Object.values(elements).reduce((sum, val) => sum + val, 0);
+    return { elements, total };
   }
 
   // Fallback: if we only have base/visible and hidden separately, combine them
@@ -177,4 +192,52 @@ export function determineArchetypeFromFourPillars(fourPillars, tenGodsData = nul
   }
 
   return determineArchetype(elementData, tenGodsData);
+}
+
+// =============================================================================
+// PYTHON-FIRST CONVENIENCE FUNCTION (Phase 2B)
+// =============================================================================
+/**
+ * Determine archetype from a profile using Python-First canonical structure
+ *
+ * Supports both:
+ * - New canonical: profile.bazi.elements
+ * - Legacy: profile.calculations.fourPillars.elementBalance
+ *
+ * @param {Object} profile - Profile with bazi or calculations data
+ * @returns {Object} Archetype object with full details
+ */
+export function determineArchetypeFromProfile(profile) {
+  if (!profile) return null;
+
+  // Priority 1: Canonical path (Python-First)
+  if (profile.bazi?.elements) {
+    console.log('[archetypeMapper] ✅ Using canonical path profile.bazi.elements');
+    const elements = profile.bazi.elements;
+
+    // Convert from { Wood: 0.25, Fire: 0.15, ... } to { elements: { Wood: 25, Fire: 15, ... } }
+    const elementKeys = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
+    const convertedElements = {};
+    for (const key of elementKeys) {
+      const val = elements[key] || 0;
+      convertedElements[key] = val < 1 ? Math.round(val * 100) : val;
+    }
+
+    return determineArchetype({ elements: convertedElements });
+  }
+
+  // Priority 2: Legacy path
+  if (profile.calculations?.fourPillars) {
+    console.log('[archetypeMapper] ⚠️ Using legacy path calculations.fourPillars');
+    return determineArchetypeFromFourPillars(profile.calculations.fourPillars);
+  }
+
+  // Priority 3: Constitution path
+  if (profile.constitutional?.bazi?.elementBalance) {
+    console.log('[archetypeMapper] ⚠️ Using constitution path');
+    return determineArchetype({ elements: profile.constitutional.bazi.elementBalance });
+  }
+
+  console.error('[archetypeMapper] No BaZi element data found in profile');
+  return null;
 }

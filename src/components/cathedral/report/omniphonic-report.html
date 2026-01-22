@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Omniphonic Harmony Report</title>
+  <link rel="stylesheet" href="omniphonic-report.css" />
+</head>
+<body>
+  <!-- 1. Title Page -->
+  <section class="page page--title">
+    <div class="title-block">
+      <div class="title-icon">🌙</div>
+      <h1>Omniphonic Harmony Report</h1>
+      <h2>A Full-Spectrum Emotional Field Analysis</h2>
+      <div class="title-divider"></div>
+      <p class="names">{{profileAName}} × {{profileBName}}</p>
+      <p class="meta">Generated on {{generatedAt}}</p>
+      <p class="meta">Report ID: {{reportId}}</p>
+    </div>
+    <div class="title-ring">
+      <svg viewBox="0 0 200 200" width="200" height="200">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="var(--accent)" stroke-width="1" opacity="0.3" />
+        <circle cx="100" cy="100" r="80" fill="none" stroke="var(--accent)" stroke-width="0.5" opacity="0.2" />
+        <circle cx="100" cy="100" r="70" fill="none" stroke="var(--accent)" stroke-width="0.5" opacity="0.15" />
+      </svg>
+    </div>
+    <div class="watermark">Cathedral of Emotional Harmony · Luna Wing · 50 Chambers</div>
+  </section>
+
+  <!-- 2. Table of Contents -->
+  <section class="page page--toc">
+    <h2>Table of Contents</h2>
+    <div class="toc-divider"></div>
+    <ol class="toc-list">
+      <li>
+        <span class="toc-title">Omniphonic Summary</span>
+        <span class="toc-desc">Score, heatmap, and dominant themes</span>
+      </li>
+      <li>
+        <span class="toc-title">Cluster Chapters</span>
+        <span class="toc-desc">Detailed analysis of all 50 chambers across 10 harmonic families</span>
+      </li>
+      <li>
+        <span class="toc-title">Harmonic Narrative</span>
+        <span class="toc-desc">Mythic interpretation of the emotional field</span>
+      </li>
+      <li>
+        <span class="toc-title">Omniphonic Field Diagram</span>
+        <span class="toc-desc">Visual synthesis of resonance patterns</span>
+      </li>
+      <li>
+        <span class="toc-title">Appendix: Technical Specification</span>
+        <span class="toc-desc">Detector parameters and methodology</span>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 3. Omniphonic Summary Spread -->
+  <section class="page page--summary">
+    <div class="summary-header">
+      <h2>Omniphonic Summary</h2>
+      <p class="section-subtitle">Full-spectrum emotional resonance overview</p>
+    </div>
+
+    <div class="summary-grid">
+      <!-- Left: Score Panel -->
+      <div class="summary-left">
+        <div class="score-panel">
+          <h3>Omniphonic Score</h3>
+          <div class="score-ring">
+            <svg viewBox="0 0 120 120" width="140" height="140">
+              <circle cx="60" cy="60" r="54" fill="none" stroke="var(--border)" stroke-width="6" />
+              <circle cx="60" cy="60" r="54" fill="none" stroke="var(--accent)" stroke-width="6"
+                stroke-dasharray="{{scoreArc}} 340"
+                stroke-linecap="round"
+                transform="rotate(-90 60 60)" />
+            </svg>
+            <div class="score-ring__content">
+              <div class="score-ring__value">{{omniphonicScore}}</div>
+              <div class="score-ring__label">/ 100</div>
+            </div>
+          </div>
+          <div class="score-strength">{{strengthLabel}}</div>
+          <p class="summary-text">{{summaryText}}</p>
+        </div>
+
+        <div class="badges-panel">
+          <div class="badge">
+            <span class="badge-label">Dominant Cluster</span>
+            <strong class="badge-value">{{dominantCluster}}</strong>
+          </div>
+          <div class="badge">
+            <span class="badge-label">Signature Archetype</span>
+            <strong class="badge-value">{{signatureArchetype}}</strong>
+          </div>
+          <div class="badge">
+            <span class="badge-label">Active Chambers</span>
+            <strong class="badge-value">{{activeChambers}} / 50</strong>
+          </div>
+          <div class="badge">
+            <span class="badge-label">Activation Rate</span>
+            <strong class="badge-value">{{activationRate}}%</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Heatmap -->
+      <div class="summary-right">
+        <h3>Harmonic Heatmap</h3>
+        <p class="heatmap-subtitle">50 chambers · 10 harmonic families</p>
+        <div class="heatmap-grid">
+          {{#each heatmap}}
+          <div class="heatmap-cell heatmap-cell--{{clusterClass}} {{#if triggered}}heatmap-cell--active{{/if}}"
+               data-id="{{id}}"
+               data-cluster="{{cluster}}"
+               data-boost="{{harmonyBoost}}"
+               data-bonus="{{bonus}}">
+            <span class="heatmap-cell__id">{{id}}</span>
+          </div>
+          {{/each}}
+        </div>
+        <div class="heatmap-legend">
+          <div class="legend-item">
+            <span class="legend-box legend-box--active"></span>
+            <span>Active Chamber</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-box legend-box--inactive"></span>
+            <span>Dormant Chamber</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Cluster Chapters -->
+  {{#each clusters}}
+  <section class="page page--cluster">
+    <div class="cluster-header">
+      <div class="cluster-icon">{{icon}}</div>
+      <div class="cluster-info">
+        <h2>{{name}}</h2>
+        <p class="cluster-desc">{{description}}</p>
+      </div>
+      <div class="cluster-stats">
+        <div class="cluster-activation">
+          <span class="activation-value">{{active}}/{{total}}</span>
+          <span class="activation-label">chambers</span>
+        </div>
+        <div class="cluster-percent">{{percent}}%</div>
+      </div>
+    </div>
+
+    <div class="cluster-grid">
+      {{#each chambers}}
+      <article class="chamber-card {{#if triggered}}chamber-card--active{{/if}}">
+        <header class="chamber-header">
+          <div class="chamber-id">{{id}}</div>
+          <div class="chamber-name">{{name}}</div>
+          <div class="chamber-status {{#if triggered}}status--active{{else}}status--dormant{{/if}}">
+            {{#if triggered}}●{{else}}○{{/if}}
+          </div>
+        </header>
+        <div class="chamber-metrics">
+          <div class="metric">
+            <span class="metric-label">Boost</span>
+            <span class="metric-value">{{harmonyBoost}}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Bonus</span>
+            <span class="metric-value">{{bonus}}</span>
+          </div>
+        </div>
+        {{#if triggered}}
+        <div class="chamber-intensity">
+          <div class="intensity-bar" style="width: {{intensity}}%"></div>
+        </div>
+        {{/if}}
+        <p class="chamber-text">{{shortText}}</p>
+      </article>
+      {{/each}}
+    </div>
+  </section>
+  {{/each}}
+
+  <!-- 5. Harmonic Narrative -->
+  <section class="page page--narrative">
+    <div class="narrative-header">
+      <h2>📜 Harmonic Narrative</h2>
+      <p class="section-subtitle">Mythic interpretation of the emotional field</p>
+    </div>
+    <div class="narrative-container">
+      <pre class="narrative-text">{{narrative}}</pre>
+    </div>
+  </section>
+
+  <!-- 6. Omniphonic Field Diagram -->
+  <section class="page page--diagram">
+    <div class="diagram-header">
+      <h2>🌀 Omniphonic Field Diagram</h2>
+      <p class="section-subtitle">Visual synthesis of resonance patterns</p>
+    </div>
+    <div class="diagram-wrapper">
+      {{{omniphonicFieldSvg}}}
+    </div>
+    <div class="diagram-legend">
+      <p>Central circle: Omniphonic Score · Outer rings: Harmonic families · Dots: Individual chambers</p>
+      <p>Brighter dots indicate higher resonance intensity</p>
+    </div>
+  </section>
+
+  <!-- 7. Appendix -->
+  <section class="page page--appendix">
+    <div class="appendix-header">
+      <h2>📋 Appendix: Technical Specification</h2>
+      <p class="section-subtitle">Detector parameters and methodology</p>
+    </div>
+
+    <div class="appendix-intro">
+      <h3>Methodology</h3>
+      <p>The Omniphonic Harmony Engine analyzes emotional compatibility across 50 dimensions, organized into 10 harmonic families. Each detector evaluates trait alignment between two profiles using a threshold-based activation model.</p>
+
+      <h4>Omniphonic Score Formula</h4>
+      <code class="formula">Omniphonic Score = (Σ harmonyBoost + Σ bonus) / 50 × 100</code>
+
+      <h4>Activation Thresholds</h4>
+      <ul>
+        <li>Standard chambers: Both profiles ≥ 0.55 on 2+ trait axes</li>
+        <li>Apex chamber (#50 Omniphonic): Both profiles ≥ 0.60 on 3+ trait axes</li>
+      </ul>
+    </div>
+
+    <div class="appendix-block">
+      <h3>Detector Reference</h3>
+      <table class="detector-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Family</th>
+            <th>Boost Range</th>
+            <th>Bonus Range</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each detectors}}
+          <tr>
+            <td>{{id}}</td>
+            <td>{{name}}</td>
+            <td>{{cluster}}</td>
+            <td>{{boostRange}}</td>
+            <td>{{bonusRange}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="appendix-footer">
+      <p>Generated by Cathedral Emotional Harmony Engine v1.0.0</p>
+      <p>Luna Wing · 50 Chambers · Full-Spectrum Analysis</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="report-footer">
+    <p>© Cathedral of Emotional Harmony · {{generatedAt}}</p>
+  </footer>
+</body>
+</html>

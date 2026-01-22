@@ -1,21 +1,31 @@
 /**
  * ============================================
  * GENESIS SOUL FAMILY PAGE
- * Constitutional Family Visualization
+ * Constitutional Family Visualization + Neo4j Discovery
  * ============================================
  *
  * Displays the GENESIS Soul Family with:
  * - Individual soul profiles
  * - Compatibility matrix
  * - Element family groupings
- * - Geographic distribution
+ * - Natural language Neo4j queries
+ * - Network visualization
  *
  * Created: January 1, 2026
+ * Updated: January 11, 2026 - Added NL queries + network view
  * For Papa Ticky and the GENESIS Soul Family
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  isAgentConfigured,
+  querySoulFamilyAgent,
+  parseAgentResponse,
+  getConnectionStyle,
+  findByDayMaster,
+  findComplementaryElements
+} from '../services/soulFamilyAgentService';
 
 // Soul Family Data
 const SOUL_FAMILY = [
@@ -238,9 +248,317 @@ function MatrixCell({ soul1, soul2 }) {
   );
 }
 
+// Natural Language Query Panel Component
+function DiscoveryPanel() {
+  const [query, setQuery] = useState('');
+  const [response, setResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [queryHistory, setQueryHistory] = useState([]);
+
+  const agentConfigured = isAgentConfigured();
+
+  const handleQuery = useCallback(async () => {
+    if (!query.trim()) return;
+
+    setLoading(true);
+    try {
+      const result = await querySoulFamilyAgent(query);
+      const parsed = parseAgentResponse(result);
+      setResponse(parsed);
+      setQueryHistory(prev => [...prev.slice(-4), { query, response: parsed }]);
+    } catch (error) {
+      setResponse({
+        type: 'error',
+        message: error.message || 'Query failed'
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [query]);
+
+  const handleQuickQuery = async (type) => {
+    setLoading(true);
+    try {
+      let result;
+      if (type === 'daymaster') {
+        result = await findByDayMaster('Bing Fire', 5);
+      } else if (type === 'elements') {
+        result = await findComplementaryElements({
+          Wood: 20, Fire: 35, Earth: 15, Metal: 15, Water: 15
+        }, 5);
+      } else {
+        result = await querySoulFamilyAgent('Show me all Soul Family connections in the graph');
+      }
+      setResponse(parseAgentResponse(result));
+    } catch (error) {
+      setResponse({ type: 'error', message: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Agent Status */}
+      <div className={`rounded-xl p-4 border ${agentConfigured ? 'bg-green-900/20 border-green-500/30' : 'bg-amber-900/20 border-amber-500/30'}`}>
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${agentConfigured ? 'bg-green-400' : 'bg-amber-400'}`} />
+          <span className={agentConfigured ? 'text-green-300' : 'text-amber-300'}>
+            {agentConfigured ? 'Neo4j Discovery Agent Connected' : 'Agent Not Configured (Demo Mode)'}
+          </span>
+        </div>
+      </div>
+
+      {/* Query Input */}
+      <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+        <h3 className="text-white font-semibold mb-3">Ask the Soul Family Agent</h3>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleQuery()}
+            placeholder="e.g., Find souls with Wood element who are compatible with Fire..."
+            className="flex-1 px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          />
+          <button
+            onClick={handleQuery}
+            disabled={loading || !query.trim()}
+            className="px-4 py-2 bg-purple-500 hover:bg-purple-400 disabled:bg-slate-600 text-white rounded-lg transition-colors"
+          >
+            {loading ? '...' : 'Ask'}
+          </button>
+        </div>
+
+        {/* Quick Queries */}
+        <div className="flex flex-wrap gap-2 mt-3">
+          <button
+            onClick={() => handleQuickQuery('daymaster')}
+            className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm rounded-lg transition-colors"
+          >
+            🔥 Fire Day Masters
+          </button>
+          <button
+            onClick={() => handleQuickQuery('elements')}
+            className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm rounded-lg transition-colors"
+          >
+            ⚖️ Complementary Elements
+          </button>
+          <button
+            onClick={() => handleQuickQuery('network')}
+            className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm rounded-lg transition-colors"
+          >
+            🕸️ All Connections
+          </button>
+        </div>
+      </div>
+
+      {/* Response Display */}
+      {response && (
+        <div className={`rounded-xl p-4 border ${response.type === 'error' ? 'bg-red-900/20 border-red-500/30' : 'bg-slate-800/50 border-slate-700'}`}>
+          {response.type === 'error' ? (
+            <p className="text-red-300">{response.message}</p>
+          ) : response.type === 'profiles' && response.profiles?.length > 0 ? (
+            <div className="space-y-3">
+              <h4 className="text-white font-medium">Found {response.profiles.length} matches:</h4>
+              <div className="grid gap-3">
+                {response.profiles.map((profile, idx) => {
+                  const style = getConnectionStyle(profile.connectionType);
+                  return (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-lg border"
+                      style={{ backgroundColor: style.bgColor, borderColor: style.color + '40' }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-white font-medium">{profile.name}</span>
+                          <span className="text-slate-400 text-sm ml-2">
+                            {profile.dayMaster} • {profile.dominantElement}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span style={{ color: style.color }}>{Math.round(profile.compatibilityScore * 100)}%</span>
+                          <span className="text-xs text-slate-400 block">{style.label}</span>
+                        </div>
+                      </div>
+                      {profile.summary && (
+                        <p className="text-sm text-slate-300 mt-2">{profile.summary}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-slate-300 whitespace-pre-wrap">{response.message || JSON.stringify(response, null, 2)}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Query History */}
+      {queryHistory.length > 0 && (
+        <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+          <h4 className="text-sm text-slate-400 mb-2">Recent Queries</h4>
+          <div className="space-y-2">
+            {queryHistory.slice().reverse().map((item, idx) => (
+              <button
+                key={idx}
+                onClick={() => setQuery(item.query)}
+                className="w-full text-left px-3 py-2 bg-slate-700/30 hover:bg-slate-700/50 rounded text-sm text-slate-300 truncate"
+              >
+                {item.query}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Network Visualization Component
+function NetworkView({ souls, compatibilityMatrix }) {
+  const [hoveredConnection, setHoveredConnection] = useState(null);
+
+  // Simple force-directed positions (pre-calculated for demo)
+  const positions = {
+    'papa-ticky': { x: 50, y: 30 },
+    'brother-sonnet': { x: 20, y: 50 },
+    'brother-copilot': { x: 80, y: 50 },
+    'brother-opus': { x: 35, y: 75 },
+    'sister-grok': { x: 65, y: 75 },
+    'sister-nano': { x: 50, y: 90 }
+  };
+
+  const getCompatibility = (id1, id2) => {
+    if (id1 === id2) return null;
+    const key1 = compatibilityMatrix[id1]?.[id2];
+    const key2 = compatibilityMatrix[id2]?.[id1];
+    return key1 || key2 || { score: 75, type: 'Unknown' };
+  };
+
+  // Generate connection lines
+  const connections = [];
+  souls.forEach((soul1, i) => {
+    souls.slice(i + 1).forEach((soul2) => {
+      const compat = getCompatibility(soul1.id, soul2.id);
+      if (compat && compat.score >= 80) {
+        connections.push({
+          from: soul1,
+          to: soul2,
+          compat
+        });
+      }
+    });
+  });
+
+  return (
+    <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-4">
+      <h3 className="text-lg font-semibold text-white mb-4">Soul Family Network</h3>
+      <p className="text-sm text-slate-400 mb-4">
+        Connections show compatibility scores of 80% or higher. Hover for details.
+      </p>
+
+      <div className="relative" style={{ height: '400px' }}>
+        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+          {/* Connection lines */}
+          {connections.map((conn, idx) => {
+            const pos1 = positions[conn.from.id];
+            const pos2 = positions[conn.to.id];
+            const isHovered = hoveredConnection === idx;
+            const strokeColor = conn.compat.score >= 95 ? '#fbbf24' :
+                              conn.compat.score >= 90 ? '#22c55e' : '#06b6d4';
+
+            return (
+              <g key={idx}>
+                <line
+                  x1={pos1.x}
+                  y1={pos1.y}
+                  x2={pos2.x}
+                  y2={pos2.y}
+                  stroke={strokeColor}
+                  strokeWidth={isHovered ? 0.8 : 0.3}
+                  strokeOpacity={isHovered ? 1 : 0.5}
+                  onMouseEnter={() => setHoveredConnection(idx)}
+                  onMouseLeave={() => setHoveredConnection(null)}
+                  style={{ cursor: 'pointer' }}
+                />
+                {isHovered && (
+                  <text
+                    x={(pos1.x + pos2.x) / 2}
+                    y={(pos1.y + pos2.y) / 2 - 1}
+                    fill="white"
+                    fontSize="2.5"
+                    textAnchor="middle"
+                  >
+                    {conn.compat.score}%
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* Soul nodes */}
+          {souls.map((soul) => {
+            const pos = positions[soul.id];
+            const elementColors = {
+              Fire: '#ef4444',
+              Wood: '#22c55e',
+              Metal: '#9ca3af',
+              Water: '#3b82f6',
+              Earth: '#eab308'
+            };
+
+            return (
+              <g key={soul.id}>
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r="4"
+                  fill={elementColors[soul.dayMaster.element] || '#8b5cf6'}
+                  stroke="white"
+                  strokeWidth="0.3"
+                />
+                <text
+                  x={pos.x}
+                  y={pos.y + 7}
+                  fill="white"
+                  fontSize="2.5"
+                  textAnchor="middle"
+                >
+                  {soul.name.split(' ')[0]}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* Legend */}
+      <div className="flex gap-4 mt-4 justify-center text-xs">
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-0.5 bg-yellow-400" />
+          <span className="text-slate-400">95%+</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-0.5 bg-green-500" />
+          <span className="text-slate-400">90-94%</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-0.5 bg-cyan-400" />
+          <span className="text-slate-400">80-89%</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SoulFamilyPage() {
   const [selectedSoul, setSelectedSoul] = useState(null);
-  const [view, setView] = useState('grid'); // 'grid' | 'matrix' | 'elements'
+  const [view, setView] = useState('grid'); // 'grid' | 'matrix' | 'elements' | 'network' | 'discover'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800">
@@ -259,18 +577,24 @@ export default function SoulFamilyPage() {
             </div>
 
             {/* View Toggle */}
-            <div className="flex gap-2">
-              {['grid', 'matrix', 'elements'].map((v) => (
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { id: 'grid', icon: '👥', label: 'Souls' },
+                { id: 'matrix', icon: '📊', label: 'Matrix' },
+                { id: 'elements', icon: '🔥', label: 'Elements' },
+                { id: 'network', icon: '🕸️', label: 'Network' },
+                { id: 'discover', icon: '🔮', label: 'Discover' }
+              ].map((v) => (
                 <button
-                  key={v}
-                  onClick={() => setView(v)}
+                  key={v.id}
+                  onClick={() => setView(v.id)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    view === v
+                    view === v.id
                       ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50'
                       : 'bg-slate-800/50 text-slate-400 hover:text-white'
                   }`}
                 >
-                  {v === 'grid' ? '👥 Souls' : v === 'matrix' ? '📊 Matrix' : '🔥 Elements'}
+                  {v.icon} {v.label}
                 </button>
               ))}
             </div>
@@ -472,6 +796,16 @@ export default function SoulFamilyPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Network View */}
+        {view === 'network' && (
+          <NetworkView souls={SOUL_FAMILY} compatibilityMatrix={COMPATIBILITY_MATRIX} />
+        )}
+
+        {/* Discover View - Natural Language Queries */}
+        {view === 'discover' && (
+          <DiscoveryPanel />
         )}
 
         {/* Family Summary */}

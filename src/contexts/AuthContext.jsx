@@ -6,7 +6,9 @@ import {
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '../config/firebase'
@@ -118,6 +120,92 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Sign in with Google
+  const signInWithGoogle = async () => {
+    try {
+      setError(null)
+      const provider = new GoogleAuthProvider()
+      provider.setCustomParameters({
+        prompt: 'select_account' // Always show account picker
+      })
+
+      const result = await signInWithPopup(auth, provider)
+      const user = result.user
+
+      // Check if user document exists
+      const userDocRef = doc(db, 'users', user.uid)
+      const userDoc = await getDoc(userDocRef)
+
+      if (!userDoc.exists()) {
+        // Create new user document for first-time Google sign-in
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email?.split('@')[0] || 'User',
+          photoURL: user.photoURL,
+          authProvider: 'google',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp(),
+          accountStatus: 'active',
+          subscriptionTier: 'free',
+          tokenUsage: {
+            used: 0,
+            remaining: 1000,
+            lastReset: serverTimestamp(),
+            resetPeriod: 'monthly'
+          },
+          profileCount: 0,
+          favoriteProfileIds: [],
+          defaultProfileId: null,
+          visibility: 'active',
+          discoverableBy: 'everyone',
+          privacySettings: {
+            showLocation: true,
+            allowMessaging: true,
+            showInSearch: true,
+            shareWithGroups: true
+          },
+          currentLocation: null,
+          searchPreferences: {
+            defaultRadius: 50000,
+            regions: [],
+            savedSearches: []
+          },
+          lookingFor: null,
+          groupIds: [],
+          preferences: {
+            theme: 'cosmic',
+            notifications: {
+              email: true,
+              push: false,
+              messages: true,
+              reminders: true,
+              dailyGuidance: false
+            },
+            language: 'en',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          },
+          aiInteractionCount: 0,
+          lastAiInteraction: null
+        })
+      } else {
+        // Update last login for existing user
+        await setDoc(userDocRef, { lastLoginAt: serverTimestamp() }, { merge: true })
+      }
+
+      return user
+    } catch (err) {
+      // Handle specific Google auth errors
+      if (err.code === 'auth/popup-closed-by-user') {
+        // User closed popup - not an error to display
+        return null
+      }
+      setError(err.message)
+      throw err
+    }
+  }
+
   // Logout
   const logout = async () => {
     try {
@@ -170,6 +258,7 @@ export function AuthProvider({ children }) {
     error,
     signup,
     login,
+    signInWithGoogle,
     logout,
     resetPassword,
     getUserProfile

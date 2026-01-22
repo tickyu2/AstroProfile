@@ -1,0 +1,261 @@
+/**
+ * PilgrimJourneyMode.css
+ * Styling for the guided pilgrimage experience
+ */
+
+/* Start Button */
+.pilgrim-start {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #8a744f 0%, #6d5a3e 100%);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(138, 116, 79, 0.4);
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.pilgrim-start:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(138, 116, 79, 0.5);
+}
+
+.pilgrim-start-icon {
+  font-size: 1.4rem;
+}
+
+.pilgrim-start-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  font-weight: 500;
+}
+
+.pilgrim-start-text small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+/* Overlay Card */
+.pilgrim-overlay {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  width: 90%;
+  max-width: 480px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.pilgrim-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+/* Dark mode */
+.relationship-vedic-container .pilgrim-card,
+.vedic-dashboard .pilgrim-card {
+  background: #1e2a47;
+  color: #eaeaea;
+}
+
+/* Progress Bar */
+.pilgrim-progress {
+  height: 4px;
+  background: #e0e0e0;
+}
+
+.relationship-vedic-container .pilgrim-progress,
+.vedic-dashboard .pilgrim-progress {
+  background: #0f3460;
+}
+
+.pilgrim-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #8a744f 0%, #d4a574 100%);
+  transition: width 0.3s ease;
+}
+
+/* Journey Header */
+.pilgrim-journey-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #f8f6f3;
+  border-bottom: 1px solid #e8e4de;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.relationship-vedic-container .pilgrim-journey-header,
+.vedic-dashboard .pilgrim-journey-header {
+  background: #16213e;
+  border-bottom-color: #0f3460;
+  color: #999;
+}
+
+.pilgrim-journey-icon {
+  font-size: 1.1rem;
+}
+
+.pilgrim-journey-name {
+  font-weight: 500;
+  color: #8a744f;
+}
+
+.pilgrim-step-counter {
+  margin-left: auto;
+  font-weight: 600;
+}
+
+/* Step Content */
+.pilgrim-step-title {
+  margin: 0;
+  padding: 16px 20px 8px;
+  font-size: 1.1rem;
+  color: #8a744f;
+}
+
+.relationship-vedic-container .pilgrim-step-title,
+.vedic-dashboard .pilgrim-step-title {
+  color: #d4a574;
+}
+
+.pilgrim-step-description {
+  margin: 0;
+  padding: 0 20px 16px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #555;
+}
+
+.relationship-vedic-container .pilgrim-step-description,
+.vedic-dashboard .pilgrim-step-description {
+  color: #bbb;
+}
+
+/* Controls */
+.pilgrim-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px 16px;
+  border-top: 1px solid #eee;
+}
+
+.relationship-vedic-container .pilgrim-controls,
+.vedic-dashboard .pilgrim-controls {
+  border-top-color: #0f3460;
+}
+
+.pilgrim-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.pilgrim-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #f5f3ef;
+  color: #555;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.relationship-vedic-container .pilgrim-btn,
+.vedic-dashboard .pilgrim-btn {
+  background: #16213e;
+  border-color: #0f3460;
+  color: #bbb;
+}
+
+.pilgrim-btn:hover:not(:disabled) {
+  background: #ebe7e0;
+  border-color: #ccc;
+}
+
+.pilgrim-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pilgrim-btn-exit {
+  background: transparent;
+  border-color: transparent;
+  color: #999;
+}
+
+.pilgrim-btn-exit:hover {
+  color: #e94560;
+  background: rgba(233, 69, 96, 0.1);
+}
+
+.pilgrim-btn-next {
+  background: #8a744f;
+  border-color: #8a744f;
+  color: white;
+}
+
+.pilgrim-btn-next:hover:not(:disabled) {
+  background: #6d5a3e;
+  border-color: #6d5a3e;
+}
+
+/* Highlight effect for target elements */
+@keyframes pilgrimHighlight {
+  0% { box-shadow: 0 0 0 0 rgba(212, 165, 116, 0.6); }
+  50% { box-shadow: 0 0 0 8px rgba(212, 165, 116, 0.3); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 165, 116, 0); }
+}
+
+.pilgrim-highlight {
+  animation: pilgrimHighlight 1.5s ease;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .pilgrim-overlay {
+    bottom: 16px;
+    width: 95%;
+  }
+
+  .pilgrim-start {
+    bottom: 16px;
+    right: 16px;
+    padding: 12px 16px;
+  }
+
+  .pilgrim-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pilgrim-btn-exit {
+    order: 1;
+  }
+}

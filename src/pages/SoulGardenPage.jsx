@@ -17,7 +17,7 @@
  * December 25, 2024
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfiles } from '../contexts/ProfileContext';
@@ -25,6 +25,7 @@ import { HouseStrengthPlayground } from '../components/playground';
 import HouseTimeMatrix from '../components/playground/HouseTimeMatrix';
 import LocationPicker from '../components/common/LocationPicker';
 import { fetchHouseStrengthTimeline } from '../services/houseStrengthService';
+import { getHistoricalTimezone } from '../services/timezoneService';
 import SoulConfessional from '../components/soulGarden/SoulConfessional';
 import TakeHomeGiftPanel from '../components/soulGarden/TakeHomeGiftPanel';
 import { submitConfessional, buildConfessionalChart } from '../services/confessionalService';
@@ -50,6 +51,8 @@ export default function SoulGardenPage() {
   const [manualTime, setManualTime] = useState(''); // New: exact time input
   const [manualLocation, setManualLocation] = useState(null);
   const [manualTimezone, setManualTimezone] = useState(0);
+  const [resolvedTimezone, setResolvedTimezone] = useState(null);
+  const [timezoneLoading, setTimezoneLoading] = useState(false);
 
   // Playground state
   const [showPlayground, setShowPlayground] = useState(false);
@@ -64,6 +67,53 @@ export default function SoulGardenPage() {
   // Soul Confessional state
   const [confessionalLoading, setConfessionalLoading] = useState(false);
   const [confessionalResponse, setConfessionalResponse] = useState(null);
+
+  // Historical timezone lookup for manual input mode
+  useEffect(() => {
+    async function lookupTimezone() {
+      // Only lookup if we have date and location
+      if (!manualDate || !manualLocation?.lat || !manualLocation?.lng) {
+        setResolvedTimezone(null);
+        return;
+      }
+
+      setTimezoneLoading(true);
+      try {
+        console.log('🌿 Soul Garden: Looking up historical timezone...', {
+          date: manualDate,
+          lat: manualLocation.lat,
+          lng: manualLocation.lng
+        });
+
+        const result = await getHistoricalTimezone({
+          latitude: manualLocation.lat,
+          longitude: manualLocation.lng,
+          birthDate: manualDate,
+          birthTime: manualTime || '12:00'
+        });
+
+        if (result?.success && result.timezone) {
+          console.log('🌿 Soul Garden: Timezone resolved:', result.timezone);
+          setResolvedTimezone(result.timezone);
+          // Auto-update the numeric offset to match resolved timezone
+          setManualTimezone(result.timezone.gmtOffsetHours || 0);
+        } else {
+          console.warn('🌿 Soul Garden: Timezone lookup failed, using longitude estimate');
+          setResolvedTimezone(null);
+          // Fall back to longitude estimation
+          const estimatedTz = Math.round(manualLocation.lng / 15);
+          setManualTimezone(estimatedTz);
+        }
+      } catch (error) {
+        console.error('🌿 Soul Garden: Timezone lookup error:', error);
+        setResolvedTimezone(null);
+      } finally {
+        setTimezoneLoading(false);
+      }
+    }
+
+    lookupTimezone();
+  }, [manualDate, manualLocation, manualTime]);
 
   // Get list of profiles for search
   // Handle both old structure (birth.date) and new structure (birthDate at top level)
@@ -180,13 +230,11 @@ export default function SoulGardenPage() {
   }, [inputMode, selectedProfileData, manualDate, manualTime, manualLocation, manualTimezone]);
 
   // Handle location change from picker
+  // Note: Historical timezone lookup is triggered by useEffect when date + location are set
   const handleLocationChange = useCallback((location) => {
     setManualLocation(location);
-    // Try to estimate timezone from longitude (rough approximation)
-    if (location?.lng) {
-      const estimatedTz = Math.round(location.lng / 15);
-      setManualTimezone(estimatedTz);
-    }
+    // Reset resolved timezone - will be looked up by useEffect
+    setResolvedTimezone(null);
   }, []);
 
   // Handle profile selection
@@ -216,10 +264,10 @@ export default function SoulGardenPage() {
       return;
     }
 
-    // Validate date range (1900-2100 for astronomical calculations)
+    // Validate date range (1800-2100 for astronomical calculations - Swiss Ephemeris supports ~5000 BC to ~5000 AD)
     const year = parseInt(activeBirthData.birthDate?.split('-')[0]);
-    if (year < 1900 || year > 2100) {
-      alert('Please use a birth date between 1900 and 2100 for accurate calculations.');
+    if (year < 1800 || year > 2100) {
+      alert('Please use a birth date between 1800 and 2100 for accurate calculations.');
       return;
     }
 
@@ -548,22 +596,64 @@ export default function SoulGardenPage() {
                     </p>
                   </div>
 
-                  {/* Timezone Input */}
+                  {/* Timezone Input with Historical Lookup */}
                   <div>
-                    <label className="block text-sm text-white/70 mb-2">
-                      Timezone (UTC offset)
+                    <label className="block text-sm text-white/70 mb-2 flex items-center gap-2">
+                      Timezone
+                      {timezoneLoading && (
+                        <span className="text-xs text-cyan-400 animate-pulse">Looking up...</span>
+                      )}
                     </label>
+
+                    {/* Resolved Timezone Display */}
+                    {resolvedTimezone && (
+                      <div className="mb-2 p-3 bg-emerald-950/30 rounded-lg border border-emerald-500/30">
+                        <div className="flex items-center gap-2 text-emerald-400">
+                          <span className="text-lg">🌐</span>
+                          <span className="font-medium">
+                            {resolvedTimezone.abbreviation || resolvedTimezone.zoneName}
+                          </span>
+                          <span className="text-emerald-300/70">
+                            (UTC{resolvedTimezone.gmtOffsetHours >= 0 ? '+' : ''}{resolvedTimezone.gmtOffsetHours})
+                          </span>
+                          {resolvedTimezone.dst && (
+                            <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">
+                              DST
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-white/50 mt-1">
+                          {resolvedTimezone.zoneName} • Historical lookup for {manualDate}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fallback/Override Dropdown */}
                     <select
                       value={manualTimezone}
-                      onChange={(e) => setManualTimezone(Number(e.target.value))}
-                      className="w-full px-4 py-3 bg-slate-900 border border-white/20 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                      onChange={(e) => {
+                        setManualTimezone(Number(e.target.value));
+                        // Clear resolved timezone if manually overriding
+                        if (resolvedTimezone && Number(e.target.value) !== resolvedTimezone.gmtOffsetHours) {
+                          setResolvedTimezone(null);
+                        }
+                      }}
+                      className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white focus:border-purple-500 focus:outline-none ${
+                        resolvedTimezone ? 'border-emerald-500/30' : 'border-white/20'
+                      }`}
                     >
                       {Array.from({ length: 25 }, (_, i) => i - 12).map(tz => (
                         <option key={tz} value={tz}>
                           UTC{tz >= 0 ? '+' : ''}{tz}
+                          {resolvedTimezone && tz === resolvedTimezone.gmtOffsetHours ? ' (detected)' : ''}
                         </option>
                       ))}
                     </select>
+                    {!resolvedTimezone && manualDate && manualLocation && !timezoneLoading && (
+                      <p className="text-xs text-amber-400/70 mt-1">
+                        Could not auto-detect timezone. Please verify the offset.
+                      </p>
+                    )}
                   </div>
 
                   {/* Spacer for grid alignment */}
@@ -585,8 +675,14 @@ export default function SoulGardenPage() {
                   <div className="mt-4 p-3 bg-slate-900/50 rounded-lg">
                     <div className="text-xs text-white/50 mb-1">Selected Location</div>
                     <div className="text-sm text-white">{manualLocation.formatted}</div>
-                    <div className="text-xs text-white/40 mt-1">
-                      {manualLocation.lat?.toFixed(4)}°N, {manualLocation.lng?.toFixed(4)}°E
+                    <div className="text-xs text-white/40 mt-1 flex items-center gap-2">
+                      <span>📐 {manualLocation.lat?.toFixed(4)}°N, {manualLocation.lng?.toFixed(4)}°E</span>
+                      {resolvedTimezone && (
+                        <span className="text-emerald-400/70">
+                          • 🌐 {resolvedTimezone.abbreviation} (UTC{resolvedTimezone.gmtOffsetHours >= 0 ? '+' : ''}{resolvedTimezone.gmtOffsetHours})
+                          {resolvedTimezone.dst && ' DST'}
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}

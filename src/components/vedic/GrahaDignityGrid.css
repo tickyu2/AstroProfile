@@ -1,0 +1,369 @@
+/* GrahaDignityGrid.css */
+
+.graha-dignity-grid {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(100, 116, 139, 0.3);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.graha-dignity-grid.compact {
+  padding: 16px;
+}
+
+/* Header */
+.grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title-icon {
+  font-size: 20px;
+}
+
+.title-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dignity-summary {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.summary-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.summary-count {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Column Headers */
+.column-headers {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.col-header {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+
+.col-icon { width: 40px; }
+.col-name { flex: 1; min-width: 80px; }
+.col-sign { flex: 1; min-width: 80px; }
+.col-nakshatra { flex: 1; min-width: 100px; }
+.col-dignity { flex: 1; min-width: 90px; }
+.col-house { width: 60px; text-align: center; }
+.col-expand { width: 30px; }
+
+/* Graha Rows */
+.grahas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.graha-row {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.graha-main {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.graha-row.expanded .graha-main {
+  border-radius: 10px 10px 0 0;
+}
+
+.graha-main:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Graha cells */
+.graha-icon {
+  width: 40px;
+  font-size: 20px;
+  text-align: center;
+}
+
+.graha-name {
+  flex: 1;
+  min-width: 80px;
+}
+
+.name-english {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.name-sanskrit {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.graha-sign {
+  flex: 1;
+  min-width: 80px;
+}
+
+.sign-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sign-degree {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: monospace;
+}
+
+.graha-nakshatra {
+  flex: 1;
+  min-width: 100px;
+}
+
+.nakshatra-name {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.nakshatra-pada {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.graha-dignity {
+  flex: 1;
+  min-width: 90px;
+}
+
+.dignity-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.graha-house {
+  width: 60px;
+  text-align: center;
+}
+
+.house-number {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.house-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.expand-indicator {
+  width: 30px;
+  text-align: center;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.graha-row.expanded .expand-indicator {
+  transform: rotate(180deg);
+}
+
+/* Expanded Details */
+.graha-details {
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.detail-value {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.detail-item.retrograde .detail-value {
+  color: #f59e0b;
+}
+
+.detail-item.combust .detail-value {
+  color: #ef4444;
+}
+
+/* Legend */
+.dignity-legend {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.legend-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 12px;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Compact mode */
+.compact .graha-main {
+  padding: 8px;
+}
+
+.compact .graha-icon {
+  font-size: 16px;
+  width: 32px;
+}
+
+.compact .name-english {
+  font-size: 11px;
+}
+
+.compact .dignity-badge {
+  padding: 2px 8px;
+  font-size: 9px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .column-headers {
+    display: none;
+  }
+
+  .graha-main {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .graha-icon {
+    order: 1;
+  }
+
+  .graha-name {
+    order: 2;
+    flex: 0 0 calc(50% - 30px);
+  }
+
+  .graha-dignity {
+    order: 3;
+    flex: 0 0 auto;
+  }
+
+  .graha-sign {
+    order: 4;
+    flex: 0 0 50%;
+  }
+
+  .graha-nakshatra {
+    order: 5;
+    flex: 0 0 50%;
+  }
+
+  .graha-house {
+    order: 6;
+    width: auto;
+  }
+
+  .expand-indicator {
+    order: 7;
+    position: absolute;
+    right: 12px;
+    top: 12px;
+  }
+
+  .graha-row {
+    position: relative;
+  }
+}

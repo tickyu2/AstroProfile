@@ -58,6 +58,39 @@ import { WesternZodiacSection } from './westernZodiac'
 // 🌙 NEW! REAL-TIME MOON PHASE WIDGET
 import MoonPhaseWidget from './common/MoonPhaseWidget'
 
+// ═══════════════════════════════════════════════════════════════════════════
+// PYTHON-FIRST HELPERS: Convert canonical schema to legacy format
+// ═══════════════════════════════════════════════════════════════════════════
+const STEM_ELEMENTS = {
+    Jia: 'Wood', Yi: 'Wood',
+    Bing: 'Fire', Ding: 'Fire',
+    Wu: 'Earth', Ji: 'Earth',
+    Geng: 'Metal', Xin: 'Metal',
+    Ren: 'Water', Gui: 'Water'
+}
+
+const STEM_POLARITIES = {
+    Jia: 'Yang', Bing: 'Yang', Wu: 'Yang', Geng: 'Yang', Ren: 'Yang',
+    Yi: 'Yin', Ding: 'Yin', Ji: 'Yin', Xin: 'Yin', Gui: 'Yin'
+}
+
+const BRANCH_ANIMALS = {
+    Zi: 'Rat', Chou: 'Ox', Yin: 'Tiger', Mao: 'Rabbit',
+    Chen: 'Dragon', Si: 'Snake', Wu: 'Horse', Wei: 'Goat',
+    Shen: 'Monkey', You: 'Rooster', Xu: 'Dog', Hai: 'Pig'
+}
+
+const BRANCH_ELEMENTS = {
+    Zi: 'Water', Chou: 'Earth', Yin: 'Wood', Mao: 'Wood',
+    Chen: 'Earth', Si: 'Fire', Wu: 'Fire', Wei: 'Earth',
+    Shen: 'Metal', You: 'Metal', Xu: 'Earth', Hai: 'Water'
+}
+
+const getElementFromStem = (stem) => STEM_ELEMENTS[stem] || 'Unknown'
+const getPolarityFromStem = (stem) => STEM_POLARITIES[stem] || 'Unknown'
+const getBranchAnimal = (branch) => BRANCH_ANIMALS[branch] || 'Unknown'
+const getElementFromBranch = (branch) => BRANCH_ELEMENTS[branch] || 'Unknown'
+
 export default function Results() {
     const { profileId } = useParams()
     const navigate = useNavigate()
@@ -212,7 +245,31 @@ export default function Results() {
         console.log('🔧 [Results.jsx] Recalculated chinese:', chinese);
     }
 
-    const westZodiac = calc.western || {}
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PYTHON-FIRST: Use canonical path profile.western first, fallback to legacy
+    // ═══════════════════════════════════════════════════════════════════════════
+    const westZodiac = (() => {
+        // CANONICAL PATH: profile.western (Python-computed)
+        if (profile.western?.sun) {
+            console.log('[Results.jsx] ✅ Using canonical path profile.western')
+            // Map canonical schema to expected format for WesternAstrologyPanel
+            return {
+                sign: profile.western.sun.sign,
+                sovereignCalculation: {
+                    sun: profile.western.sun,
+                    moon: profile.western.moon,
+                    rising: profile.western.ascendant,
+                    planets: profile.western.planets,
+                    houses: { houses: profile.western.houses, system: profile.western.houseSystem },
+                    elementBalance: profile.western.elements,
+                    moonPhase: profile.western.moonPhase
+                }
+            }
+        }
+        // LEGACY PATH: profile.calculations.western
+        console.log('[Results.jsx] ⚠️ Using legacy path profile.calculations.western')
+        return calc.western || {}
+    })()
     const dayInfo = calc.dayOfWeek || {}
     const numerology = calc.numerology || {}
     const age = calc.age || {}
@@ -231,46 +288,113 @@ export default function Results() {
     console.log('🔍 [Results.jsx] chinese:', chinese);
     console.log('🔍 [Results.jsx] zodiacProfile:', zodiacProfile);
 
-    // Calculate Four Pillars data (for old panels)
-    let fourPillars = calc.fourPillars || null
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PYTHON-FIRST: Use canonical path profile.bazi first, fallback to legacy
+    // ═══════════════════════════════════════════════════════════════════════════
+    let fourPillars = null
+    let tenGods = null
+    let dayMaster = null
+    let usingCanonicalBazi = false
 
-    if (!fourPillars && profile.birthDate && profile.birthTime) {
-        try {
-            const birthDateObj = new Date(profile.birthDate)
+    // CANONICAL PATH: profile.bazi (Python-computed)
+    if (profile.bazi?.pillars && profile.bazi?.dayMaster) {
+        console.log('[Results.jsx] ✅ Using canonical path profile.bazi')
+        usingCanonicalBazi = true
 
-            fourPillars = calculateFourPillars(
-                birthDateObj,
-                profile.birthTime,
-                profile.locationData
-            )
-        } catch (error) {
-            console.error('Error calculating Four Pillars:', error)
+        // Transform canonical schema to legacy format for backward compatibility
+        const baziPillars = profile.bazi.pillars
+        fourPillars = {
+            year: baziPillars.year ? {
+                stem: { name: baziPillars.year.stem, chinese: baziPillars.year.stemChinese, element: getElementFromStem(baziPillars.year.stem), polarity: getPolarityFromStem(baziPillars.year.stem) },
+                branch: { animal: getBranchAnimal(baziPillars.year.branch), chinese: baziPillars.year.branchChinese, element: getElementFromBranch(baziPillars.year.branch) }
+            } : null,
+            month: baziPillars.month ? {
+                stem: { name: baziPillars.month.stem, chinese: baziPillars.month.stemChinese, element: getElementFromStem(baziPillars.month.stem), polarity: getPolarityFromStem(baziPillars.month.stem) },
+                branch: { animal: getBranchAnimal(baziPillars.month.branch), chinese: baziPillars.month.branchChinese, element: getElementFromBranch(baziPillars.month.branch) }
+            } : null,
+            day: baziPillars.day ? {
+                stem: { name: baziPillars.day.stem, chinese: baziPillars.day.stemChinese, element: getElementFromStem(baziPillars.day.stem), polarity: getPolarityFromStem(baziPillars.day.stem) },
+                branch: { animal: getBranchAnimal(baziPillars.day.branch), chinese: baziPillars.day.branchChinese, element: getElementFromBranch(baziPillars.day.branch) }
+            } : null,
+            hour: baziPillars.hour ? {
+                stem: { name: baziPillars.hour.stem, chinese: baziPillars.hour.stemChinese, element: getElementFromStem(baziPillars.hour.stem), polarity: getPolarityFromStem(baziPillars.hour.stem) },
+                branch: { animal: getBranchAnimal(baziPillars.hour.branch), chinese: baziPillars.hour.branchChinese, element: getElementFromBranch(baziPillars.hour.branch) }
+            } : null,
+            elementBalance: {
+                Wood: Math.round((profile.bazi.elements?.Wood || 0) * 100),
+                Fire: Math.round((profile.bazi.elements?.Fire || 0) * 100),
+                Earth: Math.round((profile.bazi.elements?.Earth || 0) * 100),
+                Metal: Math.round((profile.bazi.elements?.Metal || 0) * 100),
+                Water: Math.round((profile.bazi.elements?.Water || 0) * 100)
+            },
+            yinYangBalance: { yang: 50, yin: 50 } // Default, update if available
         }
+
+        // Use canonical dayMaster directly
+        dayMaster = {
+            displayName: profile.bazi.dayMaster.stem,
+            pinyin: profile.bazi.dayMaster.stem,
+            element: profile.bazi.dayMaster.element,
+            polarity: profile.bazi.dayMaster.yinYang,
+            strength: profile.bazi.dayMaster.strength
+        }
+
+        // Use canonical tenGods if available
+        if (profile.bazi.tenGods && Array.isArray(profile.bazi.tenGods)) {
+            tenGods = {
+                pillars: {
+                    year: profile.bazi.tenGods.find(tg => tg.pillar === 'year') || null,
+                    month: profile.bazi.tenGods.find(tg => tg.pillar === 'month') || null,
+                    day: profile.bazi.tenGods.find(tg => tg.pillar === 'day') || null,
+                    hour: profile.bazi.tenGods.find(tg => tg.pillar === 'hour') || null
+                }
+            }
+        }
+    }
+    // LEGACY PATH: profile.calculations.fourPillars or recalculate
+    else {
+        console.log('[Results.jsx] ⚠️ Using legacy path for BaZi')
+        fourPillars = calc.fourPillars || null
+
+        if (!fourPillars && profile.birthDate && profile.birthTime) {
+            try {
+                const birthDateObj = new Date(profile.birthDate)
+
+                fourPillars = calculateFourPillars(
+                    birthDateObj,
+                    profile.birthTime,
+                    profile.locationData
+                )
+            } catch (error) {
+                console.error('Error calculating Four Pillars:', error)
+            }
+        }
+
+        // Calculate Ten Gods and Day Master from legacy data
+        tenGods = fourPillars ? calculateTenGods(fourPillars) : null
+        dayMaster = fourPillars ? getDayMaster(fourPillars) : null
     }
 
     // Create fourPillarsForDebug for seasonal panels
     const fourPillarsForDebug = fourPillars ? {
         ...fourPillars,
         pillars: fourPillars.pillars || {},
-        elementalBalance: fourPillars.elementalBalance || {},
+        elementalBalance: fourPillars.elementalBalance || fourPillars.elementBalance || {},
         yinYangBalance: fourPillars.yinYangBalance || {},
-        dayMaster: fourPillars.dayMaster || {}
+        dayMaster: fourPillars.dayMaster || dayMaster || {}
     } : null
 
-    // 🔥 NEW! Calculate Ten Gods (十神) for deeper analysis
-    const tenGods = fourPillars ? calculateTenGods(fourPillars) : null
-    const dayMaster = fourPillars ? getDayMaster(fourPillars) : null
-
-    // 🔥 NEW! Calculate personality traits from Ten Gods
+    // Calculate personality traits from Ten Gods (works for both paths)
     const personalityTraits = tenGods ? calculatePersonalityTraits(tenGods) : null
     const topTraits = personalityTraits ? getTopTraits(personalityTraits, 3) : null
 
-    // 🎭 NEW! Determine personality archetype from elemental balance
+    // Determine personality archetype from elemental balance
     const archetype = fourPillars ? determineArchetypeFromFourPillars(fourPillars, tenGods) : null
 
-    // 🔍 DEBUG: Log Ten Gods data
+    // 🔍 DEBUG: Log BaZi data source
+    console.log(`🔍 [Results.jsx] BaZi source: ${usingCanonicalBazi ? 'CANONICAL (profile.bazi)' : 'LEGACY (recalculated)'}`);
     if (tenGods) {
-        console.log('🔍 [Results.jsx] Ten Gods calculated:', tenGods);
+        console.log('🔍 [Results.jsx] Ten Gods:', tenGods);
         console.log('🔍 [Results.jsx] Day Master:', dayMaster);
         console.log('🔍 [Results.jsx] Personality traits:', personalityTraits);
         console.log('🔍 [Results.jsx] Top traits:', topTraits);
