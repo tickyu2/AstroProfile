@@ -1,0 +1,127 @@
+{
+  "useful_god_exceptions": [
+    {
+      "id": "useful_god_combined_away",
+      "name": "Useful God Combined Away",
+      "priority": 1,
+      "conditions": {
+        "usefulGod": "any",
+        "usefulGodPosition": "month_stem",
+        "combinedWith": "adjacent_stem",
+        "transformsTo": "different_element"
+      },
+      "result": {
+        "usefulGodEffective": false,
+        "needsSecondaryUsefulGod": true,
+        "warning": "Primary useful god lost to combination"
+      }
+    },
+    {
+      "id": "useful_god_clashed",
+      "name": "Useful God Clashed by Branch",
+      "priority": 1,
+      "conditions": {
+        "usefulGod": "any",
+        "usefulGodPosition": "any_branch",
+        "clashedBy": "another_branch",
+        "clashStrength": "direct"
+      },
+      "result": {
+        "usefulGodEffective": "weakened",
+        "effectivenessPercent": 50,
+        "recommendation": "Seek luck pillar that supports useful god"
+      }
+    },
+    {
+      "id": "useful_god_harmed",
+      "name": "Useful God Harmed",
+      "priority": 2,
+      "conditions": {
+        "usefulGod": "any",
+        "usefulGodPosition": "any_branch",
+        "harmedBy": "another_branch",
+        "harmType": "six_harm"
+      },
+      "result": {
+        "usefulGodEffective": "compromised",
+        "hiddenDamage": true,
+        "warning": "Useful god present but internally conflicted"
+      }
+    },
+    {
+      "id": "secondary_useful_god_activation",
+      "name": "Secondary Useful God Activates",
+      "priority": 3,
+      "conditions": {
+        "primaryUsefulGod": "blocked",
+        "secondaryUsefulGod": "present",
+        "secondaryPosition": "hour_or_year"
+      },
+      "result": {
+        "activeUsefulGod": "secondary",
+        "effectiveness": "moderate",
+        "timing": "Later in life if hour pillar"
+      }
+    },
+    {
+      "id": "useful_god_season_mismatch",
+      "name": "Useful God Weakened by Season",
+      "priority": 2,
+      "conditions": {
+        "usefulGod": "Fire",
+        "season": "winter",
+        "noFireSupport": true
+      },
+      "result": {
+        "usefulGodEffective": "severely_weakened",
+        "effectivenessPercent": 30,
+        "needsResourceSupport": true
+      }
+    },
+    {
+      "id": "annoying_god_combined_away",
+      "name": "Annoying God Neutralized by Combination",
+      "priority": 1,
+      "conditions": {
+        "annoyingGod": "any",
+        "combinedWith": "beneficial_element",
+        "transformsAway": true
+      },
+      "result": {
+        "annoyingGodActive": false,
+        "chartImproved": true,
+        "note": "Negative element transformed to useful"
+      }
+    },
+    {
+      "id": "useful_god_hidden_only",
+      "name": "Useful God Only in Hidden Stems",
+      "priority": 3,
+      "conditions": {
+        "usefulGodPosition": "hidden_stem_only",
+        "notInMainStems": true,
+        "hiddenStemStrength": "weak"
+      },
+      "result": {
+        "usefulGodEffective": "latent",
+        "activationCondition": "luck_pillar_reveals",
+        "baseEffectiveness": 40
+      }
+    },
+    {
+      "id": "multiple_useful_gods",
+      "name": "Multiple Useful Gods Present",
+      "priority": 4,
+      "conditions": {
+        "usefulGodCount": { "min": 2 },
+        "bothStrong": true,
+        "noConflictBetween": true
+      },
+      "result": {
+        "primaryUsefulGod": "stronger_one",
+        "secondarySupports": true,
+        "chartStrength": "enhanced"
+      }
+    }
+  ]
+}

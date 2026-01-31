@@ -1,0 +1,183 @@
+[
+  {
+    "id": "archetype_harmonious_twins",
+    "description": "The Harmonious Twins archetype",
+    "polarityMap": {
+      "guna": {"polarity": "Resonant", "score": 95},
+      "dosha": {"polarity": "Balancing", "score": 80},
+      "element": {"polarity": "Harmonizing", "score": 85},
+      "yinYang": {"polarity": "Parallel", "score": 90},
+      "graha": {"polarity": "Support Axis", "score": 82}
+    },
+    "polarityScore": 86,
+    "expectedArchetype": "The Harmonious Twins",
+    "expectedDescription": "Mirror souls with natural resonance",
+    "expectedStrengths": ["Effortless understanding", "Shared values", "Mutual support"],
+    "expectedChallenges": ["May lack growth catalyst", "Risk of stagnation"]
+  },
+  {
+    "id": "archetype_growth_catalysts",
+    "description": "The Growth Catalysts archetype",
+    "polarityMap": {
+      "guna": {"polarity": "Complementary", "score": 72},
+      "dosha": {"polarity": "Activating", "score": 68},
+      "element": {"polarity": "Stimulating", "score": 70},
+      "yinYang": {"polarity": "Magnetic", "score": 75},
+      "graha": {"polarity": "Tension Axis", "score": 65}
+    },
+    "polarityScore": 70,
+    "expectedArchetype": "The Growth Catalysts",
+    "expectedDescription": "Partners who challenge each other to grow",
+    "expectedStrengths": ["Continuous evolution", "Dynamic energy", "Never boring"],
+    "expectedChallenges": ["Requires work", "Periodic conflict"]
+  },
+  {
+    "id": "archetype_shadow_workers",
+    "description": "The Shadow Workers archetype",
+    "polarityMap": {
+      "guna": {"polarity": "Transformative", "score": 55},
+      "dosha": {"polarity": "Conflicting", "score": 45},
+      "element": {"polarity": "Challenging", "score": 50},
+      "yinYang": {"polarity": "Clashing", "score": 48},
+      "graha": {"polarity": "Opposition Axis", "score": 52}
+    },
+    "polarityScore": 50,
+    "expectedArchetype": "The Shadow Workers",
+    "expectedDescription": "Partners who illuminate each other's shadows",
+    "expectedStrengths": ["Deep transformation", "Karmic clearing", "Profound growth"],
+    "expectedChallenges": ["Intense struggles", "Requires consciousness"]
+  },
+  {
+    "id": "archetype_divine_counterparts",
+    "description": "The Divine Counterparts archetype",
+    "polarityMap": {
+      "guna": {"polarity": "Resonant", "score": 92},
+      "dosha": {"polarity": "Balancing", "score": 88},
+      "element": {"polarity": "Completing", "score": 90},
+      "yinYang": {"polarity": "Magnetic", "score": 95},
+      "graha": {"polarity": "Support Axis", "score": 90}
+    },
+    "polarityScore": 91,
+    "expectedArchetype": "The Divine Counterparts",
+    "expectedDescription": "Soul-level recognition and completion",
+    "expectedStrengths": ["Instant recognition", "Deep fulfillment", "Spiritual partnership"],
+    "expectedChallenges": ["High expectations", "Intensity management"]
+  },
+  {
+    "id": "archetype_passionate_dancers",
+    "description": "The Passionate Dancers archetype",
+    "polarityMap": {
+      "guna": {"polarity": "Dynamic", "score": 78},
+      "dosha": {"polarity": "Activating", "score": 82},
+      "element": {"polarity": "Stimulating", "score": 80},
+      "yinYang": {"polarity": "Magnetic", "score": 88},
+      "graha": {"polarity": "Passion Axis", "score": 85}
+    },
+    "polarityScore": 83,
+    "expectedArchetype": "The Passionate Dancers",
+    "expectedDescription": "Magnetic attraction and dynamic interplay",
+    "expectedStrengths": ["Strong attraction", "Exciting dynamic", "Creative spark"],
+    "expectedChallenges": ["Volatility", "Need for balance"]
+  },
+  {
+    "id": "archetype_steady_builders",
+    "description": "The Steady Builders archetype",
+    "polarityMap": {
+      "guna": {"polarity": "Grounding", "score": 80},
+      "dosha": {"polarity": "Stabilizing", "score": 85},
+      "element": {"polarity": "Anchoring", "score": 82},
+      "yinYang": {"polarity": "Parallel", "score": 78},
+      "graha": {"polarity": "Structure Axis", "score": 80}
+    },
+    "polarityScore": 81,
+    "expectedArchetype": "The Steady Builders",
+    "expectedDescription": "Partnership built on solid foundation",
+    "expectedStrengths": ["Reliability", "Long-term vision", "Practical harmony"],
+    "expectedChallenges": ["May lack excitement", "Risk of routine"]
+  },
+  {
+    "id": "archetype_wisdom_seekers",
+    "description": "The Wisdom Seekers archetype",
+    "polarityMap": {
+      "guna": {"polarity": "Elevating", "score": 88},
+      "dosha": {"polarity": "Harmonizing", "score": 75},
+      "element": {"polarity": "Expanding", "score": 80},
+      "yinYang": {"polarity": "Complementary", "score": 82},
+      "graha": {"polarity": "Wisdom Axis", "score": 90}
+    },
+    "polarityScore": 83,
+    "expectedArchetype": "The Wisdom Seekers",
+    "expectedDescription": "Partners on shared spiritual journey",
+    "expectedStrengths": ["Intellectual connection", "Spiritual growth", "Teaching each other"],
+    "expectedChallenges": ["May neglect practical", "Over-idealization"]
+  },
+  {
+    "id": "archetype_edge_case_boundary",
+    "description": "Archetype boundary case (score 75)",
+    "polarityMap": {
+      "guna": {"polarity": "Complementary", "score": 75},
+      "dosha": {"polarity": "Balancing", "score": 75},
+      "element": {"polarity": "Harmonizing", "score": 75},
+      "yinYang": {"polarity": "Parallel", "score": 75},
+      "graha": {"polarity": "Neutral Axis", "score": 75}
+    },
+    "polarityScore": 75,
+    "expectedArchetype": "The Balanced Partners",
+    "expectedDescription": "Steady middle-ground partnership"
+  },
+  {
+    "id": "evolution_trajectory_ascending",
+    "description": "Ascending evolution trajectory",
+    "initialArchetype": "The Growth Catalysts",
+    "currentYear": 2024,
+    "relationshipStartYear": 2020,
+    "evolutionPoints": [
+      {"year": 2020, "archetype": "The Growth Catalysts", "score": 68},
+      {"year": 2021, "archetype": "The Growth Catalysts", "score": 72},
+      {"year": 2022, "archetype": "The Passionate Dancers", "score": 76},
+      {"year": 2023, "archetype": "The Passionate Dancers", "score": 80},
+      {"year": 2024, "archetype": "The Harmonious Twins", "score": 84}
+    ],
+    "expectedTrajectory": "Ascending",
+    "expectedGrowthRate": 4
+  },
+  {
+    "id": "evolution_trajectory_stable",
+    "description": "Stable evolution trajectory",
+    "initialArchetype": "The Steady Builders",
+    "currentYear": 2024,
+    "relationshipStartYear": 2018,
+    "evolutionPoints": [
+      {"year": 2018, "archetype": "The Steady Builders", "score": 80},
+      {"year": 2020, "archetype": "The Steady Builders", "score": 81},
+      {"year": 2022, "archetype": "The Steady Builders", "score": 80},
+      {"year": 2024, "archetype": "The Steady Builders", "score": 82}
+    ],
+    "expectedTrajectory": "Stable",
+    "expectedGrowthRate": 0.5
+  },
+  {
+    "id": "forecast_jupiter_transit",
+    "description": "Archetype forecast during Jupiter transit",
+    "currentArchetype": "The Growth Catalysts",
+    "currentScore": 70,
+    "transitingPlanet": "Jupiter",
+    "transitSign": "Taurus",
+    "transitAspects": ["conjunct Moon A", "trine Venus B"],
+    "expectedForecastArchetype": "The Harmonious Twins",
+    "expectedForecastScore": 78,
+    "expectedThemes": ["Expansion", "Growth", "Luck in partnership"]
+  },
+  {
+    "id": "forecast_saturn_transit",
+    "description": "Archetype forecast during Saturn transit",
+    "currentArchetype": "The Passionate Dancers",
+    "currentScore": 82,
+    "transitingPlanet": "Saturn",
+    "transitSign": "Pisces",
+    "transitAspects": ["square Mars A", "opposite Sun B"],
+    "expectedForecastArchetype": "The Shadow Workers",
+    "expectedForecastScore": 65,
+    "expectedThemes": ["Testing", "Commitment", "Karmic lessons"]
+  }
+]

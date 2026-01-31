@@ -15,7 +15,7 @@
  * December 14, 2024
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useKnowledgeBase, KNOWLEDGE_CATEGORIES } from '../contexts/KnowledgeBaseContext';
@@ -31,8 +31,14 @@ export default function KnowledgeBasePage() {
     updateDocument,
     deleteDocument,
     deleteAllProfileSummaries,
-    getStats
+    getStats,
+    initializeKB
   } = useKnowledgeBase();
+
+  // Initialize KB when page mounts (this page needs KB documents)
+  useEffect(() => {
+    initializeKB();
+  }, [initializeKB]);
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [editingDoc, setEditingDoc] = useState(null);

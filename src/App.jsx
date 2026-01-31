@@ -56,6 +56,12 @@ const ConstellationPage = lazy(() => import('./pages/ConstellationPage'))
 const VedicAstrologyPage = lazy(() => import('./pages/VedicAstrologyPage'))
 const RelationshipCathedralPage = lazy(() => import('./pages/RelationshipCathedralPage'))
 const AdminCMSPage = lazy(() => import('./pages/AdminCMSPage'))
+const AssessmentPage = lazy(() => import('./pages/Assessment'))
+const EnneagramPage = lazy(() => import('./pages/EnneagramPage'))
+const LizGreeneCathedralPage = lazy(() => import('./pages/LizGreeneCathedralPage'))
+const ZodiacLearningPage = lazy(() => import('./pages/ZodiacLearningPage'))
+const ZodiacAcademyPage = lazy(() => import('./pages/ZodiacAcademyPage'))
+const TropicalSeasonsPage = lazy(() => import('./pages/TropicalSeasonsPage'))
 
 // CCLR - Couples Cosmic Love Rejuvenation (lazy loaded)
 const CCLRHomePage = lazy(() => import('./pages/cclr').then(m => ({ default: m.CCLRHomePage })))
@@ -330,6 +336,54 @@ function App() {
               }
             />
 
+            {/* Assessment - 136 Questions Questionnaire */}
+            <Route
+              path="/assessment"
+              element={
+                <ProtectedRoute>
+                  <AssessmentPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Western Astrology Decode */}
+            <Route
+              path="/western"
+              element={
+                <ProtectedRoute>
+                  <WesternAstrologyDecodePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Enneagram Alchemical Rose */}
+            <Route
+              path="/enneagram"
+              element={
+                <ProtectedRoute>
+                  <EnneagramPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Liz Greene Cathedral of Psychological Astrology */}
+            <Route
+              path="/liz-greene"
+              element={
+                <ProtectedRoute>
+                  <LizGreeneCathedralPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/liz-greene/:profileId"
+              element={
+                <ProtectedRoute>
+                  <LizGreeneCathedralPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* BaZi Modular - Atomic Design Components */}
             <Route
               path="/bazi-modular"
@@ -396,6 +450,36 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ZodiacCuspsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Zodiac Learning Wheel - Interactive Blend Learning */}
+            <Route
+              path="/zodiac-learning"
+              element={
+                <ProtectedRoute>
+                  <ZodiacLearningPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Western Zodiac Academy - 12-Chapter Guided Curriculum */}
+            <Route
+              path="/zodiac-academy"
+              element={
+                <ProtectedRoute>
+                  <ZodiacAcademyPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Tropical Seasons - D3 Ring Donut Visualization */}
+            <Route
+              path="/tropical-seasons"
+              element={
+                <ProtectedRoute>
+                  <TropicalSeasonsPage />
                 </ProtectedRoute>
               }
             />

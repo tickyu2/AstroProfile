@@ -1,0 +1,145 @@
+{
+  "name": "Elon Musk",
+  "adjusted": {
+    "archetype_similarity": "0.800",
+    "bazi_element_similarity": "0.717",
+    "western_element_similarity": "0.379",
+    "stress_compatibility": 0.75,
+    "third_chart_coherence": 0.85,
+    "penalty_total": "4.9%",
+    "penalty_breakdown": {
+      "bazi": 4.9,
+      "western": 0,
+      "archetype": 0,
+      "total": 4.9
+    },
+    "final_score": "0.727",
+    "raw_score": "0.776",
+    "grade": "A-",
+    "risk_index": 0.22,
+    "risk_classification": "low",
+    "red_flags": [],
+    "interpretation_key": "solid_with_nuance"
+  },
+  "third_chart": {
+    "archetype_vector": [
+      0.3,
+      0.5249999999999999,
+      0.8,
+      0.32499999999999996,
+      0.95,
+      0.325,
+      0.625,
+      0.65,
+      0.25,
+      0.42500000000000004,
+      0.625,
+      0.8999999999999999,
+      0.4,
+      0.8,
+      0.7,
+      0.525
+    ],
+    "relationship_archetype": "N/A",
+    "stress_patterns": [
+      {
+        "pattern": "emotionally_available",
+        "description": "Stays emotionally connected. Doesn't weaponize silence.",
+        "strength": 0.85,
+        "axes": [
+          "Warm",
+          "Relational"
+        ]
+      },
+      {
+        "pattern": "adaptive_flexibility",
+        "description": "Bends without breaking. Adapts to changing circumstances.",
+        "strength": 0.79,
+        "axes": [
+          "FluidIdentity",
+          "Intuitive"
+        ]
+      }
+    ],
+    "lifecycle_stages": [
+      {
+        "stage": "Formation",
+        "period": "0-2 years",
+        "energy": 0.67,
+        "description": "Initial bonding and pattern establishment.",
+        "key_axes": [
+          "Initiator",
+          "Warm",
+          "Relational"
+        ]
+      },
+      {
+        "stage": "Deepening",
+        "period": "2-7 years",
+        "energy": 0.76,
+        "description": "Building trust and emotional intimacy.",
+        "key_axes": [
+          "DepthOriented",
+          "Stabilizer",
+          "Intuitive"
+        ]
+      },
+      {
+        "stage": "Stabilization",
+        "period": "7-15 years",
+        "energy": 0.55,
+        "description": "Establishing long-term patterns and boundaries.",
+        "key_axes": [
+          "Sustainer",
+          "BoundaryAware",
+          "OrderOriented"
+        ]
+      }
+    ],
+    "coherence": 0.85
+  },
+  "sections_breakdown": [
+    {
+      "name": "western_archetype",
+      "score": "0.800",
+      "weight": 0.25,
+      "contribution": "0.200",
+      "interpretation": "Strong psychological resonance"
+    },
+    {
+      "name": "bazi_elements",
+      "score": "0.717",
+      "weight": 0.25,
+      "contribution": "0.179",
+      "interpretation": "Compatible elemental balance"
+    },
+    {
+      "name": "western_patterns",
+      "score": "1.000",
+      "weight": 0.15,
+      "contribution": "0.150",
+      "interpretation": "Strong pattern alignment"
+    },
+    {
+      "name": "western_modalities",
+      "score": "1.000",
+      "weight": 0.1,
+      "contribution": "0.100",
+      "interpretation": "Strong modal compatibility"
+    },
+    {
+      "name": "bazi_dm_strength",
+      "score": "0.900",
+      "weight": 0.1,
+      "contribution": "0.090",
+      "interpretation": "Balanced Day Master strength"
+    },
+    {
+      "name": "western_elements",
+      "score": "0.379",
+      "weight": 0.15,
+      "contribution": "0.057",
+      "interpretation": "Elemental tension present"
+    }
+  ]
+}

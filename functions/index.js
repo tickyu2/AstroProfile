@@ -3020,11 +3020,19 @@ exports.getHouseStrengthTimeline = onCall({
     const tz = typeof timezone === 'number' ? timezone : 0;
 
     // Validate date range (Swiss Ephemeris covers -13000 to +17000)
-    if (year < 1800 || year > 2200) {
+    // Extended to year 1 AD for historical figure analysis (Renaissance, Medieval, Ancient)
+    // Swiss Ephemeris is highly accurate for 1000 AD onwards, good for 500 AD+
+    let accuracyWarning = null;
+    if (year < 1 || year > 2200) {
       return {
         success: false,
-        error: `Birth year ${year} is outside the recommended range (1800-2200). Swiss Ephemeris can handle it, but accuracy may vary.`
+        error: `Birth year ${year} is outside supported range (1 AD - 2200 AD).`
       };
+    }
+    if (year < 500) {
+      accuracyWarning = `Historical date (${year} AD): Swiss Ephemeris accuracy is good but some planetary positions may have minor variance.`;
+    } else if (year < 1600) {
+      accuracyWarning = `Pre-modern date (${year} AD): Swiss Ephemeris accuracy is excellent for this period.`;
     }
 
     console.log('🌟 Soul Garden: Computing 24-hour timeline with SWISS EPHEMERIS (GOLD STANDARD)', {
@@ -3148,7 +3156,8 @@ exports.getHouseStrengthTimeline = onCall({
       timezone: tz,
       calculationEngine: 'GENESIS Sovereign v3.0 (Swiss Ephemeris WASM)',
       precision: '0.001 arcseconds',
-      timeline
+      timeline,
+      ...(accuracyWarning && { accuracyWarning })
     };
   } catch (error) {
     console.error('[HouseStrengthTimeline] Swiss Ephemeris error:', error);
@@ -6191,6 +6200,65 @@ If no meaningful new moments can be extracted, return an empty array: []`;
     return {
       success: false,
       error: 'Failed to extract key moments. Please try again.'
+    };
+  }
+});
+
+// ========================================
+// COUPLE PORTRAIT GENERATION - Baby Nano Integration
+// ========================================
+
+/**
+ * generateCouplePortrait - AI generates romantic couple portrait
+ *
+ * Uses Gemini (Nano Banana) to create beautiful couple portraits based on
+ * physical layer assessment data (ME + IDEAL TYPE attributes).
+ *
+ * Part of the "What's My Type Playground" Assessment flow.
+ */
+exports.generateCouplePortrait = onCall({
+  timeoutSeconds: 120,
+  memory: '512MiB',
+  cors: [/localhost/, /astroprofile.*\.web\.app/, /astroprofile.*\.firebaseapp\.com/]
+}, async (request) => {
+  const { prompt, sceneKey, userProfile, proMode = false } = request.data;
+
+  console.log('[CouplePortrait] Generating portrait with scene:', sceneKey);
+  console.log('[CouplePortrait] Prompt length:', prompt?.length || 0);
+
+  if (!prompt || prompt.trim().length < 20) {
+    return {
+      success: false,
+      error: 'Portrait prompt is too short. Please complete the physical layer assessment.'
+    };
+  }
+
+  try {
+    // Use Nano Banana to generate the image
+    const result = await generateImage(prompt, userProfile || {}, 0, proMode);
+
+    if (result?.success && result.image) {
+      console.log('[CouplePortrait] Image generated successfully!');
+      return {
+        success: true,
+        image: result.image,
+        description: result.description,
+        model: result.model,
+        proMode: result.proMode,
+        sceneKey: sceneKey || 'custom'
+      };
+    } else {
+      console.log('[CouplePortrait] Generation failed:', result?.error || 'Unknown error');
+      return {
+        success: false,
+        error: result?.error || 'Failed to generate portrait image'
+      };
+    }
+  } catch (error) {
+    console.error('[CouplePortrait] Error:', error.message);
+    return {
+      success: false,
+      error: error.message || 'Failed to generate couple portrait'
     };
   }
 });

@@ -1,0 +1,193 @@
+[
+  {
+    "id": "ketu_dasha_start",
+    "description": "Birth during Ketu Mahadasha",
+    "birthDate": "1990-01-15",
+    "moonNakshatra": "Ashwini",
+    "nakshatraLord": "Ketu",
+    "expectedMahadasha": "Ketu",
+    "expectedDashaStart": "1983-01-15",
+    "expectedDashaEnd": "1990-01-15",
+    "dashaDuration": 7,
+    "note": "Ketu rules Ashwini, Magha, Mula nakshatras"
+  },
+  {
+    "id": "venus_dasha_rohini",
+    "description": "Moon in Rohini - Venus Mahadasha sequence",
+    "birthDate": "1985-06-20",
+    "moonNakshatra": "Rohini",
+    "nakshatraLord": "Moon",
+    "expectedMahadasha": "Moon",
+    "expectedDashaEnd": "1995-06-20",
+    "dashaDuration": 10,
+    "nextDasha": "Mars",
+    "note": "Moon rules Rohini, Hasta, Shravana"
+  },
+  {
+    "id": "sun_dasha_krittika",
+    "description": "Moon in Krittika - Sun Mahadasha",
+    "birthDate": "2000-03-10",
+    "moonNakshatra": "Krittika",
+    "nakshatraLord": "Sun",
+    "expectedMahadasha": "Sun",
+    "expectedDashaEnd": "2006-03-10",
+    "dashaDuration": 6,
+    "nextDasha": "Moon",
+    "note": "Sun rules Krittika, Uttara Phalguni, Uttara Ashadha"
+  },
+  {
+    "id": "mars_dasha_mrigashira",
+    "description": "Moon in Mrigashira - Mars Mahadasha",
+    "birthDate": "1995-09-01",
+    "moonNakshatra": "Mrigashira",
+    "nakshatraLord": "Mars",
+    "expectedMahadasha": "Mars",
+    "expectedDashaEnd": "2002-09-01",
+    "dashaDuration": 7,
+    "nextDasha": "Rahu"
+  },
+  {
+    "id": "rahu_dasha_ardra",
+    "description": "Moon in Ardra - Rahu Mahadasha",
+    "birthDate": "1988-12-25",
+    "moonNakshatra": "Ardra",
+    "nakshatraLord": "Rahu",
+    "expectedMahadasha": "Rahu",
+    "expectedDashaEnd": "2006-12-25",
+    "dashaDuration": 18,
+    "nextDasha": "Jupiter",
+    "note": "Rahu rules Ardra, Swati, Shatabhisha"
+  },
+  {
+    "id": "jupiter_dasha_punarvasu",
+    "description": "Moon in Punarvasu - Jupiter Mahadasha",
+    "birthDate": "1992-07-04",
+    "moonNakshatra": "Punarvasu",
+    "nakshatraLord": "Jupiter",
+    "expectedMahadasha": "Jupiter",
+    "expectedDashaEnd": "2008-07-04",
+    "dashaDuration": 16,
+    "nextDasha": "Saturn"
+  },
+  {
+    "id": "saturn_dasha_pushya",
+    "description": "Moon in Pushya - Saturn Mahadasha",
+    "birthDate": "1980-02-14",
+    "moonNakshatra": "Pushya",
+    "nakshatraLord": "Saturn",
+    "expectedMahadasha": "Saturn",
+    "expectedDashaEnd": "1999-02-14",
+    "dashaDuration": 19,
+    "nextDasha": "Mercury",
+    "note": "Saturn rules Pushya, Anuradha, Uttara Bhadrapada"
+  },
+  {
+    "id": "mercury_dasha_ashlesha",
+    "description": "Moon in Ashlesha - Mercury Mahadasha",
+    "birthDate": "1998-11-30",
+    "moonNakshatra": "Ashlesha",
+    "nakshatraLord": "Mercury",
+    "expectedMahadasha": "Mercury",
+    "expectedDashaEnd": "2015-11-30",
+    "dashaDuration": 17,
+    "nextDasha": "Ketu"
+  },
+  {
+    "id": "venus_dasha_bharani",
+    "description": "Moon in Bharani - Venus Mahadasha",
+    "birthDate": "1975-05-05",
+    "moonNakshatra": "Bharani",
+    "nakshatraLord": "Venus",
+    "expectedMahadasha": "Venus",
+    "expectedDashaEnd": "1995-05-05",
+    "dashaDuration": 20,
+    "nextDasha": "Sun",
+    "note": "Venus rules Bharani, Purva Phalguni, Purva Ashadha"
+  },
+  {
+    "id": "full_dasha_sequence_magha",
+    "description": "Complete Mahadasha sequence from Magha birth",
+    "birthDate": "2000-01-01",
+    "moonNakshatra": "Magha",
+    "nakshatraLord": "Ketu",
+    "expectedSequence": [
+      {"planet": "Ketu", "years": 7},
+      {"planet": "Venus", "years": 20},
+      {"planet": "Sun", "years": 6},
+      {"planet": "Moon", "years": 10},
+      {"planet": "Mars", "years": 7},
+      {"planet": "Rahu", "years": 18},
+      {"planet": "Jupiter", "years": 16},
+      {"planet": "Saturn", "years": 19},
+      {"planet": "Mercury", "years": 17}
+    ],
+    "totalYears": 120
+  },
+  {
+    "id": "antardasha_within_saturn",
+    "description": "Antardasha periods within Saturn Mahadasha",
+    "mahadasha": "Saturn",
+    "mahadashaStart": "2015-01-01",
+    "mahadashaEnd": "2034-01-01",
+    "expectedAntardashas": [
+      {"planet": "Saturn", "start": "2015-01-01", "end": "2018-01-04"},
+      {"planet": "Mercury", "start": "2018-01-04", "end": "2020-09-13"},
+      {"planet": "Ketu", "start": "2020-09-13", "end": "2021-10-22"},
+      {"planet": "Venus", "start": "2021-10-22", "end": "2024-12-22"},
+      {"planet": "Sun", "start": "2024-12-22", "end": "2025-12-04"},
+      {"planet": "Moon", "start": "2025-12-04", "end": "2027-07-04"},
+      {"planet": "Mars", "start": "2027-07-04", "end": "2028-08-13"},
+      {"planet": "Rahu", "start": "2028-08-13", "end": "2031-06-19"},
+      {"planet": "Jupiter", "start": "2031-06-19", "end": "2034-01-01"}
+    ]
+  },
+  {
+    "id": "partial_dasha_birth",
+    "description": "Birth mid-nakshatra requiring partial first dasha",
+    "birthDate": "1990-06-15",
+    "moonNakshatra": "Rohini",
+    "moonDegreeInNakshatra": 7.5,
+    "nakshatraSpan": 13.333333,
+    "balanceRatio": 0.4375,
+    "expectedFirstDashaBalance": 4.375,
+    "note": "Moon dasha (10 years) with 43.75% balance = 4.375 years remaining"
+  },
+  {
+    "id": "pratyantardasha_detail",
+    "description": "Pratyantardasha within Saturn-Mercury Antardasha",
+    "mahadasha": "Saturn",
+    "antardasha": "Mercury",
+    "antardashaStart": "2018-01-04",
+    "antardashaEnd": "2020-09-13",
+    "expectedPratyantardashas": [
+      {"planet": "Mercury", "months": 4.5},
+      {"planet": "Ketu", "months": 1.9},
+      {"planet": "Venus", "months": 5.6},
+      {"planet": "Sun", "months": 1.7},
+      {"planet": "Moon", "months": 2.8},
+      {"planet": "Mars", "months": 1.9},
+      {"planet": "Rahu", "months": 4.8},
+      {"planet": "Jupiter", "months": 4.5},
+      {"planet": "Saturn", "months": 5.1}
+    ]
+  },
+  {
+    "id": "ketu_mula_start",
+    "description": "Ketu Mahadasha from Mula nakshatra",
+    "birthDate": "2005-08-20",
+    "moonNakshatra": "Mula",
+    "nakshatraLord": "Ketu",
+    "expectedMahadasha": "Ketu",
+    "dashaDuration": 7,
+    "note": "Mula is ruled by Ketu, first nakshatra of Sagittarius"
+  },
+  {
+    "id": "venus_purva_phalguni",
+    "description": "Venus Mahadasha from Purva Phalguni",
+    "birthDate": "1982-04-10",
+    "moonNakshatra": "Purva Phalguni",
+    "nakshatraLord": "Venus",
+    "expectedMahadasha": "Venus",
+    "dashaDuration": 20
+  }
+]

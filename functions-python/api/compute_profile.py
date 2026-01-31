@@ -11,6 +11,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 import traceback
 
+import math
+
 from .schemas import (
     ComputeProfileRequest,
     ComputedProfileSchema,
@@ -25,6 +27,10 @@ from .schemas import (
     DaYunPillarSchema,
     WesternChartSchema,
     PlanetPositionSchema,
+    HouseCuspSchema,
+    AscendantSchema,
+    MidheavenSchema,
+    MoonPhaseSchema,
     AspectSchema,
     WesternElementsSchema,
     WesternModalitiesSchema,
@@ -320,20 +326,99 @@ def compute_bazi(
 
 
 # =============================================================================
-# WESTERN COMPUTATION
+# WESTERN COMPUTATION - v2.0 with pre-formatted display fields
 # =============================================================================
+
+def _format_degree(degree: float, sign: str) -> str:
+    """Format degree as display string: '{degree}° {sign}'"""
+    return f"{degree:.2f}° {sign}"
+
+
+def _assign_planet_to_house(planet_longitude: float, house_cusps: List[Dict]) -> Optional[int]:
+    """
+    Assign a planet to a house based on its longitude and house cusps.
+    Planet is in house N if: cusp[N] <= longitude < cusp[N+1]
+    Handle 360° wrap-around for house 12 → house 1
+    """
+    if not house_cusps or len(house_cusps) < 12:
+        return None
+
+    for i in range(12):
+        current_cusp = house_cusps[i]["longitude"]
+        next_cusp = house_cusps[(i + 1) % 12]["longitude"]
+
+        if current_cusp <= next_cusp:
+            # Normal case: cusp values increase
+            if current_cusp <= planet_longitude < next_cusp:
+                return i + 1
+        else:
+            # Wrap around 360° (e.g., house 12 spans from 350° to 20°)
+            if planet_longitude >= current_cusp or planet_longitude < next_cusp:
+                return i + 1
+
+    return 1  # Should never reach here, default to house 1
+
+
+def _calculate_moon_phase(sun_longitude: float, moon_longitude: float) -> MoonPhaseSchema:
+    """
+    Calculate moon phase from Sun and Moon positions.
+
+    The phase is determined by the angle between Moon and Sun (elongation).
+    Illumination is approximated using the cosine of the elongation angle.
+    """
+    # Calculate elongation (Moon's angle ahead of Sun)
+    angle = (moon_longitude - sun_longitude) % 360
+
+    # Calculate illumination (0 = new moon, 1 = full moon)
+    # Using formula: illumination = (1 - cos(angle)) / 2
+    illumination = (1 - math.cos(math.radians(angle))) / 2
+
+    # Determine phase name and emoji based on angle
+    if angle < 22.5 or angle >= 337.5:
+        phase = "New Moon"
+        emoji = "🌑"
+    elif angle < 67.5:
+        phase = "Waxing Crescent"
+        emoji = "🌒"
+    elif angle < 112.5:
+        phase = "First Quarter"
+        emoji = "🌓"
+    elif angle < 157.5:
+        phase = "Waxing Gibbous"
+        emoji = "🌔"
+    elif angle < 202.5:
+        phase = "Full Moon"
+        emoji = "🌕"
+    elif angle < 247.5:
+        phase = "Waning Gibbous"
+        emoji = "🌖"
+    elif angle < 292.5:
+        phase = "Last Quarter"
+        emoji = "🌗"
+    else:
+        phase = "Waning Crescent"
+        emoji = "🌘"
+
+    return MoonPhaseSchema(
+        phase=phase,
+        illumination=round(illumination, 4),
+        angle=round(angle, 2),
+        emoji=emoji
+    )
+
 
 def compute_western(
     birth_date: str,
     birth_time: str,
     latitude: float,
     longitude: float,
-    timezone: str = "UTC"
+    timezone: str = "UTC",
+    birth_time_known: bool = True
 ) -> Optional[WesternChartSchema]:
     """
     Compute Western chart using Swiss Ephemeris.
-
-    Returns canonical WesternChartSchema or None if computation fails.
+    v2.0: Returns canonical WesternChartSchema with pre-formatted display fields,
+    house assignments, and complete house cusp data.
     """
     try:
         from astro.calculator import SwissEphemerisCalculator
@@ -347,45 +432,113 @@ def compute_western(
             timezone=timezone
         )
 
-        # Convert planets to schema
+        # =================================================================
+        # BUILD HOUSE CUSPS ARRAY (required for planet house assignment)
+        # =================================================================
+        houses_data = chart.get("houses", {})
+        cusps_data = houses_data.get("cusps", {})
+
+        house_cusps_list = []
+        for i in range(1, 13):
+            cusp_key = f"house_{i}"
+            cusp = cusps_data.get(cusp_key, {})
+            if cusp:
+                house_cusps_list.append(HouseCuspSchema(
+                    house=i,
+                    longitude=cusp.get("longitude", 0),
+                    sign=cusp.get("sign", ""),
+                    degree=cusp.get("degree", 0),
+                    degreeFormatted=cusp.get("formatted", _format_degree(cusp.get("degree", 0), cusp.get("sign", "")))
+                ))
+
+        # Prepare cusp data for house assignment (list of dicts with longitude)
+        cusp_longitudes = [{"longitude": h.longitude} for h in house_cusps_list] if house_cusps_list else []
+
+        # =================================================================
+        # CONVERT PLANETS TO SCHEMA WITH HOUSE ASSIGNMENTS
+        # =================================================================
         planets = {}
         for name, data in chart.get("planets", {}).items():
             if isinstance(data, dict) and "longitude" in data:
+                planet_longitude = data["longitude"]
+                planet_house = _assign_planet_to_house(planet_longitude, cusp_longitudes) if cusp_longitudes else None
+
                 planets[name] = PlanetPositionSchema(
-                    longitude=data["longitude"],
+                    longitude=planet_longitude,
                     latitude=data.get("latitude", 0),
                     sign=data["sign"],
                     degree=data["degree"],
-                    retrograde=data.get("retrograde", False),
+                    degreeFormatted=data.get("formatted", _format_degree(data["degree"], data["sign"])),
+                    isRetrograde=data.get("retrograde", False),
                     element=data.get("element", ""),
-                    modality=data.get("modality", "")
+                    modality=data.get("modality", ""),
+                    house=planet_house
                 )
 
-        # Sun and Moon
+        # =================================================================
+        # SUN AND MOON (core placements)
+        # =================================================================
         sun_data = chart["planets"].get("sun", {})
         moon_data = chart["planets"].get("moon", {})
 
+        sun_longitude = sun_data.get("longitude", 0)
+        sun_house = _assign_planet_to_house(sun_longitude, cusp_longitudes) if cusp_longitudes else None
+
         sun = PlanetPositionSchema(
-            longitude=sun_data.get("longitude", 0),
+            longitude=sun_longitude,
             latitude=sun_data.get("latitude", 0),
             sign=sun_data.get("sign", ""),
             degree=sun_data.get("degree", 0),
-            retrograde=False,
+            degreeFormatted=sun_data.get("formatted", _format_degree(sun_data.get("degree", 0), sun_data.get("sign", ""))),
+            isRetrograde=False,  # Sun never retrograde
             element=sun_data.get("element", ""),
-            modality=sun_data.get("modality", "")
+            modality=sun_data.get("modality", ""),
+            house=sun_house
         )
 
+        moon_longitude = moon_data.get("longitude", 0)
+        moon_house = _assign_planet_to_house(moon_longitude, cusp_longitudes) if cusp_longitudes else None
+
         moon = PlanetPositionSchema(
-            longitude=moon_data.get("longitude", 0),
+            longitude=moon_longitude,
             latitude=moon_data.get("latitude", 0),
             sign=moon_data.get("sign", ""),
             degree=moon_data.get("degree", 0),
-            retrograde=False,
+            degreeFormatted=moon_data.get("formatted", _format_degree(moon_data.get("degree", 0), moon_data.get("sign", ""))),
+            isRetrograde=False,  # Moon never retrograde
             element=moon_data.get("element", ""),
-            modality=moon_data.get("modality", "")
+            modality=moon_data.get("modality", ""),
+            house=moon_house
         )
 
-        # Aspects
+        # =================================================================
+        # ASCENDANT AND MIDHEAVEN
+        # =================================================================
+        asc_data = houses_data.get("ascendant", chart.get("ascendant", {}))
+        mc_data = houses_data.get("midheaven", chart.get("midheaven", {}))
+
+        ascendant = None
+        if asc_data and isinstance(asc_data, dict):
+            ascendant = AscendantSchema(
+                sign=asc_data.get("sign", ""),
+                degree=asc_data.get("degree", 0),
+                longitude=asc_data.get("longitude", 0),
+                degreeFormatted=_format_degree(asc_data.get("degree", 0), asc_data.get("sign", "")),
+                isAccurate=birth_time_known
+            )
+
+        midheaven = None
+        if mc_data and isinstance(mc_data, dict):
+            midheaven = MidheavenSchema(
+                sign=mc_data.get("sign", ""),
+                degree=mc_data.get("degree", 0),
+                longitude=mc_data.get("longitude", 0),
+                degreeFormatted=_format_degree(mc_data.get("degree", 0), mc_data.get("sign", ""))
+            )
+
+        # =================================================================
+        # ASPECTS
+        # =================================================================
         aspects = []
         for asp in chart.get("aspects", []):
             aspects.append(AspectSchema(
@@ -398,18 +551,19 @@ def compute_western(
                 applying=asp.get("applying", False)
             ))
 
-        # Elements
+        # =================================================================
+        # ELEMENTS AND MODALITIES
+        # =================================================================
         elem = chart.get("elements", {})
         elements = WesternElementsSchema(
             fire=elem.get("fire", 0),
             earth=elem.get("earth", 0),
             air=elem.get("air", 0),
             water=elem.get("water", 0),
-            dominant=elem.get("dominant", {}).get("element", ""),
+            dominant=elem.get("dominant", {}).get("element", "") if isinstance(elem.get("dominant"), dict) else elem.get("dominant", ""),
             balance=elem.get("balance", "")
         )
 
-        # Modalities
         mod = chart.get("modalities", {})
         modalities = WesternModalitiesSchema(
             cardinal=mod.get("cardinal", 0),
@@ -418,15 +572,25 @@ def compute_western(
             dominant=mod.get("dominant", "")
         )
 
+        # =================================================================
+        # MOON PHASE
+        # =================================================================
+        moon_phase = _calculate_moon_phase(sun_longitude, moon_longitude)
+
+        # =================================================================
+        # BUILD FINAL SCHEMA
+        # =================================================================
         return WesternChartSchema(
             sun=sun,
             moon=moon,
-            ascendant=chart.get("ascendant"),
-            midheaven=chart.get("midheaven"),
+            ascendant=ascendant,
+            midheaven=midheaven,
             planets=planets,
+            houses=house_cusps_list,
             aspects=aspects,
             elements=elements,
             modalities=modalities,
+            moonPhase=moon_phase,
             houseSystem=chart.get("houseSystem", "Placidus"),
             calculationMethod="Swiss Ephemeris",
             computedAt=datetime.now().isoformat()

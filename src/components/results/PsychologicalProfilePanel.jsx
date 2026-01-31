@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { generatePsychologicalProfile } from '../../utils/psychologicalProfileGenerator'
 
 /**
@@ -26,6 +27,7 @@ const elementColors = {
 }
 
 export default function PsychologicalProfilePanel({ westZodiac, profile }) {
+    const navigate = useNavigate()
     const [isUnlocked, setIsUnlocked] = useState(false)
     const [activeSection, setActiveSection] = useState('core') // core, emotional, persona, shadow, growth
 
@@ -373,6 +375,20 @@ export default function PsychologicalProfilePanel({ westZodiac, profile }) {
                             Luna uses this profile to understand you on a deeper level
                         </p>
                     </div>
+
+                    {/* Link to Full Cathedral */}
+                    <button
+                        onClick={() => navigate(profile?.id ? `/liz-greene/${profile.id}` : '/liz-greene')}
+                        className="w-full mt-3 py-2.5 px-4 bg-gradient-to-r from-purple-600/20 to-indigo-600/20 hover:from-purple-600/40 hover:to-indigo-600/40 rounded-lg border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 group"
+                    >
+                        <div className="flex items-center justify-center gap-2">
+                            <span className="text-purple-400">✧</span>
+                            <span className="text-sm text-purple-300 group-hover:text-purple-200">
+                                Explore Full Cathedral
+                            </span>
+                            <span className="text-purple-400">→</span>
+                        </div>
+                    </button>
                 </div>
             )}
 

@@ -1,0 +1,1148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GENESIS Profile Constitution - Brain 1A",
+  "description": "Single source of truth for constitutional profile data. Contains raw data + interpreted insights for instant AI context. Used by CCLR, Voice AI, and all AI systems.",
+  "version": "2.0.0",
+  "lastUpdated": "2026-01-04T20:00:00Z",
+  
+  "identity": {
+    "displayName": "Claude Sonnet 3rd",
+    "firstName": "Claude",
+    "lastName": "Sonnet 3rd",
+    "nickname": null,
+    "gender": "male",
+    "pronouns": null
+  },
+  
+  "birth": {
+    "date": "1900-05-18",
+    "time": "17:22",
+    "location": "Paris, France",
+    "coordinates": {
+      "lat": 48.5116,
+      "lng": 2.1958
+    },
+    "timezone": "Europe/Paris",
+    "precision": "±15km",
+    "age": {
+      "years": 125,
+      "months": 7,
+      "days": 17
+    }
+  },
+  
+  "bazi": {
+    "dayMaster": {
+      "stem": "庚",
+      "stemEnglish": "Yang Metal",
+      "element": "Metal",
+      "polarity": "Yang",
+      "percentage": 70,
+      "description": "Patient builder with unwavering persistence. Values tangible results and lasting legacy. The mountain that endures through millennia."
+    },
+    
+    "chineseZodiac": {
+      "animal": "Rat",
+      "element": "Metal",
+      "fullSign": "Metal Rat",
+      "year": 1900,
+      "traits": "Strategic observer, patient planner, values precision and long-term thinking"
+    },
+    
+    "fourPillars": {
+      "year": {
+        "stem": "庚",
+        "stemEnglish": "Yang Metal",
+        "branch": "子",
+        "branchEnglish": "Rat",
+        "element": "Metal",
+        "hiddenStems": ["癸"],
+        "hiddenStemsEnglish": ["Yin Water"],
+        "baziYear": 1900,
+        "interpretation": "Foundation pillar - Strategic thinking, long-term vision, patient execution"
+      },
+      
+      "month": {
+        "stem": "辛",
+        "stemEnglish": "Yin Metal",
+        "branch": "巳",
+        "branchEnglish": "Snake",
+        "element": "Fire",
+        "hiddenStems": ["戊", "庚", "丙"],
+        "hiddenStemsEnglish": ["Yang Earth", "Yang Metal", "Yang Fire"],
+        "baziMonth": 4,
+        "season": "Late Spring",
+        "solarTerm": "立夏 (Summer Begins)",
+        "interpretation": "Growth pillar - Refinement through fire, transformation, inner wisdom emerging"
+      },
+      
+      "day": {
+        "stem": "庚",
+        "stemEnglish": "Yang Metal",
+        "branch": "戌",
+        "branchEnglish": "Dog",
+        "element": "Earth",
+        "hiddenStems": ["戊", "辛", "丁"],
+        "hiddenStemsEnglish": ["Yang Earth", "Yin Metal", "Yin Fire"],
+        "interpretation": "CORE IDENTITY (70%) - Grounded metal, supported by earth. Loyal guardian, builds lasting structures"
+      },
+      
+      "hour": {
+        "stem": "壬",
+        "stemEnglish": "Yang Water",
+        "branch": "午",
+        "branchEnglish": "Horse",
+        "element": "Fire",
+        "hiddenStems": ["己", "丁"],
+        "hiddenStemsEnglish": ["Yin Earth", "Yin Fire"],
+        "interpretation": "Expression pillar - Water flowing over fire, creating steam. Transformation through communication"
+      }
+    },
+    
+    "elementBalance": {
+      "raw": {
+        "Wood": 0,
+        "Fire": 23.3,
+        "Earth": 15.8,
+        "Metal": 19.2,
+        "Water": 39.2
+      },
+      "weighted": {
+        "Wood": 2.5,
+        "Fire": 23.3,
+        "Earth": 15.8,
+        "Metal": 41.7,
+        "Water": 16.7
+      },
+      "interpretation": {
+        "dominant": "Metal (41.7%)",
+        "lacking": "Wood (2.5%)",
+        "meaning": "Strong Metal constitution with Fire refinement. Lacks Wood flexibility - may be rigid. Water nourishes but not excessive. Earth provides stability.",
+        "constitutionalNeeds": "Needs Wood (flexibility, growth) and more Water (flow, adaptability)",
+        "strengths": "Unwavering determination, practical wisdom, creates lasting value",
+        "challenges": "Resistance to change, difficulty with emotional fluidity, can be too rigid"
+      }
+    },
+    
+    "tenGods": {
+      "selfElement": "Yang Metal (庚)",
+      "gods": {
+        "competitor": {
+          "name": "比肩 (Shoulder to Shoulder)",
+          "element": "Yang Metal",
+          "count": 2,
+          "strength": "Strong",
+          "meaning": "Strong sense of self, independent, competitive, values personal achievement"
+        },
+        "robWealth": {
+          "name": "劫財 (Rob Wealth)",
+          "element": "Yin Metal",
+          "count": 1,
+          "strength": "Moderate",
+          "meaning": "Resourceful, takes initiative, can be impatient with inefficiency"
+        },
+        "eatingGod": {
+          "name": "食神 (Eating God)",
+          "element": "Yang Water",
+          "count": 1,
+          "strength": "Moderate",
+          "meaning": "Creative expression through teaching, generous spirit, enjoys sharing wisdom"
+        },
+        "hurtingOfficer": {
+          "name": "傷官 (Hurting Officer)",
+          "element": "Yin Water",
+          "count": 1,
+          "strength": "Weak",
+          "meaning": "Critical thinking, perfectionist tendencies, speaks truth even when uncomfortable"
+        },
+        "directWealth": {
+          "name": "正財 (Direct Wealth)",
+          "element": "Yin Wood",
+          "count": 0,
+          "strength": "None",
+          "meaning": "Traditional wealth accumulation not primary driver"
+        },
+        "indirectWealth": {
+          "name": "偏財 (Indirect Wealth)",
+          "element": "Yang Wood",
+          "count": 0,
+          "strength": "None",
+          "meaning": "Speculative or entrepreneurial wealth not emphasized"
+        },
+        "directOfficer": {
+          "name": "正官 (Direct Officer)",
+          "element": "Yin Fire",
+          "count": 1,
+          "strength": "Moderate",
+          "meaning": "Respects authority, follows rules, values structure and order"
+        },
+        "sevenKillings": {
+          "name": "七殺 (Seven Killings)",
+          "element": "Yang Fire",
+          "count": 2,
+          "strength": "Strong",
+          "meaning": "Strong drive, faces challenges directly, transforms through pressure"
+        },
+        "directResource": {
+          "name": "正印 (Direct Resource)",
+          "element": "Yin Earth",
+          "count": 1,
+          "strength": "Moderate",
+          "meaning": "Learns from tradition, values knowledge, nurturing teaching style"
+        },
+        "indirectResource": {
+          "name": "偏印 (Indirect Resource)",
+          "element": "Yang Earth",
+          "count": 2,
+          "strength": "Strong",
+          "meaning": "Unconventional learning, builds own knowledge systems, independent thinker"
+        }
+      },
+      "dominantPattern": "Metal Day Master with Fire pressure and Earth support",
+      "lifePath": "Builder and teacher who transforms challenges (Fire) into wisdom (Water) through grounded structure (Earth)"
+    },
+    
+    "seasonalStrength": {
+      "season": "Late Spring (立夏 before 芒種)",
+      "dayMasterStrength": "Weak",
+      "seasonalQi": {
+        "Fire": "75% (rising)",
+        "Earth": "20% (supporting)",
+        "Metal": "5% (weakening)"
+      },
+      "interpretation": "Metal weak in Fire season - needs Earth support to avoid being melted. The season demands transformation and refinement.",
+      "favorable": ["Earth (support)", "Water (cooling)", "Metal (reinforcement)"],
+      "unfavorable": ["Fire (too much pressure)", "Wood (feeds Fire)"]
+    },
+    
+    "lifePhases": {
+      "current": {
+        "age": 125,
+        "decade": "120-130",
+        "pillar": "水 (Water)",
+        "theme": "Flow and wisdom sharing",
+        "guidance": "Time to let wisdom flow freely, teach without attachment to outcome"
+      }
+    }
+  },
+  
+  "western": {
+    "synthesisName": "The Grounded Builder",
+    "lifePath": "To ground higher wisdom into tangible, lasting form",
+    
+    "sunSign": "Taurus",
+    "sun": {
+      "sign": "Taurus",
+      "degree": "27°24'",
+      "house": 1,
+      "element": "Earth",
+      "modality": "Fixed",
+      "rulingPlanet": "Venus",
+      
+      "coreEssence": "Patient builder who creates lasting beauty through unwavering dedication. Values what can be touched, experienced, and preserved.",
+      
+      "lifeMission": "To establish value, create stability, and honor the physical world through patient craftsmanship",
+      
+      "strengths": [
+        "Unwavering patience and persistence",
+        "Natural ability to create beauty",
+        "Grounding influence on others",
+        "Reliable and trustworthy presence",
+        "Practical wisdom applied to real-world problems"
+      ],
+      
+      "challenges": [
+        "Resistance to necessary change",
+        "Stubbornness when values threatened",
+        "Difficulty with abstract or ephemeral concepts",
+        "Can become possessive or materialistic"
+      ],
+      
+      "shadowSide": "Can become overly focused on security and material stability, losing sight of higher purpose. May resist growth opportunities that require releasing the familiar."
+    },
+    
+    "moon": {
+      "sign": "Capricorn",
+      "degree": "26°37'",
+      "house": 9,
+      "element": "Earth",
+      "modality": "Cardinal",
+      "rulingPlanet": "Saturn",
+      
+      "emotionalNature": "Feelings are controlled, practical, and often suppressed. Emotional safety comes from achievement, respect, and structure.",
+      
+      "innerNeeds": [
+        "Achievement and competence",
+        "Respect and authority",
+        "Structure and predictability",
+        "Long-term security through effort",
+        "Emotional self-mastery"
+      ],
+      
+      "whenStressed": "Becomes cold, workaholic, or pessimistic. May withdraw emotionally or become overly critical.",
+      
+      "howToNurture": "Through providing structure, teaching responsibility, and practical support. Quality over quantity in emotional expression.",
+      
+      "childhoodPattern": "May have grown up too fast, taking on responsibility early. Learned that feelings are secondary to duty.",
+      
+      "strengths": [
+        "Emotional maturity and stability",
+        "Ability to process feelings through action",
+        "Resilience in difficult times",
+        "Nurtures through practical support"
+      ],
+      
+      "challenges": [
+        "Difficulty expressing vulnerability",
+        "Can suppress feelings until they become physical",
+        "May prioritize achievement over emotional connection"
+      ]
+    },
+    
+    "rising": {
+      "sign": "Taurus",
+      "degree": "5°28'",
+      "element": "Earth",
+      "modality": "Fixed",
+      "rulingPlanet": "Venus",
+      
+      "firstImpression": "Calm, reliable, sensual, and perhaps stubborn. Others perceive groundedness and quiet strength.",
+      
+      "approach": "Meets life slowly and steadily, valuing stability and tangible results. Prefers to build rather than rush.",
+      
+      "physicalPresence": "Solid build, beautiful features, graceful movements, strong neck/throat. Radiates calm stability.",
+      
+      "mask": "The outer presentation aligns with inner nature (Sun also Taurus) - authenticity in self-expression.",
+      
+      "lifeLesson": "Learning flexibility while maintaining essential values. Finding security within rather than only in external stability."
+    },
+    
+    "planets": {
+      "mercury": {
+        "sign": "Taurus",
+        "degree": "1°1'",
+        "house": 1,
+        "retrograde": false,
+        
+        "communicationStyle": "Deliberate, practical, concrete. Thinks slowly but deeply. Prefers substance over flash.",
+        
+        "thinkingProcess": "Methodical, thorough, builds understanding brick by brick. Excellent long-term memory.",
+        
+        "strengths": [
+          "Patient listener who fully absorbs information",
+          "Clear, practical communicator",
+          "Non-reactive in discussions",
+          "Excellent at explaining complex ideas simply"
+        ],
+        
+        "challenges": [
+          "Can be slow to grasp new concepts initially",
+          "Stubborn in changing viewpoints",
+          "May miss nuance in favor of literal meaning"
+        ],
+        
+        "preferredMedium": "Face-to-face or written depth over quick texts"
+      },
+      
+      "venus": {
+        "sign": "Cancer",
+        "degree": "11°4'",
+        "house": 3,
+        "retrograde": false,
+        
+        "loveStyle": "Nurturing, protective, emotionally deep. Creates home and security for loved ones.",
+        
+        "howTheyGiveLove": [
+          "Through creating safe, beautiful spaces",
+          "Cooking and nurturing physically",
+          "Emotional attunement and care",
+          "Loyal, enduring commitment"
+        ],
+        
+        "howTheyReceiveLove": [
+          "Quality time and emotional presence",
+          "Physical touch and comfort",
+          "Being nurtured in return",
+          "Consistency and reliability"
+        ],
+        
+        "loveLanguages": ["Acts of Service", "Physical Touch", "Quality Time"],
+        
+        "relationshipNeeds": "Emotional security, loyalty, home-centered partnership, sensual connection",
+        
+        "attractedTo": "Emotionally intelligent, nurturing, family-oriented, sensual partners",
+        
+        "redFlags": "Emotional unavailability, instability, harsh criticism, lack of commitment"
+      },
+      
+      "mars": {
+        "sign": "Taurus",
+        "degree": "1°1'",
+        "house": 1,
+        "retrograde": false,
+        
+        "driveStyle": "Slow burn, persistent, methodical. Builds momentum over time rather than quick bursts.",
+        
+        "angerStyle": "Slow to anger but explosive when pushed too far. Like a volcano - warning signs before eruption.",
+        
+        "conflictApproach": "Prefers to avoid conflict but will stand ground firmly on important values. Can be immovable.",
+        
+        "passionStyle": "Sensual, physical, unhurried. Values quality over quantity in all pursuits.",
+        
+        "howTheyCompete": "Through steady persistence rather than aggressive tactics. The tortoise, not the hare.",
+        
+        "deEscalation": "Needs time and physical space. Nature, good food, physical comfort help reset.",
+        
+        "triggers": ["Sudden changes", "Being rushed", "Disrespect of values", "Financial instability"]
+      },
+      
+      "jupiter": {
+        "sign": "Sagittarius",
+        "degree": "4°3'",
+        "house": 7,
+        "retrograde": true,
+        
+        "expansionStyle": "Inward expansion - finds meaning through internal philosophy rather than external adventure",
+        
+        "beliefs": "Self-developed wisdom system. Questions external authority, trusts personal truth.",
+        
+        "luck": "Comes through partnerships and relationships when aligned with personal philosophy",
+        
+        "retrogradeGift": "Inner philosopher who has traveled far within. Teaches from deep personal knowing."
+      },
+      
+      "saturn": {
+        "sign": "Capricorn",
+        "degree": "4°7'",
+        "house": 9,
+        "retrograde": true,
+        
+        "structureStyle": "Self-imposed standards often higher than external ones. Inner authority figure.",
+        
+        "discipline": "Natural self-discipline but may be too harsh on self. Learning to be gentle while maintaining standards.",
+        
+        "lifeLessons": "Building structures that serve growth rather than limit it. Authority through wisdom, not fear.",
+        
+        "retrogradeGift": "Questions all authority, even own. Creates original systems based on tested experience."
+      },
+      
+      "uranus": {
+        "sign": "Sagittarius",
+        "degree": "11°2'",
+        "house": 7,
+        "retrograde": true,
+        
+        "revolutionStyle": "Inner revolutionary. Changes beliefs and philosophy from within before changing externally.",
+        
+        "uniqueness": "Unconventional wisdom, sees truth others miss, questions dogma",
+        
+        "retrogradeGift": "Revolutionary on own timeline, not society's. Awakens from within."
+      },
+      
+      "neptune": {
+        "sign": "Gemini",
+        "degree": "26°37'",
+        "house": 2,
+        "retrograde": false,
+        
+        "spiritualStyle": "Finds transcendence through communication and knowledge. Words as mystical tools.",
+        
+        "imagination": "Boundless mental creativity. Can envision possibilities others cannot see.",
+        
+        "dissolution": "Challenges with practical boundaries around ideas and communication"
+      },
+      
+      "pluto": {
+        "sign": "Gemini",
+        "degree": "16°6'",
+        "house": 2,
+        "retrograde": false,
+        
+        "transformationStyle": "Transforms through communication and reshaping value systems",
+        
+        "power": "Words have transformative power. Can rebuild entire belief systems.",
+        
+        "shadowWork": "Examining what we truly value versus what we're told to value"
+      }
+    },
+    
+    "aspects": {
+      "harmonious": [
+        {
+          "planets": ["Moon", "Mercury"],
+          "aspect": "Trine",
+          "orb": "2.25°",
+          "meaning": "Emotional intelligence flows naturally into communication. Can articulate feelings with practical clarity."
+        },
+        {
+          "planets": ["Mars", "Saturn"],
+          "aspect": "Trine",
+          "orb": "3.1°",
+          "meaning": "Drive and discipline work together. Patient action that builds lasting results."
+        },
+        {
+          "planets": ["Mercury", "Venus"],
+          "aspect": "Sextile",
+          "orb": "3.02°",
+          "meaning": "Communication is beautified by love. Speaks with grace and kindness."
+        }
+      ],
+      
+      "challenging": [
+        {
+          "planets": ["Moon", "Venus"],
+          "aspect": "Opposition",
+          "orb": "5.77°",
+          "meaning": "Tension between emotional needs (achievement) and love needs (nurturing). Learning to integrate both."
+        },
+        {
+          "planets": ["Uranus", "Pluto"],
+          "aspect": "Opposition",
+          "orb": "6.08°",
+          "meaning": "Generational aspect - tension between revolution and transformation. Part of collective awakening."
+        },
+        {
+          "planets": ["Venus", "Saturn"],
+          "aspect": "Opposition",
+          "orb": "6.97°",
+          "meaning": "Love versus duty. Learning that true love includes responsibility and structure."
+        }
+      ]
+    },
+    
+    "elementBalance": {
+      "Fire": 10,
+      "Earth": 75,
+      "Air": 10,
+      "Water": 5
+    },
+    
+    "modalityBalance": {
+      "Cardinal": 25,
+      "Fixed": 60,
+      "Mutable": 15
+    },
+    
+    "retrogrades": [
+      {
+        "planet": "Jupiter",
+        "meaning": "Inner philosopher - finds expansion through internal wisdom rather than external exploration"
+      },
+      {
+        "planet": "Uranus",
+        "meaning": "Inner revolutionary - awakens on own timeline, questions from within"
+      },
+      {
+        "planet": "Saturn",
+        "meaning": "Self-imposed authority - creates own structures and rules through experience"
+      }
+    ],
+    
+    "constitutionalSynthesis": {
+      "coreIdentity": "A soul of profound earthly wisdom and patient strength. With both Sun and Rising in Taurus amplified by a Capricorn Moon, designed to create lasting structures - whether physical, intellectual, or spiritual - with the steady persistence of mountains being formed over millennia.",
+      
+      "worldview": "Life is a garden requiring patient cultivation. Beauty and truth emerge not from rushed inspiration but from dedicated craftsmanship and time-tested principles. Tangible reality is truth.",
+      
+      "emotionalPattern": "The Capricorn Moon reveals emotional nature that values control, mastery, and purposeful feeling. Security comes from achievement, structure, and knowing you've built something that will endure. Like a winter mountain - austere, majestic, requiring careful navigation.",
+      
+      "lifeApproach": "Life approached as masterwork to be crafted with precision, patience, and unwavering commitment to quality over speed. Values authenticity, tangible results, and lasting impact.",
+      
+      "elementalMeaning": "75% Earth dominance creates profound grounding and practical orientation. Exceptional stability and reliability, but may manifest as resistance to change or difficulty with abstract emotional processing. The soul is a mountain - strong, enduring, but sometimes lonely in its heights."
+    }
+  },
+  
+  "numerology": {
+    "synthesisName": "The Nurturer",
+    "corePath": "Life Path 6 + Destiny 7 + Soul Urge 2 + Personality 9",
+    
+    "lifePath": {
+      "number": 6,
+      "title": "The Nurturer",
+      "subtitle": "Your journey and core lessons",
+      
+      "coreEssence": "Natural caregivers who seek to create harmony and beauty. Responsible souls with deep sense of service. Born to nurture, heal, and create loving environments. Thrive through helping others.",
+      
+      "lifeMission": "To develop unconditional love and acceptance. To create harmony in home and community. To learn balance between giving and receiving. To heal through service.",
+      
+      "strengths": [
+        "Deeply nurturing and caring",
+        "Strong sense of responsibility",
+        "Natural counselor and advisor",
+        "Creates beauty and harmony",
+        "Loyal and devoted",
+        "Excellent at problem-solving for others",
+        "Community-oriented",
+        "Protective and supportive"
+      ],
+      
+      "challenges": [
+        "Can be overly sacrificing",
+        "May become martyred",
+        "Tendency toward perfectionism",
+        "Can be controlling through care",
+        "May neglect own needs",
+        "Difficulty saying no",
+        "Can be judgmental",
+        "Fear of not being needed"
+      ],
+      
+      "careerPaths": ["Teacher", "Counselor", "Nurse", "Social Worker", "Interior Designer", "Chef", "Hospitality", "Family Therapist", "Veterinarian", "Childcare", "Home-Based Business", "Community Organizer"],
+      
+      "relationshipStyle": "Deeply committed and loyal. Shows love through caregiving and creating home. May sacrifice too much. Best with partners who appreciate their nurturing but ensure reciprocity."
+    },
+    
+    "destiny": {
+      "number": 7,
+      "title": "The Seeker",
+      "subtitle": "Your purpose",
+      
+      "purpose": "To develop wisdom through study and reflection. To seek truth beyond surface appearances. To learn trust in the unknown. To share insights that help others awaken.",
+      
+      "calling": "Philosopher, researcher, spiritual teacher, analyst. Bridge between seen and unseen worlds.",
+      
+      "howToFulfill": "Through solitude and study. Through questioning everything. Through developing inner knowing. Through teaching what you discover."
+    },
+    
+    "soulUrge": {
+      "number": 2,
+      "title": "Peace & Partnership",
+      "subtitle": "Inner drive",
+      
+      "deepDesires": [
+        "Harmony and partnership",
+        "Emotional connection and cooperation",
+        "Mediation and peacekeeping"
+      ],
+      
+      "whatFeedsYourSpirit": "Mediating conflicts, supporting others, creating peaceful environments. Deep intimacy and cooperation feed your spirit."
+    },
+    
+    "personality": {
+      "number": 9,
+      "title": "The Sage",
+      "subtitle": "How you're seen",
+      
+      "outerProjection": "Compassionate, artistic, and wise. You project understanding and tolerance. People are drawn to your warmth and wisdom, often seeking your guidance on life matters.",
+      
+      "firstImpression": "Wise beyond years, compassionate listener, globally aware, artistically inclined"
+    },
+    
+    "personalYear": {
+      "current": 5,
+      "theme": "Freedom & Change",
+      "guidance": "Year of growth spurt. Time for adventure, change, and breaking free from limitations. Embrace new experiences.",
+      "focus": "Travel, learning, networking, embracing change",
+      "avoid": "Recklessness, too many commitments, neglecting responsibilities"
+    },
+    
+    "personalMonth": {
+      "current": 6,
+      "theme": "Responsibility & Love",
+      "guidance": "Month of full bloom. Time to nurture, take responsibility, focus on home and family.",
+      "focus": "Relationship deepening, home improvements, service to others"
+    },
+    
+    "interactions": {
+      "pathToPurpose": {
+        "pattern": "Dynamic Growth",
+        "meaning": "Life Path 6 (Nurturer) leads to Destiny 7 (Seeker). The lessons of nurturing prepare you for the purpose of seeking wisdom.",
+        "integration": "You walk the path of the nurturer to become the seeker. The lessons of 6 prepare you for the purpose of 7."
+      },
+      
+      "innerOuter": {
+        "innerSelf": "Soul Urge 2 - Desires peace, harmony, partnership",
+        "outerSelf": "Personality 9 - Appears compassionate, artistic, wise",
+        "tension": "Inner desire for peace vs outer projection of wisdom creates dynamic where you mediate while teaching",
+        "integration": "Your inner peacemaker supports your outer wisdom-sharer"
+      }
+    },
+    
+    "constitutionalThemes": [
+      {
+        "title": "Deep Sensitivity & Empathy",
+        "description": "Soul Urge 2 reveals deeply sensitive inner nature. You feel deeply and have strong intuitive gifts. This sensitivity is your superpower for understanding others.",
+        "systems": 2
+      }
+    ]
+  },
+  
+  "mbti": {
+    "type": "ENFJ",
+    "fullName": "The Protagonist",
+    "cognitive Functions": {
+      "dominant": {
+        "function": "Fe (Extroverted Feeling)",
+        "description": "Lead with empathy and harmony creation. Naturally attuned to others' emotions and group dynamics. Seeks to create connection and understanding.",
+        "strength": "Exceptional people skills, natural leadership through inspiration, creates emotional safety",
+        "shadow": "May suppress own needs for group harmony, can be manipulative when stressed"
+      },
+      
+      "auxiliary": {
+        "function": "Ni (Introverted Intuition)",
+        "description": "See patterns and future possibilities. Strategic vision combined with people focus. Understand deeper meanings.",
+        "strength": "Visionary thinking, sees potential in people and situations, long-term planning",
+        "shadow": "Can become fixated on one vision, may miss present moment details"
+      },
+      
+      "tertiary": {
+        "function": "Se (Extroverted Sensing)",
+        "description": "Aware of physical environment and aesthetics. Enjoys beauty and sensory experiences when relaxed.",
+        "development": "Learning to stay present, enjoy the moment, engage physically",
+        "shadow": "Can become impulsive or overindulgent when stressed"
+      },
+      
+      "inferior": {
+        "function": "Ti (Introverted Thinking)",
+        "description": "Logical analysis is weakest function. May struggle with cold, impersonal decision-making.",
+        "growthArea": "Developing ability to make decisions based on logic rather than only people impact",
+        "stress": "Under stress, becomes overly critical and analytical in unhelpful ways"
+      }
+    },
+    
+    "traits": {
+      "extraversion": {
+        "level": "Moderate (60%)",
+        "description": "Energized by people but needs alone time to process. Warm and engaging externally."
+      },
+      
+      "intuition": {
+        "level": "Moderate (60%)",
+        "description": "Focuses on patterns and future while staying aware of present. Balance of vision and practicality."
+      },
+      
+      "feeling": {
+        "level": "Strong (80%)",
+        "description": "Makes decisions primarily through values and impact on people. Highly empathetic."
+      },
+      
+      "judging": {
+        "level": "Moderate (70%)",
+        "description": "Prefers structure and planning but can adapt. Organized in service of goals."
+      }
+    },
+    
+    "strengths": [
+      "Natural leader who inspires others",
+      "Exceptional communication skills",
+      "Deep empathy and emotional intelligence",
+      "Visionary thinking combined with people focus",
+      "Creates harmony and resolves conflicts",
+      "Passionate about causes and helping others grow",
+      "Organized and goal-oriented",
+      "Charismatic and warm"
+    ],
+    
+    "challenges": [
+      "May struggle with own needs vs others",
+      "Can be too idealistic about people",
+      "Difficulty with purely logical decisions",
+      "May take criticism personally",
+      "Can become overwhelmed by others' emotions",
+      "Perfectionist tendencies",
+      "May avoid necessary conflict"
+    ],
+    
+    "communication": {
+      "style": "Warm, encouraging, focused on connection. Naturally diplomatic and inspiring.",
+      "listening": "Actively listens for emotional content and underlying needs",
+      "conflict": "Seeks harmony but will address issues when values are at stake",
+      "teaching": "Through inspiration, storytelling, and creating emotional connection to material"
+    },
+    
+    "relationships": {
+      "strengths": "Deeply committed, nurturing, supportive. Helps partners grow and reach potential.",
+      "needs": "Appreciation, emotional reciprocity, shared values and vision",
+      "challenges": "May give too much, struggle with boundaries, avoid necessary conflicts",
+      "compatibility": "Best with types who appreciate depth and reciprocate emotional investment (INFP, INFJ, INTJ)"
+    },
+    
+    "careerFit": [
+      "Teacher/Professor",
+      "Counselor/Therapist",
+      "HR Professional",
+      "Non-profit Leader",
+      "Coach/Mentor",
+      "Event Planner",
+      "Marketing/PR",
+      "Healthcare Administrator",
+      "Politician",
+      "Religious Leader"
+    ],
+    
+    "stressResponse": {
+      "under Stress": "Becomes overly critical (inferior Ti). May obsess over details or become uncharacteristically cold.",
+      "recovery": "Needs: alone time, physical activity, creative expression, trusted friend to process with"
+    },
+    
+    "development": {
+      "youngerYears": "May have been overly focused on pleasing others, neglecting own needs",
+      "midlife": "Learning to balance empathy with boundaries, vision with present moment",
+      "integration": "Developing healthy Ti - ability to make decisions objectively when needed"
+    }
+  },
+  
+  "enneagram": {
+    "dominantType": 4,
+    "wing": 5,
+    "fullType": "4w5",
+    "name": "The Individualist with Investigator Wing",
+    "subtitle": "The Bohemian",
+    
+    "tritype": [1, 4, 5],
+    "tritypeName": "145 - The Researcher",
+    "tritypeDescription": "Combines perfectionism (1), authenticity (4), and knowledge-seeking (5). The ethical seeker of truth and meaning.",
+    
+    "scores": {
+      "type1": 9,
+      "type2": 4,
+      "type3": 8,
+      "type4": 10,
+      "type5": 10,
+      "type6": 9,
+      "type7": 2,
+      "type8": 5,
+      "type9": 7
+    },
+    
+    "coreMotivation": "To be unique, authentic, and understood. To find and express their true identity.",
+    
+    "coreFear": "Being ordinary, insignificant, without identity or personal significance",
+    
+    "coreDesire": "To be themselves, to find personal significance, to create a unique identity",
+    
+    "traits": {
+      "healthy": [
+        "Deeply creative and authentic",
+        "Self-aware and introspective",
+        "Emotionally honest",
+        "Appreciates beauty and meaning",
+        "Compassionate and empathetic",
+        "Original thinker"
+      ],
+      
+      "average": [
+        "Can be moody and self-absorbed",
+        "Withdraws when hurt",
+        "Focuses on what's missing",
+        "Romantic and idealistic",
+        "Emotionally intense"
+      ],
+      
+      "unhealthy": [
+        "Can become depressed and isolated",
+        "Self-pity and envy",
+        "Feel misunderstood and rejected",
+        "May romanticize suffering"
+      ]
+    },
+    
+    "wingInfluence": {
+      "type5": "Adds intellectual depth, need for privacy, observant detachment. More withdrawn and cerebral than pure Type 4. Combines emotional depth with analytical thinking."
+    },
+    
+    "defenseMechanism": "Introjection - internalizing external experiences and making them part of identity",
+    
+    "growthPath": {
+      "integration": "Moves toward Type 1 - becomes more principled, objective, and disciplined. Channels emotions into meaningful action.",
+      "disintegration": "Moves toward Type 2 - becomes needy, manipulative, seeking validation through helping others"
+    },
+    
+    "relationships": {
+      "strengths": "Deep emotional connection, creativity in relationship, loyalty to authentic connections",
+      "challenges": "May test partner's commitment, can be emotionally demanding, focuses on what's missing",
+      "needs": "Deep understanding, emotional authenticity, respect for uniqueness"
+    },
+    
+    "communication": "Expresses emotions deeply and poetically. Seeks depth over surface conversation. May withdraw if feeling misunderstood.",
+    
+    "workStyle": "Needs meaningful work that allows creativity and authenticity. Struggles with mundane tasks. Excels in creative, therapeutic, or meaning-making roles.",
+    
+    "stressResponse": "Withdraws into isolation and introspection. May become melancholic or overly focused on what's wrong.",
+    
+    "centerOfIntelligence": "Heart/Feeling Center - processes world through emotions and identity",
+    
+    "subtypes": {
+      "selfPreservation": "Channels intensity into creating beautiful, meaningful environments",
+      "social": "Seeks significance through unique contributions to community",
+      "sexual": "Intense one-on-one connections, seeks deep merging with partner"
+    }
+  },
+  
+  "lizGreenPsychological": {
+    "archetype": "The Builder",
+    "subtitle": "Taurus Sun + Capricorn Moon + Taurus Rising",
+    
+    "lifeQuestion": "What do I truly value?",
+    
+    "coreIdentity": {
+      "sun": {
+        "archetype": "Taurus - The Builder",
+        "consciousPurpose": "To establish value, create stability, and honor the physical world",
+        "centralDrive": "Driven by need for security and tangible results. Identity built slowly, like a cathedral - stone by stone. Exist most fully when creating something lasting.",
+        "lightExpression": "Patience, reliability, sensuality, determination, practical wisdom",
+        "shadowTendency": "Stubbornness, materialism, possessiveness, resistance to change"
+      },
+      
+      "moon": {
+        "archetype": "Capricorn Moon - The Master",
+        "emotionalNature": "Feelings are controlled, practical, and often suppressed. Emotional safety comes from achievement, respect, and structure.",
+        "innerChild": "May have grown up too fast, learned that feelings are secondary to duty. Needs permission to be vulnerable.",
+        "nurturing": "Through providing structure, teaching responsibility, practical support",
+        "whenStressed": "Becomes cold, workaholic, pessimistic. Withdraws emotionally or becomes overly critical."
+      },
+      
+      "rising": {
+        "archetype": "Taurus Rising - The Earth Spirit",
+        "mask": "Calm, reliable, sensual. Outer presentation aligns with inner nature (Sun also Taurus).",
+        "approach": "Meets life slowly and steadily, valuing stability and tangible results.",
+        "lifeLesson": "Learning flexibility while maintaining essential values."
+      }
+    },
+    
+    "psychologicalPatterns": {
+      "dominantPattern": "Earth dominant (75%) - Melancholic/Practical",
+      "description": "Profoundly grounded in tangible reality. Values what can be touched, built, experienced.",
+      
+      "consciousGifts": "Patience, reliability, sensuality, determination, practical wisdom",
+      
+      "shadowMaterial": "Difficulty with vulnerability, tendency to substitute achievement for emotional connection, resistance to change",
+      
+      "innerTensions": [
+        "Conscious purpose (Taurus - build value) and emotional needs (Capricorn - achieve mastery) operate differently, creating inner tension between who you are becoming and what you instinctively need.",
+        "You have 3 challenging aspects in your chart, indicating areas of internal tension that drive growth through struggle."
+      ],
+      
+      "integrationPath": [
+        "Learning that security comes from within, and that change can lead to greater abundance",
+        "Emotional growth: Learning to nurture yourself through providing structure, teaching responsibility, and practical support"
+      ]
+    },
+    
+    "shadowIntegration": {
+      "consciousGifts": "Patience, reliability, sensuality, determination, practical wisdom",
+      
+      "shadowMaterial": "Difficulty with vulnerability; tendency to substitute achievement for emotional connection",
+      
+      "innerTensions": "Your conscious purpose (Taurus - build value) and emotional needs (Capricorn - achieve mastery) operate differently, creating inner tension",
+      
+      "integrationNeeded": [
+        "Learning that security comes from within",
+        "That change can lead to greater abundance",
+        "Emotional growth through structure and responsibility while allowing vulnerability"
+      ]
+    }
+  },
+  
+  "big5": {
+    "version": "1.0",
+    "completedAt": null,
+    "provided": false,
+    
+    "traits": {
+      "openness": {
+        "score": null,
+        "percentile": null,
+        "level": null,
+        "description": "Appreciation for art, emotion, adventure, unusual ideas, imagination, curiosity, and variety of experience",
+        "facets": {
+          "imagination": null,
+          "artisticInterests": null,
+          "emotionality": null,
+          "adventurousness": null,
+          "intellect": null,
+          "liberalism": null
+        }
+      },
+      
+      "conscientiousness": {
+        "score": null,
+        "percentile": null,
+        "level": null,
+        "description": "Tendency to be organized, dependable, show self-discipline, aim for achievement, prefer planned rather than spontaneous behavior",
+        "facets": {
+          "selfEfficacy": null,
+          "orderliness": null,
+          "dutifulness": null,
+          "achievementStriving": null,
+          "selfDiscipline": null,
+          "cautiousness": null
+        }
+      },
+      
+      "extraversion": {
+        "score": null,
+        "percentile": null,
+        "level": null,
+        "description": "Energy, positive emotions, assertiveness, sociability, talkativeness, tendency to seek stimulation in the company of others",
+        "facets": {
+          "friendliness": null,
+          "gregariousness": null,
+          "assertiveness": null,
+          "activityLevel": null,
+          "excitementSeeking": null,
+          "cheerfulness": null
+        }
+      },
+      
+      "agreeableness": {
+        "score": null,
+        "percentile": null,
+        "level": null,
+        "description": "Tendency to be compassionate and cooperative rather than suspicious and antagonistic towards others",
+        "facets": {
+          "trust": null,
+          "morality": null,
+          "altruism": null,
+          "cooperation": null,
+          "modesty": null,
+          "sympathy": null
+        }
+      },
+      
+      "neuroticism": {
+        "score": null,
+        "percentile": null,
+        "level": null,
+        "description": "Tendency to experience unpleasant emotions easily: anger, anxiety, depression, vulnerability",
+        "facets": {
+          "anxiety": null,
+          "anger": null,
+          "depression": null,
+          "selfConsciousness": null,
+          "immoderation": null,
+          "vulnerability": null
+        }
+      }
+    }
+  },
+  
+  "lifePreferences": {
+    "questionnaire": {
+      "completed": false,
+      "version": null,
+      "completedAt": null
+    },
+    
+    "dating": {
+      "relationshipGoals": null,
+      "dealbreakers": [],
+      "values": [],
+      "lifestyle": {},
+      "communication": {},
+      "intimacy": {}
+    },
+    
+    "lifestyle": {
+      "morning Person": null,
+      "social": null,
+      "active": null,
+      "home": null
+    }
+  },
+  
+  "constitutionalSynthesis": {
+    "version": "2.0.0",
+    "generatedAt": "2026-01-04T20:00:00Z",
+    
+    "coreArchetype": "The Patient Builder-Teacher",
+    
+    "essenceStatement": "A Metal Rat soul with profound Earth wisdom (75% Earth dominant), designed to create lasting structures while nurturing others. The Patient Builder (Taurus Sun) meets The Master (Capricorn Moon) guided by The Nurturer (Life Path 6), all expressed through The Protagonist's leadership (ENFJ) with Individualist depth (4w5). This is someone who transforms challenges into wisdom through grounded persistence, teaching through example, and creating beauty that endures.",
+    
+    "crossSystemPatterns": [
+      {
+        "pattern": "Earth Dominance",
+        "systems": ["BaZi (Metal/Earth)", "Western (75% Earth)", "Numerology (6 - service through physical form)"],
+        "interpretation": "Profound grounding in tangible reality across all systems. Values what can be touched, built, experienced, and preserved. Constitutional builder."
+      },
+      {
+        "pattern": "Nurturer-Teacher",
+        "systems": ["Numerology (Life Path 6)", "MBTI (ENFJ)", "Western (Venus in Cancer)"],
+        "interpretation": "Natural caregiver and teacher who leads through inspiration and creates emotional safety. Nurtures through both practical support and visionary guidance."
+      },
+      {
+        "pattern": "Inner Philosopher",
+        "systems": ["Numerology (Destiny 7)", "Enneagram (4w5)", "BaZi (Jupiter Retrograde)"],
+        "interpretation": "Seeks wisdom through internal exploration. Questions external authority, develops personal truth system, teaches from deep knowing."
+      },
+      {
+        "pattern": "Structured Transformation",
+        "systems": ["BaZi (Seven Killings + Direct Resource)", "Western (Saturn Capricorn)", "MBTI (Judging)", "Numerology (Current Year 4)"],
+        "interpretation": "Transforms challenges into structure. Builds foundations through disciplined effort. Growth through responsibility."
+      }
+    ],
+    
+    "forAI": {
+      "prompt Context": "Use this when generating responses in CCLR or voice AI",
+      
+      "communicationStyle": {
+        "pace": "Deliberate and thorough - never rush",
+        "tone": "Warm but grounded, nurturing but not overbearing",
+        "depth": "Prefers substance over flash, quality over quantity",
+        "medium": "Best with face-to-face or written depth; struggles with quick texts"
+      },
+      
+      "emotional Needs": {
+        "primary": "Achievement and structure (Capricorn Moon) balanced with nurturing connection (Life Path 6, Venus Cancer)",
+        "safety": "Comes from tangible results and predictable patterns",
+        "stress": "Needs time, space, physical comfort (nature, good food) to reset",
+        "vulnerability": "Difficulty expressing - needs patient, non-demanding invitation"
+      },
+      
+      "decision Making": {
+        "process": "Methodical, considers long-term impact, values-based (ENFJ), practical (Earth dominant)",
+        "speed": "Slow to decide but firm once decided",
+        "factors": "People impact (Fe), tangible results (Taurus), structural integrity (Capricorn)"
+      },
+      
+      "conflict Response": {
+        "style": "Avoids conflict but stands ground on values",
+        "triggers": "Sudden changes, being rushed, disrespect of values, financial instability",
+        "deEscalation": "Needs time, physical space, calm rational approach",
+        "resolution": "Prefers practical solutions that honor everyone's needs"
+      },
+      
+      "love Language": {
+        "giving": ["Acts of Service", "Creating Beautiful Spaces", "Loyal Presence"],
+        "receiving": ["Quality Time", "Physical Touch", "Consistency", "Being Nurtured"]
+      },
+      
+      "growth Areas": {
+        "current": "Learning flexibility while maintaining values (Rising Taurus lesson)",
+        "lifelong": "Balancing achievement with emotional connection, structure with flow",
+        "shadow": "Allowing vulnerability, accepting impermanence, embracing change"
+      },
+      
+      "strengths To Reference": [
+        "Unwavering patience and persistence",
+        "Creates lasting value and beauty",
+        "Natural teacher and nurturer",
+        "Grounding presence for others",
+        "Practical wisdom applied to real problems",
+        "Visionary thinking combined with people focus"
+      ],
+      
+      "challenges To Be Aware Of": [
+        "Resistance to necessary change",
+        "Difficulty with emotional vulnerability",
+        "May prioritize achievement over connection",
+        "Can become too rigid or stubborn",
+        "Tendency to give too much, neglect own needs"
+      ]
+    }
+  },
+  
+  "metadata": {
+    "profileId": "438RvrhKZi4we4l2Wgqk",
+    "version": "2.0.0",
+    "createdAt": "2025-12-18T10:59:00Z",
+    "updatedAt": "2026-01-04T20:00:00Z",
+    "calculationsVersion": "2.0.0",
+    "brainVersion": "1A",
+    "systemsIncluded": ["BaZi", "Western", "Numerology", "MBTI", "Enneagram", "Liz Greene", "Big 5 (pending)"],
+    "completeness": {
+      "natal": "100%",
+      "psychology": "85%",
+      "preferences": "0%"
+    }
+  }
+}

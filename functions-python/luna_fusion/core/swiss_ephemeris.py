@@ -383,3 +383,232 @@ def birth_data_to_jd(year: int, month: int, day: int,
     utc_hour += minute / 60.0
 
     return swe.julday(year, month, day, utc_hour)
+
+
+# =============================================================================
+# SEASONAL INGRESS CALCULATIONS (Equinoxes, Solstices, Sign Ingresses)
+# =============================================================================
+
+# Sign ingress data: longitude, sign name, season, phase
+SIGN_INGRESSES = [
+    (0, 'Aries', 'Spring', 'begin'),       # Vernal Equinox
+    (30, 'Taurus', 'Spring', 'core'),
+    (60, 'Gemini', 'Spring', 'end'),
+    (90, 'Cancer', 'Summer', 'begin'),     # Summer Solstice
+    (120, 'Leo', 'Summer', 'core'),
+    (150, 'Virgo', 'Summer', 'end'),
+    (180, 'Libra', 'Autumn', 'begin'),     # Autumnal Equinox
+    (210, 'Scorpio', 'Autumn', 'core'),
+    (240, 'Sagittarius', 'Autumn', 'end'),
+    (270, 'Capricorn', 'Winter', 'begin'), # Winter Solstice
+    (300, 'Aquarius', 'Winter', 'core'),
+    (330, 'Pisces', 'Winter', 'end'),
+]
+
+
+def find_sun_at_longitude(target_lon: float, start_jd: float,
+                          direction: int = 1, max_iterations: int = 50) -> float:
+    """
+    Find the Julian Day when the Sun reaches a specific longitude.
+    Uses Newton-Raphson iteration for precision.
+
+    Args:
+        target_lon: Target ecliptic longitude (0-360)
+        start_jd: Starting Julian Day for search
+        direction: 1 for forward search, -1 for backward
+        max_iterations: Maximum iterations for convergence
+
+    Returns:
+        Julian Day when Sun reaches target longitude
+    """
+    jd = start_jd
+    target_lon = target_lon % 360
+
+    for _ in range(max_iterations):
+        # Get current Sun position
+        sun_pos = get_planet_position('Sun', jd)
+        current_lon = sun_pos['longitude']
+
+        # Calculate difference (handling 360° wrap)
+        diff = target_lon - current_lon
+        if diff > 180:
+            diff -= 360
+        elif diff < -180:
+            diff += 360
+
+        # Check convergence (within 1 second of arc = 1/3600 degree)
+        if abs(diff) < 0.0003:
+            return jd
+
+        # Sun moves ~1 degree per day, adjust JD
+        # Speed is degrees per day from ephemeris
+        speed = sun_pos['speed']
+        if speed <= 0:
+            speed = 0.9856  # Fallback: mean solar motion
+
+        jd += diff / speed
+
+    return jd  # Return best estimate
+
+
+def calculate_seasonal_ingresses(year: int) -> List[Dict]:
+    """
+    Calculate all 12 seasonal ingress times for a given year.
+
+    This includes:
+    - 4 Cardinal ingresses (Equinoxes & Solstices)
+    - 4 Fixed ingresses (Core of each season)
+    - 4 Mutable ingresses (End of each season)
+
+    Args:
+        year: Calendar year to calculate
+
+    Returns:
+        List of 12 ingress dictionaries with datetime and metadata
+    """
+    results = []
+
+    for target_lon, sign, season, phase in SIGN_INGRESSES:
+        # Estimate starting point based on typical dates
+        # Aries (0°) around March 20 = day 79
+        # Each sign is ~30 days later
+        sign_index = target_lon // 30
+        estimated_day = 79 + (sign_index * 30.44)
+
+        # Handle year wrap for Capricorn, Aquarius, Pisces
+        if sign_index >= 9:  # Capricorn onwards
+            # These occur in winter, possibly next year for Aquarius/Pisces
+            if sign_index == 9:  # Capricorn - December of current year
+                start_jd = datetime_to_jd(datetime(year, 12, 15, 12, 0, 0))
+            elif sign_index == 10:  # Aquarius - January of next year
+                start_jd = datetime_to_jd(datetime(year + 1, 1, 15, 12, 0, 0))
+            elif sign_index == 11:  # Pisces - February of next year
+                start_jd = datetime_to_jd(datetime(year + 1, 2, 15, 12, 0, 0))
+        else:
+            # Estimate month from day of year
+            month = int((estimated_day - 1) // 30.44) + 1
+            month = max(1, min(12, month))
+            day = 15  # Mid-month starting point
+            start_jd = datetime_to_jd(datetime(year, month, day, 12, 0, 0))
+
+        # Find exact ingress time
+        ingress_jd = find_sun_at_longitude(target_lon, start_jd)
+        ingress_dt = jd_to_datetime(ingress_jd)
+
+        # Determine if this is a major astronomical event
+        is_equinox = target_lon in [0, 180]
+        is_solstice = target_lon in [90, 270]
+
+        event_name = None
+        if target_lon == 0:
+            event_name = 'Vernal Equinox'
+        elif target_lon == 90:
+            event_name = 'Summer Solstice'
+        elif target_lon == 180:
+            event_name = 'Autumnal Equinox'
+        elif target_lon == 270:
+            event_name = 'Winter Solstice'
+
+        results.append({
+            'longitude': target_lon,
+            'sign': sign,
+            'season': season,
+            'phase': phase,
+            'datetime_utc': ingress_dt,
+            'julian_day': ingress_jd,
+            'year': ingress_dt.year,
+            'month': ingress_dt.month,
+            'day': ingress_dt.day,
+            'hour': ingress_dt.hour,
+            'minute': ingress_dt.minute,
+            'is_equinox': is_equinox,
+            'is_solstice': is_solstice,
+            'event_name': event_name,
+            'formatted': ingress_dt.strftime('%Y-%m-%d %H:%M UTC'),
+        })
+
+    return results
+
+
+def get_equinoxes_solstices(year: int) -> Dict[str, Dict]:
+    """
+    Get just the 4 major astronomical events for a year.
+
+    Args:
+        year: Calendar year
+
+    Returns:
+        Dict with vernal_equinox, summer_solstice, autumnal_equinox, winter_solstice
+    """
+    all_ingresses = calculate_seasonal_ingresses(year)
+
+    return {
+        'vernal_equinox': next(i for i in all_ingresses if i['event_name'] == 'Vernal Equinox'),
+        'summer_solstice': next(i for i in all_ingresses if i['event_name'] == 'Summer Solstice'),
+        'autumnal_equinox': next(i for i in all_ingresses if i['event_name'] == 'Autumnal Equinox'),
+        'winter_solstice': next(i for i in all_ingresses if i['event_name'] == 'Winter Solstice'),
+    }
+
+
+def get_season_boundaries(year: int) -> Dict[str, List[Dict]]:
+    """
+    Get seasonal boundaries organized by season.
+
+    Args:
+        year: Calendar year
+
+    Returns:
+        Dict with Spring, Summer, Autumn, Winter keys,
+        each containing list of begin/core/end ingresses
+    """
+    all_ingresses = calculate_seasonal_ingresses(year)
+
+    return {
+        'Spring': [i for i in all_ingresses if i['season'] == 'Spring'],
+        'Summer': [i for i in all_ingresses if i['season'] == 'Summer'],
+        'Autumn': [i for i in all_ingresses if i['season'] == 'Autumn'],
+        'Winter': [i for i in all_ingresses if i['season'] == 'Winter'],
+    }
+
+
+def format_seasonal_calendar(year: int) -> str:
+    """
+    Generate a formatted seasonal calendar for display.
+
+    Args:
+        year: Calendar year
+
+    Returns:
+        Formatted string with all seasonal dates
+    """
+    ingresses = calculate_seasonal_ingresses(year)
+
+    lines = [
+        f"═══════════════════════════════════════════════════════════════",
+        f"  SEASONAL CALENDAR {year}/{year+1}",
+        f"  Calculated by Swiss Ephemeris",
+        f"═══════════════════════════════════════════════════════════════",
+        "",
+    ]
+
+    current_season = None
+    for ing in ingresses:
+        if ing['season'] != current_season:
+            current_season = ing['season']
+            lines.append(f"  {current_season.upper()}")
+            lines.append(f"  {'─' * 55}")
+
+        phase_label = f"{ing['phase'].capitalize():6}"
+        sign_label = f"{ing['sign']:12}"
+        date_str = ing['datetime_utc'].strftime('%a %b %d, %Y  %H:%M UTC')
+
+        event_marker = ""
+        if ing['event_name']:
+            event_marker = f"  ★ {ing['event_name']}"
+
+        lines.append(f"    {phase_label} │ {sign_label} │ {date_str}{event_marker}")
+
+        if ing['phase'] == 'end':
+            lines.append("")
+
+    return "\n".join(lines)

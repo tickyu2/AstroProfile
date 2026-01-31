@@ -1,0 +1,76 @@
+{
+  "name": "Steve Jobs",
+  "archetype_vector": [
+    0.3,
+    0.35,
+    0.75,
+    0.35,
+    0.95,
+    0.25,
+    0.65,
+    0.85,
+    0.3,
+    0.3,
+    0.8,
+    0.85,
+    0.4,
+    0.85,
+    0.5,
+    0.4
+  ],
+  "element_profile": {
+    "bazi_elements": {
+      "Wood": 0.25,
+      "Fire": 0.21250000000000002,
+      "Earth": 0.48750000000000004,
+      "Metal": 0.0375,
+      "Water": 0.0125
+    },
+    "western_elements": {
+      "Fire": 32.08,
+      "Earth": 15.09,
+      "Air": 16.98,
+      "Water": 35.85
+    },
+    "dominant_bazi": "Earth",
+    "dominant_western": "Water"
+  },
+  "stress_profile": {
+    "dm_strength": 0.5,
+    "boundary_stability": 0.33
+  },
+  "raw_traits": {
+    "Initiator": "0.30",
+    "Stabilizer": "0.35",
+    "Relational": "0.75",
+    "MindCentered": "0.35",
+    "Intuitive": "0.95",
+    "Concrete": "0.25",
+    "Expressive": "0.65",
+    "Transpersonal": "0.85",
+    "RiskSeeking": "0.30",
+    "OrderOriented": "0.30",
+    "FluidIdentity": "0.80",
+    "Warm": "0.85",
+    "Direct": "0.40",
+    "DepthOriented": "0.85",
+    "Sustainer": "0.50",
+    "BoundaryAware": "0.40"
+  },
+  "metadata": {
+    "day_master": "Bing",
+    "western_sign": "Pisces",
+    "source": "user"
+  },
+  "_raw": {
+    "profile_id": "j3eJMbn2UwuwTVJSTFgw",
+    "has_constitutional": false,
+    "has_bazi": true,
+    "has_western": true,
+    "unified_expression_keys": [
+      "western",
+      "bazi",
+      "metadata"
+    ]
+  }
+}

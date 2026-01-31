@@ -1,0 +1,284 @@
+/**
+ * Sign Animation CSS
+ * 12 archetypal motion grammars — one for each zodiac sign
+ * Each animation reflects the psychological essence of the sign
+ */
+
+/* ============================================================================
+   FIRE SIGNS — Dynamic, projective motion
+   ============================================================================ */
+
+/* Aries — flicker + pulse (initiating fire) */
+.anim-aries {
+  animation: ariesPulse 1.2s infinite alternate ease-in-out;
+}
+@keyframes ariesPulse {
+  from { transform: scale(1); }
+  to   { transform: scale(1.08); }
+}
+
+/* Leo — radiant pulse (solar fire) */
+.anim-leo {
+  animation: leoGlow 1.6s infinite ease-in-out;
+}
+@keyframes leoGlow {
+  0%   { filter: brightness(1); }
+  50%  { filter: brightness(1.3); }
+  100% { filter: brightness(1); }
+}
+
+/* Sagittarius — arrow flick (expansive fire) */
+.anim-sagittarius {
+  animation: sagArrow 1.2s infinite ease-in-out;
+}
+@keyframes sagArrow {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+
+/* ============================================================================
+   EARTH SIGNS — Stable, grounding motion
+   ============================================================================ */
+
+/* Taurus — slow grow (patient earth) */
+.anim-taurus {
+  animation: taurusGrow 3s infinite alternate ease-in-out;
+}
+@keyframes taurusGrow {
+  from { transform: scale(1); }
+  to   { transform: scale(1.03); }
+}
+
+/* Virgo — precision jitter (analytical earth) */
+.anim-virgo {
+  animation: virgoMicro 0.8s infinite steps(2);
+}
+@keyframes virgoMicro {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(1px, -1px); }
+}
+
+/* Capricorn — stone settle (enduring earth) */
+.anim-capricorn {
+  animation: capSettle 3.5s infinite ease-in-out;
+}
+@keyframes capSettle {
+  0%   { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+
+/* ============================================================================
+   AIR SIGNS — Mental, oscillating motion
+   ============================================================================ */
+
+/* Gemini — oscillation (mercurial air) */
+.anim-gemini {
+  animation: geminiShift 1.4s infinite ease-in-out;
+}
+@keyframes geminiShift {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+/* Libra — gentle sway (harmonious air) */
+.anim-libra {
+  animation: libraSway 2.2s infinite ease-in-out;
+}
+@keyframes libraSway {
+  0%   { transform: rotate(0deg); }
+  50%  { transform: rotate(1.5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Aquarius — electric jitter (visionary air) */
+.anim-aquarius {
+  animation: aquaJitter 0.6s infinite steps(3);
+}
+@keyframes aquaJitter {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-1px, 1px); }
+}
+
+/* ============================================================================
+   WATER SIGNS — Flowing, emotional motion
+   ============================================================================ */
+
+/* Cancer — tide rise (lunar water) */
+.anim-cancer {
+  animation: cancerTide 2.8s infinite ease-in-out;
+}
+@keyframes cancerTide {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+/* Scorpio — pulse + shadow (transformative water) */
+.anim-scorpio {
+  animation: scorpioPulse 1.8s infinite ease-in-out;
+}
+@keyframes scorpioPulse {
+  0%   { filter: drop-shadow(0 0 0px #673ab7); }
+  50%  { filter: drop-shadow(0 0 6px #673ab7); }
+  100% { filter: drop-shadow(0 0 0px #673ab7); }
+}
+
+/* Pisces — drifting float (dissolving water) */
+.anim-pisces {
+  animation: piscesFloat 3.2s infinite ease-in-out;
+}
+@keyframes piscesFloat {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(2px); }
+  100% { transform: translateY(0); }
+}
+
+/* ============================================================================
+   ELEMENT GROUP ANIMATIONS (for filtered views)
+   ============================================================================ */
+
+.anim-element-fire {
+  animation: fireElementGlow 2s infinite ease-in-out;
+}
+@keyframes fireElementGlow {
+  0%   { box-shadow: 0 0 8px rgba(255, 77, 59, 0.3); }
+  50%  { box-shadow: 0 0 16px rgba(255, 77, 59, 0.6); }
+  100% { box-shadow: 0 0 8px rgba(255, 77, 59, 0.3); }
+}
+
+.anim-element-earth {
+  animation: earthElementGlow 3s infinite ease-in-out;
+}
+@keyframes earthElementGlow {
+  0%   { box-shadow: 0 0 8px rgba(139, 195, 74, 0.3); }
+  50%  { box-shadow: 0 0 12px rgba(139, 195, 74, 0.5); }
+  100% { box-shadow: 0 0 8px rgba(139, 195, 74, 0.3); }
+}
+
+.anim-element-air {
+  animation: airElementGlow 2.5s infinite ease-in-out;
+}
+@keyframes airElementGlow {
+  0%   { box-shadow: 0 0 8px rgba(0, 188, 212, 0.3); }
+  50%  { box-shadow: 0 0 14px rgba(0, 188, 212, 0.5); }
+  100% { box-shadow: 0 0 8px rgba(0, 188, 212, 0.3); }
+}
+
+.anim-element-water {
+  animation: waterElementGlow 3.5s infinite ease-in-out;
+}
+@keyframes waterElementGlow {
+  0%   { box-shadow: 0 0 8px rgba(63, 81, 181, 0.3); }
+  50%  { box-shadow: 0 0 16px rgba(63, 81, 181, 0.6); }
+  100% { box-shadow: 0 0 8px rgba(63, 81, 181, 0.3); }
+}
+
+/* ============================================================================
+   CUSP TRANSITION ANIMATIONS
+   ============================================================================ */
+
+.anim-cusp-transition {
+  animation: cuspMorph 4s infinite ease-in-out;
+}
+@keyframes cuspMorph {
+  0%   { filter: hue-rotate(0deg); }
+  50%  { filter: hue-rotate(15deg); }
+  100% { filter: hue-rotate(0deg); }
+}
+
+/* ============================================================================
+   STREAK / XP CELEBRATION ANIMATIONS
+   ============================================================================ */
+
+.anim-streak-pulse {
+  animation: streakPulse 0.5s ease-out;
+}
+@keyframes streakPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.anim-xp-float {
+  animation: xpFloat 1s ease-out forwards;
+}
+@keyframes xpFloat {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+
+.anim-correct-flash {
+  animation: correctFlash 0.3s ease-out;
+}
+@keyframes correctFlash {
+  0%   { background-color: rgba(34, 197, 94, 0.5); }
+  100% { background-color: transparent; }
+}
+
+.anim-incorrect-shake {
+  animation: incorrectShake 0.4s ease-out;
+}
+@keyframes incorrectShake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-4px); }
+  50%  { transform: translateX(4px); }
+  75%  { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}
+
+/* ============================================================================
+   MASTERY TIER GLOW EFFECTS
+   ============================================================================ */
+
+.mastery-beginner {
+  box-shadow: 0 0 8px rgba(100, 116, 139, 0.4);
+}
+
+.mastery-intermediate {
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.mastery-advanced {
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+}
+
+.mastery-master {
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.7);
+  animation: masteryGlow 2s infinite ease-in-out;
+}
+@keyframes masteryGlow {
+  0%   { box-shadow: 0 0 16px rgba(251, 191, 36, 0.7); }
+  50%  { box-shadow: 0 0 24px rgba(251, 191, 36, 0.9); }
+  100% { box-shadow: 0 0 16px rgba(251, 191, 36, 0.7); }
+}
+
+/* ============================================================================
+   REDUCED MOTION SUPPORT
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-aries,
+  .anim-taurus,
+  .anim-gemini,
+  .anim-cancer,
+  .anim-leo,
+  .anim-virgo,
+  .anim-libra,
+  .anim-scorpio,
+  .anim-sagittarius,
+  .anim-capricorn,
+  .anim-aquarius,
+  .anim-pisces,
+  .anim-element-fire,
+  .anim-element-earth,
+  .anim-element-air,
+  .anim-element-water,
+  .anim-cusp-transition,
+  .anim-streak-pulse,
+  .anim-xp-float,
+  .mastery-master {
+    animation: none;
+  }
+}

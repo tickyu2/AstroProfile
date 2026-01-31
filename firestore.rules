@@ -592,6 +592,31 @@ service cloud.firestore {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
+    // ASSESSMENTS - Physical Layer, Big Five, MBTI, etc.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // Assessments - stored by profileId, user must own the profile
+    match /assessments/{profileId} {
+      // Helper to check if user owns the profile
+      function userOwnsProfile() {
+        return request.auth != null &&
+          get(/databases/$(database)/documents/profiles/$(profileId)).data.userId == request.auth.uid;
+      }
+
+      // Read: Only if user owns the profile
+      allow read: if userOwnsProfile();
+
+      // Create: Only if user owns the profile
+      allow create: if userOwnsProfile();
+
+      // Update: Only if user owns the profile
+      allow update: if userOwnsProfile();
+
+      // Delete: Prevent accidental deletion
+      allow delete: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
     // GENESIS ACADEMY CMS - Content Management System
     // ═══════════════════════════════════════════════════════════════════════
 

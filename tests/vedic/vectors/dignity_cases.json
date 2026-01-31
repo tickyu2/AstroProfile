@@ -1,0 +1,184 @@
+[
+  {
+    "id": "sun_exaltation_degree",
+    "description": "Sun at exact exaltation degree (10 Aries)",
+    "graha": "Sun",
+    "sign": "Aries",
+    "degree": 10.0,
+    "expectedDignity": "exalted",
+    "expectedStrength": 100,
+    "note": "Sun is exalted at 10 degrees Aries"
+  },
+  {
+    "id": "sun_debilitation_degree",
+    "description": "Sun at exact debilitation degree (10 Libra)",
+    "graha": "Sun",
+    "sign": "Libra",
+    "degree": 10.0,
+    "expectedDignity": "debilitated",
+    "expectedStrength": 0,
+    "note": "Sun is debilitated at 10 degrees Libra"
+  },
+  {
+    "id": "moon_exaltation_degree",
+    "description": "Moon at exact exaltation degree (3 Taurus)",
+    "graha": "Moon",
+    "sign": "Taurus",
+    "degree": 3.0,
+    "expectedDignity": "exalted",
+    "expectedStrength": 100
+  },
+  {
+    "id": "moon_debilitation_degree",
+    "description": "Moon at exact debilitation degree (3 Scorpio)",
+    "graha": "Moon",
+    "sign": "Scorpio",
+    "degree": 3.0,
+    "expectedDignity": "debilitated",
+    "expectedStrength": 0
+  },
+  {
+    "id": "mars_exaltation_degree",
+    "description": "Mars at exact exaltation degree (28 Capricorn)",
+    "graha": "Mars",
+    "sign": "Capricorn",
+    "degree": 28.0,
+    "expectedDignity": "exalted",
+    "expectedStrength": 100
+  },
+  {
+    "id": "mars_debilitation_degree",
+    "description": "Mars at exact debilitation degree (28 Cancer)",
+    "graha": "Mars",
+    "sign": "Cancer",
+    "degree": 28.0,
+    "expectedDignity": "debilitated",
+    "expectedStrength": 0
+  },
+  {
+    "id": "mercury_exaltation_degree",
+    "description": "Mercury at exact exaltation degree (15 Virgo)",
+    "graha": "Mercury",
+    "sign": "Virgo",
+    "degree": 15.0,
+    "expectedDignity": "exalted",
+    "expectedStrength": 100
+  },
+  {
+    "id": "mercury_debilitation_degree",
+    "description": "Mercury at exact debilitation degree (15 Pisces)",
+    "graha": "Mercury",
+    "sign": "Pisces",
+    "degree": 15.0,
+    "expectedDignity": "debilitated",
+    "expectedStrength": 0
+  },
+  {
+    "id": "jupiter_exaltation_degree",
+    "description": "Jupiter at exact exaltation degree (5 Cancer)",
+    "graha": "Jupiter",
+    "sign": "Cancer",
+    "degree": 5.0,
+    "expectedDignity": "exalted",
+    "expectedStrength": 100
+  },
+  {
+    "id": "jupiter_debilitation_degree",
+    "description": "Jupiter at exact debilitation degree (5 Capricorn)",
+    "graha": "Jupiter",
+    "sign": "Capricorn",
+    "degree": 5.0,
+    "expectedDignity": "debilitated",
+    "expectedStrength": 0
+  },
+  {
+    "id": "venus_exaltation_degree",
+    "description": "Venus at exact exaltation degree (27 Pisces)",
+    "graha": "Venus",
+    "sign": "Pisces",
+    "degree": 27.0,
+    "expectedDignity": "exalted",
+    "expectedStrength": 100
+  },
+  {
+    "id": "venus_debilitation_degree",
+    "description": "Venus at exact debilitation degree (27 Virgo)",
+    "graha": "Venus",
+    "sign": "Virgo",
+    "degree": 27.0,
+    "expectedDignity": "debilitated",
+    "expectedStrength": 0
+  },
+  {
+    "id": "saturn_exaltation_degree",
+    "description": "Saturn at exact exaltation degree (20 Libra)",
+    "graha": "Saturn",
+    "sign": "Libra",
+    "degree": 20.0,
+    "expectedDignity": "exalted",
+    "expectedStrength": 100
+  },
+  {
+    "id": "saturn_debilitation_degree",
+    "description": "Saturn at exact debilitation degree (20 Aries)",
+    "graha": "Saturn",
+    "sign": "Aries",
+    "degree": 20.0,
+    "expectedDignity": "debilitated",
+    "expectedStrength": 0
+  },
+  {
+    "id": "sun_friend_sagittarius",
+    "description": "Sun in friend sign Sagittarius (Jupiter rules)",
+    "graha": "Sun",
+    "sign": "Sagittarius",
+    "degree": 15.0,
+    "expectedDignity": "friend",
+    "expectedStrength": 75
+  },
+  {
+    "id": "moon_friend_cancer",
+    "description": "Moon in own sign Cancer",
+    "graha": "Moon",
+    "sign": "Cancer",
+    "degree": 15.0,
+    "expectedDignity": "own",
+    "expectedStrength": 90
+  },
+  {
+    "id": "mars_enemy_cancer",
+    "description": "Mars in enemy sign Cancer (not at debilitation degree)",
+    "graha": "Mars",
+    "sign": "Cancer",
+    "degree": 10.0,
+    "expectedDignity": "enemy",
+    "expectedStrength": 25
+  },
+  {
+    "id": "jupiter_neutral_aries",
+    "description": "Jupiter in neutral sign Aries",
+    "graha": "Jupiter",
+    "sign": "Aries",
+    "degree": 15.0,
+    "expectedDignity": "neutral",
+    "expectedStrength": 50
+  },
+  {
+    "id": "venus_enemy_virgo",
+    "description": "Venus in enemy sign Virgo (not at debilitation degree)",
+    "graha": "Venus",
+    "sign": "Virgo",
+    "degree": 10.0,
+    "expectedDignity": "enemy",
+    "expectedStrength": 25
+  },
+  {
+    "id": "saturn_friend_aquarius",
+    "description": "Saturn in own sign Aquarius",
+    "graha": "Saturn",
+    "sign": "Aquarius",
+    "degree": 15.0,
+    "expectedDignity": "own",
+    "expectedStrength": 90
+  }
+]

@@ -1,0 +1,395 @@
+/* =============================================================================
+   ELEMENT FLOW TIMELINE
+   ============================================================================= */
+
+.element-flow-timeline {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.flow-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.flow-header h4 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.flow-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+/* Season Headers Row */
+.flow-seasons-header {
+  display: grid;
+  grid-template-columns: 100px repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.flow-season-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 8px;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.flow-season-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.flow-season-header.current {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.flow-season-icon {
+  font-size: 20px;
+}
+
+.flow-season-name {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.current-badge {
+  font-size: 9px;
+  background: #4ade80;
+  color: #0f172a;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Season Imbalance Insight Panel */
+.season-imbalance-insight {
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  border: 1px solid;
+  animation: fadeSlideIn 0.3s ease;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.imbalance-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.imbalance-icon {
+  font-size: 20px;
+}
+
+.imbalance-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #f1f5f9;
+  flex: 1;
+}
+
+.close-insight {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.close-insight:hover {
+  color: #f1f5f9;
+}
+
+.imbalance-effect {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+.imbalance-wisdom {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Element Flow Rows */
+.flow-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flow-row {
+  display: grid;
+  grid-template-columns: 100px repeat(4, 1fr);
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.flow-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.flow-row.expanded {
+  background: rgba(255, 255, 255, 0.05);
+  flex-wrap: wrap;
+}
+
+.flow-row.highlighted {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Element Label Column */
+.flow-element-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.flow-element-label:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.flow-element-label .element-icon {
+  font-size: 18px;
+}
+
+.flow-element-label .element-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.expand-indicator {
+  font-size: 10px;
+  margin-left: auto;
+  opacity: 0.5;
+  transition: transform 0.2s ease;
+}
+
+.flow-row.expanded .expand-indicator {
+  transform: rotate(0deg);
+}
+
+/* Flow Cell - Intensity Bars */
+.flow-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  position: relative;
+}
+
+.flow-cell.absent {
+  opacity: 0.6;
+}
+
+.intensity-bar-container {
+  width: 100%;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.intensity-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease, opacity 0.2s ease;
+}
+
+.intensity-sign {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+
+.phase-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.absent-indicator {
+  font-size: 16px;
+  color: #64748b;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Expanded Narrative */
+.flow-narrative {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 8px;
+  border-left: 3px solid;
+  animation: fadeSlideIn 0.3s ease;
+}
+
+.narrative-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.full-cycle {
+  margin: 0;
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.7;
+}
+
+.absence-teaching {
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.absence-season-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.absence-teaching p {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+
+/* Flow Legend */
+.flow-legend {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.legend-phases {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.legend-phase {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.phase-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.phase-name {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.legend-insight {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Responsive adjustments for Element Flow Timeline */
+@media (max-width: 700px) {
+  .flow-seasons-header,
+  .flow-row {
+    grid-template-columns: 80px repeat(4, 1fr);
+    gap: 4px;
+  }
+
+  .flow-element-label .element-name {
+    font-size: 11px;
+  }
+
+  .flow-season-name {
+    font-size: 10px;
+  }
+
+  .intensity-sign {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 500px) {
+  .flow-seasons-header,
+  .flow-row {
+    grid-template-columns: 60px repeat(4, 1fr);
+  }
+
+  .flow-element-label .element-name {
+    display: none;
+  }
+
+  .flow-season-name {
+    display: none;
+  }
+
+  .current-badge {
+    font-size: 8px;
+    padding: 2px 4px;
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "seasonal_exceptions": [
+    {
+      "id": "fire_in_winter_weak",
+      "name": "Fire Extremely Weak in Winter",
+      "priority": 1,
+      "conditions": {
+        "element": "Fire",
+        "season": "winter",
+        "month": ["子", "丑"],
+        "noFireSupport": true
+      },
+      "result": {
+        "strengthModifier": 0.3,
+        "needsWoodSupport": true,
+        "note": "Fire in winter needs Wood to survive"
+      }
+    },
+    {
+      "id": "water_in_summer_weak",
+      "name": "Water Weakened in Summer",
+      "priority": 1,
+      "conditions": {
+        "element": "Water",
+        "season": "summer",
+        "month": ["午", "未"],
+        "noMetalSupport": true
+      },
+      "result": {
+        "strengthModifier": 0.4,
+        "needsMetalSupport": true,
+        "note": "Water evaporates in summer heat"
+      }
+    },
+    {
+      "id": "wood_in_autumn_weak",
+      "name": "Wood Cut in Autumn",
+      "priority": 1,
+      "conditions": {
+        "element": "Wood",
+        "season": "autumn",
+        "month": ["申", "酉"],
+        "metalStrong": true
+      },
+      "result": {
+        "strengthModifier": 0.35,
+        "needsWaterSupport": true,
+        "note": "Autumn metal chops wood"
+      }
+    },
+    {
+      "id": "metal_in_summer_melted",
+      "name": "Metal Melted in Summer",
+      "priority": 1,
+      "conditions": {
+        "element": "Metal",
+        "season": "summer",
+        "month": ["巳", "午"],
+        "fireStrong": true
+      },
+      "result": {
+        "strengthModifier": 0.35,
+        "needsEarthSupport": true,
+        "needsWaterCooling": true,
+        "note": "Summer fire melts metal"
+      }
+    },
+    {
+      "id": "earth_in_spring_weak",
+      "name": "Earth Weakened in Spring",
+      "priority": 2,
+      "conditions": {
+        "element": "Earth",
+        "season": "spring",
+        "month": ["寅", "卯"],
+        "woodStrong": true
+      },
+      "result": {
+        "strengthModifier": 0.5,
+        "note": "Spring wood controls earth"
+      }
+    },
+    {
+      "id": "seasonal_wang_phase",
+      "name": "Element in Wang (Prosperous) Phase",
+      "priority": 2,
+      "conditions": {
+        "element": "matches_season",
+        "phase": "wang",
+        "examples": {
+          "Wood": "spring",
+          "Fire": "summer",
+          "Metal": "autumn",
+          "Water": "winter"
+        }
+      },
+      "result": {
+        "strengthModifier": 1.5,
+        "atPeakPower": true
+      }
+    },
+    {
+      "id": "seasonal_xiang_phase",
+      "name": "Element in Xiang (Supported) Phase",
+      "priority": 3,
+      "conditions": {
+        "element": "produces_seasonal_element",
+        "phase": "xiang"
+      },
+      "result": {
+        "strengthModifier": 1.2,
+        "wellSupported": true
+      }
+    },
+    {
+      "id": "earth_month_transition",
+      "name": "Earth Month Transition Periods",
+      "priority": 2,
+      "conditions": {
+        "month": ["辰", "未", "戌", "丑"],
+        "isEarthMonth": true,
+        "transitionPeriod": true
+      },
+      "result": {
+        "earthStrengthBoost": 1.3,
+        "note": "Earth strong in transition months",
+        "affectsAllElements": "slight_moderation"
+      }
+    },
+    {
+      "id": "yin_yang_seasonal_match",
+      "name": "Yin/Yang Matches Seasonal Energy",
+      "priority": 4,
+      "conditions": {
+        "dayMasterPolarity": "yang",
+        "season": "spring_or_summer",
+        "yangSeasonBoost": true
+      },
+      "result": {
+        "polarityBonus": 1.1,
+        "note": "Yang DM slightly stronger in yang seasons"
+      }
+    },
+    {
+      "id": "grave_storage_seasonal",
+      "name": "Element in Grave/Storage Phase",
+      "priority": 3,
+      "conditions": {
+        "elementInGrave": true,
+        "season": "controlling_season"
+      },
+      "result": {
+        "strengthModifier": 0.6,
+        "interpretation": "Element dormant but not dead",
+        "canBeRevived": "by_resource_element"
+      }
+    }
+  ]
+}

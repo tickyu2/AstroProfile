@@ -1,0 +1,218 @@
+{
+  "info": {
+    "name": "Vedic Astrology API",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "description": "Vedic profile, lifecycle, and relationship engines for the Cathedral system.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Vedic Profile",
+      "item": [
+        {
+          "name": "Get Vedic Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vedic/{{profileId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vedic", "{{profileId}}"]
+            },
+            "description": "Retrieve a complete Vedic astrological profile by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Vedic Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"1990-05-15\",\n  \"time\": \"14:30\",\n  \"latitude\": 28.6139,\n  \"longitude\": 77.2090,\n  \"timezone\": \"Asia/Kolkata\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vedic/calculate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vedic", "calculate"]
+            },
+            "description": "Calculate a new Vedic profile from birth data."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashas",
+      "item": [
+        {
+          "name": "Get Dasha Timeline",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vedic/{{profileId}}/dashas?levels=2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vedic", "{{profileId}}", "dashas"],
+              "query": [
+                {
+                  "key": "levels",
+                  "value": "2",
+                  "description": "Levels deep (1=Mahadasha, 2=+Antardasha, 3=+Pratyantardasha)"
+                },
+                {
+                  "key": "from",
+                  "value": "2020-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "2030-01-01",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get detailed Vimshottari Dasha timeline for a profile."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Dasha Timeline (Full 3 Levels)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vedic/{{profileId}}/dashas?levels=3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vedic", "{{profileId}}", "dashas"],
+              "query": [
+                {
+                  "key": "levels",
+                  "value": "3"
+                }
+              ]
+            },
+            "description": "Get full 3-level Dasha timeline including Pratyantardasha."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Compatibility",
+      "item": [
+        {
+          "name": "Get Vedic Compatibility",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vedic/{{profileIdA}}/compatibility/{{profileIdB}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vedic", "{{profileIdA}}", "compatibility", "{{profileIdB}}"]
+            },
+            "description": "Get Vedic compatibility analysis between two profiles."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Relationship",
+      "item": [
+        {
+          "name": "Get Relationship",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/relationship/{{relationshipId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "relationship", "{{relationshipId}}"]
+            },
+            "description": "Get complete relationship analysis including polarity, archetype, and timelines."
+          },
+          "response": []
+        },
+        {
+          "name": "Compare Two Relationships",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/relationship/{{relationshipIdA}}/compare/{{relationshipIdB}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "relationship", "{{relationshipIdA}}", "compare", "{{relationshipIdB}}"]
+            },
+            "description": "Compare two relationships for side-by-side archetype diff analysis."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.astroprofile.com",
+      "type": "string"
+    },
+    {
+      "key": "profileId",
+      "value": "user_123_profile_456",
+      "type": "string"
+    },
+    {
+      "key": "profileIdA",
+      "value": "user_123_profile_456",
+      "type": "string"
+    },
+    {
+      "key": "profileIdB",
+      "value": "user_789_profile_012",
+      "type": "string"
+    },
+    {
+      "key": "relationshipId",
+      "value": "rel_001",
+      "type": "string"
+    },
+    {
+      "key": "relationshipIdA",
+      "value": "rel_001",
+      "type": "string"
+    },
+    {
+      "key": "relationshipIdB",
+      "value": "rel_002",
+      "type": "string"
+    }
+  ]
+}

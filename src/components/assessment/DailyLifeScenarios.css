@@ -1,0 +1,367 @@
+/**
+ * DailyLifeScenarios.css
+ * Styling for Daily Life Infrastructure Assessment
+ * THE REVOLUTIONARY COMPONENT - The 95% of life that isn't romance
+ */
+
+.daily-life-scenarios {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+}
+
+.assessment-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.assessment-header h2 {
+  color: #fff;
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24, #fcd34d);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Section Indicator */
+.section-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin: 2rem 0;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.section-dot {
+  flex: 1;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  opacity: 0.4;
+  transition: all 0.3s ease;
+}
+
+.section-dot.active {
+  opacity: 1;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.section-dot.complete {
+  opacity: 0.7;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.section-icon {
+  font-size: 1.5rem;
+}
+
+.section-name {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Question Card */
+.question-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Special Question Styling - THE DISHES! THE BAGS! */
+.special-question {
+  border: 2px solid #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.1);
+}
+
+.special-badge {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  color: white;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+  }
+}
+
+.scenario {
+  margin-bottom: 2rem;
+}
+
+.scenario-label {
+  color: #f59e0b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.scenario-text {
+  font-size: 1.25rem;
+  color: #fff;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.option-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  color: #fff;
+}
+
+.option-button:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+  transform: translateX(4px);
+}
+
+.option-button.selected {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+  border-width: 2px;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+}
+
+.option-button.selected .option-letter {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.option-letter {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.option-text {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Constitutional Hint Badge */
+.constitutional-hint {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Followup Section */
+.followup-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+.followup-indicator {
+  text-align: center;
+  color: #fbbf24;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+}
+
+.followup-scenario {
+  background: rgba(251, 191, 36, 0.1);
+  padding: 1.25rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.followup-option {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.followup-option:hover {
+  background: rgba(251, 191, 36, 0.25);
+  border-color: #fbbf24;
+}
+
+/* Navigation */
+.navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.question-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.question-counter {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.section-progress {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .daily-life-scenarios {
+    padding: 1rem;
+  }
+
+  .section-indicator {
+    gap: 0.25rem;
+  }
+
+  .section-dot {
+    min-width: 60px;
+    padding: 0.5rem;
+  }
+
+  .section-name {
+    font-size: 0.6rem;
+  }
+
+  .question-card {
+    padding: 1.5rem;
+  }
+
+  .scenario-text {
+    font-size: 1.1rem;
+  }
+
+  .option-button {
+    padding: 0.875rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  .constitutional-hint {
+    margin-top: 0.5rem;
+    margin-left: 3rem;
+  }
+}
+
+/* Primary Button */
+.btn-primary {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

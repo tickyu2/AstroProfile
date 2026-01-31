@@ -151,22 +151,25 @@ class BaZiChartSchema(BaseModel):
 # =============================================================================
 
 class PlanetPositionSchema(BaseModel):
-    """Single planet position."""
-    longitude: float
-    latitude: float
-    sign: str
-    degree: float
-    retrograde: bool = False
-    element: str
-    modality: str
-    house: Optional[int] = None
+    """Single planet position - v2.0 schema with pre-formatted display fields."""
+    longitude: float = Field(..., description="Absolute ecliptic longitude (0-359.99)")
+    latitude: float = Field(0, description="Ecliptic latitude")
+    sign: str = Field(..., description="Zodiac sign name (capitalized)")
+    degree: float = Field(..., description="Degree within sign (0-29.99)")
+    degreeFormatted: str = Field("", description="Display string: '{degree}° {sign}'")
+    isRetrograde: bool = Field(False, description="True if retrograde")
+    element: str = Field(..., description="Fire, Earth, Air, Water")
+    modality: str = Field(..., description="Cardinal, Fixed, Mutable")
+    house: Optional[int] = Field(None, description="House number (1-12)")
 
 
 class HouseCuspSchema(BaseModel):
-    """House cusp data."""
-    longitude: float
-    sign: str
-    degree: float
+    """House cusp data - v2.0 schema with pre-formatted display fields."""
+    house: int = Field(..., description="House number (1-12)")
+    longitude: float = Field(..., description="Absolute ecliptic longitude (0-359.99)")
+    sign: str = Field(..., description="Zodiac sign on cusp")
+    degree: float = Field(..., description="Degree within sign (0-29.99)")
+    degreeFormatted: str = Field("", description="Display string: '{degree}° {sign}'")
 
 
 class AspectSchema(BaseModel):
@@ -198,19 +201,44 @@ class WesternModalitiesSchema(BaseModel):
     dominant: str
 
 
+class AscendantSchema(BaseModel):
+    """Ascendant (Rising Sign) data - v2.0 schema."""
+    sign: str = Field(..., description="Zodiac sign name")
+    degree: float = Field(..., description="Degree within sign (0-29.99)")
+    longitude: float = Field(..., description="Absolute ecliptic longitude (0-359.99)")
+    degreeFormatted: str = Field("", description="Display string: '{degree}° {sign}'")
+    isAccurate: bool = Field(True, description="False if birth time unknown (noon default)")
+
+
+class MidheavenSchema(BaseModel):
+    """Midheaven (MC) data - v2.0 schema."""
+    sign: str = Field(..., description="Zodiac sign name")
+    degree: float = Field(..., description="Degree within sign (0-29.99)")
+    longitude: float = Field(..., description="Absolute ecliptic longitude (0-359.99)")
+    degreeFormatted: str = Field("", description="Display string: '{degree}° {sign}'")
+
+
+class MoonPhaseSchema(BaseModel):
+    """Moon phase data - v2.0 schema."""
+    phase: str = Field(..., description="Phase name: New Moon, Waxing Crescent, First Quarter, etc.")
+    illumination: float = Field(..., description="Illumination percentage (0-1)")
+    angle: float = Field(..., description="Sun-Moon angle in degrees (0-360)")
+    emoji: str = Field("", description="Moon phase emoji")
+
+
 class WesternChartSchema(BaseModel):
-    """Complete Western chart - canonical output."""
+    """Complete Western chart - canonical v2.0 output with pre-formatted display fields."""
     # Core placements
     sun: PlanetPositionSchema
     moon: PlanetPositionSchema
-    ascendant: Optional[Dict[str, Any]] = None
-    midheaven: Optional[Dict[str, Any]] = None
+    ascendant: Optional[AscendantSchema] = None
+    midheaven: Optional[MidheavenSchema] = None
 
     # All planets
     planets: Dict[str, PlanetPositionSchema]
 
-    # Houses
-    houses: Dict[str, HouseCuspSchema] = Field(default_factory=dict)
+    # Houses - array of 12 house cusp objects
+    houses: List[HouseCuspSchema] = Field(default_factory=list, description="Array of 12 house cusps")
     houseSystem: str = "Placidus"
 
     # Aspects
@@ -219,6 +247,9 @@ class WesternChartSchema(BaseModel):
     # Element/Modality balance
     elements: WesternElementsSchema
     modalities: WesternModalitiesSchema
+
+    # Moon phase
+    moonPhase: Optional[MoonPhaseSchema] = None
 
     # Chart shape (if computed)
     chartShape: Optional[str] = None

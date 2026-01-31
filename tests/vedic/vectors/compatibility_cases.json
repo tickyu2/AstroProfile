@@ -1,0 +1,185 @@
+[
+  {
+    "id": "guna_sattva_sattva",
+    "description": "Sattva-Sattva Guna compatibility",
+    "personA": {"guna": "Sattva", "moonNakshatra": "Rohini"},
+    "personB": {"guna": "Sattva", "moonNakshatra": "Hasta"},
+    "expectedGunaScore": 95,
+    "expectedHarmony": "Resonant",
+    "expectedNarrative": "Pure spiritual alignment"
+  },
+  {
+    "id": "guna_sattva_rajas",
+    "description": "Sattva-Rajas Guna compatibility",
+    "personA": {"guna": "Sattva", "moonNakshatra": "Punarvasu"},
+    "personB": {"guna": "Rajas", "moonNakshatra": "Bharani"},
+    "expectedGunaScore": 75,
+    "expectedHarmony": "Complementary",
+    "expectedNarrative": "Dynamic balance between peace and action"
+  },
+  {
+    "id": "guna_sattva_tamas",
+    "description": "Sattva-Tamas Guna compatibility",
+    "personA": {"guna": "Sattva", "moonNakshatra": "Shravana"},
+    "personB": {"guna": "Tamas", "moonNakshatra": "Ashlesha"},
+    "expectedGunaScore": 55,
+    "expectedHarmony": "Transformative",
+    "expectedNarrative": "Light meeting shadow for growth"
+  },
+  {
+    "id": "guna_rajas_rajas",
+    "description": "Rajas-Rajas Guna compatibility",
+    "personA": {"guna": "Rajas", "moonNakshatra": "Krittika"},
+    "personB": {"guna": "Rajas", "moonNakshatra": "Mrigashira"},
+    "expectedGunaScore": 80,
+    "expectedHarmony": "Dynamic",
+    "expectedNarrative": "High energy partnership"
+  },
+  {
+    "id": "dosha_vata_pitta",
+    "description": "Vata-Pitta Dosha compatibility",
+    "personA": {"dosha": "Vata", "dominantElement": "Air"},
+    "personB": {"dosha": "Pitta", "dominantElement": "Fire"},
+    "expectedDoshaScore": 70,
+    "expectedHarmony": "Activating",
+    "expectedNarrative": "Wind fans fire - stimulating partnership"
+  },
+  {
+    "id": "dosha_vata_kapha",
+    "description": "Vata-Kapha Dosha compatibility",
+    "personA": {"dosha": "Vata", "dominantElement": "Air"},
+    "personB": {"dosha": "Kapha", "dominantElement": "Earth"},
+    "expectedDoshaScore": 75,
+    "expectedHarmony": "Balancing",
+    "expectedNarrative": "Movement meets stability"
+  },
+  {
+    "id": "dosha_pitta_kapha",
+    "description": "Pitta-Kapha Dosha compatibility",
+    "personA": {"dosha": "Pitta", "dominantElement": "Fire"},
+    "personB": {"dosha": "Kapha", "dominantElement": "Water"},
+    "expectedDoshaScore": 72,
+    "expectedHarmony": "Tempering",
+    "expectedNarrative": "Fire tempered by water wisdom"
+  },
+  {
+    "id": "nakshatra_deva_deva",
+    "description": "Deva-Deva Gana compatibility",
+    "personA": {"moonNakshatra": "Ashwini", "gana": "Deva"},
+    "personB": {"moonNakshatra": "Mrigashira", "gana": "Deva"},
+    "expectedNakshatraScore": 90,
+    "expectedResonance": "High",
+    "expectedNarrative": "Divine nature alignment"
+  },
+  {
+    "id": "nakshatra_deva_manushya",
+    "description": "Deva-Manushya Gana compatibility",
+    "personA": {"moonNakshatra": "Rohini", "gana": "Manushya"},
+    "personB": {"moonNakshatra": "Revati", "gana": "Deva"},
+    "expectedNakshatraScore": 75,
+    "expectedResonance": "Moderate",
+    "expectedNarrative": "Human aspiring to divine"
+  },
+  {
+    "id": "nakshatra_deva_rakshasa",
+    "description": "Deva-Rakshasa Gana compatibility",
+    "personA": {"moonNakshatra": "Punarvasu", "gana": "Deva"},
+    "personB": {"moonNakshatra": "Krittika", "gana": "Rakshasa"},
+    "expectedNakshatraScore": 50,
+    "expectedResonance": "Challenging",
+    "expectedNarrative": "Light-shadow integration needed"
+  },
+  {
+    "id": "dasha_saturn_jupiter",
+    "description": "Saturn-Jupiter Dasha compatibility",
+    "personA": {"currentDasha": "Saturn"},
+    "personB": {"currentDasha": "Jupiter"},
+    "expectedDashaScore": 78,
+    "expectedHarmony": "Growth through structure",
+    "expectedNarrative": "Disciplined expansion"
+  },
+  {
+    "id": "dasha_venus_mars",
+    "description": "Venus-Mars Dasha compatibility",
+    "personA": {"currentDasha": "Venus"},
+    "personB": {"currentDasha": "Mars"},
+    "expectedDashaScore": 85,
+    "expectedHarmony": "Passionate attraction",
+    "expectedNarrative": "Magnetic pull between desire and action"
+  },
+  {
+    "id": "dasha_moon_saturn",
+    "description": "Moon-Saturn Dasha compatibility",
+    "personA": {"currentDasha": "Moon"},
+    "personB": {"currentDasha": "Saturn"},
+    "expectedDashaScore": 60,
+    "expectedHarmony": "Karmic learning",
+    "expectedNarrative": "Emotional maturation through structure"
+  },
+  {
+    "id": "full_compatibility_high",
+    "description": "High overall Vedic compatibility",
+    "personA": {
+      "moonNakshatra": "Rohini",
+      "moonSign": "Taurus",
+      "guna": "Sattva",
+      "dosha": "Kapha",
+      "gana": "Manushya",
+      "currentDasha": "Venus"
+    },
+    "personB": {
+      "moonNakshatra": "Uttara Phalguni",
+      "moonSign": "Virgo",
+      "guna": "Sattva",
+      "dosha": "Vata",
+      "gana": "Manushya",
+      "currentDasha": "Moon"
+    },
+    "expectedOverallScore": 82,
+    "expectedArchetype": "The Harmonious Twins"
+  },
+  {
+    "id": "full_compatibility_medium",
+    "description": "Medium overall Vedic compatibility",
+    "personA": {
+      "moonNakshatra": "Magha",
+      "moonSign": "Leo",
+      "guna": "Rajas",
+      "dosha": "Pitta",
+      "gana": "Rakshasa",
+      "currentDasha": "Sun"
+    },
+    "personB": {
+      "moonNakshatra": "Swati",
+      "moonSign": "Libra",
+      "guna": "Sattva",
+      "dosha": "Vata",
+      "gana": "Deva",
+      "currentDasha": "Rahu"
+    },
+    "expectedOverallScore": 65,
+    "expectedArchetype": "The Growth Catalysts"
+  },
+  {
+    "id": "full_compatibility_challenging",
+    "description": "Challenging overall Vedic compatibility",
+    "personA": {
+      "moonNakshatra": "Ashlesha",
+      "moonSign": "Cancer",
+      "guna": "Tamas",
+      "dosha": "Kapha",
+      "gana": "Rakshasa",
+      "currentDasha": "Rahu"
+    },
+    "personB": {
+      "moonNakshatra": "Uttara Bhadrapada",
+      "moonSign": "Pisces",
+      "guna": "Sattva",
+      "dosha": "Pitta",
+      "gana": "Manushya",
+      "currentDasha": "Saturn"
+    },
+    "expectedOverallScore": 48,
+    "expectedArchetype": "The Shadow Workers"
+  }
+]

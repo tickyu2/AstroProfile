@@ -1,0 +1,172 @@
+{
+  "shen_sha_rules": [
+    {
+      "id": "tian_yi_activation",
+      "name": "Heavenly Doctor Activation",
+      "priority": 1,
+      "conditions": {
+        "shenSha": "天乙贵人",
+        "position": "any_branch",
+        "notClashed": true,
+        "notHarmed": true
+      },
+      "result": {
+        "active": true,
+        "benefit": "Noble people help in times of need",
+        "strength": "full"
+      }
+    },
+    {
+      "id": "tian_yi_clashed",
+      "name": "Heavenly Doctor Clashed",
+      "priority": 1,
+      "conditions": {
+        "shenSha": "天乙贵人",
+        "position": "any_branch",
+        "clashedBy": "another_branch"
+      },
+      "result": {
+        "active": "partial",
+        "benefit": "Help comes but with complications",
+        "strength": 0.5
+      }
+    },
+    {
+      "id": "tao_hua_positive",
+      "name": "Peach Blossom Positive",
+      "priority": 2,
+      "conditions": {
+        "shenSha": "桃花",
+        "position": "year_or_month",
+        "notWithHarm": true,
+        "chartBalanced": true
+      },
+      "result": {
+        "active": true,
+        "effect": "positive_charisma",
+        "note": "Attractive personality, good social skills"
+      }
+    },
+    {
+      "id": "tao_hua_negative",
+      "name": "Peach Blossom Problematic",
+      "priority": 2,
+      "conditions": {
+        "shenSha": "桃花",
+        "position": "day_or_hour",
+        "withHarmOrPunishment": true,
+        "waterExcessive": true
+      },
+      "result": {
+        "active": true,
+        "effect": "relationship_complications",
+        "warning": "May indicate romantic troubles or scandals"
+      }
+    },
+    {
+      "id": "yang_ren_controlled",
+      "name": "Goat Blade Controlled",
+      "priority": 1,
+      "conditions": {
+        "shenSha": "羊刃",
+        "controlledBy": "七杀_or_正官",
+        "controlStrength": "adequate"
+      },
+      "result": {
+        "active": true,
+        "effect": "power_channeled",
+        "benefit": "Strong willpower, decisive action"
+      }
+    },
+    {
+      "id": "yang_ren_uncontrolled",
+      "name": "Goat Blade Uncontrolled",
+      "priority": 1,
+      "conditions": {
+        "shenSha": "羊刃",
+        "controlledBy": null,
+        "dayMasterStrong": true
+      },
+      "result": {
+        "active": true,
+        "effect": "aggressive_energy",
+        "warning": "Risk of rash decisions, accidents, conflicts"
+      }
+    },
+    {
+      "id": "hua_gai_creative",
+      "name": "Flower Canopy Creative",
+      "priority": 3,
+      "conditions": {
+        "shenSha": "华盖",
+        "position": "any",
+        "withResource": true
+      },
+      "result": {
+        "active": true,
+        "effect": "artistic_spiritual",
+        "note": "Strong intuition, creative or spiritual inclination"
+      }
+    },
+    {
+      "id": "hua_gai_isolated",
+      "name": "Flower Canopy Isolation",
+      "priority": 3,
+      "conditions": {
+        "shenSha": "华盖",
+        "position": "day_or_hour",
+        "multiplePresent": true,
+        "socialElementsWeak": true
+      },
+      "result": {
+        "active": true,
+        "effect": "tendency_to_isolation",
+        "note": "May prefer solitude, struggle with social connections"
+      }
+    },
+    {
+      "id": "tian_de_gui_ren",
+      "name": "Heavenly Virtue Noble",
+      "priority": 2,
+      "conditions": {
+        "shenSha": "天德贵人",
+        "position": "month_branch",
+        "notClashed": true
+      },
+      "result": {
+        "active": true,
+        "benefit": "Natural good fortune, disasters avoided",
+        "strength": "full"
+      }
+    },
+    {
+      "id": "yi_ma_travel",
+      "name": "Traveling Horse Active",
+      "priority": 2,
+      "conditions": {
+        "shenSha": "驿马",
+        "position": "any",
+        "withClashOrCombination": "enhances"
+      },
+      "result": {
+        "active": true,
+        "effect": "movement_change",
+        "note": "Frequent travel, relocation, or career changes"
+      }
+    },
+    {
+      "id": "shen_sha_cancelled",
+      "name": "Shen Sha Cancelled by Opposite",
+      "priority": 1,
+      "conditions": {
+        "shenSha": "any_negative",
+        "cancelledBy": "positive_counterpart",
+        "bothPresent": true
+      },
+      "result": {
+        "active": false,
+        "note": "Negative star neutralized by positive presence"
+      }
+    }
+  ]
+}

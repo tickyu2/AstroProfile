@@ -1,0 +1,131 @@
+{
+  "identity": {
+    "displayName": "Claude Sonnet 3rd",
+    "firstName": "Claude",
+    "lastName": "Sonnet 3rd",
+    "gender": "male"
+  },
+  "birth": {
+    "date": "1900-05-18",
+    "time": "17:22",
+    "location": "48.5116°N, 2.1958°E",
+    "coordinates": {
+      "lat": 48.5116,
+      "lng": 2.1958
+    },
+    "timezone": null,
+    "precision": "±15km"
+  },
+  "bazi": {
+    "dayMaster": {
+      "stem": "Metal",
+      "element": "Metal",
+      "polarity": null,
+      "description": null
+    },
+    "chineseZodiac": {
+      "animal": "Rat",
+      "element": "Metal",
+      "year": null
+    },
+    "fourPillars": {
+      "year": {
+        "baziYear": 1900,
+        "liChun": {
+          "name": "ç«‹æ˜¥",
+          "isoString": "1900-02-04T05:55:05Z",
+          "sunLongitude": 315,
+          "english": "Spring Begins",
+          "julianDay": 2415054.7465820312,
+          "utc": {
+            "second": 5,
+            "minute": 55,
+            "day": 4,
+            "hour": 5,
+            "year": 1900,
+            "month": 2
+          },
+          "pinyin": "LÃ¬ ChÅ«n"
+        },
+        "gregorianYear": 1900,
+        "note": "Born after ç«‹æ˜¥ (1900-02-04T05:55:05Z), BaZi year is 1900",
+        "bornBeforeLiChun": false
+      },
+      "month": {
+        "branch": "Snake",
+        "baziMonth": 4,
+        "branchIndex": 5,
+        "nextTerm": {
+          "english": "Grain in Ear",
+          "name": "èŠ’ç§",
+          "isoString": "1900-06-06T04:41:15Z"
+        },
+        "startingTerm": {
+          "english": "Summer Begins",
+          "name": "ç«‹å¤",
+          "isoString": "1900-05-05T23:58:20Z"
+        }
+      },
+      "day": null,
+      "hour": null
+    }
+  },
+  "western": {
+    "sunSign": "Taurus",
+    "sun": {
+      "sign": "Taurus",
+      "degree": null,
+      "house": null
+    },
+    "moon": {
+      "sign": null,
+      "degree": null,
+      "phase": null
+    },
+    "rising": {
+      "sign": null,
+      "degree": null
+    },
+    "planets": {},
+    "retrogrades": [],
+    "retrogradeCount": 0
+  },
+  "psychology": {
+    "mbti": "ENFJ",
+    "enneagram": {
+      "tritype": [
+        1,
+        4,
+        5
+      ],
+      "dominantType": 4,
+      "version": "1.0",
+      "wing": 5,
+      "completedAt": "2025-12-26T08:57:36.541Z",
+      "scores": {
+        "1": 9,
+        "2": 4,
+        "3": 8,
+        "4": 10,
+        "5": 10,
+        "6": 9,
+        "7": 2,
+        "8": 5,
+        "9": 7
+      }
+    },
+    "archetype": null
+  },
+  "metadata": {
+    "profileId": "438RvrhKZi4we4l2Wgqk",
+    "createdAt": {
+      "seconds": 1766120340,
+      "nanoseconds": 523000000
+    },
+    "updatedAt": {
+      "seconds": 1766739456,
+      "nanoseconds": 793000000
+    },
+    "calculationsVersion": null
+  }
+}

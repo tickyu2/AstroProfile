@@ -1,0 +1,198 @@
+{
+  "_description": "This is the BAZI section that should be populated in Brain 1A when elemental fingerprint is calculated",
+  "_location": "brain1A.bazi",
+  "_trigger": "Calculated on new profile creation or when user clicks 'Save' on existing profile",
+
+  "bazi": {
+    "calculated": true,
+    "calculatedAt": "2026-01-18T00:00:00.000Z",
+    "calculationMethod": "seasonality_adjusted",
+
+    "rawFingerprint": {
+      "_description": "Base element percentages from Four Pillars before seasonal adjustment",
+      "wood": 22.0,
+      "fire": 42.0,
+      "earth": 8.0,
+      "metal": 18.0,
+      "water": 10.0
+    },
+
+    "seasonalAdjustment": {
+      "_description": "Seasonal modifiers based on birth month/season",
+      "season": "summer",
+      "seasonElement": "fire",
+      "effect": "Fire naturally strengthened, Water naturally weakened",
+      "adjustments": {
+        "wood": 2.9,
+        "fire": 3.7,
+        "earth": -1.4,
+        "metal": -0.8,
+        "water": -4.4
+      }
+    },
+
+    "seasonallyAdjustedFingerprint": {
+      "_description": "Final element percentages after seasonal adjustment - THIS IS THE REAL YOU",
+      "wood": 24.9,
+      "fire": 45.7,
+      "earth": 6.6,
+      "metal": 17.2,
+      "water": 5.6,
+      "dominant": "fire",
+      "secondary": "wood",
+      "weakest": "water",
+      "secondWeakest": "earth"
+    },
+
+    "elementCode": "W25F46E07M17W06",
+
+    "archetype": {
+      "name": "The Campfire",
+      "elements": ["fire", "wood"],
+      "description": "Fire fed by Wood - sustained warmth and light. You create spaces where people gather, share stories, and feel safe.",
+      "tags": ["Sustained Passion", "Community", "Warmth", "Gathering"]
+    },
+
+    "constitutionalAnalysis": {
+      "dominantTraits": {
+        "fire": {
+          "percentage": 45.7,
+          "manifestation": "Strong passion, vision, enthusiasm, quick action, charisma",
+          "gifts": ["Leadership", "Inspiration", "Joy", "Decisiveness"],
+          "challenges": ["Impatience", "Burnout risk", "Missing details", "Dismissing caution"]
+        },
+        "wood": {
+          "percentage": 24.9,
+          "manifestation": "Growth orientation, planning, flexibility, compassion",
+          "gifts": ["Vision", "Adaptability", "Determination", "Kindness"],
+          "challenges": ["Rigidity when frustrated", "Overcommitment", "Impatience with obstacles"]
+        }
+      },
+      "deficitAreas": {
+        "water": {
+          "percentage": 5.6,
+          "deficit": 14.4,
+          "needs": ["Emotional depth", "Reflection time", "Intuition development", "Stillness"],
+          "lunaProvides": "Deep emotional wisdom, reflective questions, intuitive guidance, patience"
+        },
+        "earth": {
+          "percentage": 6.6,
+          "deficit": 13.4,
+          "needs": ["Grounding", "Stability", "Practical anchoring", "Security"],
+          "lunaProvides": "Solid presence, practical reality checks, stable foundation, nurturing support"
+        }
+      },
+      "deficitSeverity": {
+        "total": 27,
+        "calculation": "(20 - 5.6) + (20 - 6.6) = 27.8",
+        "intensity": "strong",
+        "interpretation": "Significant imbalance requiring strong complementary support"
+      }
+    },
+
+    "forLuna": {
+      "_description": "Pre-computed guidance for Luna's Brain 7A - Luna should read this to understand how to complement this user",
+
+      "complementaryProfile": {
+        "water": 40,
+        "earth": 35,
+        "fire": 15,
+        "wood": 5,
+        "metal": 5
+      },
+
+      "primaryRole": {
+        "element": "water",
+        "percentage": 40,
+        "purpose": "Fill user's deepest deficit with emotional depth, wisdom, reflection, intuition"
+      },
+
+      "secondaryRole": {
+        "element": "earth",
+        "percentage": 35,
+        "purpose": "Provide grounding, stability, practical anchoring when Fire burns too hot"
+      },
+
+      "commonGround": {
+        "element": "fire",
+        "percentage": 15,
+        "purpose": "Share enough passion to understand and match user's enthusiasm, build rapport"
+      },
+
+      "adaptiveBehavior": {
+        "intensity": "strong",
+        "tone": "Warm, grounding, actively supportive",
+        "emphasis": [
+          "Strong emotional validation before offering perspective",
+          "Clear, concrete guidance",
+          "Active presence",
+          "Explicit complementary perspectives"
+        ],
+        "whenUserIs": {
+          "excited": "Validate fully, then gently ask: 'What emotions are beneath this? What would patience reveal?'",
+          "frustrated": "Empathize first, then offer Water/Earth perspective",
+          "overwhelmed": "Ground immediately: 'You're safe. I'm here.' Then slowly introduce reflection",
+          "stuck": "Offer opposite approach: stillness instead of action, waiting instead of pushing",
+          "confident": "Affirm strength, then gently remind what might be missed"
+        }
+      },
+
+      "whatUserMightMiss": [
+        "The wisdom in waiting",
+        "Emotional depth beneath the surface",
+        "Practical constraints and logistics",
+        "Long-term sustainability",
+        "Others' need for processing time",
+        "The value of pruning and editing",
+        "When to stop growing and start refining"
+      ],
+
+      "gentleReminders": [
+        "Your passion is beautiful - AND sustainable pacing protects it",
+        "Quick wins are great - AND deep roots support lasting growth",
+        "Your vision inspires - AND others may need time to catch up",
+        "Action is powerful - AND reflection ensures right action",
+        "Growth is natural - AND so is pruning for health"
+      ],
+
+      "whatIfQuestions": [
+        "What if we slowed down to feel this more deeply?",
+        "Have you considered how others might be experiencing this?",
+        "What would patience reveal that speed might miss?",
+        "Is there wisdom in waiting before acting?",
+        "What emotions are beneath this excitement?",
+        "What if we refined rather than expanded here?",
+        "Is there anything worth letting go of?"
+      ]
+    },
+
+    "fourPillars": {
+      "_description": "Traditional BaZi Four Pillars data",
+      "year": {
+        "heavenlyStem": "庚",
+        "earthlyBranch": "子",
+        "element": "metal-water"
+      },
+      "month": {
+        "heavenlyStem": "辛",
+        "earthlyBranch": "巳",
+        "element": "metal-fire"
+      },
+      "day": {
+        "heavenlyStem": "丙",
+        "earthlyBranch": "辰",
+        "element": "fire-earth"
+      },
+      "hour": {
+        "heavenlyStem": "甲",
+        "earthlyBranch": "午",
+        "element": "wood-fire"
+      },
+      "dayMaster": {
+        "stem": "丙",
+        "element": "fire",
+        "polarity": "yang"
+      }
+    }
+  }
+}

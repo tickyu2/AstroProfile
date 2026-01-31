@@ -1,0 +1,142 @@
+{
+  "combinations": [
+    {
+      "id": "combination_blocked_by_season",
+      "name": "Combination Fails Due to Season",
+      "priority": 1,
+      "conditions": {
+        "combinationType": "three_harmony",
+        "branches": ["申", "子", "辰"],
+        "resultElement": "Water",
+        "season": ["summer", "late_summer"],
+        "seasonBlocksTransformation": true
+      },
+      "result": {
+        "transformationSuccess": false,
+        "reason": "Fire season prevents Water transformation",
+        "partialEffect": "affinity_only"
+      }
+    },
+    {
+      "id": "combination_broken_by_clash",
+      "name": "Combination Broken by Clash",
+      "priority": 1,
+      "conditions": {
+        "combinationType": "six_harmony",
+        "branches": ["子", "丑"],
+        "clashPresent": "午",
+        "clashTarget": "子"
+      },
+      "result": {
+        "transformationSuccess": false,
+        "combinationBroken": true,
+        "reason": "午 clashes 子, breaking 子丑 combination"
+      }
+    },
+    {
+      "id": "combination_blocked_by_hidden_stem",
+      "name": "Hidden Stem Blocks Transformation",
+      "priority": 2,
+      "conditions": {
+        "combinationType": "three_harmony",
+        "branches": ["寅", "午", "戌"],
+        "resultElement": "Fire",
+        "hiddenStemConflict": {
+          "branch": "寅",
+          "hiddenStem": "甲",
+          "conflictsWith": "Fire_transformation"
+        }
+      },
+      "result": {
+        "transformationSuccess": "partial",
+        "hiddenStemRetained": true,
+        "reason": "甲 wood in 寅 resists full fire transformation"
+      }
+    },
+    {
+      "id": "stem_combination_transform",
+      "name": "Heavenly Stem Combination Success",
+      "priority": 3,
+      "conditions": {
+        "combinationType": "stem_combination",
+        "stems": ["甲", "己"],
+        "resultElement": "Earth",
+        "seasonSupports": ["late_summer", "earth_months"],
+        "adjacentPositions": true
+      },
+      "result": {
+        "transformationSuccess": true,
+        "newElement": "Earth",
+        "originalStemsLoseIdentity": true
+      }
+    },
+    {
+      "id": "stem_combination_no_transform",
+      "name": "Heavenly Stem Combination - No Transform",
+      "priority": 3,
+      "conditions": {
+        "combinationType": "stem_combination",
+        "stems": ["甲", "己"],
+        "resultElement": "Earth",
+        "seasonSupports": false,
+        "noEarthInChart": true
+      },
+      "result": {
+        "transformationSuccess": false,
+        "affinityOnly": true,
+        "reason": "No supporting Earth in chart or season"
+      }
+    },
+    {
+      "id": "six_harmony_water_winter",
+      "name": "Six Harmony Water - Winter Success",
+      "priority": 2,
+      "conditions": {
+        "combinationType": "six_harmony",
+        "branches": ["子", "丑"],
+        "resultElement": "Earth",
+        "season": "winter",
+        "waterDominant": true
+      },
+      "result": {
+        "transformationSuccess": false,
+        "reason": "Winter water too strong, 丑 remains wet earth",
+        "effectiveElement": "Water"
+      }
+    },
+    {
+      "id": "three_punishment_release",
+      "name": "Three Punishment Released by Combination",
+      "priority": 1,
+      "conditions": {
+        "punishmentPresent": ["寅", "巳", "申"],
+        "combinationIntervenes": {
+          "type": "six_harmony",
+          "involves": "巳",
+          "partner": "申"
+        }
+      },
+      "result": {
+        "punishmentActive": false,
+        "reason": "巳申 combination neutralizes punishment",
+        "residualTension": "minor"
+      }
+    },
+    {
+      "id": "directional_combination",
+      "name": "Directional Combination (方合)",
+      "priority": 4,
+      "conditions": {
+        "combinationType": "directional",
+        "branches": ["寅", "卯", "辰"],
+        "direction": "East",
+        "resultElement": "Wood"
+      },
+      "result": {
+        "transformationSuccess": true,
+        "elementStrengthBoost": 1.5,
+        "allBranchesBecome": "Wood"
+      }
+    }
+  ]
+}

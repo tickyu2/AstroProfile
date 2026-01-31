@@ -31,16 +31,33 @@ function WesternAstrologyDecodePage() {
   const navigate = useNavigate();
   const { profiles, loading: profilesLoading } = useProfiles();
 
+  const [selectedProfileId, setSelectedProfileId] = useState(profileId || null);
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedPlanet, setExpandedPlanet] = useState(null);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [expandedAspect, setExpandedAspect] = useState(null);
 
+  // Auto-select profile: prefer one with Western data, fallback to first
+  useEffect(() => {
+    if (!selectedProfileId && profiles?.length > 0) {
+      // First, try to find a profile with Western astrology data
+      const profileWithWestern = profiles.find(p =>
+        p.calculations?.western?.sovereignCalculation?.sun?.sign
+      );
+      if (profileWithWestern) {
+        setSelectedProfileId(profileWithWestern.id);
+      } else {
+        // Fallback to first profile
+        setSelectedProfileId(profiles[0].id);
+      }
+    }
+  }, [profiles, selectedProfileId]);
+
   // Find the profile
   const profile = useMemo(() => {
-    return profiles.find(p => p.id === profileId);
-  }, [profiles, profileId]);
+    return profiles.find(p => p.id === selectedProfileId) || profiles[0];
+  }, [profiles, selectedProfileId]);
 
   // Extract Western astrology data from profile
   const westernData = useMemo(() => {
@@ -116,36 +133,94 @@ function WesternAstrologyDecodePage() {
     );
   }
 
-  // No profile found
+  // No profile found - show selector if profiles exist
   if (!profile) {
+    if (profiles?.length > 0) {
+      // Auto-select should kick in, show loading
+      return (
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-slate-400 text-xl mb-4">Loading profile...</p>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-400 text-xl mb-4">Profile not found</p>
+          <p className="text-yellow-400 text-xl mb-4">No profiles found</p>
+          <p className="text-slate-400 mb-6">Create a profile first to view Western astrology</p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/create-profile')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-500"
           >
-            Return to Dashboard
+            Create Profile
           </button>
         </div>
       </div>
     );
   }
 
-  // No Western data
+  // No Western data - Show profile selector to pick a profile with data
   if (!westernData?.sun?.sign) {
+    // Find profiles that have Western data
+    const profilesWithWesternData = profiles.filter(p =>
+      p.calculations?.western?.sovereignCalculation?.sun?.sign
+    );
+
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-yellow-400 text-xl mb-4">No astrological data available</p>
-          <p className="text-slate-400 mb-6">This profile needs birth time for full chart calculation</p>
-          <button
-            onClick={() => navigate(`/results/${profileId}`)}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-500"
-          >
-            Return to Profile
-          </button>
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="text-6xl mb-4">⭐</div>
+          <p className="text-yellow-400 text-xl mb-2">No astrological data available</p>
+          <p className="text-slate-400 mb-6">
+            {profile?.displayName || 'This profile'} needs birth time for full chart calculation
+          </p>
+
+          {/* Profile Selector */}
+          {profiles.length > 1 && (
+            <div className="mb-6">
+              <label className="text-slate-300 text-sm block mb-2">
+                Select a profile with birth data:
+              </label>
+              <select
+                value={selectedProfileId || ''}
+                onChange={(e) => setSelectedProfileId(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                {profiles.map(p => {
+                  const hasWestern = p.calculations?.western?.sovereignCalculation?.sun?.sign;
+                  return (
+                    <option key={p.id} value={p.id}>
+                      {p.displayName || p.name} {hasWestern ? '✓' : '(no birth time)'}
+                    </option>
+                  );
+                })}
+              </select>
+              {profilesWithWesternData.length > 0 && (
+                <p className="text-green-400 text-sm mt-2">
+                  {profilesWithWesternData.length} profile{profilesWithWesternData.length > 1 ? 's' : ''} with birth data available
+                </p>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
+            >
+              Dashboard
+            </button>
+            {selectedProfileId && (
+              <button
+                onClick={() => navigate(`/results/${selectedProfileId}`)}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-500"
+              >
+                View Profile
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -157,17 +232,29 @@ function WesternAstrologyDecodePage() {
       <header className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex items-center gap-4 mb-4">
           <button
-            onClick={() => navigate(`/results/${profileId}`, { state: { activeTab: 'western' } })}
+            onClick={() => navigate(selectedProfileId ? `/results/${selectedProfileId}` : '/dashboard', { state: { activeTab: 'western' } })}
             className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-              Your Astrological Blueprint
+              Western Astrology Decode
             </h1>
             <p className="text-slate-400">{profile.displayName}</p>
           </div>
+          {/* Profile Selector */}
+          <select
+            value={selectedProfileId || ''}
+            onChange={(e) => setSelectedProfileId(e.target.value)}
+            className="px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {profiles.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.displayName || p.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Quick Badges */}

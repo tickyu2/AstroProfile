@@ -1,0 +1,268 @@
+{
+  "name": "genesis-voice-journaling",
+  "version": "1.0.0",
+  "description": "GENESIS Voice Journaling System - Elderly-friendly voice recording and memory preservation",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "firebase": "^10.7.1",
+    "react-speech-recognition": "^3.10.0",
+    "react-beautiful-dnd": "^13.1.1",
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "firebase deploy"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+
+/* ============================================================================
+   SETUP INSTRUCTIONS
+   ============================================================================
+
+   1. INSTALL DEPENDENCIES:
+      npm install
+
+   2. FIREBASE SETUP:
+      - Create Firebase project at https://console.firebase.google.com
+      - Enable Firestore Database
+      - Enable Authentication (Email/Password or Anonymous)
+      - Enable Cloud Functions (Blaze plan required for Gemini API)
+      - Get your Firebase config
+
+   3. CREATE firebase.js CONFIG FILE:
+      
+      File: src/firebase.js
+      
+      import { initializeApp } from 'firebase/app';
+      import { getFirestore } from 'firebase/firestore';
+      import { getAuth } from 'firebase/auth';
+      import { getFunctions } from 'firebase/functions';
+
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      export const db = getFirestore(app);
+      export const auth = getAuth(app);
+      export const functions = getFunctions(app);
+
+   4. DEPLOY FIREBASE FUNCTIONS:
+      
+      cd functions
+      npm install
+      
+      Add to functions/package.json:
+      {
+        "dependencies": {
+          "firebase-functions": "^4.5.0",
+          "firebase-admin": "^12.0.0",
+          "@google/generative-ai": "^0.1.3"
+        }
+      }
+      
+      Set environment variable for Gemini:
+      firebase functions:config:set gemini.api_key="YOUR_GEMINI_API_KEY"
+      
+      Deploy:
+      firebase deploy --only functions
+
+   5. FIRESTORE SECURITY RULES:
+      
+      rules_version = '2';
+      service cloud.firestore {
+        match /databases/{database}/documents {
+          match /users/{userId}/{document=**} {
+            allow read, write: if request.auth != null && request.auth.uid == userId;
+          }
+        }
+      }
+
+   6. GET GEMINI API KEY:
+      - Go to https://makersuite.google.com/app/apikey
+      - Create new API key
+      - Add to Firebase Functions config
+
+   7. RUN DEVELOPMENT SERVER:
+      npm run dev
+
+   8. BUILD FOR PRODUCTION:
+      npm run build
+
+   9. DEPLOY TO FIREBASE HOSTING:
+      firebase deploy
+
+   ============================================================================
+
+   BROWSER REQUIREMENTS:
+   - Chrome 80+ (recommended for best speech recognition)
+   - Edge 80+
+   - Safari 14+ (limited speech recognition)
+   - Firefox 90+ (no built-in speech recognition)
+
+   MOBILE SUPPORT:
+   - iOS Safari 14+
+   - Chrome Android 80+
+
+   ============================================================================
+
+   FIRESTORE COLLECTIONS STRUCTURE:
+
+   users/
+     {userId}/
+       voice_conversations/
+         {conversationId}/
+           - id: string
+           - title: string
+           - emoji: string
+           - status: "active" | "deleted"
+           - bullets: string[]
+           - fullText: string
+           - currentText: string
+           - recordings: array[]
+           - recordingCount: number
+           - totalDuration: number
+           - wordCount: number
+           - createdAt: timestamp
+           - lastEditedAt: timestamp
+           - userNotes: string
+
+       trash/
+         {conversationId}/
+           - id: string
+           - originalData: object (full conversation)
+           - deletedAt: timestamp
+           - permanentDeleteAt: timestamp
+           - daysRemaining: number
+
+   ============================================================================
+
+   FIREBASE FUNCTIONS:
+   
+   1. organizeAndInsertRecording - AI organizes each recording
+   2. createBullets - Extracts bullet points
+   3. createNarrative - Generates flowing story from bullets
+   4. moveToTrash - Soft delete (15-day recovery)
+   5. recoverFromTrash - Restore deleted conversation
+   6. permanentlyDelete - Delete forever
+   7. autoDeleteExpiredTrash - Scheduled daily cleanup
+   8. exportToMarkdown - Generate .md file
+   9. importFromMarkdown - Parse and create conversation
+   10. generateAISummary - AI summary before submit
+
+   ============================================================================
+
+   ENVIRONMENT VARIABLES (Firebase Functions):
+   
+   GEMINI_API_KEY - Your Google Gemini API key
+   
+   Set with:
+   firebase functions:config:set gemini.api_key="your-key-here"
+   
+   View with:
+   firebase functions:config:get
+
+   ============================================================================
+
+   TESTING CHECKLIST:
+
+   □ Speech recognition works (Chrome recommended)
+   □ Recording → AI organization → Insert at cursor
+   □ Bullet creation after each recording
+   □ Drag-and-drop reordering works
+   □ Voice commands for reordering ("move bullet 3 up 2")
+   □ Text-to-speech playback works
+   □ Playback highlighting shows current sentence
+   □ Speed control (0.6x - 1.2x) works
+   □ Delete → Trash (shows 15-day countdown)
+   □ Recover from trash works
+   □ Permanent delete after 15 days (manual or auto)
+   □ Export single conversation (.md file)
+   □ Export all conversations (.zip file)
+   □ Import .md file creates new conversation
+   □ Settings persist (localStorage)
+   □ Text size changes (medium/large/xlarge)
+   □ High contrast mode works
+   □ Volume control works
+   □ Mobile responsive (iPhone/Android)
+   □ Offline capability (PWA optional)
+
+   ============================================================================
+
+   DEPLOYMENT CHECKLIST:
+
+   □ Firebase project created
+   □ Firestore enabled
+   □ Authentication enabled
+   □ Functions deployed
+   □ Gemini API key set
+   □ Security rules deployed
+   □ Hosting configured
+   □ Custom domain (optional)
+   □ SSL certificate (automatic with Firebase)
+   □ Analytics enabled (optional)
+
+   ============================================================================
+
+   COST ESTIMATES (Monthly, 100 active users):
+
+   Firebase Firestore:
+   - Read: 20K/user/month × 100 = 2M reads = $0.36
+   - Write: 10K/user/month × 100 = 1M writes = $0.18
+   - Storage: 1MB/user × 100 = 100MB = $0.02
+
+   Firebase Functions:
+   - Invocations: 100K/month = $0.40
+   - Compute time: varies
+
+   Gemini API:
+   - Text processing: ~$5-10/month (depends on usage)
+
+   Total: ~$10-15/month for 100 users
+   
+   Blaze Plan required (pay-as-you-go)
+
+   ============================================================================
+
+   SCALING CONSIDERATIONS:
+
+   1,000 users: ~$50-80/month
+   10,000 users: ~$300-500/month
+   100,000 users: ~$2,000-4,000/month
+
+   At scale, consider:
+   - Caching AI responses
+   - Rate limiting
+   - Whisper API for better transcription
+   - CDN for static assets
+   - Load balancing
+
+   ============================================================================
+
+   SUPPORT & DOCUMENTATION:
+
+   Firebase: https://firebase.google.com/docs
+   Gemini: https://ai.google.dev/docs
+   React Speech Recognition: https://github.com/JamesBrill/react-speech-recognition
+   React Beautiful DnD: https://github.com/atlassian/react-beautiful-dnd
+
+   ============================================================================
+*/

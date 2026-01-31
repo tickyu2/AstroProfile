@@ -1,0 +1,146 @@
+{
+  "structures": [
+    {
+      "id": "fake_follow_wealth",
+      "name": "Fake Follow Wealth (假从财格)",
+      "priority": 1,
+      "conditions": {
+        "dayMasterStrength": "extremely_weak",
+        "hasRootInBranches": false,
+        "dominantElement": "wealth",
+        "exceptionalStemPresent": ["比肩", "劫财"]
+      },
+      "result": {
+        "structureType": "fake_follow",
+        "usefulGodOverride": null,
+        "warning": "Appears Follow Wealth but hidden root invalidates - treat as weak DM needing support"
+      }
+    },
+    {
+      "id": "pseudo_cong_officer",
+      "name": "Pseudo Follow Officer (类从官格)",
+      "priority": 2,
+      "conditions": {
+        "dayMasterStrength": "very_weak",
+        "singleHiddenRoot": true,
+        "dominantElement": "officer",
+        "seasonSupports": false
+      },
+      "result": {
+        "structureType": "pseudo_follow",
+        "treatAs": "weak_with_support_need",
+        "usefulGodOverride": "resource"
+      }
+    },
+    {
+      "id": "half_cong_resource",
+      "name": "Half Follow Resource (半从印格)",
+      "priority": 3,
+      "conditions": {
+        "dayMasterStrength": "weak",
+        "resourceDominant": true,
+        "hasPartialRoot": true,
+        "luckPillarBreaks": "possible"
+      },
+      "result": {
+        "structureType": "half_follow",
+        "unstable": true,
+        "warning": "Structure may break when luck pillar brings competing element"
+      }
+    },
+    {
+      "id": "true_follow_wealth",
+      "name": "True Follow Wealth (真从财格)",
+      "priority": 10,
+      "conditions": {
+        "dayMasterStrength": "extremely_weak",
+        "hasRootInBranches": false,
+        "dominantElement": "wealth",
+        "noCompetingStems": true,
+        "seasonSupports": true
+      },
+      "result": {
+        "structureType": "true_follow",
+        "usefulGod": "wealth",
+        "avoidElements": ["resource", "比肩", "劫财"]
+      }
+    },
+    {
+      "id": "true_follow_officer",
+      "name": "True Follow Officer (真从官格)",
+      "priority": 10,
+      "conditions": {
+        "dayMasterStrength": "extremely_weak",
+        "hasRootInBranches": false,
+        "dominantElement": "officer",
+        "noCompetingStems": true
+      },
+      "result": {
+        "structureType": "true_follow",
+        "usefulGod": "officer",
+        "avoidElements": ["resource", "比肩", "劫财", "food"]
+      }
+    },
+    {
+      "id": "true_follow_output",
+      "name": "True Follow Output (真从儿格)",
+      "priority": 10,
+      "conditions": {
+        "dayMasterStrength": "extremely_weak",
+        "hasRootInBranches": false,
+        "dominantElement": "output",
+        "noCompetingStems": true
+      },
+      "result": {
+        "structureType": "true_follow",
+        "usefulGod": "food",
+        "avoidElements": ["resource", "officer"]
+      }
+    },
+    {
+      "id": "special_structure_lu",
+      "name": "Established Rank Structure (建禄格)",
+      "priority": 5,
+      "conditions": {
+        "monthBranchIsLu": true,
+        "dayMasterStrength": "strong",
+        "requiresWeakening": true
+      },
+      "result": {
+        "structureType": "jian_lu",
+        "usefulGod": ["wealth", "officer", "food"],
+        "avoidElements": ["resource", "比肩"]
+      }
+    },
+    {
+      "id": "special_structure_yang_ren",
+      "name": "Blade Structure (羊刃格)",
+      "priority": 5,
+      "conditions": {
+        "monthBranchIsYangRen": true,
+        "dayMasterStrength": "very_strong",
+        "needsControl": true
+      },
+      "result": {
+        "structureType": "yang_ren",
+        "usefulGod": "officer",
+        "warning": "Requires 7-Killing or Officer to control blade energy"
+      }
+    },
+    {
+      "id": "dominant_element_structure",
+      "name": "Single Element Dominant (专旺格)",
+      "priority": 4,
+      "conditions": {
+        "singleElementPercent": { "min": 70 },
+        "dayMasterMatchesDominant": true,
+        "allBranchesInHarmony": true
+      },
+      "result": {
+        "structureType": "zhuan_wang",
+        "followDominantElement": true,
+        "usefulGod": "same_element_or_output"
+      }
+    }
+  ]
+}

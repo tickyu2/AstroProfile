@@ -1,0 +1,139 @@
+{
+  "clash_harm_punishment": [
+    {
+      "id": "clash_becomes_useful",
+      "name": "Clash Removes Annoying God",
+      "priority": 1,
+      "conditions": {
+        "clashType": "branch_clash",
+        "clashTarget": "annoying_god_position",
+        "annoyingGodElement": "any"
+      },
+      "result": {
+        "clashBeneficial": true,
+        "annoyingGodWeakened": true,
+        "note": "Clash actually helps by removing negative element"
+      }
+    },
+    {
+      "id": "clash_breaks_structure",
+      "name": "Clash Breaks Special Structure",
+      "priority": 1,
+      "conditions": {
+        "structureType": "follow",
+        "clashInvolvesKey": true,
+        "keyBranchClashed": "month_or_day"
+      },
+      "result": {
+        "structureBroken": true,
+        "revertTo": "normal_chart",
+        "recalculateUsefulGod": true
+      }
+    },
+    {
+      "id": "harm_affects_health",
+      "name": "Six Harm Health Implications",
+      "priority": 2,
+      "conditions": {
+        "harmType": "six_harm",
+        "harmPair": ["子", "未"],
+        "involvesBodyPalace": true
+      },
+      "result": {
+        "healthWarning": true,
+        "affectedAreas": ["digestive", "emotional"],
+        "mitigationAdvice": "Strengthen Earth element"
+      }
+    },
+    {
+      "id": "punishment_three_unkindness",
+      "name": "Three Punishment of Unkindness",
+      "priority": 1,
+      "conditions": {
+        "punishmentType": "three_punishment",
+        "branches": ["寅", "巳", "申"],
+        "allThreePresent": true
+      },
+      "result": {
+        "punishmentSeverity": "high",
+        "characterWarning": "Tendency toward ingratitude or betrayal themes",
+        "timing": "Activated when luck pillar completes set"
+      }
+    },
+    {
+      "id": "punishment_self",
+      "name": "Self Punishment",
+      "priority": 2,
+      "conditions": {
+        "punishmentType": "self_punishment",
+        "branches": ["辰", "辰"],
+        "duplicateBranch": true
+      },
+      "result": {
+        "punishmentSeverity": "moderate",
+        "characterNote": "Internal conflict, self-sabotage patterns",
+        "advice": "Mindfulness and self-awareness practices"
+      }
+    },
+    {
+      "id": "punishment_bullying",
+      "name": "Bullying Punishment",
+      "priority": 2,
+      "conditions": {
+        "punishmentType": "bullying",
+        "branches": ["丑", "戌", "未"],
+        "allThreePresent": true
+      },
+      "result": {
+        "punishmentSeverity": "moderate",
+        "characterNote": "Power dynamics issues, authority conflicts",
+        "elementalEffect": "Earth_overload"
+      }
+    },
+    {
+      "id": "clash_resolved_by_combination",
+      "name": "Clash Resolved by Third Party Combination",
+      "priority": 3,
+      "conditions": {
+        "clashPair": ["子", "午"],
+        "combinationPartner": "丑",
+        "formsHarmony": "子丑_combination"
+      },
+      "result": {
+        "clashResolved": "partially",
+        "originalClashPower": 0.4,
+        "note": "Combination draws 子 away from clash"
+      }
+    },
+    {
+      "id": "harm_hidden_damage",
+      "name": "Harm Creates Hidden Damage",
+      "priority": 2,
+      "conditions": {
+        "harmType": "six_harm",
+        "harmPair": ["酉", "戌"],
+        "involvesUsefulGod": true
+      },
+      "result": {
+        "visibleEffect": "low",
+        "hiddenEffect": "high",
+        "warning": "Surface appears fine but underlying issues exist"
+      }
+    },
+    {
+      "id": "destruction_minor",
+      "name": "Destruction (Po) Minor Effect",
+      "priority": 4,
+      "conditions": {
+        "interactionType": "destruction",
+        "poPair": ["子", "酉"],
+        "otherFactorsPresent": false
+      },
+      "result": {
+        "effectSeverity": "minor",
+        "note": "Destruction alone is weakest negative interaction",
+        "considerOtherFactors": true
+      }
+    }
+  ]
+}

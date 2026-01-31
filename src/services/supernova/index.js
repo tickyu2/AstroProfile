@@ -1,7 +1,7 @@
 /**
  * Supernova Detection System
  *
- * Exports the mother module and all 80 child detectors for
+ * Exports the mother module and all 95 child detectors for
  * catastrophic relational instability detection.
  *
  * A full-spectrum structural psychology diagnostic engine.
@@ -300,3 +300,60 @@ export { detectEmotionalHarmonicResonanceImmersion } from './detectors/emotional
 
 // Resonance-Fusion
 export { detectEmotionalHarmonicResonanceFusion } from './detectors/emotionalHarmonicResonanceFusion.js';
+
+// ================================================================================
+// HARMONIC UNIFICATION SEQUENCE (Post-Fusion Unity)
+// ================================================================================
+
+// Resonance-Unification
+export { detectEmotionalHarmonicResonanceUnification } from './detectors/emotionalHarmonicResonanceUnification.js';
+
+// Resonance-Synthesis
+export { detectEmotionalHarmonicResonanceSynthesis } from './detectors/emotionalHarmonicResonanceSynthesis.js';
+
+// Resonance-Co-Creation
+export { detectEmotionalHarmonicResonanceCoCreation } from './detectors/emotionalHarmonicResonanceCoCreation.js';
+
+// Resonance-Co-Evolution
+export { detectEmotionalHarmonicResonanceCoEvolution } from './detectors/emotionalHarmonicResonanceCoEvolution.js';
+
+// ================================================================================
+// ETERNAL HARMONIC SEQUENCE (Meta-Stability to Completeness)
+// ================================================================================
+
+// Resonance-Meta-Stability
+export { detectEmotionalHarmonicResonanceMetaStability } from './detectors/emotionalHarmonicResonanceMetaStability.js';
+
+// Resonance-Continuity
+export { detectEmotionalHarmonicResonanceContinuity } from './detectors/emotionalHarmonicResonanceContinuity.js';
+
+// Resonance-Permanence
+export { detectEmotionalHarmonicResonancePermanence } from './detectors/emotionalHarmonicResonancePermanence.js';
+
+// Resonance-Eternity
+export { detectEmotionalHarmonicResonanceEternity } from './detectors/emotionalHarmonicResonanceEternity.js';
+
+// Resonance-Infinity
+export { detectEmotionalHarmonicResonanceInfinity } from './detectors/emotionalHarmonicResonanceInfinity.js';
+
+// Resonance-Completeness
+export { detectEmotionalHarmonicResonanceCompleteness } from './detectors/emotionalHarmonicResonanceCompleteness.js';
+
+// ================================================================================
+// OMNISCIENCE ARC (Universal Awareness Sequence)
+// ================================================================================
+
+// Resonance-Omniscience
+export { detectEmotionalHarmonicResonanceOmniscience } from './detectors/emotionalHarmonicResonanceOmniscience.js';
+
+// Resonance-Omnipotential
+export { detectEmotionalHarmonicResonanceOmnipotential } from './detectors/emotionalHarmonicResonanceOmnipotential.js';
+
+// Resonance-Omnigenesis
+export { detectEmotionalHarmonicResonanceOmnigenesis } from './detectors/emotionalHarmonicResonanceOmnigenesis.js';
+
+// Resonance-Omnireality
+export { detectEmotionalHarmonicResonanceOmnireality } from './detectors/emotionalHarmonicResonanceOmnireality.js';
+
+// Resonance-Omniconsciousness
+export { detectEmotionalHarmonicResonanceOmniconsciousness } from './detectors/emotionalHarmonicResonanceOmniconsciousness.js';

@@ -1,0 +1,289 @@
+/**
+ * EnneagramAssessment.css
+ * Styling for Enneagram Personality Assessment
+ * Uses a unique diamond/geometric theme for the 9-type system
+ */
+
+.enneagram-assessment {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+}
+
+.enneagram-assessment .assessment-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.enneagram-assessment .assessment-header h2 {
+  color: #fff;
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.enneagram-assessment .method-note {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+
+.enneagram-assessment .subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.type-badge {
+  background: rgba(167, 139, 250, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: #c4b5fd;
+}
+
+.divider {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.enneagram-assessment .progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.enneagram-assessment .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Type indicators - shows which type we're on */
+.type-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.type-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.type-dot.active {
+  background: linear-gradient(135deg, #a78bfa, #f472b6);
+  color: white;
+  border-color: transparent;
+  transform: scale(1.15);
+  box-shadow: 0 0 15px rgba(167, 139, 250, 0.5);
+}
+
+.enneagram-assessment .question-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.enneagram-assessment .scenario {
+  margin-bottom: 2rem;
+}
+
+.enneagram-assessment .scenario-label {
+  color: #a78bfa;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.enneagram-assessment .scenario p {
+  font-size: 1.25rem;
+  color: #fff;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.enneagram-assessment .options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.enneagram-assessment .option-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  color: #fff;
+}
+
+.enneagram-assessment .option-button:hover {
+  background: rgba(167, 139, 250, 0.2);
+  border-color: #a78bfa;
+  transform: translateX(4px);
+}
+
+.enneagram-assessment .option-button.selected {
+  background: rgba(244, 114, 182, 0.2);
+  border-color: #f472b6;
+  border-width: 2px;
+  box-shadow: 0 0 15px rgba(244, 114, 182, 0.3);
+}
+
+.enneagram-assessment .option-button.selected .option-letter {
+  background: linear-gradient(135deg, #f472b6, #ec4899);
+}
+
+.enneagram-assessment .option-letter {
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  color: white;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.enneagram-assessment .option-text {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.enneagram-assessment .navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.enneagram-assessment .btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.enneagram-assessment .btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.enneagram-assessment .btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.enneagram-assessment .btn-primary {
+  background: linear-gradient(135deg, #a78bfa, #f472b6);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.enneagram-assessment .btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(167, 139, 250, 0.4);
+}
+
+.enneagram-assessment .btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.enneagram-assessment .question-counter {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .enneagram-assessment {
+    padding: 1rem;
+  }
+
+  .enneagram-assessment .question-card {
+    padding: 1.5rem;
+  }
+
+  .enneagram-assessment .scenario p {
+    font-size: 1.1rem;
+  }
+
+  .enneagram-assessment .option-button {
+    padding: 0.875rem 1rem;
+  }
+
+  .type-indicators {
+    gap: 0.25rem;
+  }
+
+  .type-dot {
+    width: 24px;
+    height: 24px;
+    font-size: 0.65rem;
+  }
+
+  .enneagram-assessment .subtitle {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .divider {
+    display: none;
+  }
+}

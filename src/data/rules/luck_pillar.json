@@ -1,0 +1,138 @@
+{
+  "luck_pillar_exceptions": [
+    {
+      "id": "luck_pillar_reverses_structure",
+      "name": "Luck Pillar Breaks Follow Structure",
+      "priority": 1,
+      "conditions": {
+        "natalStructure": "follow",
+        "luckPillarBrings": "resource_or_比劫",
+        "strengthSufficient": true
+      },
+      "result": {
+        "structureStatus": "broken",
+        "periodQuality": "turbulent",
+        "warning": "Identity crisis period, major life changes",
+        "recalculateUsefulGod": true
+      }
+    },
+    {
+      "id": "luck_pillar_completes_combination",
+      "name": "Luck Pillar Completes Three Harmony",
+      "priority": 2,
+      "conditions": {
+        "natalHas": ["申", "子"],
+        "luckPillarBrings": "辰",
+        "completesThreeHarmony": "Water"
+      },
+      "result": {
+        "combinationActivated": true,
+        "elementBoost": "Water",
+        "periodEffect": "Water element themes dominant"
+      }
+    },
+    {
+      "id": "luck_pillar_activates_punishment",
+      "name": "Luck Pillar Activates Punishment",
+      "priority": 1,
+      "conditions": {
+        "natalHas": ["寅", "巳"],
+        "luckPillarBrings": "申",
+        "completesPunishment": "three_unkindness"
+      },
+      "result": {
+        "punishmentActivated": true,
+        "periodQuality": "challenging",
+        "warning": "Period of tests, betrayals, or legal issues"
+      }
+    },
+    {
+      "id": "luck_pillar_reveals_useful_god",
+      "name": "Luck Pillar Reveals Hidden Useful God",
+      "priority": 2,
+      "conditions": {
+        "natalUsefulGod": "hidden_or_weak",
+        "luckPillarBrings": "same_element",
+        "strengthensUsefulGod": true
+      },
+      "result": {
+        "usefulGodActivated": true,
+        "periodQuality": "favorable",
+        "note": "Previously latent potential becomes manifest"
+      }
+    },
+    {
+      "id": "luck_pillar_clashes_useful_god",
+      "name": "Luck Pillar Clashes Natal Useful God",
+      "priority": 1,
+      "conditions": {
+        "natalUsefulGod": "in_branch",
+        "luckPillarBranch": "clashes_useful_god"
+      },
+      "result": {
+        "usefulGodWeakened": true,
+        "periodQuality": "challenging",
+        "advice": "Protect key life areas during this period"
+      }
+    },
+    {
+      "id": "luck_pillar_direction_change",
+      "name": "Luck Pillar Changes Element Direction",
+      "priority": 3,
+      "conditions": {
+        "previousLuckElement": "supportive",
+        "currentLuckElement": "unsupportive",
+        "transitionSharp": true
+      },
+      "result": {
+        "directionChange": true,
+        "transitionDifficulty": "moderate_to_high",
+        "advice": "Prepare for shift in life circumstances"
+      }
+    },
+    {
+      "id": "luck_pillar_fan_yin",
+      "name": "Luck Pillar Fan Yin (伏吟)",
+      "priority": 2,
+      "conditions": {
+        "luckPillar": "matches_natal_pillar",
+        "sameGanZhi": true,
+        "doubledEnergy": true
+      },
+      "result": {
+        "effect": "intensification",
+        "interpretation": "Natal themes repeated and emphasized",
+        "canBePositiveOrNegative": true
+      }
+    },
+    {
+      "id": "luck_pillar_fu_yin",
+      "name": "Luck Pillar Fu Yin (反吟)",
+      "priority": 2,
+      "conditions": {
+        "luckPillar": "clashes_natal_pillar",
+        "fullClash": true,
+        "stemAndBranch": "both_clash"
+      },
+      "result": {
+        "effect": "disruption",
+        "interpretation": "Period of upheaval and change",
+        "typically": "challenging"
+      }
+    },
+    {
+      "id": "luck_pillar_empty_branch",
+      "name": "Luck Pillar Fills Empty Branch",
+      "priority": 3,
+      "conditions": {
+        "natalEmptyBranch": "present",
+        "luckPillarBranch": "fills_empty"
+      },
+      "result": {
+        "emptyFilled": true,
+        "interpretation": "Latent potential activated",
+        "timing": "Events related to empty branch manifest"
+      }
+    }
+  ]
+}

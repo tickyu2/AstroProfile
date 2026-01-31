@@ -19,7 +19,7 @@
  * December 14, 2024
  */
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import {
   collection,
   query,
@@ -98,18 +98,29 @@ export const useKnowledgeBase = () => {
 export function KnowledgeBaseProvider({ children }) {
   const { currentUser } = useAuth();
   const [documents, setDocuments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // LAZY LOADING: Only load KB when explicitly requested
+  const [initialized, setInitialized] = useState(false);
+  const unsubscribeRef = useRef(null);
 
   // Mutex: Track which profiles are currently being synced to prevent duplicates
   // Using useRef for synchronous access (useState is async and won't work for rapid-fire calls)
   const syncingProfilesRef = useRef(new Set());
 
-  // Real-time listener for knowledge base documents
+  // Initialize KB loading - call this when you need KB documents
+  const initializeKB = useCallback(() => {
+    if (initialized || !currentUser) return;
+    setInitialized(true);
+    setLoading(true);
+    console.log('📚 Knowledge Base initializing (lazy load)...');
+  }, [initialized, currentUser]);
+
+  // Real-time listener for knowledge base documents - ONLY when initialized
   useEffect(() => {
-    if (!currentUser) {
-      setDocuments([]);
-      setLoading(false);
+    // Don't load unless explicitly initialized
+    if (!initialized || !currentUser) {
       return;
     }
 
@@ -120,14 +131,14 @@ export function KnowledgeBaseProvider({ children }) {
       orderBy('updatedAt', 'desc')
     );
 
-    const unsubscribe = onSnapshot(
+    unsubscribeRef.current = onSnapshot(
       q,
       (snapshot) => {
         const docs = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data()
         }));
-        console.log('📚 Knowledge Base loaded:', docs.length, 'documents', docs.map(d => d.title));
+        console.log('📚 Knowledge Base loaded:', docs.length, 'documents');
         setDocuments(docs);
         setLoading(false);
       },
@@ -138,7 +149,24 @@ export function KnowledgeBaseProvider({ children }) {
       }
     );
 
-    return unsubscribe;
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
+    };
+  }, [initialized, currentUser]);
+
+  // Reset when user logs out
+  useEffect(() => {
+    if (!currentUser) {
+      setDocuments([]);
+      setInitialized(false);
+      setLoading(false);
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+    }
   }, [currentUser]);
 
   // Create new document
@@ -1534,6 +1562,8 @@ ${doc.content}
     documents,
     loading,
     error,
+    initialized,  // Whether KB has been loaded
+    initializeKB, // Call this to start loading KB (lazy load)
     categories: KNOWLEDGE_CATEGORIES,
     createDocument,
     updateDocument,

@@ -1,0 +1,975 @@
+/**
+ * Western Astrology Panel Styling
+ * Matches Numerology panel design
+ * 
+ * GENESIS AstroProfile
+ * January 4, 2026
+ */
+
+/* ============================================
+   PANEL CONTAINER & HEADER
+   ============================================ */
+
+.western-astrology-panel {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #e2e8f0;
+  padding: 2rem;
+}
+
+.panel-header {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.back-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #e2e8f0;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.panel-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: #94a3b8;
+  margin: 0.25rem 0 0 0;
+}
+
+/* ============================================
+   QUICK BADGES
+   ============================================ */
+
+.quick-badges {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 0.5rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 2px solid;
+}
+
+.sun-badge {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.moon-badge {
+  background: rgba(147, 197, 253, 0.1);
+  border-color: #93c5fd;
+  color: #93c5fd;
+}
+
+.rising-badge {
+  background: rgba(196, 181, 253, 0.1);
+  border-color: #c4b5fd;
+  color: #c4b5fd;
+}
+
+.element-badge {
+  background: rgba(134, 239, 172, 0.1);
+  border-color: #86efac;
+  color: #86efac;
+}
+
+/* ============================================
+   TAB NAVIGATION
+   ============================================ */
+
+.tab-navigation {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.tab-navigation button {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab-navigation button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+}
+
+.tab-navigation button.active {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  color: white;
+}
+
+/* ============================================
+   TAB CONTENT
+   ============================================ */
+
+.tab-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tab-instruction {
+  text-align: center;
+  color: #94a3b8;
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+/* ============================================
+   OVERVIEW TAB
+   ============================================ */
+
+.overview-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.synthesis-header {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.synthesis-header h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.synthesis-subtitle {
+  color: #94a3b8;
+  font-size: 1.125rem;
+}
+
+/* Trinity Cards - matching Numerology's 4-card grid */
+.trinity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.trinity-card {
+  padding: 2rem;
+  border-radius: 16px;
+  border: 2px solid;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.trinity-card:hover {
+  transform: translateY(-4px);
+}
+
+.sun-card {
+  background: rgba(251, 191, 36, 0.05);
+  border-color: #fbbf24;
+}
+
+.moon-card {
+  background: rgba(147, 197, 253, 0.05);
+  border-color: #93c5fd;
+}
+
+.rising-card {
+  background: rgba(196, 181, 253, 0.05);
+  border-color: #c4b5fd;
+}
+
+.card-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.trinity-card h3 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  margin: 0 0 0.5rem 0;
+}
+
+.card-sign {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.card-subtitle {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+/* Key Themes */
+.key-themes {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.key-themes h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+}
+
+.themes-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.theme-item {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border-left: 4px solid #a78bfa;
+}
+
+.theme-item h4 {
+  margin: 0 0 0.75rem 0;
+  color: #c4b5fd;
+  font-size: 1rem;
+}
+
+.theme-item p {
+  margin: 0;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+/* Elemental Dominance */
+.elemental-dominance {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.elemental-dominance h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+}
+
+.element-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.element-bar {
+  display: grid;
+  grid-template-columns: 80px 1fr 60px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.element-label {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.bar-container {
+  height: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 0.5s ease;
+}
+
+.bar-fire { background: linear-gradient(90deg, #ef4444 0%, #f97316 100%); }
+.bar-earth { background: linear-gradient(90deg, #84cc16 0%, #22c55e 100%); }
+.bar-air { background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%); }
+.bar-water { background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%); }
+
+.element-value {
+  text-align: right;
+  font-weight: 700;
+}
+
+.element-interpretation {
+  color: #94a3b8;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* ============================================
+   PLANETS TAB - Expandable Panels
+   ============================================ */
+
+.planets-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.planet-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 2px solid;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.planet-panel.expanded {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Planet colors matching badges */
+.planet-sun { border-color: #fbbf24; }
+.planet-moon { border-color: #93c5fd; }
+.planet-rising { border-color: #c4b5fd; }
+.planet-mercury { border-color: #34d399; }
+.planet-venus { border-color: #f472b6; }
+.planet-mars { border-color: #ef4444; }
+.planet-jupiter { border-color: #a855f7; }
+.planet-saturn { border-color: #64748b; }
+
+.planet-header {
+  padding: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.planet-header:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.planet-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.planet-icon {
+  font-size: 2rem;
+}
+
+.planet-title h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.25rem;
+}
+
+.planet-title p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.planet-content {
+  padding: 0 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.content-section {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border-left: 4px solid rgba(168, 139, 250, 0.5);
+}
+
+.content-section.shadow {
+  border-left-color: rgba(239, 68, 68, 0.5);
+}
+
+.content-section h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #c4b5fd;
+}
+
+.content-section p {
+  margin: 0;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+/* Strengths & Challenges Grid */
+.strengths-challenges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .strengths-challenges {
+    grid-template-columns: 1fr;
+  }
+}
+
+.strengths, .challenges {
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.strengths {
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.challenges {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.strengths h4 {
+  margin: 0 0 1rem 0;
+  color: #86efac;
+}
+
+.challenges h4 {
+  margin: 0 0 1rem 0;
+  color: #fca5a5;
+}
+
+.strengths ul, .challenges ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.strengths li, .challenges li {
+  padding: 0.5rem 0;
+  color: #cbd5e1;
+}
+
+/* ============================================
+   ASPECTS TAB
+   ============================================ */
+
+.aspects-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.aspects-intro {
+  text-align: center;
+  padding: 2rem;
+}
+
+.aspects-intro h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+}
+
+.aspects-intro p {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.aspects-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.aspect-count {
+  text-align: center;
+  padding: 2rem;
+  border-radius: 16px;
+  border: 2px solid;
+}
+
+.aspect-count.harmonious {
+  background: rgba(34, 197, 94, 0.05);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.aspect-count.challenging {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.aspect-count.neutral {
+  background: rgba(148, 163, 184, 0.05);
+  border-color: rgba(148, 163, 184, 0.5);
+}
+
+.aspect-count .count {
+  display: block;
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.aspect-count .label {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.aspect-section {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid;
+}
+
+.section-title.harmonious {
+  border-color: rgba(34, 197, 94, 0.5);
+  color: #86efac;
+}
+
+.section-title.challenging {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+.section-title.neutral {
+  border-color: rgba(148, 163, 184, 0.5);
+  color: #94a3b8;
+}
+
+.aspect-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 2px solid;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.aspect-card.aspect-harmonious {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.aspect-card.aspect-challenging {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.aspect-card.aspect-neutral {
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.aspect-header {
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.aspect-header:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.aspect-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.aspect-title .planets {
+  font-weight: 600;
+}
+
+.aspect-title .orb {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.aspect-content {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.aspect-interpretation {
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+/* ============================================
+   TRANSITS TAB
+   ============================================ */
+
+.transits-tab {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.coming-soon {
+  text-align: center;
+  padding: 3rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 2px dashed rgba(148, 163, 184, 0.3);
+}
+
+.coming-soon h2 {
+  margin: 0 0 1rem 0;
+  font-size: 2rem;
+}
+
+.coming-soon p {
+  margin: 0.5rem 0;
+  color: #94a3b8;
+}
+
+.coming-soon .note {
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+/* ============================================
+   AI INSIGHTS TAB
+   ============================================ */
+
+.ai-insights-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.ai-insights-tab.loading {
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.loading-icon {
+  width: 48px;
+  height: 48px;
+  color: #a78bfa;
+  animation: spin 2s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.insights-header {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(219, 39, 119, 0.1) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.insights-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.insights-header p {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.insights-intro {
+  text-align: center;
+  color: #94a3b8;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Pattern Convergence */
+.pattern-convergence {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pattern-convergence h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+}
+
+.convergence-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.convergence-stats .stat {
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(139, 92, 246, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.stat .number {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #a78bfa;
+  margin-bottom: 0.5rem;
+}
+
+.stat .label {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.convergence-note {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-align: center;
+  font-style: italic;
+}
+
+/* AI Constitutional Reading */
+.ai-reading {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(219, 39, 119, 0.1) 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+.ai-reading h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.reading-content {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2rem;
+  border-radius: 12px;
+  border-left: 4px solid #a78bfa;
+  margin-bottom: 1rem;
+}
+
+.reading-content p {
+  margin: 0;
+  line-height: 1.8;
+  font-size: 1.125rem;
+  color: #e2e8f0;
+}
+
+.reading-note {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-style: italic;
+  text-align: center;
+}
+
+.reading-note em {
+  color: #cbd5e1;
+}
+
+/* Constitutional Themes */
+.constitutional-themes {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.constitutional-themes h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+}
+
+.theme-card {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(139, 92, 246, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.theme-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.theme-content {
+  flex: 1;
+}
+
+.theme-content h4 {
+  margin: 0 0 0.75rem 0;
+  color: #c4b5fd;
+  font-size: 1.125rem;
+}
+
+.theme-content p {
+  margin: 0;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.systems-badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.75rem;
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: #c4b5fd;
+  align-self: flex-start;
+}
+
+/* Cross-System Synthesis */
+.cross-system {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cross-system h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+}
+
+.system-connection {
+  color: #94a3b8;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.mbti-astrology-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.grid-item h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  color: #cbd5e1;
+}
+
+.grid-item .bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.grid-item .fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
+  border-radius: 4px;
+}
+
+.grid-item span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Missing Systems Notice */
+.missing-systems {
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(245, 158, 11, 0.05);
+  border-radius: 12px;
+  border: 1px dashed rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  font-size: 0.875rem;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .western-astrology-panel {
+    padding: 1rem;
+  }
+
+  .panel-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .trinity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tab-navigation {
+    flex-direction: column;
+  }
+
+  .tab-navigation button {
+    min-width: unset;
+  }
+
+  .convergence-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .aspects-summary {
+    grid-template-columns: 1fr;
+  }
+}

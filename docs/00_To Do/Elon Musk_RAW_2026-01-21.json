@@ -1,0 +1,76 @@
+{
+  "name": "Elon Musk",
+  "archetype_vector": [
+    0.3,
+    0.7,
+    0.85,
+    0.3,
+    0.95,
+    0.4,
+    0.6,
+    0.45,
+    0.2,
+    0.55,
+    0.45,
+    0.95,
+    0.4,
+    0.75,
+    0.9,
+    0.65
+  ],
+  "element_profile": {
+    "bazi_elements": {
+      "Wood": 0.32499999999999996,
+      "Fire": 0.0875,
+      "Earth": 0.25,
+      "Metal": 0.2,
+      "Water": 0.1375
+    },
+    "western_elements": {
+      "Fire": 5.66,
+      "Earth": 20.75,
+      "Air": 39.62,
+      "Water": 33.96
+    },
+    "dominant_bazi": "Wood",
+    "dominant_western": "Air"
+  },
+  "stress_profile": {
+    "dm_strength": 0.5,
+    "boundary_stability": 0.33
+  },
+  "raw_traits": {
+    "Initiator": "0.30",
+    "Stabilizer": "0.70",
+    "Relational": "0.85",
+    "MindCentered": "0.30",
+    "Intuitive": "0.95",
+    "Concrete": "0.40",
+    "Expressive": "0.60",
+    "Transpersonal": "0.45",
+    "RiskSeeking": "0.20",
+    "OrderOriented": "0.55",
+    "FluidIdentity": "0.45",
+    "Warm": "0.95",
+    "Direct": "0.40",
+    "DepthOriented": "0.75",
+    "Sustainer": "0.90",
+    "BoundaryAware": "0.65"
+  },
+  "metadata": {
+    "day_master": "Jia",
+    "western_sign": "Cancer",
+    "source": "user"
+  },
+  "_raw": {
+    "profile_id": "bc3bFQCx695iLrk4GIoK",
+    "has_constitutional": false,
+    "has_bazi": true,
+    "has_western": true,
+    "unified_expression_keys": [
+      "western",
+      "bazi",
+      "metadata"
+    ]
+  }
+}

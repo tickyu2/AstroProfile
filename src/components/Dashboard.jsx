@@ -150,8 +150,36 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Second Row - BaZi Modular & Match */}
+          {/* Second Row - Assessment, Western, BaZi Modular & Match */}
           <div className="hidden md:flex items-center gap-4 pb-2">
+            <Link
+              to="/assessment"
+              className="px-3 py-1.5 text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium flex items-center gap-1 bg-cyan-500/10 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50"
+            >
+              <span>📝</span>
+              <span>Assessment</span>
+            </Link>
+            <Link
+              to="/enneagram"
+              className="px-3 py-1.5 text-fuchsia-400 hover:text-fuchsia-300 transition-colors text-sm font-medium flex items-center gap-1 bg-fuchsia-500/10 rounded-lg border border-fuchsia-500/30 hover:border-fuchsia-500/50"
+            >
+              <span>⚗️</span>
+              <span>Enneagram</span>
+            </Link>
+            <Link
+              to="/liz-greene"
+              className="px-3 py-1.5 text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium flex items-center gap-1 bg-purple-500/10 rounded-lg border border-purple-500/30 hover:border-purple-500/50"
+            >
+              <span>✧</span>
+              <span>Liz Greene</span>
+            </Link>
+            <Link
+              to="/western"
+              className="px-3 py-1.5 text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium flex items-center gap-1 bg-blue-500/10 rounded-lg border border-blue-500/30 hover:border-blue-500/50"
+            >
+              <span>🌟</span>
+              <span>Western</span>
+            </Link>
             <Link
               to="/bazi-modular"
               className="px-3 py-1.5 text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium flex items-center gap-1 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:border-amber-500/50"
@@ -172,6 +200,31 @@ export default function Dashboard() {
             >
               <span>💫</span>
               <span>Unified Compatibility</span>
+            </Link>
+          </div>
+
+          {/* Third Row - Zodiac Academy, Tropical Seasons, Soul Garden */}
+          <div className="hidden md:flex items-center gap-4 pb-2">
+            <Link
+              to="/zodiac-learning"
+              className="px-3 py-1.5 text-indigo-400 hover:text-indigo-300 transition-colors text-sm font-medium flex items-center gap-1 bg-indigo-500/10 rounded-lg border border-indigo-500/30 hover:border-indigo-500/50"
+            >
+              <span>📚</span>
+              <span>Zodiac Academy</span>
+            </Link>
+            <Link
+              to="/tropical-seasons"
+              className="px-3 py-1.5 text-teal-400 hover:text-teal-300 transition-colors text-sm font-medium flex items-center gap-1 bg-teal-500/10 rounded-lg border border-teal-500/30 hover:border-teal-500/50"
+            >
+              <span>🌍</span>
+              <span>Tropical Seasons</span>
+            </Link>
+            <Link
+              to="/soul-garden"
+              className="px-3 py-1.5 text-emerald-400 hover:text-emerald-300 transition-colors text-sm font-medium flex items-center gap-1 bg-emerald-500/10 rounded-lg border border-emerald-500/30 hover:border-emerald-500/50"
+            >
+              <span>🌿</span>
+              <span>Soul Garden</span>
             </Link>
           </div>
         </div>
@@ -380,6 +433,35 @@ export default function Dashboard() {
             </button>
             <p className="text-white/40 text-sm mt-4">
               REAGAN • OBAMA • CASH • CLEOPATRA & ANTONY
+            </p>
+          </div>
+        </div>
+
+        {/* Western Zodiac Academy */}
+        <div className="mb-12 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-indigo-600/20 backdrop-blur-lg rounded-2xl p-8 border-2 border-blue-500/30 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-blue-400/5 via-transparent to-purple-400/5 pointer-events-none" />
+
+          <div className="relative">
+            <div className="text-5xl mb-4">☉🔮✨</div>
+            <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-300 mb-3">
+              Western Zodiac Academy
+            </h3>
+            <p className="text-white/60 mb-2 italic max-w-xl mx-auto">
+              "Elements should feel like weather, not math"
+            </p>
+            <p className="text-white/70 mb-6 max-w-2xl mx-auto text-lg">
+              Interactive learning with the Zodiac Blend Wheel. Explore how golden ratio
+              cusps shape identity through 84 psychological micro-explanations and
+              element-specific breathing animations.
+            </p>
+            <button
+              onClick={() => navigate('/zodiac-learning')}
+              className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white text-lg font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-blue-500/30"
+            >
+              Enter the Academy
+            </button>
+            <p className="text-white/40 text-sm mt-4">
+              ZODIAC WHEEL • CUSP PSYCHOLOGY • ELEMENTAL BALANCE
             </p>
           </div>
         </div>

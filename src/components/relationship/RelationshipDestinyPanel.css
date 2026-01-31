@@ -1,0 +1,1575 @@
+/**
+ * Relationship Destiny UI Styles
+ * ==============================
+ *
+ * Cathedral-style CSS for:
+ * - RelationshipDestinyPanel (scroll/tabs)
+ * - RelationshipDestinyMap (radial mandala)
+ *
+ * Features:
+ * - Mythic headers with slow glow
+ * - Tab transitions
+ * - Chapter fade + slide
+ * - Radial ring animations
+ * - Luna guidance styling
+ */
+
+/* ============================================================================
+   CSS CUSTOM PROPERTIES
+   ============================================================================ */
+
+:root {
+  /* Colors */
+  --soul-color: #9b59b6;
+  --timeline-color: #3498db;
+  --evolution-color: #e67e22;
+  --healing-color: #27ae60;
+
+  /* Gold accents */
+  --gold-primary: #bfa76a;
+  --gold-light: #e8d9a8;
+  --gold-dark: #8a7a4a;
+
+  /* Backgrounds */
+  --bg-dark: #1a1a2e;
+  --bg-darker: #0f0f1a;
+  --bg-card: rgba(30, 30, 50, 0.8);
+
+  /* Text */
+  --text-primary: #e8e8e8;
+  --text-secondary: #a0a0a0;
+  --text-muted: #6a6a6a;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-medium: 0.4s ease;
+  --transition-slow: 0.6s ease;
+}
+
+/* ============================================================================
+   RELATIONSHIP DESTINY PANEL (Scroll/Tabs)
+   ============================================================================ */
+
+.relationship-destiny-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+  color: var(--text-primary);
+  font-family: 'Cormorant Garamond', 'Georgia', serif;
+}
+
+/* Header */
+.destiny-header {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(180deg, rgba(191, 167, 106, 0.1) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(191, 167, 106, 0.2);
+}
+
+.mythic-header {
+  animation: mythicFade 2s ease forwards;
+}
+
+@keyframes mythicFade {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.destiny-title {
+  font-size: 2.5rem;
+  font-weight: 400;
+  letter-spacing: 2px;
+  margin: 0 0 0.5rem;
+  background: linear-gradient(90deg, var(--gold-primary), var(--gold-light), var(--gold-primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.destiny-subtitle {
+  font-size: 1.1rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.destiny-meta {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.meta-archetype,
+.meta-myth {
+  font-size: 0.9rem;
+  color: var(--gold-primary);
+  padding: 0.25rem 0.75rem;
+  border: 1px solid rgba(191, 167, 106, 0.3);
+  border-radius: 4px;
+}
+
+/* Tabs */
+.destiny-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--bg-darker);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.destiny-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-medium);
+}
+
+.destiny-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--tab-color, rgba(255, 255, 255, 0.2));
+  color: var(--text-primary);
+}
+
+.destiny-tab.active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--tab-color, var(--gold-primary));
+  color: var(--text-primary);
+  box-shadow: 0 0 12px rgba(191, 167, 106, 0.2);
+}
+
+.tab-icon {
+  font-size: 1.2rem;
+}
+
+/* Chapter Content */
+.destiny-content {
+  flex: 1;
+  position: relative;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.destiny-content.transitioning {
+  pointer-events: none;
+}
+
+.destiny-chapter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  transition: opacity var(--transition-slow), transform var(--transition-slow);
+}
+
+.chapter-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  position: relative;
+}
+
+.chapter-hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
+.chapter-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.chapter-header h2 {
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.chapter-header p {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+.chapter-scroll {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.animated-scroll {
+  animation: scrollFade 1.2s ease forwards;
+}
+
+@keyframes scrollFade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Chapter Sections */
+.chapter-section {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--gold-primary);
+  margin: 0 0 1rem;
+}
+
+.section-icon {
+  font-size: 1.5rem;
+}
+
+/* Identity Grid */
+.identity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.identity-card {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border-left: 3px solid var(--soul-color);
+}
+
+.card-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.card-value {
+  display: block;
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.card-meaning {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Element Bars */
+.element-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.element-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.element-name {
+  width: 60px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.bar-fill {
+  height: 8px;
+  border-radius: 4px;
+  transition: width var(--transition-medium);
+}
+
+.element-bar.fire .bar-fill { background: #e74c3c; }
+.element-bar.earth .bar-fill { background: #27ae60; }
+.element-bar.air .bar-fill { background: #3498db; }
+.element-bar.water .bar-fill { background: #9b59b6; }
+
+/* Shadow Content */
+.shadow-card {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.shadow-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.shadow-description {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.integration-path {
+  margin-top: 1rem;
+}
+
+.path-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--gold-primary);
+  margin-bottom: 0.5rem;
+}
+
+.path-steps {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.path-steps li {
+  margin-bottom: 0.5rem;
+}
+
+/* Contract Grid */
+.contract-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.contract-card {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.contract-card.strengths {
+  border-left: 3px solid var(--healing-color);
+}
+
+.contract-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.contract-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-secondary);
+}
+
+.contract-list li {
+  margin-bottom: 0.35rem;
+}
+
+/* Fate Content */
+.fate-card {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.fate-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.fate-intensity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.intensity-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.intensity-value {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.intensity-value.significant { background: rgba(230, 126, 34, 0.3); color: #e67e22; }
+.intensity-value.very-high { background: rgba(231, 76, 60, 0.3); color: #e74c3c; }
+.intensity-value.high { background: rgba(241, 196, 15, 0.3); color: #f1c40f; }
+
+/* Luna Guidance */
+.luna-guidance {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(155, 89, 182, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid var(--soul-color);
+}
+
+.luna-icon {
+  font-size: 1.5rem;
+  color: var(--soul-color);
+}
+
+.luna-guidance p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* Timeline Chapter */
+.season-card {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border-left: 3px solid var(--timeline-color);
+}
+
+.season-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.season-type {
+  font-size: 1.2rem;
+  color: var(--timeline-color);
+}
+
+.season-planet {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.season-theme {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.season-meaning {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Fate Windows */
+.fate-windows-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fate-window-card {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.window-name {
+  display: block;
+  font-size: 1.1rem;
+  color: var(--gold-primary);
+  margin-bottom: 0.5rem;
+}
+
+.window-meaning {
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem;
+}
+
+.window-opportunity {
+  color: var(--healing-color);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Transits */
+.transits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.transit-card {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.transit-header {
+  margin-bottom: 0.5rem;
+}
+
+.transit-aspect {
+  font-size: 1rem;
+  color: var(--timeline-color);
+}
+
+.transit-meaning {
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem;
+  line-height: 1.5;
+}
+
+.transit-duration {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Evolution Chapter */
+.stage-card {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+}
+
+.stage-card.current {
+  border: 1px solid var(--evolution-color);
+  box-shadow: 0 0 20px rgba(230, 126, 34, 0.1);
+}
+
+.stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.stage-title {
+  font-size: 1.4rem;
+  color: var(--text-primary);
+}
+
+.stage-archetype {
+  font-size: 1rem;
+  color: var(--evolution-color);
+  padding: 0.25rem 0.75rem;
+  background: rgba(230, 126, 34, 0.1);
+  border-radius: 4px;
+}
+
+.stage-meta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stage-myth {
+  font-style: italic;
+  color: var(--gold-primary);
+}
+
+.stage-phase {
+  color: var(--text-muted);
+}
+
+.stage-task {
+  margin-bottom: 1rem;
+}
+
+.stage-task strong {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.stage-task p {
+  color: var(--text-primary);
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+}
+
+.stage-themes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.growth-theme,
+.shadow-theme {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.theme-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.growth-theme p { color: var(--healing-color); margin: 0; }
+.shadow-theme p { color: var(--text-secondary); margin: 0; }
+
+.stage-progress {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Mythic Arc */
+.mythic-arc-card {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.arc-name {
+  display: block;
+  font-size: 1.3rem;
+  color: var(--gold-primary);
+  margin-bottom: 0.5rem;
+}
+
+.arc-description {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0 0 1rem;
+}
+
+.arc-phase {
+  color: var(--text-primary);
+}
+
+/* Evolution Timeline */
+.evolution-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  padding-left: 2rem;
+}
+
+.evolution-timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.timeline-stage {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+.stage-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg-dark);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  position: absolute;
+  left: -2rem;
+}
+
+.timeline-stage.past .stage-marker {
+  background: var(--text-muted);
+  border-color: var(--text-muted);
+}
+
+.timeline-stage.current .stage-marker {
+  background: var(--evolution-color);
+  border-color: var(--evolution-color);
+  box-shadow: 0 0 10px var(--evolution-color);
+}
+
+.timeline-stage.future .stage-marker {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.stage-info {
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+  padding: 0.5rem;
+}
+
+.stage-name {
+  color: var(--text-primary);
+}
+
+.timeline-stage.past .stage-name { color: var(--text-muted); }
+.timeline-stage.current .stage-name { color: var(--evolution-color); font-weight: 500; }
+.timeline-stage.future .stage-name { color: var(--text-secondary); }
+
+.stage-years {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Crisis Section */
+.crisis-section .chapter-section {
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  background: rgba(231, 76, 60, 0.05);
+}
+
+.crisis-card {
+  padding: 1rem;
+}
+
+.crisis-name {
+  display: block;
+  font-size: 1.2rem;
+  color: #e74c3c;
+  margin-bottom: 0.5rem;
+}
+
+.crisis-description {
+  color: var(--text-secondary);
+  margin: 0 0 1rem;
+}
+
+.crisis-opportunity {
+  padding: 1rem;
+  background: rgba(39, 174, 96, 0.1);
+  border-radius: 8px;
+}
+
+.crisis-opportunity strong {
+  color: var(--healing-color);
+}
+
+.crisis-opportunity p {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+}
+
+/* Healing Chapter */
+.wounds-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.wound-card {
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border-left: 3px solid #e74c3c;
+}
+
+.wound-name {
+  display: block;
+  font-size: 1.1rem;
+  color: #e74c3c;
+  margin-bottom: 0.5rem;
+}
+
+.wound-description {
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem;
+}
+
+.wound-symptoms {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.wound-symptoms li {
+  margin-bottom: 0.25rem;
+}
+
+.wound-healing {
+  margin-top: 1rem;
+  border-color: var(--healing-color);
+  background: rgba(39, 174, 96, 0.1);
+}
+
+/* Rituals */
+.rituals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ritual-card {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ritual-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.ritual-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ritual-header.expanded {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ritual-name {
+  color: var(--healing-color);
+}
+
+.ritual-toggle {
+  color: var(--text-muted);
+}
+
+.ritual-content {
+  padding: 1.25rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ritual-description {
+  color: var(--text-secondary);
+  margin: 0 0 1rem;
+}
+
+.ritual-when {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.ritual-steps {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.ritual-steps li {
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.ritual-steps strong {
+  color: var(--text-primary);
+}
+
+.step-duration {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-left: 0.5rem;
+}
+
+.ritual-steps p {
+  margin: 0.25rem 0 0;
+}
+
+/* Emergency Section */
+.emergency-section .chapter-section {
+  background: rgba(241, 196, 15, 0.05);
+  border: 1px solid rgba(241, 196, 15, 0.2);
+}
+
+.emergency-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.emergency-card {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.emergency-label {
+  display: block;
+  font-size: 1rem;
+  color: #f1c40f;
+  margin-bottom: 0.75rem;
+}
+
+.emergency-card ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.emergency-card li {
+  margin-bottom: 0.5rem;
+}
+
+/* Luna Section */
+.luna-section .chapter-section {
+  background: rgba(155, 89, 182, 0.05);
+  border: 1px solid rgba(155, 89, 182, 0.2);
+}
+
+.luna-dialogue-card {
+  padding: 1.5rem;
+}
+
+.dialogue-context {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--soul-color);
+  margin-bottom: 1rem;
+}
+
+.dialogue-content {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.dialogue-content p {
+  margin: 0 0 1rem;
+}
+
+.dialogue-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Sidebar */
+.destiny-sidebar {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 280px;
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px 0 0 12px;
+}
+
+.sidebar-section {
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-section h4 {
+  font-size: 0.9rem;
+  color: var(--gold-primary);
+  margin: 0 0 0.75rem;
+  font-weight: 400;
+}
+
+.focus-task {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.focus-practice {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem;
+}
+
+.focus-reminder {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.sidebar-blessing {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(191, 167, 106, 0.1);
+  border-radius: 8px;
+}
+
+.blessing-icon {
+  font-size: 1.2rem;
+  color: var(--gold-primary);
+}
+
+.sidebar-blessing p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   RELATIONSHIP DESTINY MAP (Radial Mandala)
+   ============================================================================ */
+
+.destiny-map-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at center, var(--bg-dark) 0%, var(--bg-darker) 100%);
+  color: var(--text-primary);
+  font-family: 'Cormorant Garamond', 'Georgia', serif;
+}
+
+.map-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.map-title {
+  font-size: 2rem;
+  font-weight: 400;
+  background: linear-gradient(90deg, var(--gold-primary), var(--gold-light), var(--gold-primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 0 0 0.5rem;
+}
+
+.map-archetype {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+/* Radial Map */
+.destiny-map {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  margin: 2rem 0;
+}
+
+/* Rings */
+.destiny-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all var(--transition-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.destiny-ring:hover {
+  border-color: var(--ring-color, rgba(255, 255, 255, 0.3));
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.ring-active {
+  border-color: var(--ring-color) !important;
+  box-shadow: 0 0 30px var(--ring-color) !important;
+  animation: ringGlow 2s ease-in-out infinite;
+}
+
+@keyframes ringGlow {
+  0% { box-shadow: 0 0 15px var(--ring-color); }
+  50% { box-shadow: 0 0 30px var(--ring-color); }
+  100% { box-shadow: 0 0 15px var(--ring-color); }
+}
+
+/* Outer Ring - Timeline */
+.outer-ring {
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  animation: rotateSlow 120s linear infinite;
+}
+
+/* Middle Ring - Evolution */
+.middle-ring {
+  width: 75%;
+  height: 75%;
+  top: 12.5%;
+  left: 12.5%;
+  animation: rotateSlowReverse 90s linear infinite;
+}
+
+/* Inner Ring - Soul Map */
+.inner-ring {
+  width: 50%;
+  height: 50%;
+  top: 25%;
+  left: 25%;
+  animation: rotateSlow 60s linear infinite;
+}
+
+@keyframes rotateSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotateSlowReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+/* Ring Labels */
+.ring-label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  transform: rotate(0deg);
+  animation: counterRotate 60s linear infinite;
+}
+
+.outer-ring .ring-label { animation-duration: 120s; }
+.middle-ring .ring-label { animation: counterRotateReverse 90s linear infinite; }
+.inner-ring .ring-label { animation-duration: 60s; }
+
+@keyframes counterRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes counterRotateReverse {
+  from { transform: rotate(-360deg); }
+  to { transform: rotate(0deg); }
+}
+
+.ring-icon {
+  font-size: 1.5rem;
+  color: var(--ring-color);
+}
+
+.ring-name {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Ring Segments */
+.ring-segments {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.ring-segment {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: 0 0;
+  transform: rotate(var(--segment-angle, 0deg)) translateY(-50%);
+}
+
+.segment-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+}
+
+.ring-segment.current .segment-dot {
+  background: var(--ring-color);
+  box-shadow: 0 0 8px var(--ring-color);
+}
+
+.ring-segment.past .segment-dot {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.segment-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Core - Healing */
+.destiny-core {
+  position: absolute;
+  width: 25%;
+  height: 25%;
+  top: 37.5%;
+  left: 37.5%;
+  border-radius: 50%;
+  background: var(--bg-darker);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-medium);
+}
+
+.destiny-core:hover {
+  border-color: var(--core-color);
+  box-shadow: 0 0 20px var(--core-color);
+}
+
+.active-core {
+  border-color: var(--core-color) !important;
+  box-shadow: 0 0 30px var(--core-color) !important;
+  animation: corePulse 3s ease-in-out infinite;
+}
+
+@keyframes corePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.core-icon {
+  font-size: 2rem;
+  color: var(--core-color);
+}
+
+.core-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.25rem;
+}
+
+/* Content Panel */
+.map-content-panel {
+  width: 100%;
+  max-width: 600px;
+  padding: 2rem;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: opacity var(--transition-medium);
+}
+
+.map-content-panel.animating {
+  opacity: 0.5;
+}
+
+.content-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.content-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.content-header h3 {
+  font-size: 1.4rem;
+  margin: 0 0 0.25rem;
+  color: var(--text-primary);
+}
+
+.content-description {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.content-body {
+  min-height: 200px;
+}
+
+/* Layer Content */
+.layer-content h3 {
+  font-size: 1.2rem;
+  color: var(--gold-primary);
+  margin: 0 0 1rem;
+  text-align: center;
+}
+
+.layer-content h4 {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  font-weight: 400;
+}
+
+.content-section {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.content-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.content-section p {
+  margin: 0 0 0.5rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.content-section ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.content-section li {
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 2rem;
+}
+
+/* Specific layer styles */
+.wound-name,
+.stage-name,
+.arc-name {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.wound-healing,
+.arc-phase {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.stage-archetype {
+  font-size: 0.85rem;
+  color: var(--evolution-color);
+}
+
+.stage-task {
+  margin-top: 0.5rem;
+}
+
+.content-section.crisis {
+  background: rgba(231, 76, 60, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  border-bottom: none;
+}
+
+.content-section.crisis h4 {
+  color: #e74c3c;
+}
+
+.opportunity {
+  color: var(--healing-color) !important;
+}
+
+.season-type {
+  color: var(--timeline-color);
+}
+
+.fate-window,
+.transit {
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.fate-window span,
+.transit span {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.quick-tips {
+  padding-left: 1.25rem;
+  margin: 0;
+}
+
+.quick-tips li {
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+
+/* Map Blessing */
+.map-blessing {
+  display: flex;
+  gap: 1rem;
+  max-width: 500px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  background: rgba(191, 167, 106, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(191, 167, 106, 0.2);
+}
+
+.map-blessing .blessing-icon {
+  font-size: 1.5rem;
+  color: var(--gold-primary);
+}
+
+.map-blessing p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* Legend */
+.map-legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  transition: background var(--transition-fast);
+}
+
+.legend-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-item span:last-child {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .destiny-tabs {
+    flex-wrap: wrap;
+  }
+
+  .destiny-tab {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  .destiny-sidebar {
+    position: static;
+    transform: none;
+    width: 100%;
+    border-radius: 0;
+    margin-top: 2rem;
+  }
+
+  .destiny-map {
+    width: 350px;
+    height: 350px;
+  }
+
+  .map-content-panel {
+    padding: 1.5rem;
+  }
+
+  .map-legend {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .destiny-title {
+    font-size: 1.8rem;
+  }
+
+  .destiny-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .tab-label {
+    display: none;
+  }
+
+  .tab-icon {
+    font-size: 1.4rem;
+  }
+
+  .destiny-map {
+    width: 280px;
+    height: 280px;
+  }
+
+  .ring-label {
+    display: none;
+  }
+
+  .core-label {
+    display: none;
+  }
+}

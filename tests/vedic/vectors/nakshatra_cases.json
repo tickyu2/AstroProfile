@@ -1,0 +1,122 @@
+[
+  {
+    "id": "moon_ashwini",
+    "description": "Moon in Ashwini nakshatra",
+    "moonDegree": 5.5,
+    "moonSign": "Aries",
+    "expectedNakshatra": "Ashwini",
+    "expectedPada": 1,
+    "expectedLord": "Ketu",
+    "expectedDeity": "Ashwini Kumaras"
+  },
+  {
+    "id": "moon_rohini",
+    "description": "Moon in Rohini nakshatra",
+    "moonDegree": 18.2,
+    "moonSign": "Taurus",
+    "expectedNakshatra": "Rohini",
+    "expectedPada": 3,
+    "expectedLord": "Moon",
+    "expectedDeity": "Brahma"
+  },
+  {
+    "id": "moon_magha",
+    "description": "Moon in Magha nakshatra",
+    "moonDegree": 5.8,
+    "moonSign": "Leo",
+    "expectedNakshatra": "Magha",
+    "expectedPada": 2,
+    "expectedLord": "Ketu",
+    "expectedDeity": "Pitris"
+  },
+  {
+    "id": "moon_chitra",
+    "description": "Moon in Chitra nakshatra",
+    "moonDegree": 25.3,
+    "moonSign": "Virgo",
+    "expectedNakshatra": "Chitra",
+    "expectedPada": 2,
+    "expectedLord": "Mars",
+    "expectedDeity": "Vishwakarma"
+  },
+  {
+    "id": "moon_swati",
+    "description": "Moon in Swati nakshatra",
+    "moonDegree": 12.7,
+    "moonSign": "Libra",
+    "expectedNakshatra": "Swati",
+    "expectedPada": 4,
+    "expectedLord": "Rahu",
+    "expectedDeity": "Vayu"
+  },
+  {
+    "id": "moon_jyeshtha",
+    "description": "Moon in Jyeshtha nakshatra",
+    "moonDegree": 22.4,
+    "moonSign": "Scorpio",
+    "expectedNakshatra": "Jyeshtha",
+    "expectedPada": 3,
+    "expectedLord": "Mercury",
+    "expectedDeity": "Indra"
+  },
+  {
+    "id": "moon_mula",
+    "description": "Moon in Mula nakshatra",
+    "moonDegree": 8.9,
+    "moonSign": "Sagittarius",
+    "expectedNakshatra": "Mula",
+    "expectedPada": 3,
+    "expectedLord": "Ketu",
+    "expectedDeity": "Nirriti"
+  },
+  {
+    "id": "moon_shravana",
+    "description": "Moon in Shravana nakshatra",
+    "moonDegree": 15.6,
+    "moonSign": "Capricorn",
+    "expectedNakshatra": "Shravana",
+    "expectedPada": 2,
+    "expectedLord": "Moon",
+    "expectedDeity": "Vishnu"
+  },
+  {
+    "id": "moon_shatabhisha",
+    "description": "Moon in Shatabhisha nakshatra",
+    "moonDegree": 12.3,
+    "moonSign": "Aquarius",
+    "expectedNakshatra": "Shatabhisha",
+    "expectedPada": 4,
+    "expectedLord": "Rahu",
+    "expectedDeity": "Varuna"
+  },
+  {
+    "id": "moon_revati",
+    "description": "Moon in Revati nakshatra",
+    "moonDegree": 25.8,
+    "moonSign": "Pisces",
+    "expectedNakshatra": "Revati",
+    "expectedPada": 3,
+    "expectedLord": "Mercury",
+    "expectedDeity": "Pushan"
+  },
+  {
+    "id": "moon_pushya",
+    "description": "Moon in Pushya nakshatra",
+    "moonDegree": 8.2,
+    "moonSign": "Cancer",
+    "expectedNakshatra": "Pushya",
+    "expectedPada": 3,
+    "expectedLord": "Saturn",
+    "expectedDeity": "Brihaspati"
+  },
+  {
+    "id": "moon_vishakha",
+    "description": "Moon in Vishakha nakshatra",
+    "moonDegree": 28.5,
+    "moonSign": "Libra",
+    "expectedNakshatra": "Vishakha",
+    "expectedPada": 4,
+    "expectedLord": "Jupiter",
+    "expectedDeity": "Indra-Agni"
+  }
+]

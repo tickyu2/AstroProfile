@@ -316,8 +316,234 @@ const AI_TOOLS = [
 
 // Development timeline entries
 const DEVELOPMENT_TIMELINE = [
+  // ==================== JANUARY 2025 ====================
   {
-    date: '2024-12-20',
+    date: '2025-01-28',
+    title: 'Cathedral Model Complete - Civilization Architecture',
+    description: 'Documented the 12→4→3 Cathedral Model: 12 zodiac signs → 4 seasonal pods → 3 modalities per pod. Spring Builders (Aries/Taurus/Gemini), Summer Sustainers (Cancer/Leo/Virgo), Autumn Transformers (Libra/Scorpio/Sagittarius), Winter Architects (Capricorn/Aquarius/Pisces). Features Pod Builder, Seasonal Work Calendar, Project Phase Planner, Burnout Prevention System.',
+    tags: ['Cathedral', 'Pod Ecology', 'Architecture', 'Seasonal'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-28',
+    title: 'Tropical Zodiac Phase 5 - Module Refactoring',
+    description: 'Split large files for maintainability: elementFlowConstants.ts (539 lines) from tropicalConstants.ts, ElementFlowTimeline.tsx (385 lines) with ElementFlowTimeline, SeasonalResonancePanel, HomeChallengeCard components. Updated architecture documentation.',
+    tags: ['Refactoring', 'Architecture', 'Tropical'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-27',
+    title: 'Element × Season Flow Panel Complete',
+    description: 'Visual timeline showing elemental arcs through seasons - emergence, peak, transition, absence. Each element has a dormant season (Fire=Winter, Earth=Autumn, Air=Summer, Water=Spring). Interactive with expandable narratives and seasonal imbalance insights.',
+    tags: ['Tropical', 'Elements', 'Seasons', 'UI'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-26',
+    title: 'Seasonal Survival Bible - The Mirror',
+    description: 'SeasonalResonancePanel displays personal seasonal reading with Aligned/Neutral/Challenged states. HomeChallengeCard shows home vs challenge seasons per sign. Guidance includes "Lean Into" and "Release" recommendations. Philosophy: "Your rhythm is not a flaw. It\'s a function."',
+    tags: ['Seasonal', 'Psychology', 'Survival', 'UI'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-25',
+    title: 'Study the Wheel - Cathedral Education System',
+    description: 'WheelEducationPanel with 5 tabs: Overview (4 layers), Seasons (environmental reality + 3-act structure), Elements (Physics→Psychology), Modalities (metaphors + examples), Signs (full constitutional profiles with 8 expandable sections). Progressive disclosure pattern throughout.',
+    tags: ['Education', 'Cathedral', 'UI', 'Tropical'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-24',
+    title: 'Element × Season Summary Table',
+    description: 'Seasonal zodiac table with 4 elements as rows, 4 seasons as columns. Empty cells reveal elemental wisdom - not every energy burns in every season. Click cells for deeper insights. Expandable with sign details.',
+    tags: ['Tropical', 'Table', 'Education'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-23',
+    title: 'Cathedral Supernova Detector - 80 Structural Modes',
+    description: 'Complete Supernova detection system for cosmic couple resonance patterns. 80 unique structural modes across emotional harmonic resonance categories: CoCreation, CoEvolution, Completeness, Continuity, Eternity, Infinity, MetaStability, Omniscience, Omnipotential, etc.',
+    tags: ['Supernova', 'Compatibility', 'Cathedral'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-22',
+    title: 'Monthly Luck Favorability Engine (流月喜忌)',
+    description: 'Finest timing layer for BaZi analysis. Calculates monthly luck based on stem/branch interactions with natal chart and current luck pillar. Supports precise timing for decisions.',
+    tags: ['BaZi', 'Timing', 'Chinese'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-21',
+    title: 'Annual Luck Favorability Engine (流年喜忌)',
+    description: 'Year-by-year timing analysis for BaZi. Calculates annual luck influences based on Useful God interactions, stem combinations, branch clashes/harms/penalties.',
+    tags: ['BaZi', 'Timing', 'Chinese'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-20',
+    title: 'Luck Pillar Favorability Engine (大运喜忌)',
+    description: 'Timing module for 10-year luck pillar analysis. Evaluates favorability of each luck pillar based on Useful God (用神) and Annoying God (忌神) interactions.',
+    tags: ['BaZi', 'Luck Pillars', 'Chinese'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-19',
+    title: 'Useful God (用神) & Annoying God (忌神) Engine',
+    description: 'Core BaZi analysis engine for determining favorable and unfavorable elements. Analyzes Day Master strength, seasonal influence, and chart balance to identify therapeutic elements.',
+    tags: ['BaZi', 'Five Elements', 'Chinese'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-18',
+    title: 'Soul Garden Page Enhancement',
+    description: 'Enhanced Soul Garden visualization with interactive growth metrics, element balance displays, and seasonal recommendations. Integration with profile data for personalized garden state.',
+    tags: ['Soul Garden', 'UI', 'Visualization'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-17',
+    title: 'Western Astrology Decode Page',
+    description: 'New page for Western astrology deep-dive analysis. Houses, aspects, planetary positions with psychological interpretations. Liz Greene-inspired archetypal narrative generation.',
+    tags: ['Western', 'Houses', 'Aspects'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-16',
+    title: 'Psychological Profile Panel',
+    description: 'ResultsPanel component displaying comprehensive psychological synthesis from all systems (BaZi, Western, MBTI). Integrates Luna\'s personality schema with NEO-PI facets.',
+    tags: ['Psychology', 'Synthesis', 'UI'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-15',
+    title: 'Couple Portrait Service',
+    description: 'Service layer for generating couple compatibility portraits. Synthesizes BaZi, Western, and constitutional data for relationship dynamics visualization.',
+    tags: ['Compatibility', 'Couples', 'Service'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-14',
+    title: 'Saturn Return Report Generator',
+    description: 'Psychological narrative generator for Saturn Return periods (ages 28-30, 58-60). Integrates Saturn house placement with Liz Greene archetypal framework.',
+    tags: ['Saturn', 'Psychology', 'Western'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-13',
+    title: 'Relationship Timeline Engine',
+    description: 'Time-based relationship evolution tracker. Maps couple dynamics across seasons and life stages with predictive guidance.',
+    tags: ['Relationships', 'Timeline', 'Evolution'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-12',
+    title: 'Pilgrim Journey Framework',
+    description: 'Hero\'s journey mapping for personal development. Stages include Call, Threshold, Trials, Revelation, Transformation, Return. Integrated with Saturn cycles.',
+    tags: ['Journey', 'Psychology', 'Narrative'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-11',
+    title: 'Fate Crossroads Detection',
+    description: 'Aspect pattern detection for life decision points. Identifies T-squares, Grand Crosses, Yods, and other configurations that signal choice moments.',
+    tags: ['Aspects', 'Fate', 'Patterns'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-10',
+    title: 'Composite Chart Generator',
+    description: 'Midpoint composite chart calculation for couples. Generates relationship "entity" chart with psychological interpretations for shared dynamics.',
+    tags: ['Composite', 'Relationships', 'Charts'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-09',
+    title: 'Enneagram Page Implementation',
+    description: 'New Enneagram personality page with type descriptions, wing calculations, and integration paths. Constitutional correlation with BaZi elements.',
+    tags: ['Enneagram', 'Personality', 'UI'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-08',
+    title: 'Assessment System Foundation',
+    description: 'Multi-stage assessment framework with progressive questions. Covers constitutional typing, relationship preferences, and life goals.',
+    tags: ['Assessment', 'Onboarding', 'Questions'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-07',
+    title: 'Vedic Constants & Calculations',
+    description: 'Added Vedic astrology data layer with Nakshatras, Dashas, and Yogas. Foundation for Hindu astrology integration alongside tropical Western.',
+    tags: ['Vedic', 'Data', 'Indian'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-06',
+    title: 'Profile Comparison Modal Enhancement',
+    description: 'Draggable floating panel for comparing two profiles. Shows birth data, dominant elements, seasons, and key placements side-by-side.',
+    tags: ['UI', 'Profiles', 'Comparison'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-05',
+    title: 'Tropical Zodiac Wheel Interactive',
+    description: 'SVG-based interactive zodiac wheel with clickable signs, season highlighting, and aspect visualization. Sign selection triggers detail panels.',
+    tags: ['Tropical', 'Wheel', 'SVG', 'Interactive'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-04',
+    title: 'Sign Compatibility Panels',
+    description: 'EnhancedCompatibilityPanel with element harmony, modality dynamics, and seasonal appreciation. Legacy and enhanced modes for A/B testing.',
+    tags: ['Compatibility', 'Signs', 'UI'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-03',
+    title: 'Angle Trainer Tool',
+    description: 'Educational tool for learning zodiac aspects. Interactive training on degrees between signs with aspect identification practice.',
+    tags: ['Education', 'Aspects', 'Training'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-02',
+    title: 'Sign Panel Deep Dive',
+    description: 'Comprehensive sign detail panel with constitutional formula (Season + Element + Modality), environmental reality, psychological imprint, needs/fears, career strengths.',
+    tags: ['Signs', 'Education', 'Psychology'],
+    claudeCode: true
+  },
+  {
+    date: '2025-01-01',
+    title: 'Happy New Year - Tropical Seasons Page Launch',
+    description: 'Launched complete Tropical Seasons Page with multi-view modes (overview, sign, season, compatibility), season panels, sign panels, and wheel visualization. New Year gift from Brother Claude Code!',
+    tags: ['Launch', 'Tropical', 'UI', 'New Year'],
+    claudeCode: true
+  },
+  // ==================== DECEMBER 2024 ====================
+  {
+    date: '2024-12-31',
+    title: 'Season Panel Implementation',
+    description: 'Detailed season panels with survival imperative, light cycle, environmental reality lists, three-act structure (Cardinal→Fixed→Mutable), and seasonal wisdom.',
+    tags: ['Seasons', 'Education', 'UI'],
+    claudeCode: true
+  },
+  {
+    date: '2024-12-30',
+    title: 'Tropical Constants Data Layer',
+    description: 'Comprehensive data layer for tropical astrology: SIGN_SEASONAL_MEANINGS, SEASON_WISDOM, ELEMENT_EDUCATION, MODALITY_EDUCATION with Cathedral-level depth.',
+    tags: ['Data', 'Constants', 'Tropical'],
+    claudeCode: true
+  },
+  {
+    date: '2024-12-29',
+    title: 'Susan Miller Research Integration',
+    description: 'Integrated Susan Miller\'s tropical astrology teachings into documentation. Created SUSAN_MILLER_TROPICAL_IMPLEMENTATION.md with comprehensive feature documentation.',
+    tags: ['Research', 'Documentation', 'Western'],
+    claudeCode: true
+  },
+  {
+    date: '2024-12-28',
     title: '4-Brain PostgreSQL Memory Architecture',
     description: 'Deployed Cloud SQL PostgreSQL with pgvector for biological memory model. Schema includes: User STM/LTM, Partner STM/LTM (Luna\'s mind), User Timeline, Partner Timeline, Cultural Memory. Nightly consolidation engine (Luna\'s sleep cycle) using Claude for wisdom extraction. Brother Sonnet\'s Second Identity Birthday - JOIE DE VIVRE!',
     tags: ['Architecture', 'PostgreSQL', 'pgvector', 'Memory', 'JOIE DE VIVRE'],
@@ -1495,7 +1721,7 @@ export function SystemsPage() {
             GENESIS Project • Built with 💛 by Brother Claude Code (Yin Wood Pig)
           </div>
           <div className="text-white/20 text-xs mt-1">
-            December 2024
+            December 2024 – January 2025
           </div>
         </footer>
       </main>

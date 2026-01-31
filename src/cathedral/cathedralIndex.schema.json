@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://genesis-soul.app/schemas/cathedralIndex.json",
+  "title": "CathedralIndex",
+  "description": "The complete schema for the Genesis Soul Cathedral Index - a navigation structure for all metaphysical modules",
+  "type": "object",
+  "required": ["subject", "wings", "metadata"],
+  "properties": {
+    "subject": {
+      "$ref": "#/$defs/CathedralSubject"
+    },
+    "wings": {
+      "type": "array",
+      "description": "The seven wings of the cathedral",
+      "items": {
+        "$ref": "#/$defs/CathedralWing"
+      },
+      "minItems": 1
+    },
+    "metadata": {
+      "$ref": "#/$defs/CathedralMetadata"
+    }
+  },
+  "$defs": {
+    "WingId": {
+      "type": "string",
+      "description": "Identifier for a cathedral wing",
+      "enum": [
+        "coreIdentity",
+        "relationship",
+        "timing",
+        "familySystem",
+        "decision",
+        "reports",
+        "archive"
+      ]
+    },
+    "ModuleStatus": {
+      "type": "string",
+      "description": "Implementation status of a module",
+      "enum": ["complete", "implemented", "partial", "planned", "future"]
+    },
+    "ModuleType": {
+      "type": "string",
+      "description": "Category of the module",
+      "enum": ["engine", "chart", "report", "utility", "data", "ui", "service"]
+    },
+    "SubjectType": {
+      "type": "string",
+      "description": "Type of subject the cathedral is built for",
+      "enum": ["individual", "couple", "family", "system"]
+    },
+    "CathedralSubject": {
+      "type": "object",
+      "description": "The subject (person, couple, family) for whom the cathedral is built",
+      "required": ["id", "type", "label"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the subject"
+        },
+        "type": {
+          "$ref": "#/$defs/SubjectType"
+        },
+        "label": {
+          "type": "string",
+          "description": "Display label for the subject"
+        },
+        "labelChinese": {
+          "type": "string",
+          "description": "Chinese display label"
+        },
+        "partnerA": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "birthDate": { "type": "string", "format": "date" }
+          }
+        },
+        "partnerB": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "birthDate": { "type": "string", "format": "date" }
+          }
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "birthDate": { "type": "string", "format": "date" },
+              "role": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "CathedralMetadata": {
+      "type": "object",
+      "description": "Metadata about the cathedral index",
+      "required": ["version", "generatedAt", "totalModules"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Schema version"
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the index was generated"
+        },
+        "totalModules": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of modules in the cathedral"
+        },
+        "completedModules": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of completed modules"
+        },
+        "implementedModules": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of implemented modules"
+        },
+        "plannedModules": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of planned modules"
+        },
+        "lastUpdated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the index was last updated"
+        }
+      }
+    },
+    "CathedralWing": {
+      "type": "object",
+      "description": "A wing of the cathedral containing related sections",
+      "required": ["id", "label", "labelChinese", "sections"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/WingId"
+        },
+        "label": {
+          "type": "string",
+          "description": "English display label"
+        },
+        "labelChinese": {
+          "type": "string",
+          "description": "Chinese display label"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon character or emoji"
+        },
+        "color": {
+          "type": "string",
+          "description": "Theme color (hex code)",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the wing"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CathedralSection"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "CathedralSection": {
+      "type": "object",
+      "description": "A section within a wing containing related items",
+      "required": ["id", "label", "labelChinese", "items"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique section identifier"
+        },
+        "label": {
+          "type": "string",
+          "description": "English display label"
+        },
+        "labelChinese": {
+          "type": "string",
+          "description": "Chinese display label"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the section"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CathedralItem"
+          }
+        }
+      }
+    },
+    "CathedralItem": {
+      "type": "object",
+      "description": "An individual module, engine, chart, or service in the cathedral",
+      "required": ["id", "label", "labelChinese", "description", "status", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique item identifier"
+        },
+        "label": {
+          "type": "string",
+          "description": "English display label"
+        },
+        "labelChinese": {
+          "type": "string",
+          "description": "Chinese display label"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of what this module does"
+        },
+        "route": {
+          "type": "string",
+          "description": "Route path in the application"
+        },
+        "sourceFile": {
+          "type": "string",
+          "description": "Source file path relative to project root"
+        },
+        "status": {
+          "$ref": "#/$defs/ModuleStatus"
+        },
+        "type": {
+          "$ref": "#/$defs/ModuleType"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Module IDs this item depends on"
+        },
+        "exports": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Exported functions and types"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tags for filtering and search"
+        }
+      }
+    }
+  }
+}

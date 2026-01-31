@@ -1,0 +1,62 @@
+{
+  "exportedAt": "2026-01-24T19:55:43.552Z",
+  "type": "my_physical_profile",
+  "profile": {
+    "height": {
+      "feet": 5,
+      "inches": 8,
+      "cm": 173,
+      "display": "5'8\" (173cm)"
+    },
+    "build": "average",
+    "gender": "male",
+    "handedness": "right-handed",
+    "muscleDefinition": "minimal",
+    "proportions": "balanced",
+    "skinTone": "medium",
+    "skinCharacteristics": [
+      "clear-smooth"
+    ],
+    "hairColor": "black",
+    "hairTexture": "straight",
+    "hairLength": "short",
+    "bodyHair": "minimal-smooth",
+    "legHair": "shaved-smooth",
+    "nails": "short-natural",
+    "makeupStyle": "none-natural",
+    "tattoos": "none",
+    "piercings": [
+      "none"
+    ],
+    "nosePiercingType": "none",
+    "styleFashion": [
+      "casual-relaxed"
+    ],
+    "eyeColor": "brown-dark",
+    "eyebrows": "medium-natural",
+    "lipShape": "thin",
+    "ears": "average",
+    "frecklesMarks": [
+      "none"
+    ],
+    "facialHair": "clean-shaven",
+    "glasses": "none",
+    "dimples": "none",
+    "smileTeeth": [
+      "straight-teeth",
+      "subtle-smile"
+    ],
+    "noseType": "wide-flat",
+    "faceShape": "oval",
+    "cheekbones": "soft-rounded",
+    "jawline": "soft-rounded",
+    "portraitAttire": "casual",
+    "accessories": [
+      "watch",
+      "jewelry-necklace",
+      "belt"
+    ],
+    "customDetails": "Walking on Huntington Beach at sunset, barefoot in the sand",
+    "ethnicity": "southeast-asian"
+  }
+}

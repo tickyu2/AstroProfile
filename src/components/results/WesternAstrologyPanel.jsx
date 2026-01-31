@@ -14,9 +14,29 @@ const WESTERN_ELEMENT_COLORS = {
 }
 
 const zodiacEmojis = {
-    'Aries': '♈', 'Taurus': '♉', 'Gemini': '♊', 'Cancer': '♋', 
-    'Leo': '♌', 'Virgo': '♍', 'Libra': '♎', 'Scorpio': '♏', 
+    'Aries': '♈', 'Taurus': '♉', 'Gemini': '♊', 'Cancer': '♋',
+    'Leo': '♌', 'Virgo': '♍', 'Libra': '♎', 'Scorpio': '♏',
     'Sagittarius': '♐', 'Capricorn': '♑', 'Aquarius': '♒', 'Pisces': '♓'
+}
+
+/**
+ * Format degree for display, with fallback for legacy profiles
+ *
+ * v2.0 Python profiles include `degreeFormatted` directly - this helper
+ * provides backward compatibility for profiles created before v2.0.
+ *
+ * @param {Object} planetData - Planet data object (may have degreeFormatted, degree, sign)
+ * @returns {string} - Formatted degree string (e.g., "14.05° Cancer") or empty string
+ */
+const formatDegree = (planetData) => {
+    if (!planetData) return ''
+    // v2.0: Use degreeFormatted if available (pre-formatted by Python)
+    if (planetData.degreeFormatted) return planetData.degreeFormatted
+    // Legacy fallback: format from degree + sign
+    if (planetData.degree !== undefined && planetData.sign) {
+        return `${Number(planetData.degree).toFixed(2)}° ${planetData.sign}`
+    }
+    return ''
 }
 
 const westernPersonality = {
@@ -1010,11 +1030,34 @@ function WesternHousesSection({ houses, planets }) {
     const [showTheory, setShowTheory] = useState(false)
     const [showMasteryGuide, setShowMasteryGuide] = useState(false)
 
+    // Helper: Convert sign + degree to absolute longitude
+    const signToLongitude = (sign, degree) => {
+        const signOrder = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+                          'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
+        const signIndex = signOrder.indexOf(sign)
+        if (signIndex === -1) return undefined
+        return (signIndex * 30) + (degree || 0)
+    }
+
+    // Helper: Extract longitude from a cusp object (handles multiple formats)
+    const extractLongitude = (cusp) => {
+        if (cusp === undefined || cusp === null) return undefined
+        // Direct number value
+        if (typeof cusp === 'number') return cusp
+        // Object with longitude
+        if (cusp.longitude !== undefined) return cusp.longitude
+        // Object with degree + sign (convert to absolute longitude)
+        if (cusp.degree !== undefined && cusp.sign) {
+            return signToLongitude(cusp.sign, cusp.degree)
+        }
+        return undefined
+    }
+
     // Helper: Get house cusp longitude from various possible data formats
     const getHouseCuspLongitude = (houseCusps, houseNum) => {
         if (!houseCusps) return undefined
 
-        // Try various key formats: house_1, 1, "1", houses.1, cusps.house_1
+        // Try various key formats: house_1, 1, "1"
         const possibleKeys = [
             `house_${houseNum}`,
             houseNum,
@@ -1022,26 +1065,43 @@ function WesternHousesSection({ houses, planets }) {
             `${houseNum}`
         ]
 
+        // Try direct access
         for (const key of possibleKeys) {
-            if (houseCusps[key]?.longitude !== undefined) {
-                return houseCusps[key].longitude
+            const longitude = extractLongitude(houseCusps[key])
+            if (longitude !== undefined) return longitude
+        }
+
+        // Try nested .houses format (can be object or array)
+        if (houseCusps.houses) {
+            // If array, use index (house 1 = index 0)
+            if (Array.isArray(houseCusps.houses)) {
+                const longitude = extractLongitude(houseCusps.houses[houseNum - 1])
+                if (longitude !== undefined) return longitude
+            } else {
+                for (const key of possibleKeys) {
+                    const longitude = extractLongitude(houseCusps.houses[key])
+                    if (longitude !== undefined) return longitude
+                }
             }
         }
 
-        // Try nested formats
-        if (houseCusps.houses) {
-            for (const key of possibleKeys) {
-                if (houseCusps.houses[key]?.longitude !== undefined) {
-                    return houseCusps.houses[key].longitude
+        // Try nested .cusps format (can be object or array)
+        if (houseCusps.cusps) {
+            if (Array.isArray(houseCusps.cusps)) {
+                const longitude = extractLongitude(houseCusps.cusps[houseNum - 1])
+                if (longitude !== undefined) return longitude
+            } else {
+                for (const key of possibleKeys) {
+                    const longitude = extractLongitude(houseCusps.cusps[key])
+                    if (longitude !== undefined) return longitude
                 }
             }
         }
-        if (houseCusps.cusps) {
-            for (const key of possibleKeys) {
-                if (houseCusps.cusps[key]?.longitude !== undefined) {
-                    return houseCusps.cusps[key].longitude
-                }
-            }
+
+        // Try if houseCusps itself is an array
+        if (Array.isArray(houseCusps)) {
+            const longitude = extractLongitude(houseCusps[houseNum - 1])
+            if (longitude !== undefined) return longitude
         }
 
         return undefined
@@ -1073,7 +1133,8 @@ function WesternHousesSection({ houses, planets }) {
                 }
             }
         }
-        return 1 // Default to 1st house if calculation fails
+        // Return null if house cannot be determined - do NOT default to house 1
+        return null
     }
 
     // Calculate planets per house
@@ -1123,8 +1184,8 @@ function WesternHousesSection({ houses, planets }) {
         if (count >= 5) return { stars: '★★★★★', label: 'Very Strong' }
         if (count >= 3) return { stars: '★★★★☆', label: 'Strong' }
         if (count >= 2) return { stars: '★★★☆☆', label: 'Moderate' }
-        if (count >= 1) return { stars: '★★☆☆☆', label: 'Weak' }
-        return { stars: '★☆☆☆☆', label: 'Empty' }
+        if (count >= 1) return { stars: '★★☆☆☆', label: 'Activated' }
+        return { stars: '☆☆☆☆☆', label: 'Empty' }
     }
 
     // Find strongest and weakest houses
@@ -3861,21 +3922,21 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
                                 <div className="text-2xl mb-0.5">{sovereign.sun?.symbol || zodiacEmojis[sovereign.sun?.sign]}</div>
                                 <div className="text-[9px] text-amber-400 font-bold uppercase">Sun</div>
                                 <div className="text-xs text-white/90 font-medium">{sovereign.sun?.sign}</div>
-                                <div className="text-[9px] text-white/50">{sovereign.sun?.degreeFormatted}</div>
+                                <div className="text-[9px] text-white/50">{formatDegree(sovereign.sun)}</div>
                             </div>
                             {/* Moon Sign */}
                             <div className="bg-gradient-to-b from-blue-500/20 to-blue-500/5 rounded-lg p-2 border border-blue-500/30">
                                 <div className="text-2xl mb-0.5">{sovereign.moon?.symbol || zodiacEmojis[sovereign.moon?.sign]}</div>
                                 <div className="text-[9px] text-blue-400 font-bold uppercase">Moon</div>
                                 <div className="text-xs text-white/90 font-medium">{sovereign.moon?.sign}</div>
-                                <div className="text-[9px] text-white/50">{sovereign.moon?.degreeFormatted}</div>
+                                <div className="text-[9px] text-white/50">{formatDegree(sovereign.moon)}</div>
                             </div>
                             {/* Rising Sign */}
                             <div className="bg-gradient-to-b from-purple-500/20 to-purple-500/5 rounded-lg p-2 border border-purple-500/30">
                                 <div className="text-2xl mb-0.5">{sovereign.rising?.symbol || zodiacEmojis[sovereign.rising?.sign]}</div>
                                 <div className="text-[9px] text-purple-400 font-bold uppercase">Rising</div>
                                 <div className="text-xs text-white/90 font-medium">{sovereign.rising?.sign}</div>
-                                <div className="text-[9px] text-white/50">{sovereign.rising?.degreeFormatted}</div>
+                                <div className="text-[9px] text-white/50">{formatDegree(sovereign.rising)}</div>
                                 {!sovereign.rising?.isAccurate && (
                                     <div className="text-[8px] text-yellow-400/70 mt-0.5">~approx</div>
                                 )}
@@ -3884,7 +3945,10 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
                     </div>
 
                     {/* Western Houses - Life Domain Strengths (NEW) */}
+                    {/* Only show if we have actual house cusp data (not just wrapper) */}
                     {sovereign.houses && sovereign.planets && (
+                        sovereign.houses.houses || sovereign.houses.cusps || Array.isArray(sovereign.houses) || sovereign.houses['1']
+                    ) && (
                         <WesternHousesSection
                             houses={sovereign.houses}
                             planets={sovereign.planets}
@@ -3905,25 +3969,29 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
                         <div className="bg-slate-900/40 rounded-lg p-3 mb-3">
                             <div className="text-xs text-white/50 uppercase tracking-wider mb-2">Planetary Positions</div>
                             <div className="grid grid-cols-5 gap-1.5">
-                                {Object.entries(sovereign.planets).map(([key, planet]) => (
-                                    <div key={key} className={`text-center p-1.5 rounded ${planet.isRetrograde ? 'bg-red-900/30 border border-red-500/30' : 'bg-slate-800/50'}`}>
-                                        <div className="text-xl text-amber-300">{planet.symbol || zodiacEmojis[planet.sign]}</div>
-                                        <div className={`text-[10px] uppercase font-medium ${planet.isRetrograde ? 'text-red-400' : 'text-amber-400/80'}`}>
-                                            {planet.name}{planet.isRetrograde && ' ℞'}
+                                {Object.entries(sovereign.planets).map(([key, planet]) => {
+                                    // Support both isRetrograde (recalculated) and retrograde (Python canonical)
+                                    const isRetro = planet.isRetrograde || planet.retrograde
+                                    return (
+                                        <div key={key} className={`text-center p-1.5 rounded ${isRetro ? 'bg-red-900/30 border border-red-500/30' : 'bg-slate-800/50'}`}>
+                                            <div className="text-xl text-amber-300">{planet.symbol || zodiacEmojis[planet.sign]}</div>
+                                            <div className={`text-[10px] uppercase font-medium ${isRetro ? 'text-red-400' : 'text-amber-400/80'}`}>
+                                                {planet.name || key.charAt(0).toUpperCase() + key.slice(1)}{isRetro && ' ℞'}
+                                            </div>
+                                            <div className="text-xs text-white/90">{planet.sign}</div>
+                                            <div className="text-[10px] text-white/50">{formatDegree(planet)}</div>
+                                            {isRetro && (
+                                                <div className="text-[8px] text-red-400 mt-0.5">Retrograde</div>
+                                            )}
                                         </div>
-                                        <div className="text-xs text-white/90">{planet.sign}</div>
-                                        <div className="text-[10px] text-white/50">{planet.degreeFormatted}</div>
-                                        {planet.isRetrograde && (
-                                            <div className="text-[8px] text-red-400 mt-0.5">Retrograde</div>
-                                        )}
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         </div>
                     )}
 
                     {/* Retrograde Interpretations */}
-                    {sovereign.planets && Object.entries(sovereign.planets).some(([_, p]) => p.isRetrograde) && (
+                    {sovereign.planets && Object.entries(sovereign.planets).some(([_, p]) => p.isRetrograde || p.retrograde) && (
                         <div className="bg-gradient-to-b from-red-900/20 to-slate-900/40 rounded-lg p-3 mb-3 border border-red-500/20">
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="text-red-400">℞</span>
@@ -3931,14 +3999,14 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
                             </div>
                             <div className="space-y-2">
                                 {Object.entries(sovereign.planets)
-                                    .filter(([_, planet]) => planet.isRetrograde)
+                                    .filter(([_, planet]) => planet.isRetrograde || planet.retrograde)
                                     .map(([key, planet]) => {
                                         const interp = retrogradeInterpretations[key]
                                         if (!interp) return null
                                         return (
                                             <div key={key} className="bg-slate-800/50 rounded-lg p-2.5">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-lg">{planet.symbol}</span>
+                                                    <span className="text-lg">{planet.symbol || zodiacEmojis[planet.sign]}</span>
                                                     <span className="text-sm text-red-300 font-medium">{interp.title}</span>
                                                 </div>
                                                 <div className="text-[10px] text-amber-400/80 mb-1">{interp.brief}</div>
@@ -3951,13 +4019,24 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
                     )}
 
                     {/* Moon Phase at Birth */}
+                    {/* Supports both v2.0 format (phase, illumination 0-1) and legacy format (phaseName, illumination %) */}
                     {sovereign.moonPhase && (
                         <div className="bg-gradient-to-b from-indigo-900/30 to-slate-900/40 rounded-lg p-3 mb-3 border border-indigo-500/20">
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="text-3xl">{sovereign.moonPhase.emoji}</span>
                                 <div>
-                                    <div className="text-sm text-indigo-300 font-medium">{sovereign.moonPhase.phaseName}</div>
-                                    <div className="text-[10px] text-white/50">{sovereign.moonPhase.illumination}% illuminated • {sovereign.moonPhase.cyclePosition}</div>
+                                    <div className="text-sm text-indigo-300 font-medium">
+                                        {sovereign.moonPhase.phase || sovereign.moonPhase.phaseName}
+                                    </div>
+                                    <div className="text-[10px] text-white/50">
+                                        {/* v2.0: illumination is 0-1, legacy: illumination is percentage */}
+                                        {sovereign.moonPhase.illumination <= 1
+                                            ? `${Math.round(sovereign.moonPhase.illumination * 100)}% illuminated`
+                                            : `${sovereign.moonPhase.illumination}% illuminated`
+                                        }
+                                        {sovereign.moonPhase.angle && ` • ${sovereign.moonPhase.angle.toFixed(1)}° from Sun`}
+                                        {sovereign.moonPhase.cyclePosition && ` • ${sovereign.moonPhase.cyclePosition}`}
+                                    </div>
                                 </div>
                             </div>
                             {sovereign.moonPhase.interpretation && (
@@ -3971,40 +4050,64 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
                     )}
 
                     {/* House Cusps (Placidus) */}
-                    {sovereign.houses && sovereign.houses.houses && (
+                    {/* Supports both v2.0 array format and legacy object format */}
+                    {sovereign.houses && (Array.isArray(sovereign.houses) ? sovereign.houses.length > 0 : sovereign.houses.houses) && (
                         <div className="bg-slate-900/40 rounded-lg p-3">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="text-sm text-white/60 uppercase tracking-wider font-medium">House Cusps</div>
-                                <div className="text-xs text-purple-400 px-2 py-0.5 bg-purple-500/20 rounded font-medium">{sovereign.houses.system}</div>
+                                <div className="text-xs text-purple-400 px-2 py-0.5 bg-purple-500/20 rounded font-medium">
+                                    {sovereign.houseSystem || sovereign.houses?.system || 'Placidus'}
+                                </div>
                             </div>
                             <div className="grid grid-cols-4 gap-2">
-                                {Object.entries(sovereign.houses.houses).map(([num, house]) => (
-                                    <div key={num} className="text-center p-2 bg-slate-800/50 rounded">
-                                        <div className="text-base text-purple-300 font-bold">{num}</div>
-                                        <div className="text-lg">{zodiacEmojis[house.sign]}</div>
-                                        <div className="text-xs text-white/80">{house.sign}</div>
-                                        <div className="text-[11px] text-white/50">{house.degreeFormatted}</div>
-                                    </div>
-                                ))}
+                                {/* Handle v2.0 array format: [{house: 1, sign, degree, degreeFormatted}] */}
+                                {Array.isArray(sovereign.houses) ? (
+                                    sovereign.houses.map((house) => (
+                                        <div key={house.house} className="text-center p-2 bg-slate-800/50 rounded">
+                                            <div className="text-base text-purple-300 font-bold">{house.house}</div>
+                                            <div className="text-lg">{zodiacEmojis[house.sign]}</div>
+                                            <div className="text-xs text-white/80">{house.sign}</div>
+                                            <div className="text-[11px] text-white/50">{house.degreeFormatted || formatDegree(house)}</div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    /* Legacy object format: {houses: {1: {sign, degree}}} */
+                                    Object.entries(sovereign.houses.houses).map(([num, house]) => (
+                                        <div key={num} className="text-center p-2 bg-slate-800/50 rounded">
+                                            <div className="text-base text-purple-300 font-bold">{num}</div>
+                                            <div className="text-lg">{zodiacEmojis[house.sign]}</div>
+                                            <div className="text-xs text-white/80">{house.sign}</div>
+                                            <div className="text-[11px] text-white/50">{house.degreeFormatted || formatDegree(house)}</div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                             {/* Angular Houses Highlight */}
                             <div className="mt-3 pt-2 border-t border-purple-500/30">
                                 <div className="grid grid-cols-4 gap-2 text-center">
                                     <div className="text-xs">
                                         <span className="text-purple-400 font-bold">ASC</span>
-                                        <span className="text-white/70 ml-1">{sovereign.houses.angles.ascendant.sign}</span>
+                                        <span className="text-white/70 ml-1">
+                                            {sovereign.ascendant?.sign || sovereign.houses?.angles?.ascendant?.sign || '—'}
+                                        </span>
                                     </div>
                                     <div className="text-xs">
                                         <span className="text-purple-400 font-bold">IC</span>
-                                        <span className="text-white/70 ml-1">{sovereign.houses.angles.ic.sign}</span>
+                                        <span className="text-white/70 ml-1">
+                                            {(Array.isArray(sovereign.houses) ? sovereign.houses[3]?.sign : sovereign.houses?.angles?.ic?.sign) || '—'}
+                                        </span>
                                     </div>
                                     <div className="text-xs">
                                         <span className="text-purple-400 font-bold">DSC</span>
-                                        <span className="text-white/70 ml-1">{sovereign.houses.angles.descendant.sign}</span>
+                                        <span className="text-white/70 ml-1">
+                                            {(Array.isArray(sovereign.houses) ? sovereign.houses[6]?.sign : sovereign.houses?.angles?.descendant?.sign) || '—'}
+                                        </span>
                                     </div>
                                     <div className="text-xs">
                                         <span className="text-purple-400 font-bold">MC</span>
-                                        <span className="text-white/70 ml-1">{sovereign.houses.angles.mc.sign}</span>
+                                        <span className="text-white/70 ml-1">
+                                            {sovereign.midheaven?.sign || sovereign.houses?.angles?.mc?.sign || '—'}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

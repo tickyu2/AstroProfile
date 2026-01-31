@@ -1,0 +1,1232 @@
+/**
+ * cuspArchetypes.ts
+ * =================
+ *
+ * Complete 72 cusp archetype data for all 12 zodiac transitions.
+ * Each cusp has 6 days of transition, creating unique hybrid identities.
+ *
+ * φ-Curve Blend Values (Universal - same for all cusps):
+ * - Day 1: 13% new sign / 87% old sign
+ * - Day 2: 37% new sign / 63% old sign
+ * - Day 3: 58% new sign / 42% old sign
+ * - Day 4: 75% new sign / 25% old sign
+ * - Day 5: 89% new sign / 11% old sign
+ * - Day 6: 98% new sign / 2% old sign
+ *
+ * GENESIS AstroProfile - January 2026
+ */
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+export type CuspDayArchetype = {
+  day: number;
+  date: string;
+  blendNew: number;
+  blendOld: number;
+  mythicName: string;
+  title: string;
+  psychologicalProfile: string;
+  strengths: string[];
+  shadows: string[];
+  lifeTheme: string;
+};
+
+export type CuspTransition = {
+  id: string;
+  fromSign: string;
+  toSign: string;
+  fromSymbol: string;
+  toSymbol: string;
+  fromElement: string;
+  toElement: string;
+  cuspName: string;
+  dateRange: string;
+  elementalDynamic: string;
+  archetypes: CuspDayArchetype[];
+};
+
+// =============================================================================
+// UNIVERSAL φ-CURVE VALUES
+// =============================================================================
+
+export const PHI_CURVE_VALUES = {
+  day1: { blendNew: 13, blendOld: 87 },
+  day2: { blendNew: 37, blendOld: 63 },
+  day3: { blendNew: 58, blendOld: 42 },
+  day4: { blendNew: 75, blendOld: 25 },
+  day5: { blendNew: 89, blendOld: 11 },
+  day6: { blendNew: 98, blendOld: 2 },
+};
+
+// =============================================================================
+// CUSP ARCHETYPE DATA
+// =============================================================================
+
+export const CUSP_ARCHETYPES: CuspTransition[] = [
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 1: PISCES → ARIES (March 21-26)
+  // "The Cusp of Rebirth" - Water dissolving into Fire
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'pisces-aries',
+    fromSign: 'Pisces',
+    toSign: 'Aries',
+    fromSymbol: '♓',
+    toSymbol: '♈',
+    fromElement: 'Water',
+    toElement: 'Fire',
+    cuspName: 'The Cusp of Rebirth',
+    dateRange: 'March 21-26',
+    elementalDynamic: 'Water dissolving into Fire - dreams become action',
+    archetypes: [
+      {
+        day: 1,
+        date: 'March 21',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Dreaming Warrior',
+        title: 'Where Vision Stirs Toward Action',
+        psychologicalProfile: 'Still wrapped in Piscean mist, yet feeling the first spark of Arian fire. These souls carry profound intuition but are just beginning to trust their own impulse to act. They dream of battles they have not yet fought.',
+        strengths: ['Visionary intuition', 'Compassionate courage', 'Creative imagination'],
+        shadows: ['Hesitation at crucial moments', 'Confusion between fantasy and reality'],
+        lifeTheme: 'Learning to translate dreams into decisive action without losing spiritual depth.',
+      },
+      {
+        day: 2,
+        date: 'March 22',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Rising Phoenix',
+        title: 'The Soul That Burns Through Water',
+        psychologicalProfile: 'The fire within grows stronger, beginning to evaporate the waters of indecision. These individuals feel the pull between surrender and assertion, often experiencing life as a series of rebirths.',
+        strengths: ['Transformative resilience', 'Emotional courage', 'Mystical drive'],
+        shadows: ['Inner conflict between passivity and aggression', 'Impatience with process'],
+        lifeTheme: 'Rising from emotional depths to claim personal power.',
+      },
+      {
+        day: 3,
+        date: 'March 23',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Threshold Guardian',
+        title: 'Standing Between Worlds',
+        psychologicalProfile: 'Perfectly balanced at the crossroads. These souls understand both the wisdom of letting go and the necessity of fighting. They often become guides for others navigating major life transitions.',
+        strengths: ['Balanced intuition and action', 'Bridge-building ability', 'Timing wisdom'],
+        shadows: ['Difficulty committing fully to either path', 'Identity confusion'],
+        lifeTheme: 'Mastering the art of knowing when to yield and when to advance.',
+      },
+      {
+        day: 4,
+        date: 'March 24',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Inspired Warrior',
+        title: 'Fire Lit by Sacred Waters',
+        psychologicalProfile: 'Now predominantly Arian but carrying Piscean depth. These individuals act with conviction while maintaining spiritual awareness. Their courage is tempered by compassion.',
+        strengths: ['Spiritually-grounded action', 'Inspired leadership', 'Compassionate assertiveness'],
+        shadows: ['Forgetting practical limits', 'Crusading tendencies'],
+        lifeTheme: 'Fighting for causes that honor both individual will and collective well-being.',
+      },
+      {
+        day: 5,
+        date: 'March 25',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Dawn Champion',
+        title: 'First Light of the New Cycle',
+        psychologicalProfile: 'Almost fully emerged into Aries, these souls carry only a whisper of Piscean sensitivity. They are pioneers who remember, somewhere deep within, the importance of gentleness.',
+        strengths: ['Bold initiative', 'Fresh perspective', 'Pioneering spirit'],
+        shadows: ['Dismissing emotional complexity', 'Rushing ahead of wisdom'],
+        lifeTheme: 'Leading others into new territory while honoring what was left behind.',
+      },
+      {
+        day: 6,
+        date: 'March 26',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Newborn Ram',
+        title: 'Pure Beginning',
+        psychologicalProfile: 'Essentially pure Aries with the faintest echo of Pisces. These souls embody fresh starts and innocent courage. They charge forward with enthusiasm, carrying only the subtlest trace of oceanic memory.',
+        strengths: ['Unbridled enthusiasm', 'Fearless beginnings', 'Pure self-assertion'],
+        shadows: ['Forgetting consequences', 'Naive aggression'],
+        lifeTheme: 'Embracing the adventure of self-discovery with whole-hearted courage.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 2: ARIES → TAURUS (April 20-25)
+  // "The Cusp of Power" - Fire settling into Earth
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'aries-taurus',
+    fromSign: 'Aries',
+    toSign: 'Taurus',
+    fromSymbol: '♈',
+    toSymbol: '♉',
+    fromElement: 'Fire',
+    toElement: 'Earth',
+    cuspName: 'The Cusp of Power',
+    dateRange: 'April 20-25',
+    elementalDynamic: 'Fire settling into Earth - impulse becomes endurance',
+    archetypes: [
+      {
+        day: 1,
+        date: 'April 20',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Grounding Flame',
+        title: 'Fire Seeking Form',
+        psychologicalProfile: 'Still burning with Arian impulse but beginning to seek stability. These souls want to build something lasting from their passionate energy, though patience remains a challenge.',
+        strengths: ['Dynamic energy with growing patience', 'Creative drive', 'Passionate commitment'],
+        shadows: ['Frustration with slow progress', 'Starting but not finishing'],
+        lifeTheme: 'Learning that true power requires both initiation and persistence.',
+      },
+      {
+        day: 2,
+        date: 'April 21',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Forging Soul',
+        title: 'Where Fire Shapes Earth',
+        psychologicalProfile: 'The fire begins to find its anvil. These individuals are learning to channel raw energy into productive forms. They experience the tension between wanting it now and building it right.',
+        strengths: ['Creative determination', 'Physical vitality', 'Resourceful action'],
+        shadows: ['Impatience versus stubbornness conflicts', 'Possessive impulses'],
+        lifeTheme: 'Transforming passion into tangible achievement.',
+      },
+      {
+        day: 3,
+        date: 'April 22',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Earthen Warrior',
+        title: 'Strength Finding Root',
+        psychologicalProfile: 'Balanced between action and stability. These souls understand both the thrill of the chase and the satisfaction of the harvest. They make excellent entrepreneurs who can both start and sustain ventures.',
+        strengths: ['Balanced dynamism and patience', 'Practical courage', 'Sensual vitality'],
+        shadows: ['Internal conflict between movement and rest', 'Material attachment'],
+        lifeTheme: 'Building empires that honor both ambition and sustainability.',
+      },
+      {
+        day: 4,
+        date: 'April 23',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Abundant Pioneer',
+        title: 'The Settler After the Explorer',
+        psychologicalProfile: 'Now predominantly Taurean but still carrying Arian spark. These individuals know how to claim territory and make it flourish. They have the drive to start and the wisdom to nurture.',
+        strengths: ['Productive energy', 'Determined abundance', 'Sensory leadership'],
+        shadows: ['Territorial aggression', 'Stubborn competitiveness'],
+        lifeTheme: 'Creating lasting prosperity through courageous effort.',
+      },
+      {
+        day: 5,
+        date: 'April 24',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Steady Flame',
+        title: 'Enduring Fire',
+        psychologicalProfile: 'Almost fully Taurean with a subtle Arian edge. These souls are builders who still remember how to fight for what they value. Their determination is nearly unshakeable.',
+        strengths: ['Unwavering persistence', 'Grounded confidence', 'Protective strength'],
+        shadows: ['Excessive rigidity', 'Slow to adapt'],
+        lifeTheme: 'Defending and growing what has been courageously claimed.',
+      },
+      {
+        day: 6,
+        date: 'April 25',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Rooted Bull',
+        title: 'Pure Endurance',
+        psychologicalProfile: 'Essentially pure Taurus with only a whisper of Arian fire. These souls embody earthy stability and sensual appreciation. They move slowly but unstoppably toward their goals.',
+        strengths: ['Deep patience', 'Material mastery', 'Sensual wisdom'],
+        shadows: ['Resistance to change', 'Possessive attachment'],
+        lifeTheme: 'Cultivating lasting beauty and security through steadfast effort.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 3: TAURUS → GEMINI (May 21-26)
+  // "The Cusp of Energy" - Earth opening to Air
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'taurus-gemini',
+    fromSign: 'Taurus',
+    toSign: 'Gemini',
+    fromSymbol: '♉',
+    toSymbol: '♊',
+    fromElement: 'Earth',
+    toElement: 'Air',
+    cuspName: 'The Cusp of Energy',
+    dateRange: 'May 21-26',
+    elementalDynamic: 'Earth opening to Air - stability meets curiosity',
+    archetypes: [
+      {
+        day: 1,
+        date: 'May 21',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Curious Gardener',
+        title: 'Earth That Listens to Wind',
+        psychologicalProfile: 'Still deeply rooted in Taurean stability but beginning to feel the stirring of mental curiosity. These souls value what they have built but are starting to wonder what else exists beyond their garden walls.',
+        strengths: ['Grounded curiosity', 'Practical intelligence', 'Patient learning'],
+        shadows: ['Fear of intellectual risk', 'Clinging to comfortable knowledge'],
+        lifeTheme: 'Opening the mind while keeping feet firmly planted.',
+      },
+      {
+        day: 2,
+        date: 'May 22',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Speaking Stone',
+        title: 'When Earth Finds Voice',
+        psychologicalProfile: 'The desire to communicate grows stronger within the stable foundation. These individuals are learning to express their values and sensations in words, translating physical experience into ideas.',
+        strengths: ['Articulate groundedness', 'Sensory description', 'Verbal charm'],
+        shadows: ['Talking about doing rather than doing', 'Mental restlessness in stable situations'],
+        lifeTheme: 'Finding language for embodied wisdom.',
+      },
+      {
+        day: 3,
+        date: 'May 23',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Thinking Builder',
+        title: 'Mind and Matter in Balance',
+        psychologicalProfile: 'Perfectly poised between physical creation and mental exploration. These souls can both build and explain, create and communicate. They often excel in fields that require both hands and mind.',
+        strengths: ['Practical intelligence', 'Versatile creativity', 'Grounded wit'],
+        shadows: ['Scattered between projects and ideas', 'Neither fully committed to either mode'],
+        lifeTheme: 'Integrating intellectual curiosity with material mastery.',
+      },
+      {
+        day: 4,
+        date: 'May 24',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Winged Craftsman',
+        title: 'Ideas Taking Form',
+        psychologicalProfile: 'Now predominantly mental but still grounded. These individuals bring Geminian versatility to Taurean craftsmanship. They can think about many things while still producing tangible results.',
+        strengths: ['Quick practical thinking', 'Versatile skills', 'Communicative creativity'],
+        shadows: ['Starting many projects simultaneously', 'Restless materialism'],
+        lifeTheme: 'Making ideas real without losing intellectual agility.',
+      },
+      {
+        day: 5,
+        date: 'May 25',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Swift Collector',
+        title: 'The Mind That Still Remembers Touch',
+        psychologicalProfile: 'Almost fully Geminian with subtle Taurean sensuality. These souls move quickly through ideas but retain an appreciation for quality and beauty. They collect experiences and objects alike.',
+        strengths: ['Rapid learning', 'Aesthetic intelligence', 'Social versatility'],
+        shadows: ['Surface engagement', 'Collecting without truly valuing'],
+        lifeTheme: 'Moving through life with curiosity while remembering what truly matters.',
+      },
+      {
+        day: 6,
+        date: 'May 26',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Quicksilver Twin',
+        title: 'Pure Mercury',
+        psychologicalProfile: 'Essentially pure Gemini with only an echo of Taurean groundedness. These souls are swift, curious, and communicative, carrying just enough earth to occasionally pause and appreciate.',
+        strengths: ['Mental agility', 'Social adaptability', 'Linguistic brilliance'],
+        shadows: ['Scattered attention', 'Difficulty with commitment'],
+        lifeTheme: 'Exploring the endless variety of human experience through thought and word.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 4: GEMINI → CANCER (June 21-26)
+  // "The Cusp of Magic" - Air dissolving into Water
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'gemini-cancer',
+    fromSign: 'Gemini',
+    toSign: 'Cancer',
+    fromSymbol: '♊',
+    toSymbol: '♋',
+    fromElement: 'Air',
+    toElement: 'Water',
+    cuspName: 'The Cusp of Magic',
+    dateRange: 'June 21-26',
+    elementalDynamic: 'Air dissolving into Water - thought meets feeling',
+    archetypes: [
+      {
+        day: 1,
+        date: 'June 21',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Feeling Messenger',
+        title: 'Words That Begin to Feel',
+        psychologicalProfile: 'Still primarily intellectual but beginning to sense emotional undercurrents. These souls are learning that not everything can be explained—some things must be felt. The summer solstice marks this profound threshold.',
+        strengths: ['Emotionally intelligent communication', 'Intuitive curiosity', 'Sensitive wit'],
+        shadows: ['Overthinking feelings', 'Avoiding emotional depth through words'],
+        lifeTheme: 'Learning to let emotions inform understanding.',
+      },
+      {
+        day: 2,
+        date: 'June 22',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Dreaming Communicator',
+        title: 'When Logic Meets Longing',
+        psychologicalProfile: 'The heart begins to speak louder than the mind. These individuals experience growing emotional sensitivity while retaining verbal facility. They often become poets or counselors who can articulate feeling.',
+        strengths: ['Empathic articulation', 'Creative imagination', 'Nurturing communication'],
+        shadows: ['Emotional overwhelm from too much input', 'Mood swings affecting clarity'],
+        lifeTheme: 'Giving voice to the heart\'s deeper knowledge.',
+      },
+      {
+        day: 3,
+        date: 'June 23',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Threshold Keeper',
+        title: 'Guardian of Heart and Mind',
+        psychologicalProfile: 'Balanced at the magical crossroads between thought and feeling. These souls understand both languages fluently—the logic of ideas and the wisdom of emotions. They often serve as translators between head and heart people.',
+        strengths: ['Emotional-intellectual integration', 'Magical thinking', 'Nurturing intelligence'],
+        shadows: ['Confusion about whether to think or feel', 'Neither fully rational nor fully emotional'],
+        lifeTheme: 'Weaving together the wisdom of mind and the wisdom of heart.',
+      },
+      {
+        day: 4,
+        date: 'June 24',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Intuitive Speaker',
+        title: 'Feelings Finding Words',
+        psychologicalProfile: 'Now predominantly emotional but retaining verbal gifts. These individuals can express subtle feelings with surprising clarity. They bring Geminian articulation to Cancerian depth.',
+        strengths: ['Expressive emotional intelligence', 'Caring communication', 'Intuitive networking'],
+        shadows: ['Talking about feelings rather than feeling them', 'Emotional manipulation through words'],
+        lifeTheme: 'Speaking the language of the heart with clarity and care.',
+      },
+      {
+        day: 5,
+        date: 'June 25',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Protective Storyteller',
+        title: 'The Nest-Builder Who Remembers Flight',
+        psychologicalProfile: 'Almost fully Cancerian with a whisper of Geminian lightness. These souls are deeply nurturing but retain wit and verbal charm. They protect through stories and create home through communication.',
+        strengths: ['Nurturing wisdom', 'Emotional memory', 'Protective intuition'],
+        shadows: ['Retreating into fantasy when hurt', 'Smothering with words'],
+        lifeTheme: 'Creating emotional safety through understanding and expression.',
+      },
+      {
+        day: 6,
+        date: 'June 26',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Moonlit Crab',
+        title: 'Pure Lunar Feeling',
+        psychologicalProfile: 'Essentially pure Cancer with only an echo of Geminian curiosity. These souls are deeply emotional, protective, and intuitive, carrying just enough air to occasionally step back and observe their own tides.',
+        strengths: ['Deep empathy', 'Protective love', 'Emotional wisdom'],
+        shadows: ['Mood sensitivity', 'Defensive withdrawal'],
+        lifeTheme: 'Nurturing and protecting what the heart holds dear.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 5: CANCER → LEO (July 23-28)
+  // "The Cusp of Oscillation" - Water feeding Fire
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'cancer-leo',
+    fromSign: 'Cancer',
+    toSign: 'Leo',
+    fromSymbol: '♋',
+    toSymbol: '♌',
+    fromElement: 'Water',
+    toElement: 'Fire',
+    cuspName: 'The Cusp of Oscillation',
+    dateRange: 'July 23-28',
+    elementalDynamic: 'Water feeding Fire - emotion becomes expression',
+    archetypes: [
+      {
+        day: 1,
+        date: 'July 23',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Shy Performer',
+        title: 'Heart Seeking Stage',
+        psychologicalProfile: 'Still deeply Cancerian but beginning to feel the pull toward self-expression. These souls want to be seen but fear exposure. They nurture dreams of recognition while hiding in emotional safety.',
+        strengths: ['Emotionally authentic expression', 'Nurturing creativity', 'Sensitive leadership'],
+        shadows: ['Fear of spotlight', 'Seeking validation while fearing judgment'],
+        lifeTheme: 'Learning to shine without losing emotional authenticity.',
+      },
+      {
+        day: 2,
+        date: 'July 24',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Emerging Sun',
+        title: 'When the Moon Yields to Day',
+        psychologicalProfile: 'The desire for recognition grows stronger. These individuals oscillate between wanting to retreat and wanting to perform, experiencing the classic push-pull of this powerful cusp.',
+        strengths: ['Dramatic emotional expression', 'Creative nurturing', 'Charismatic sensitivity'],
+        shadows: ['Mood-driven performance', 'Neediness masked as generosity'],
+        lifeTheme: 'Finding the courage to express what the heart truly feels.',
+      },
+      {
+        day: 3,
+        date: 'July 25',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Solar Crab',
+        title: 'The Heart That Dares to Shine',
+        psychologicalProfile: 'Perfectly balanced between private emotion and public expression. These souls understand both the need for sanctuary and the joy of celebration. They make powerful artists who can access deep feeling and project it brilliantly.',
+        strengths: ['Emotional authenticity with confident expression', 'Creative depth', 'Nurturing leadership'],
+        shadows: ['Dramatic mood swings', 'Oscillating between hiding and overexposure'],
+        lifeTheme: 'Creating from emotional truth while celebrating life\'s brightness.',
+      },
+      {
+        day: 4,
+        date: 'July 26',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Generous King',
+        title: 'Royalty With a Tender Heart',
+        psychologicalProfile: 'Now predominantly Leo but carrying Cancerian depth. These individuals lead with warmth and protect with pride. Their generosity comes from genuine care, not just desire for admiration.',
+        strengths: ['Warm leadership', 'Protective pride', 'Heartfelt generosity'],
+        shadows: ['Pride wounded by emotional rejection', 'Dramatic neediness'],
+        lifeTheme: 'Leading with heart and inspiring through authentic warmth.',
+      },
+      {
+        day: 5,
+        date: 'July 27',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Radiant Protector',
+        title: 'The Sun That Remembers the Moon',
+        psychologicalProfile: 'Almost fully Leo with subtle Cancerian sensitivity. These souls shine brightly but retain emotional depth. They protect their pride and their loved ones with equal fierceness.',
+        strengths: ['Confident warmth', 'Creative leadership', 'Loyal generosity'],
+        shadows: ['Taking emotional slights as personal attacks', 'Demanding appreciation'],
+        lifeTheme: 'Shining as a source of warmth and protection for others.',
+      },
+      {
+        day: 6,
+        date: 'July 28',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Golden Lion',
+        title: 'Pure Solar Radiance',
+        psychologicalProfile: 'Essentially pure Leo with only a whisper of Cancerian emotion. These souls embody creative self-expression and confident leadership, carrying just enough lunar sensitivity to connect with others\' hearts.',
+        strengths: ['Radiant confidence', 'Creative power', 'Generous spirit'],
+        shadows: ['Pride vulnerability', 'Need for constant appreciation'],
+        lifeTheme: 'Expressing the authentic self with joy and creative fire.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 6: LEO → VIRGO (August 23-28)
+  // "The Cusp of Exposure" - Fire refining into Earth
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'leo-virgo',
+    fromSign: 'Leo',
+    toSign: 'Virgo',
+    fromSymbol: '♌',
+    toSymbol: '♍',
+    fromElement: 'Fire',
+    toElement: 'Earth',
+    cuspName: 'The Cusp of Exposure',
+    dateRange: 'August 23-28',
+    elementalDynamic: 'Fire refining into Earth - expression becomes service',
+    archetypes: [
+      {
+        day: 1,
+        date: 'August 23',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Humble King',
+        title: 'Royalty Learning Service',
+        psychologicalProfile: 'Still radiating Leo confidence but beginning to question whether the spotlight serves a purpose. These souls want to shine, but they\'re starting to wonder if their light should illuminate something greater than themselves.',
+        strengths: ['Purposeful creativity', 'Generous precision', 'Humble confidence'],
+        shadows: ['Self-criticism creeping into self-expression', 'Performing for approval'],
+        lifeTheme: 'Learning that true greatness includes humble service.',
+      },
+      {
+        day: 2,
+        date: 'August 24',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Crafting Star',
+        title: 'When Glory Meets Craft',
+        psychologicalProfile: 'The desire for excellence begins to temper the need for applause. These individuals discover that mastery matters as much as recognition. They start polishing their gifts with Virgoan attention to detail.',
+        strengths: ['Creative excellence', 'Detailed artistry', 'Purposeful performance'],
+        shadows: ['Never good enough for the inner critic', 'Pride wounded by imperfection'],
+        lifeTheme: 'Refining creative gifts toward genuine excellence.',
+      },
+      {
+        day: 3,
+        date: 'August 25',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Brilliant Servant',
+        title: 'The Light That Heals',
+        psychologicalProfile: 'Balanced between self-expression and service. These souls understand both the joy of creativity and the satisfaction of usefulness. They often become teachers, healers, or artists whose work genuinely helps others.',
+        strengths: ['Creative service', 'Proud humility', 'Precise warmth'],
+        shadows: ['Oscillating between showing off and hiding', 'Critical of both self and others'],
+        lifeTheme: 'Making art that serves and serving with artistry.',
+      },
+      {
+        day: 4,
+        date: 'August 26',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Precise Creator',
+        title: 'Excellence as Expression',
+        psychologicalProfile: 'Now predominantly Virgoan but retaining Leo warmth. These individuals pursue perfection not from anxiety but from genuine pride in craft. Their attention to detail is a form of creative love.',
+        strengths: ['Warm precision', 'Proud craftsmanship', 'Helpful creativity'],
+        shadows: ['Perfectionism as performance', 'Critical generosity'],
+        lifeTheme: 'Expressing love through meticulous care and excellent work.',
+      },
+      {
+        day: 5,
+        date: 'August 27',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Devoted Analyst',
+        title: 'The Heart in the Details',
+        psychologicalProfile: 'Almost fully Virgoan with a subtle Leo glow. These souls are practical and analytical but retain a creative spark and need for recognition. They serve with quiet pride.',
+        strengths: ['Practical wisdom', 'Humble leadership', 'Analytical creativity'],
+        shadows: ['Hidden need for appreciation', 'Critical self-doubt'],
+        lifeTheme: 'Finding joy in the details while remembering the bigger picture.',
+      },
+      {
+        day: 6,
+        date: 'August 28',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Pure Artisan',
+        title: 'Service as Sacrament',
+        psychologicalProfile: 'Essentially pure Virgo with only an echo of Leo fire. These souls embody practical service and analytical precision, carrying just enough warmth to find joy in their careful work.',
+        strengths: ['Meticulous care', 'Practical healing', 'Humble excellence'],
+        shadows: ['Self-critical perfectionism', 'Difficulty accepting praise'],
+        lifeTheme: 'Serving the world through careful attention and practical wisdom.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 7: VIRGO → LIBRA (September 23-28)
+  // "The Cusp of Beauty" - Earth rising into Air
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'virgo-libra',
+    fromSign: 'Virgo',
+    toSign: 'Libra',
+    fromSymbol: '♍',
+    toSymbol: '♎',
+    fromElement: 'Earth',
+    toElement: 'Air',
+    cuspName: 'The Cusp of Beauty',
+    dateRange: 'September 23-28',
+    elementalDynamic: 'Earth rising into Air - analysis becomes harmony',
+    archetypes: [
+      {
+        day: 1,
+        date: 'September 23',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Aesthetic Analyst',
+        title: 'When Order Seeks Beauty',
+        psychologicalProfile: 'Still primarily practical but beginning to sense that beauty matters beyond function. These souls are learning that relationships and aesthetics are not frivolous but essential. The autumn equinox marks this balancing point.',
+        strengths: ['Practical aesthetics', 'Analytical harmony', 'Ordered beauty'],
+        shadows: ['Judging beauty by usefulness', 'Critical of imperfect relationships'],
+        lifeTheme: 'Discovering that beauty and order can coexist.',
+      },
+      {
+        day: 2,
+        date: 'September 24',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Diplomatic Worker',
+        title: 'Service Meets Society',
+        psychologicalProfile: 'The desire for harmony begins to balance the drive for perfection. These individuals start valuing relationships as much as results, learning that how we work with others matters as much as the work itself.',
+        strengths: ['Harmonious productivity', 'Graceful precision', 'Diplomatic analysis'],
+        shadows: ['Perfectionism in relationships', 'Analyzing rather than connecting'],
+        lifeTheme: 'Working with others in ways that create both excellence and harmony.',
+      },
+      {
+        day: 3,
+        date: 'September 25',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Balanced Perfectionist',
+        title: 'Harmony of Form and Function',
+        psychologicalProfile: 'Perfectly poised between practical efficiency and aesthetic harmony. These souls create beauty that works and systems that please. They often excel in design, architecture, or any field requiring both precision and grace.',
+        strengths: ['Functional beauty', 'Precise harmony', 'Balanced judgment'],
+        shadows: ['Paralysis between details and aesthetics', 'Neither fully practical nor fully artistic'],
+        lifeTheme: 'Creating harmony through attention to both function and form.',
+      },
+      {
+        day: 4,
+        date: 'September 26',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Graceful Critic',
+        title: 'Judgment Tempered by Charm',
+        psychologicalProfile: 'Now predominantly Libran but retaining Virgoan discernment. These individuals evaluate with grace and criticize with kindness. Their sense of balance is informed by practical wisdom.',
+        strengths: ['Graceful precision', 'Charming analysis', 'Fair judgment'],
+        shadows: ['Polite criticism that still cuts', 'Indecision masked as diplomacy'],
+        lifeTheme: 'Offering perspective that balances truth with kindness.',
+      },
+      {
+        day: 5,
+        date: 'September 27',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Social Artist',
+        title: 'The Peacemaker Who Remembers Details',
+        psychologicalProfile: 'Almost fully Libran with subtle Virgoan precision. These souls navigate relationships with grace while maintaining standards. They create harmony without sacrificing quality.',
+        strengths: ['Elegant relationships', 'Precise diplomacy', 'Artistic judgment'],
+        shadows: ['Superficial perfectionism', 'Avoiding conflict through distraction'],
+        lifeTheme: 'Creating beautiful relationships through thoughtful attention.',
+      },
+      {
+        day: 6,
+        date: 'September 28',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Scales Bearer',
+        title: 'Pure Balance',
+        psychologicalProfile: 'Essentially pure Libra with only an echo of Virgoan analysis. These souls embody harmony, justice, and aesthetic sensitivity, carrying just enough earth to ground their ideals in reality.',
+        strengths: ['Natural diplomacy', 'Aesthetic wisdom', 'Relational intelligence'],
+        shadows: ['Indecisiveness', 'Peace at any price'],
+        lifeTheme: 'Creating harmony and beauty in all relationships and environments.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 8: LIBRA → SCORPIO (October 23-28)
+  // "The Cusp of Drama" - Air descending into Water
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'libra-scorpio',
+    fromSign: 'Libra',
+    toSign: 'Scorpio',
+    fromSymbol: '♎',
+    toSymbol: '♏',
+    fromElement: 'Air',
+    toElement: 'Water',
+    cuspName: 'The Cusp of Drama',
+    dateRange: 'October 23-28',
+    elementalDynamic: 'Air descending into Water - charm meets depth',
+    archetypes: [
+      {
+        day: 1,
+        date: 'October 23',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Diplomatic Detective',
+        title: 'Charm Beginning to Probe',
+        psychologicalProfile: 'Still predominantly graceful and harmonious but beginning to sense hidden currents. These souls want peace but are starting to understand that true balance sometimes requires confronting what lies beneath the surface.',
+        strengths: ['Graceful investigation', 'Diplomatic depth', 'Charming intensity'],
+        shadows: ['Using charm to avoid depth', 'Disturbed by what probing reveals'],
+        lifeTheme: 'Learning that harmony sometimes requires diving deep.',
+      },
+      {
+        day: 2,
+        date: 'October 24',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Velvet Scorpion',
+        title: 'When Beauty Meets Shadow',
+        psychologicalProfile: 'The desire for truth begins to challenge the need for pleasantness. These individuals discover that some relationships require more than surface charm—they require the courage to be real.',
+        strengths: ['Magnetic diplomacy', 'Passionate fairness', 'Seductive justice'],
+        shadows: ['Manipulation through charm', 'Power plays disguised as balance'],
+        lifeTheme: 'Bringing truth and transformation into relationships.',
+      },
+      {
+        day: 3,
+        date: 'October 25',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Beautiful Destroyer',
+        title: 'Grace and Power United',
+        psychologicalProfile: 'Balanced between surface harmony and deep truth. These souls can navigate both social situations and psychological depths with equal skill. They often become therapists, artists, or strategists who work with both beauty and shadow.',
+        strengths: ['Transformative grace', 'Powerful charm', 'Deep fairness'],
+        shadows: ['Seductive manipulation', 'Using depth to destabilize'],
+        lifeTheme: 'Transforming relationships through the integration of light and shadow.',
+      },
+      {
+        day: 4,
+        date: 'October 26',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Magnetic Judge',
+        title: 'Intensity Wearing Grace',
+        psychologicalProfile: 'Now predominantly Scorpionic but retaining Libran charm. These individuals probe with elegance and transform with style. Their intensity is cloaked in grace, making them both powerful and appealing.',
+        strengths: ['Graceful intensity', 'Charming depth', 'Elegant power'],
+        shadows: ['Obsessive relationships', 'Justice as revenge'],
+        lifeTheme: 'Using charm as a doorway to deeper truth and transformation.',
+      },
+      {
+        day: 5,
+        date: 'October 27',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Shadow Dancer',
+        title: 'The Deep One Who Remembers Light',
+        psychologicalProfile: 'Almost fully Scorpionic with subtle Libran lightness. These souls dive deep but remember how to surface for air. They bring transformation while maintaining just enough grace to make it bearable.',
+        strengths: ['Profound insight', 'Passionate loyalty', 'Transformative power'],
+        shadows: ['Jealous intensity', 'Controlling through emotional depth'],
+        lifeTheme: 'Navigating the depths while keeping connection to the surface world.',
+      },
+      {
+        day: 6,
+        date: 'October 28',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Pure Phoenix',
+        title: 'Absolute Transformation',
+        psychologicalProfile: 'Essentially pure Scorpio with only a whisper of Libran balance. These souls embody intensity, depth, and transformative power, carrying just enough air to occasionally step back from the abyss.',
+        strengths: ['Profound psychological insight', 'Unwavering loyalty', 'Regenerative power'],
+        shadows: ['Obsessive control', 'Destructive intensity'],
+        lifeTheme: 'Dying and being reborn through the crucible of deep experience.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 9: SCORPIO → SAGITTARIUS (November 22-27)
+  // "The Cusp of Revolution" - Water releasing into Fire
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'scorpio-sagittarius',
+    fromSign: 'Scorpio',
+    toSign: 'Sagittarius',
+    fromSymbol: '♏',
+    toSymbol: '♐',
+    fromElement: 'Water',
+    toElement: 'Fire',
+    cuspName: 'The Cusp of Revolution',
+    dateRange: 'November 22-27',
+    elementalDynamic: 'Water releasing into Fire - depth becomes vision',
+    archetypes: [
+      {
+        day: 1,
+        date: 'November 22',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Seeking Phoenix',
+        title: 'Depth Yearning for Height',
+        psychologicalProfile: 'Still predominantly intense and probing but beginning to sense the possibility of liberation. These souls have been in the underworld and are starting to see distant light. They want to believe that transformation leads somewhere.',
+        strengths: ['Deep optimism', 'Transformative faith', 'Intense seeking'],
+        shadows: ['Escaping depth through false hope', 'Cynicism fighting hope'],
+        lifeTheme: 'Finding meaning in the journey from darkness to light.',
+      },
+      {
+        day: 2,
+        date: 'November 23',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Truth Warrior',
+        title: 'When Investigation Becomes Quest',
+        psychologicalProfile: 'The desire for truth expands from psychological to philosophical. These individuals begin to see that understanding the self is just the beginning—understanding existence is the larger adventure.',
+        strengths: ['Philosophical intensity', 'Adventurous depth', 'Passionate truth-seeking'],
+        shadows: ['Fanatical truth-telling', 'Escaping intimacy through grand quests'],
+        lifeTheme: 'Transforming personal insight into universal wisdom.',
+      },
+      {
+        day: 3,
+        date: 'November 24',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Shamanic Archer',
+        title: 'Healer and Seeker United',
+        psychologicalProfile: 'Balanced between depth psychology and expansive philosophy. These souls can guide others through both inner transformation and outer adventure. They make powerful teachers, healers, and explorers.',
+        strengths: ['Transformative optimism', 'Deep adventure', 'Healing wisdom'],
+        shadows: ['Using philosophy to avoid feeling', 'Intense about expansion'],
+        lifeTheme: 'Integrating the descent into shadow with the ascent toward meaning.',
+      },
+      {
+        day: 4,
+        date: 'November 25',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Prophetic Fire',
+        title: 'Intensity Finding Freedom',
+        psychologicalProfile: 'Now predominantly Sagittarian but carrying Scorpionic depth. These individuals pursue truth with passion and freedom with intensity. Their quest for meaning is fueled by transformed pain.',
+        strengths: ['Passionate vision', 'Deep freedom', 'Intense faith'],
+        shadows: ['Preaching from wounds', 'Using freedom to escape commitment'],
+        lifeTheme: 'Shooting arrows of truth that have been forged in fire.',
+      },
+      {
+        day: 5,
+        date: 'November 26',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Liberating Sage',
+        title: 'The Centaur Who Remembers the Depths',
+        psychologicalProfile: 'Almost fully Sagittarian with subtle Scorpionic intensity. These souls are adventurous and optimistic but retain psychological depth. Their joy has been earned through transformation.',
+        strengths: ['Joyful wisdom', 'Free-spirited depth', 'Adventurous truth'],
+        shadows: ['Running from intensity', 'Superficial philosophy'],
+        lifeTheme: 'Bringing the wisdom of the depths to the peaks of experience.',
+      },
+      {
+        day: 6,
+        date: 'November 27',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Pure Centaur',
+        title: 'Unbounded Quest',
+        psychologicalProfile: 'Essentially pure Sagittarius with only an echo of Scorpionic depth. These souls embody freedom, expansion, and philosophical optimism, carrying just enough water to occasionally honor the mystery.',
+        strengths: ['Boundless optimism', 'Philosophical joy', 'Adventurous spirit'],
+        shadows: ['Avoiding depth', 'Commitment-phobic freedom'],
+        lifeTheme: 'Questing for meaning across the wide horizons of existence.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 10: SAGITTARIUS → CAPRICORN (December 22-27)
+  // "The Cusp of Prophecy" - Fire condensing into Earth
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'sagittarius-capricorn',
+    fromSign: 'Sagittarius',
+    toSign: 'Capricorn',
+    fromSymbol: '♐',
+    toSymbol: '♑',
+    fromElement: 'Fire',
+    toElement: 'Earth',
+    cuspName: 'The Cusp of Prophecy',
+    dateRange: 'December 22-27',
+    elementalDynamic: 'Fire condensing into Earth - vision becomes structure',
+    archetypes: [
+      {
+        day: 1,
+        date: 'December 22',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Grounding Visionary',
+        title: 'Dreams Seeking Form',
+        psychologicalProfile: 'Still predominantly expansive and philosophical but beginning to understand that visions must be built. These souls want to believe but are starting to plan. The winter solstice marks this profound turning inward.',
+        strengths: ['Practical optimism', 'Structured vision', 'Grounded faith'],
+        shadows: ['Resisting limitation', 'Planning killing spontaneity'],
+        lifeTheme: 'Learning that the greatest visions require the most patient building.',
+      },
+      {
+        day: 2,
+        date: 'December 23',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Building Sage',
+        title: 'Philosophy Finding Form',
+        psychologicalProfile: 'The desire for achievement begins to channel the quest for meaning. These individuals discover that truth isn\'t just believed but built—brick by brick, year by year.',
+        strengths: ['Meaningful ambition', 'Wise planning', 'Adventurous structure'],
+        shadows: ['Achievement replacing meaning', 'Joy sacrificed for success'],
+        lifeTheme: 'Building structures that embody philosophical truth.',
+      },
+      {
+        day: 3,
+        date: 'December 24',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Prophet-Builder',
+        title: 'Vision and Structure United',
+        psychologicalProfile: 'Balanced between expansive vision and practical achievement. These souls can dream big and build real. They often become leaders who inspire through both their vision and their discipline.',
+        strengths: ['Visionary practicality', 'Ambitious wisdom', 'Disciplined freedom'],
+        shadows: ['Neither fully free nor fully structured', 'Preaching what they\'re still building'],
+        lifeTheme: 'Manifesting prophetic vision through disciplined effort.',
+      },
+      {
+        day: 4,
+        date: 'December 25',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Inspired Mountain',
+        title: 'Height Born of Depth',
+        psychologicalProfile: 'Now predominantly Capricornian but carrying Sagittarian fire. These individuals climb with purpose and build with meaning. Their ambition serves something larger than mere success.',
+        strengths: ['Purposeful ambition', 'Meaningful achievement', 'Wise authority'],
+        shadows: ['Using philosophy to justify ambition', 'Cold idealism'],
+        lifeTheme: 'Climbing mountains that matter for reasons that transcend ego.',
+      },
+      {
+        day: 5,
+        date: 'December 26',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Sage Elder',
+        title: 'The Achiever Who Remembers Wonder',
+        psychologicalProfile: 'Almost fully Capricornian with subtle Sagittarian optimism. These souls are disciplined and ambitious but retain philosophical perspective. Their seriousness carries a hint of joy.',
+        strengths: ['Wise ambition', 'Hopeful discipline', 'Structured meaning'],
+        shadows: ['Forgetting why they started', 'Serious play'],
+        lifeTheme: 'Achieving worldly success while maintaining spiritual perspective.',
+      },
+      {
+        day: 6,
+        date: 'December 27',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Pure Mountain Goat',
+        title: 'Absolute Achievement',
+        psychologicalProfile: 'Essentially pure Capricorn with only an echo of Sagittarian fire. These souls embody discipline, ambition, and practical wisdom, carrying just enough flame to occasionally remember why summits matter.',
+        strengths: ['Unwavering discipline', 'Practical mastery', 'Earned authority'],
+        shadows: ['Cold ambition', 'Success without joy'],
+        lifeTheme: 'Climbing to the heights through patient, purposeful effort.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 11: CAPRICORN → AQUARIUS (January 20-25)
+  // "The Cusp of Mystery" - Earth breaking into Air
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'capricorn-aquarius',
+    fromSign: 'Capricorn',
+    toSign: 'Aquarius',
+    fromSymbol: '♑',
+    toSymbol: '♒',
+    fromElement: 'Earth',
+    toElement: 'Air',
+    cuspName: 'The Cusp of Mystery',
+    dateRange: 'January 20-25',
+    elementalDynamic: 'Earth breaking into Air - structure meets innovation',
+    archetypes: [
+      {
+        day: 1,
+        date: 'January 20',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Revolutionary Elder',
+        title: 'Tradition Sensing Change',
+        psychologicalProfile: 'Still predominantly traditional and structured but beginning to sense that the old ways may need updating. These souls have built much but are starting to question whether what they\'ve built still serves.',
+        strengths: ['Innovative tradition', 'Structured rebellion', 'Wise change'],
+        shadows: ['Resisting necessary evolution', 'Controlling innovation'],
+        lifeTheme: 'Learning that true mastery sometimes means letting go.',
+      },
+      {
+        day: 2,
+        date: 'January 21',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Building Rebel',
+        title: 'Structure Seeking Freedom',
+        psychologicalProfile: 'The desire for innovation begins to challenge established structures. These individuals discover that achievement must evolve or become its own prison. They start building bridges to the future.',
+        strengths: ['Practical innovation', 'Disciplined freedom', 'Structured vision'],
+        shadows: ['Rebel with traditional methods', 'Freedom through control'],
+        lifeTheme: 'Innovating within structures while preparing to transcend them.',
+      },
+      {
+        day: 3,
+        date: 'January 22',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Architect of Tomorrow',
+        title: 'Tradition and Innovation United',
+        psychologicalProfile: 'Balanced between established wisdom and revolutionary vision. These souls can honor the past while building the future. They often become leaders who transform institutions from within.',
+        strengths: ['Visionary practicality', 'Revolutionary stability', 'Innovative tradition'],
+        shadows: ['Neither fully traditional nor fully revolutionary', 'Abstracting achievement'],
+        lifeTheme: 'Building new structures on foundations of ancient wisdom.',
+      },
+      {
+        day: 4,
+        date: 'January 23',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Grounded Genius',
+        title: 'Innovation With Foundation',
+        psychologicalProfile: 'Now predominantly Aquarian but carrying Capricornian discipline. These individuals envision radical change but plan it carefully. Their revolution has blueprints.',
+        strengths: ['Structured innovation', 'Disciplined vision', 'Practical idealism'],
+        shadows: ['Cold revolution', 'Controlling future'],
+        lifeTheme: 'Channeling visionary ideas into practical transformation.',
+      },
+      {
+        day: 5,
+        date: 'January 24',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Free Builder',
+        title: 'The Visionary Who Remembers Structure',
+        psychologicalProfile: 'Almost fully Aquarian with subtle Capricornian grounding. These souls are innovative and humanitarian but retain practical sense. Their visions have enough gravity to land.',
+        strengths: ['Grounded vision', 'Humanitarian discipline', 'Practical genius'],
+        shadows: ['Detached ambition', 'Using systems against themselves'],
+        lifeTheme: 'Bringing revolutionary ideas down to earth without losing their power.',
+      },
+      {
+        day: 6,
+        date: 'January 25',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Pure Water Bearer',
+        title: 'Absolute Innovation',
+        psychologicalProfile: 'Essentially pure Aquarius with only an echo of Capricornian structure. These souls embody humanitarian vision, intellectual freedom, and revolutionary spirit, carrying just enough earth to occasionally build something lasting.',
+        strengths: ['Visionary genius', 'Humanitarian idealism', 'Intellectual freedom'],
+        shadows: ['Detachment from reality', 'Revolutionary without foundation'],
+        lifeTheme: 'Envisioning and creating the future for the benefit of all.',
+      },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CUSP 12: AQUARIUS → PISCES (February 19-24)
+  // "The Cusp of Sensitivity" - Air dissolving into Water
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'aquarius-pisces',
+    fromSign: 'Aquarius',
+    toSign: 'Pisces',
+    fromSymbol: '♒',
+    toSymbol: '♓',
+    fromElement: 'Air',
+    toElement: 'Water',
+    cuspName: 'The Cusp of Sensitivity',
+    dateRange: 'February 19-24',
+    elementalDynamic: 'Air dissolving into Water - intellect meets intuition',
+    archetypes: [
+      {
+        day: 1,
+        date: 'February 19',
+        blendNew: 13,
+        blendOld: 87,
+        mythicName: 'The Feeling Genius',
+        title: 'Mind Beginning to Dream',
+        psychologicalProfile: 'Still predominantly intellectual and detached but beginning to sense emotional undercurrents that logic cannot explain. These souls think brilliantly but are starting to feel the pull of the ineffable.',
+        strengths: ['Intuitive intellect', 'Compassionate innovation', 'Sensitive vision'],
+        shadows: ['Overwhelmed by feelings they can\'t explain', 'Using ideas to avoid emotion'],
+        lifeTheme: 'Learning that some truths must be felt, not thought.',
+      },
+      {
+        day: 2,
+        date: 'February 20',
+        blendNew: 37,
+        blendOld: 63,
+        mythicName: 'The Dreaming Innovator',
+        title: 'When Logic Meets Mystery',
+        psychologicalProfile: 'The imagination begins to infiltrate the intellect. These individuals discover that innovation sometimes comes from surrender, not strategy. They start trusting hunches.',
+        strengths: ['Imaginative innovation', 'Intuitive thinking', 'Compassionate ideas'],
+        shadows: ['Confusion between vision and fantasy', 'Escapism through abstraction'],
+        lifeTheme: 'Allowing intuition to inform and inspire intellectual work.',
+      },
+      {
+        day: 3,
+        date: 'February 21',
+        blendNew: 58,
+        blendOld: 42,
+        mythicName: 'The Mystic Scientist',
+        title: 'Reason and Faith United',
+        psychologicalProfile: 'Balanced between intellectual clarity and mystical intuition. These souls can analyze and dream, think and feel. They often become artists, healers, or visionaries who bridge science and spirit.',
+        strengths: ['Intuitive intelligence', 'Visionary compassion', 'Mystical reason'],
+        shadows: ['Neither fully logical nor fully intuitive', 'Confused boundaries'],
+        lifeTheme: 'Integrating the clarity of mind with the wisdom of heart.',
+      },
+      {
+        day: 4,
+        date: 'February 22',
+        blendNew: 75,
+        blendOld: 25,
+        mythicName: 'The Compassionate Visionary',
+        title: 'Dreams With Purpose',
+        psychologicalProfile: 'Now predominantly Piscean but retaining Aquarian clarity. These individuals dream with direction and feel with purpose. Their compassion is informed by vision.',
+        strengths: ['Purposeful intuition', 'Clear compassion', 'Visionary empathy'],
+        shadows: ['Losing self in collective dreams', 'Martyrdom for abstract causes'],
+        lifeTheme: 'Serving the collective dream with both heart and mind.',
+      },
+      {
+        day: 5,
+        date: 'February 23',
+        blendNew: 89,
+        blendOld: 11,
+        mythicName: 'The Oceanic Sage',
+        title: 'The Mystic Who Remembers Thinking',
+        psychologicalProfile: 'Almost fully Piscean with subtle Aquarian objectivity. These souls swim in the deep but can occasionally surface for air. Their spirituality retains a thread of intellectual clarity.',
+        strengths: ['Deep wisdom', 'Compassionate insight', 'Spiritual vision'],
+        shadows: ['Drowning in feeling', 'Mystical escapism'],
+        lifeTheme: 'Navigating the ocean of consciousness while keeping a distant star in sight.',
+      },
+      {
+        day: 6,
+        date: 'February 24',
+        blendNew: 98,
+        blendOld: 2,
+        mythicName: 'The Pure Fish',
+        title: 'Absolute Surrender',
+        psychologicalProfile: 'Essentially pure Pisces with only a whisper of Aquarian detachment. These souls embody spiritual sensitivity, artistic imagination, and compassionate dissolution, carrying just enough air to occasionally remember their own boundaries.',
+        strengths: ['Profound empathy', 'Artistic transcendence', 'Spiritual wisdom'],
+        shadows: ['Boundary dissolution', 'Escapist tendencies'],
+        lifeTheme: 'Dissolving into the infinite while remembering the importance of form.',
+      },
+    ],
+  },
+];
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Get a cusp transition by ID
+ */
+export function getCuspById(id: string): CuspTransition | undefined {
+  return CUSP_ARCHETYPES.find((c) => c.id === id);
+}
+
+/**
+ * Get a specific day archetype from a cusp
+ */
+export function getCuspDayArchetype(cuspId: string, day: number): CuspDayArchetype | undefined {
+  const cusp = getCuspById(cuspId);
+  if (!cusp) return undefined;
+  return cusp.archetypes.find((a) => a.day === day);
+}
+
+/**
+ * Find archetype by date (month, day)
+ */
+export function getArchetypeByDate(month: number, day: number): { cusp: CuspTransition; archetype: CuspDayArchetype } | undefined {
+  for (const cusp of CUSP_ARCHETYPES) {
+    for (const archetype of cusp.archetypes) {
+      // Parse the date from the archetype
+      const [archMonth, archDay] = parseDateString(archetype.date);
+      if (archMonth === month && archDay === day) {
+        return { cusp, archetype };
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Parse date string like "March 21" into [month, day]
+ */
+function parseDateString(dateStr: string): [number, number] {
+  const months: Record<string, number> = {
+    January: 1, February: 2, March: 3, April: 4,
+    May: 5, June: 6, July: 7, August: 8,
+    September: 9, October: 10, November: 11, December: 12,
+  };
+  const parts = dateStr.split(' ');
+  const month = months[parts[0]] || 0;
+  const day = parseInt(parts[1], 10);
+  return [month, day];
+}
+
+/**
+ * Get all archetypes for a given element transition
+ */
+export function getArchetypesByElementalTransition(fromElement: string, toElement: string): CuspTransition[] {
+  return CUSP_ARCHETYPES.filter(
+    (c) => c.fromElement === fromElement && c.toElement === toElement
+  );
+}
+
+/**
+ * Get total count of archetypes
+ */
+export function getTotalArchetypeCount(): number {
+  return CUSP_ARCHETYPES.reduce((sum, cusp) => sum + cusp.archetypes.length, 0);
+}
+
+// =============================================================================
+// EXPORTS
+// =============================================================================
+
+export default CUSP_ARCHETYPES;

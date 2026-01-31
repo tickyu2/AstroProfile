@@ -1,0 +1,1094 @@
+{
+  "numerology": {
+    "personality": {
+      "number": 33,
+      "title": "The Master Teacher",
+      "firstImpression": "Others first perceive 33 qualities - The Master Teacher impression.",
+      "outerProjection": "Projects The Master Teacher energy to the world.",
+      "subtitle": "How you're seen"
+    },
+    "sectionA_RawCalculations": {
+      "coreNumbers": "Life Path Number: 6 (The Nurturer)\nDestiny/Expression Number: 8 (The Achiever)\nSoul Urge/Heart's Desire Number: 2 (Peace & Partnership)\nPersonality Number: 33 (The Master Teacher)\nBirthday Number: 9\nMaturity Number: 5 (The Freedom Seeker)",
+      "_description": "Raw numerology calculations with formulas shown. Copy & paste to AI for verification.",
+      "rawData": {
+        "birthdayNumber": {
+          "originalDay": 18,
+          "number": 9,
+          "calculation": "18 → 1+8=9"
+        },
+        "soulUrge": {
+          "isMasterNumber": false,
+          "calculation": {
+            "fullFormula": "Vowels: A U E O E = 20 → 2",
+            "reductionSteps": [
+              {
+                "from": 20,
+                "calculation": "2 + 0 = 2",
+                "to": 2
+              }
+            ],
+            "sum": "1+3+5+6+5=20",
+            "vowels": "A(1)+U(3)+E(5)+O(6)+E(5)"
+          },
+          "number": 2,
+          "vowels": "A U E O E"
+        },
+        "lifePath": {
+          "birthDate": "1900-05-18",
+          "calculation": {
+            "reductionSteps": [
+              {
+                "calculation": "2 + 4 = 6",
+                "to": 6,
+                "from": 24
+              }
+            ],
+            "month": "5=5",
+            "fullFormula": "(1+9+0+0)+(5)+(1+8)=24 → 6",
+            "year": "1+9+0+0=10",
+            "day": "1+8=9",
+            "total": "10+5+9=24"
+          },
+          "isMasterNumber": false,
+          "number": 6
+        },
+        "expression": {
+          "name": "Claude Sonnet 4th",
+          "isMasterNumber": false,
+          "calculation": {
+            "letters": "C(3)+L(3)+A(1)+U(3)+D(4)+E(5)+S(1)+O(6)+N(5)+N(5)+E(5)+T(2)+T(2)+H(8)",
+            "sum": "3+3+1+3+4+5+1+6+5+5+5+2+2+8=53",
+            "fullFormula": "C(3)+L(3)+A(1)+U(3)+D(4)+E(5)+S(1)+O(6)+N(5)+N(5)+E(5)+T(2)+T(2)+H(8) = 53 → 8",
+            "reductionSteps": [
+              {
+                "to": 8,
+                "calculation": "5 + 3 = 8",
+                "from": 53
+              }
+            ]
+          },
+          "number": 8
+        },
+        "personalYear": {
+          "calculation": "2026+5+18 = 10+5+9 = 24 → 6",
+          "year": 2026,
+          "number": 6
+        },
+        "personalMonth": {
+          "number": 7,
+          "month": 1,
+          "calculation": "Personal Year (6) + Current Month (1) = 7 → 7"
+        },
+        "maturityNumber": {
+          "calculation": {
+            "reductionSteps": [
+              {
+                "to": 5,
+                "calculation": "1 + 4 = 5",
+                "from": 14
+              }
+            ],
+            "final": "14 → 5",
+            "formula": "Life Path (6) + Expression (8) = 14"
+          },
+          "isMasterNumber": false,
+          "number": 5
+        },
+        "personality": {
+          "isMasterNumber": true,
+          "consonants": "C L D S N N T T H",
+          "calculation": {
+            "consonants": "C(3)+L(3)+D(4)+S(1)+N(5)+N(5)+T(2)+T(2)+H(8)",
+            "fullFormula": "Consonants: C L D S N N T T H = 33 → 33",
+            "reductionSteps": [],
+            "sum": "3+3+4+1+5+5+2+2+8=33"
+          },
+          "number": 33
+        }
+      }
+    },
+    "personalMonth": {
+      "current": 7,
+      "theme": "Reflection & Wisdom"
+    },
+    "sectionB_Interpretations": {
+      "birthday": {
+        "talent": "Compassion and wisdom - you understand the bigger picture.",
+        "number": 9,
+        "gift": "Humanitarianism",
+        "originalDay": 18
+      },
+      "lifePath": {
+        "careerPaths": [
+          "Teacher",
+          "Counselor",
+          "Healer",
+          "Designer"
+        ],
+        "relationshipStyle": "In relationships, you are the nurturer who creates a beautiful home. You need to feel needed and appreciated. Avoid perfectionism and codependency; love yourself first.",
+        "challenges": [
+          "Martyrdom",
+          "Perfectionism",
+          "Meddling"
+        ],
+        "shadowSide": "Perfectionism, meddling, martyrdom, self-righteousness, controlling behavior.",
+        "strengths": [
+          "Nurturing",
+          "Responsibility",
+          "Healing",
+          "Service"
+        ],
+        "spiritualLesson": "Learning that you cannot heal everyone, and that self-love is not selfish but necessary.",
+        "number": 6,
+        "coreEssence": "Natural caregivers who seek to create harmony and beauty. Responsible souls with deep sense of service. Born to nurture, heal, and create loving environments. Thrive through helping others.",
+        "title": "The Nurturer",
+        "isMasterNumber": false,
+        "lifeMission": "To create harmony in relationships and take loving responsibility for others. Learn to balance perfectionism with acceptance and serve without martyrdom."
+      },
+      "_description": "Pre-computed numerology interpretations. AI can reference directly.",
+      "synthesisName": "The Nurturer",
+      "maturity": {
+        "ageOfActivation": "Typically activates around age 40-50",
+        "number": 5,
+        "integration": "Your mature self integrates The Nurturer journey with The Achiever purpose, becoming The Freedom Seeker.",
+        "meaning": "In maturity, you integrate wisdom from experiences into teaching others."
+      },
+      "interactions": {
+        "pathToPurpose": {
+          "integration": "The challenges of being The Nurturer prepare you for the purpose of The Achiever.",
+          "harmony": "Different energies create dynamic growth between journey and destination.",
+          "pattern": "The Nurturer walking toward The Achiever",
+          "meaning": "Your Life Path 6 provides the lessons needed to fulfill Destiny 8."
+        },
+        "harmonies": [
+          "Each number contributes unique energy to your profile"
+        ],
+        "innerOuter": {
+          "integration": "Learn to honor both your Peace & Partnership needs and your The Master Teacher presentation.",
+          "alignment": "Dynamic - inner self differs from how others see you",
+          "innerSelf": "Soul Urge 2 - Peace & Partnership",
+          "tension": "There may be tension between what you truly want and what you show the world.",
+          "outerSelf": "Personality 33 - The Master Teacher"
+        },
+        "coreConflicts": [
+          "Numbers work in harmony - minimal internal conflict"
+        ]
+      },
+      "personality": {
+        "number": 33,
+        "firstImpression": "Others see you as a loving, healing presence.",
+        "title": "The Master Teacher",
+        "socialMask": "Your mask may hide exhaustion behind selfless giving.",
+        "howOthersPerceive": "People perceive you as someone whose love is transformational.",
+        "outerProjection": "You project unconditional love, wisdom, and healing presence."
+      },
+      "destiny": {
+        "lifeWork": "Business leadership, finance, law, real estate, organizational management.",
+        "calling": "Called to business, finance, law, and positions of material authority.",
+        "howToFulfill": "By achieving success ethically and using resources to benefit others.",
+        "number": 8,
+        "purpose": "To become the successful leader who demonstrates how material mastery can serve higher purposes.",
+        "title": "The Achiever"
+      },
+      "soulUrge": {
+        "number": 2,
+        "hiddenMotivations": "Deep down, you fear being alone and seek security through connection.",
+        "title": "Peace & Partnership",
+        "emotionalNeeds": "Emotional security, appreciation, harmonious relationships.",
+        "deepDesires": [
+          "To love and be loved",
+          "To create harmony",
+          "To be in partnership",
+          "To feel emotionally secure"
+        ],
+        "whatFeedsYourSpirit": "Harmony in relationships, peaceful environments, and meaningful partnerships feed your spirit."
+      },
+      "corePath": "Life Path 6 (The Nurturer) + Destiny 8 + Soul Urge 2 + Personality 33"
+    },
+    "lifePath": {
+      "subtitle": "Your journey and core lessons",
+      "challenges": [
+        "Martyrdom",
+        "Perfectionism",
+        "Meddling"
+      ],
+      "strengths": [
+        "Nurturing",
+        "Responsibility",
+        "Healing",
+        "Service"
+      ],
+      "coreEssence": "Nurturing caregiver who creates harmony. Born to serve and heal.",
+      "lifeMission": "To develop the highest expression of 6 energy and share it with the world.",
+      "careerPaths": [
+        "Teacher",
+        "Counselor",
+        "Healer",
+        "Designer"
+      ],
+      "relationshipStyle": "Approaches relationships through 6 energy - The Nurturer style.",
+      "title": "The Nurturer",
+      "number": 6
+    },
+    "destiny": {
+      "title": "The Achiever",
+      "howToFulfill": "Through expressing 8 energy in service to others and self.",
+      "purpose": "To develop 8 qualities and share them with the world.",
+      "calling": "Called to embody The Achiever energy in all endeavors.",
+      "number": 8,
+      "subtitle": "Your purpose"
+    },
+    "soulUrge": {
+      "title": "Peace & Partnership",
+      "whatFeedsYourSpirit": "Activities aligned with 2 energy feed your spirit.",
+      "deepDesires": [
+        "Deep fulfillment",
+        "Authentic expression",
+        "Connection"
+      ],
+      "subtitle": "Inner drive",
+      "number": 2
+    },
+    "interactions": {
+      "pathToPurpose": {
+        "pattern": "Dynamic Growth",
+        "meaning": "Life Path 6 leads to Destiny 8",
+        "integration": "The lessons of 6 prepare you for the purpose of 8."
+      },
+      "innerOuter": {
+        "innerSelf": "Soul Urge 2 - Peace & Partnership",
+        "integration": "Your inner drive supports your outer projection",
+        "outerSelf": "Personality 33 - The Master Teacher",
+        "tension": "Inner and outer selves create dynamic expression"
+      }
+    },
+    "personalYear": {
+      "theme": "Responsibility & Love",
+      "guidance": "Year of The Nurturer energy",
+      "current": 6
+    },
+    "corePath": "Life Path 6 + Destiny 8 + Soul Urge 2 + Personality 33",
+    "synthesisName": "The Nurturer"
+  },
+  "mbti": {
+    "challenges": [
+      "Type-specific challenges",
+      "Growth areas",
+      "Blind spots"
+    ],
+    "cognitiveFunctions": {
+      "dominant": "Primary cognitive function",
+      "tertiary": "Developing function",
+      "auxiliary": "Supporting function",
+      "inferior": "Growth edge function"
+    },
+    "strengths": [
+      "Type-specific strengths",
+      "Cognitive function gifts",
+      "Natural abilities"
+    ],
+    "traits": {
+      "thinking": {
+        "level": "Moderate"
+      },
+      "judging": {
+        "level": "High"
+      },
+      "extraversion": {
+        "level": "Moderate to High"
+      },
+      "intuition": {
+        "level": "High"
+      }
+    },
+    "stressResponse": {
+      "underStress": "Stress behavior",
+      "recovery": "Recovery needs"
+    },
+    "careerFit": [
+      "Career path 1",
+      "Career path 2",
+      "Career path 3"
+    ],
+    "fullName": "The Protagonist",
+    "communication": {
+      "listening": "Active listening approach",
+      "style": "ENFJ communication style",
+      "conflict": "Conflict resolution style"
+    },
+    "type": "ENFJ",
+    "relationships": {
+      "compatibility": "Best matches",
+      "strengths": "Relationship gifts",
+      "needs": "Relationship needs"
+    }
+  },
+  "metadata": {
+    "version": "2.0.0",
+    "createdAt": "2026-01-05T12:34:55.900Z",
+    "completeness": {
+      "psychology": "50%",
+      "preferences": "0%",
+      "natal": "50%"
+    },
+    "updatedAt": "2026-01-05T12:34:55.901Z",
+    "systemsIncluded": [
+      "Western",
+      "Numerology",
+      "MBTI",
+      "Enneagram"
+    ],
+    "profileId": "ZdxTozdWRJfFG9XS1CpK",
+    "brainVersion": "1A"
+  },
+  "enneagram": {
+    "wingInfluence": "Wing 5 adds The Investigator qualities to core 4 type.",
+    "stressResponse": "Under stress, Type 4 may move to lower expressions.",
+    "name": "The Individualist with Investigator Wing",
+    "growthPath": {
+      "disintegration": "Stress direction for Type 4",
+      "integration": "Growth direction for Type 4"
+    },
+    "dominantType": 4,
+    "subtitle": "4w5",
+    "communication": "Type 4 communication style",
+    "coreFear": "Being ordinary or without significance",
+    "coreDesire": "To find significance and identity",
+    "traits": {
+      "average": [
+        "Type-specific average traits"
+      ],
+      "unhealthy": [
+        "Type-specific unhealthy traits"
+      ],
+      "healthy": [
+        "Type-specific healthy traits"
+      ]
+    },
+    "tritype": [
+      1,
+      4,
+      5
+    ],
+    "relationships": {
+      "strengths": "Relationship gifts",
+      "challenges": "Relationship challenges",
+      "needs": "Relationship needs"
+    },
+    "fullType": "4w5",
+    "scores": {
+      "1": 9,
+      "2": 4,
+      "3": 8,
+      "4": 10,
+      "5": 10,
+      "6": 9,
+      "7": 2,
+      "8": 5,
+      "9": 7
+    },
+    "wing": 5,
+    "coreMotivation": "To be unique and authentic"
+  },
+  "birth": {
+    "date": "1900-05-18",
+    "age": {
+      "days": null,
+      "months": null,
+      "years": null
+    },
+    "coordinates": {
+      "lat": 48.5116,
+      "lng": 2.1958
+    },
+    "location": "48.5116°N, 2.1958°E",
+    "timezone": null,
+    "time": "12:00",
+    "precision": "±15km"
+  },
+  "identity": {
+    "gender": "male",
+    "firstName": "Claude",
+    "nickname": null,
+    "displayName": "Claude Sonnet 4th",
+    "lastName": "Sonnet 4th",
+    "pronouns": null
+  },
+  "big5": {
+    "provided": false
+  },
+  "bazi": null,
+  "western": {
+    "sectionB_Interpretations": {
+      "_description": "Pre-computed interpretations. AI can reference directly without recalculating.",
+      "planets": {
+        "saturn": {
+          "retrograde": true,
+          "interpretation": "Saturn in Capricorn brings unique energy to this life area.",
+          "sign": "Capricorn",
+          "degree": "4�7'",
+          "house": null
+        },
+        "jupiter": {
+          "sign": "Sagittarius",
+          "degree": "7�10'",
+          "house": null,
+          "interpretation": "Jupiter in Sagittarius brings unique energy to this life area.",
+          "retrograde": true
+        },
+        "mars": {
+          "sign": "Taurus",
+          "retrograde": false,
+          "interpretation": "Mars in Taurus brings unique energy to this life area.",
+          "degree": "0�51'",
+          "house": null
+        },
+        "uranus": {
+          "degree": "11�3'",
+          "sign": "Sagittarius",
+          "retrograde": true,
+          "interpretation": "Uranus in Sagittarius brings unique energy to this life area.",
+          "house": null
+        },
+        "pluto": {
+          "retrograde": false,
+          "degree": "17�5'",
+          "sign": "Gemini",
+          "house": null,
+          "interpretation": "Pluto in Gemini brings unique energy to this life area."
+        },
+        "mercury": {
+          "interpretation": "Mercury in Taurus brings unique energy to this life area.",
+          "sign": "Taurus",
+          "retrograde": false,
+          "degree": "13�38'",
+          "house": null
+        },
+        "neptune": {
+          "house": null,
+          "interpretation": "Neptune in Gemini brings unique energy to this life area.",
+          "sign": "Gemini",
+          "degree": "25�36'",
+          "retrograde": false
+        },
+        "venus": {
+          "house": null,
+          "retrograde": false,
+          "sign": "Cancer",
+          "degree": "10�52'",
+          "interpretation": "Venus in Cancer brings unique energy to this life area."
+        }
+      },
+      "retrogrades": [
+        {
+          "planet": "Uranus",
+          "meaning": "uranus retrograde indicates internalized uranus energy - works from within."
+        },
+        {
+          "planet": "Saturn",
+          "meaning": "saturn retrograde indicates internalized saturn energy - works from within."
+        },
+        {
+          "meaning": "jupiter retrograde indicates internalized jupiter energy - works from within.",
+          "planet": "Jupiter"
+        }
+      ],
+      "moon": {
+        "howToNurture": "Through patient presence, emotional validation, and practical support.",
+        "strengths": [
+          "Emotional intelligence",
+          "Intuition",
+          "Nurturing ability"
+        ],
+        "innerNeeds": [
+          "Emotional security",
+          "Feeling understood",
+          "Safe space to process"
+        ],
+        "whenStressed": "Under stress, may withdraw or become reactive. Needs time and space.",
+        "challenges": [
+          "Emotional reactivity",
+          "Mood fluctuations"
+        ],
+        "emotionalNature": "Controlled, practical emotions. Needs achievement and structure.",
+        "element": "Earth",
+        "modality": "Cardinal",
+        "sign": "Capricorn"
+      },
+      "synthesisName": "The Grounded Builder",
+      "elementalProfile": {
+        "meaning": "Earth dominance creates grounding and stability.",
+        "dominant": "Earth"
+      },
+      "rising": {
+        "approach": "Approaches life through Pisces lens - Mutable energy drives interaction with world.",
+        "element": "Water",
+        "modality": "Mutable",
+        "lifeLesson": "Learning to authentically embody Pisces while staying true to inner self.",
+        "firstImpression": "Others first perceive Pisces energy - Water qualities shine through.",
+        "sign": "Pisces"
+      },
+      "sun": {
+        "element": "Earth",
+        "coreEssence": "Patient builder, values beauty and stability. Creates lasting worth.",
+        "rulingPlanet": "Venus",
+        "modality": "Fixed",
+        "strengths": [
+          "Patience",
+          "Reliability",
+          "Determination",
+          "Sensuality"
+        ],
+        "shadowSide": "When unbalanced, Taurus energy can become distorted. Growth comes through awareness and integration.",
+        "challenges": [
+          "Stubbornness",
+          "Materialism",
+          "Resistance to change"
+        ],
+        "sign": "Taurus",
+        "lifeMission": "To embody the highest expression of Taurus energy and share your unique light with the world."
+      },
+      "constitutionalSynthesis": {
+        "lifeApproach": "Life approached through Taurus energy with Pisces presentation to the world.",
+        "coreIdentity": "A soul of Earth wisdom with Taurus Sun, Capricorn Moon, and Pisces Rising. Designed to bring unique gifts through patient persistence and authentic expression.",
+        "worldview": "Life is a garden requiring patient cultivation. Tangible results matter.",
+        "emotionalPattern": "The Capricorn placement reveals emotional nature that values authenticity and depth."
+      }
+    },
+    "sectionA_RawCalculations": {
+      "planetAspects": "[object Object] Trine [object Object] (Orb: 0.16°)\n[object Object] Quincunx [object Object] (Orb: 0.18°)\n[object Object] Opposition [object Object] (Orb: 2.91°)\n[object Object] Trine [object Object] (Orb: 3.28°)\n[object Object] Sextile [object Object] (Orb: 2.76°)\n[object Object] Conjunction [object Object] (Orb: 3.88°)\n[object Object] Semi-sextile [object Object] (Orb: 1.46°)\n[object Object] Opposition [object Object] (Orb: 6.04°)\n[object Object] Opposition [object Object] (Orb: 6.75°)\n[object Object] Quincunx [object Object] (Orb: 2.58°)\n[object Object] Sextile [object Object] (Orb: 5.24°)",
+      "housePositions": "",
+      "planetPositions": "Sun in Taurus 27°4', in 1st House\nMoon in Capricorn 13°47', in 1st House\nAscendant (Rising) in Pisces 6°35'\nMercury in Taurus 13°38', in 1st House\nVenus in Cancer 10°52', in 1st House\nMars in Taurus 0°51', in 1st House\nJupiter in Sagittarius 7°10', in 1st House, Retrograde\nSaturn in Capricorn 4°7', in 1st House, Retrograde\nUranus in Sagittarius 11°3', in 1st House, Retrograde\nNeptune in Gemini 25°36', in 1st House\nPluto in Gemini 17°5', in 1st House",
+      "rawData": {
+        "houses": {
+          "system": "Placidus",
+          "angles": {
+            "descendant": {
+              "totalLongitude": 156.58771500901605,
+              "degreeFormatted": "6�35'",
+              "element": "Earth",
+              "sign": "Virgo",
+              "degree": 6.587715009016051,
+              "modality": "Mutable",
+              "symbol": "♍"
+            },
+            "ic": {
+              "element": "Fire",
+              "symbol": "♐",
+              "sign": "Sagittarius",
+              "degreeFormatted": "0�5'",
+              "degree": 0.08389577912396362,
+              "totalLongitude": 240.08389577912396,
+              "modality": "Mutable"
+            },
+            "ascendant": {
+              "degree": 6.587715009016051,
+              "symbol": "♓",
+              "totalLongitude": 336.58771500901605,
+              "sign": "Pisces",
+              "element": "Water",
+              "degreeFormatted": "6�35'",
+              "modality": "Mutable"
+            },
+            "mc": {
+              "modality": "Mutable",
+              "sign": "Gemini",
+              "degree": 0.08389577912396362,
+              "element": "Air",
+              "totalLongitude": 60.083895779123964,
+              "symbol": "♊",
+              "degreeFormatted": "0�5'"
+            }
+          },
+          "houses": {
+            "1": {
+              "symbol": "♓",
+              "cusp": 336.58771500901605,
+              "element": "Water",
+              "name": "Self & Identity",
+              "sign": "Pisces",
+              "modality": "Mutable",
+              "totalLongitude": 336.58771500901605,
+              "house": 1,
+              "degreeFormatted": "6�35'",
+              "degree": 6.587715009016051
+            },
+            "2": {
+              "degree": 4.41977526571867,
+              "name": "Money & Values",
+              "modality": "Mutable",
+              "element": "Air",
+              "totalLongitude": 64.41977526571867,
+              "cusp": 64.41977526571867,
+              "symbol": "♊",
+              "sign": "Gemini",
+              "degreeFormatted": "4�25'",
+              "house": 2
+            },
+            "3": {
+              "degreeFormatted": "2�15'",
+              "totalLongitude": 152.2518355224213,
+              "element": "Earth",
+              "name": "Communication",
+              "symbol": "♍",
+              "cusp": 152.2518355224213,
+              "degree": 2.2518355224212883,
+              "house": 3,
+              "sign": "Virgo",
+              "modality": "Mutable"
+            },
+            "4": {
+              "totalLongitude": 240.08389577912396,
+              "degree": 0.08389577912396362,
+              "house": 4,
+              "symbol": "♐",
+              "degreeFormatted": "0�5'",
+              "cusp": 240.08389577912396,
+              "element": "Fire",
+              "modality": "Mutable",
+              "name": "Home & Family",
+              "sign": "Sagittarius"
+            },
+            "5": {
+              "name": "Creativity & Romance",
+              "degree": 2.2518355224212883,
+              "totalLongitude": 332.2518355224213,
+              "symbol": "♓",
+              "sign": "Pisces",
+              "house": 5,
+              "element": "Water",
+              "degreeFormatted": "2�15'",
+              "cusp": 332.2518355224213,
+              "modality": "Mutable"
+            },
+            "6": {
+              "sign": "Gemini",
+              "name": "Health & Service",
+              "degree": 4.419775265718727,
+              "cusp": 64.41977526571873,
+              "symbol": "♊",
+              "degreeFormatted": "4�25'",
+              "house": 6,
+              "modality": "Mutable",
+              "element": "Air",
+              "totalLongitude": 64.41977526571873
+            },
+            "7": {
+              "element": "Earth",
+              "name": "Partnerships",
+              "degree": 6.587715009016051,
+              "cusp": 156.58771500901605,
+              "degreeFormatted": "6�35'",
+              "modality": "Mutable",
+              "house": 7,
+              "symbol": "♍",
+              "sign": "Virgo",
+              "totalLongitude": 156.58771500901605
+            },
+            "8": {
+              "cusp": 244.41977526571867,
+              "element": "Fire",
+              "house": 8,
+              "sign": "Sagittarius",
+              "symbol": "♐",
+              "name": "Transformation",
+              "totalLongitude": 244.41977526571873,
+              "degree": 4.419775265718727,
+              "degreeFormatted": "4�25'",
+              "modality": "Mutable"
+            },
+            "9": {
+              "totalLongitude": 332.2518355224213,
+              "cusp": 332.2518355224213,
+              "sign": "Pisces",
+              "name": "Philosophy & Travel",
+              "symbol": "♓",
+              "element": "Water",
+              "house": 9,
+              "degreeFormatted": "2�15'",
+              "modality": "Mutable",
+              "degree": 2.2518355224212883
+            },
+            "10": {
+              "house": 10,
+              "name": "Career & Status",
+              "sign": "Gemini",
+              "degreeFormatted": "0�5'",
+              "degree": 0.08389577912396362,
+              "cusp": 60.083895779123964,
+              "totalLongitude": 60.083895779123964,
+              "element": "Air",
+              "modality": "Mutable",
+              "symbol": "♊"
+            },
+            "11": {
+              "cusp": 152.2518355224213,
+              "element": "Earth",
+              "modality": "Mutable",
+              "sign": "Virgo",
+              "degree": 2.2518355224212883,
+              "symbol": "♍",
+              "name": "Friends & Dreams",
+              "degreeFormatted": "2�15'",
+              "totalLongitude": 152.2518355224213,
+              "house": 11
+            },
+            "12": {
+              "element": "Fire",
+              "modality": "Mutable",
+              "degreeFormatted": "4�25'",
+              "cusp": 244.41977526571873,
+              "name": "Spirituality & Secrets",
+              "degree": 4.419775265718727,
+              "house": 12,
+              "totalLongitude": 244.41977526571873,
+              "sign": "Sagittarius",
+              "symbol": "♐"
+            }
+          }
+        },
+        "sun": {
+          "degreeFormatted": "27�4'",
+          "sign": "Taurus",
+          "degree": 27.064430639412876,
+          "isRetrograde": false,
+          "house": null
+        },
+        "rising": {
+          "degree": 6.587715009016051,
+          "sign": "Pisces",
+          "degreeFormatted": "6�35'"
+        },
+        "moon": {
+          "illumination": null,
+          "degree": 13.782479995876201,
+          "sign": "Capricorn",
+          "house": null,
+          "degreeFormatted": "13�47'",
+          "phase": null
+        },
+        "planets": {
+          "mercury": {
+            "isRetrograde": false,
+            "degreeFormatted": "13�38'",
+            "sign": "Taurus",
+            "house": null,
+            "degree": 13.62619852207979
+          },
+          "venus": {
+            "degreeFormatted": "10�52'",
+            "sign": "Cancer",
+            "house": null,
+            "isRetrograde": false,
+            "degree": 10.868457282157578
+          },
+          "jupiter": {
+            "degreeFormatted": "7�10'",
+            "degree": 7.168420093863915,
+            "house": null,
+            "sign": "Sagittarius",
+            "isRetrograde": true
+          },
+          "pluto": {
+            "sign": "Gemini",
+            "isRetrograde": false,
+            "degree": 17.088808630446806,
+            "house": null,
+            "degreeFormatted": "17�5'"
+          },
+          "mars": {
+            "degreeFormatted": "0�51'",
+            "house": null,
+            "sign": "Taurus",
+            "degree": 0.8464555776371299,
+            "isRetrograde": false
+          },
+          "uranus": {
+            "house": null,
+            "degree": 11.04549560458986,
+            "degreeFormatted": "11�3'",
+            "sign": "Sagittarius",
+            "isRetrograde": true
+          },
+          "saturn": {
+            "degreeFormatted": "4�7'",
+            "isRetrograde": true,
+            "house": null,
+            "degree": 4.121664015892065,
+            "sign": "Capricorn"
+          },
+          "neptune": {
+            "house": null,
+            "sign": "Gemini",
+            "isRetrograde": false,
+            "degree": 25.60452012762761,
+            "degreeFormatted": "25�36'"
+          }
+        },
+        "elementBalance": {
+          "earth": 6.5,
+          "fire": 1,
+          "water": 1.5,
+          "air": 1,
+          "dominant": "Earth"
+        },
+        "aspects": [
+          {
+            "planet2": {
+              "sign": "Taurus",
+              "name": "mercury",
+              "symbol": "☿"
+            },
+            "applying": null,
+            "orb": 0.16,
+            "planet1": {
+              "symbol": "☾",
+              "name": "moon",
+              "sign": "Capricorn"
+            },
+            "aspect": "Trine",
+            "quality": "harmonious"
+          },
+          {
+            "quality": "adjustment",
+            "planet1": {
+              "sign": "Cancer",
+              "name": "venus",
+              "symbol": "♀"
+            },
+            "orb": 0.18,
+            "aspect": "Quincunx",
+            "planet2": {
+              "symbol": "♅",
+              "sign": "Sagittarius",
+              "name": "uranus"
+            },
+            "applying": null
+          },
+          {
+            "quality": "challenging",
+            "applying": null,
+            "orb": 2.91,
+            "planet2": {
+              "symbol": "♀",
+              "name": "venus",
+              "sign": "Cancer"
+            },
+            "aspect": "Opposition",
+            "planet1": {
+              "symbol": "☾",
+              "sign": "Capricorn",
+              "name": "moon"
+            }
+          },
+          {
+            "applying": null,
+            "aspect": "Trine",
+            "quality": "harmonious",
+            "orb": 3.28,
+            "planet2": {
+              "name": "saturn",
+              "sign": "Capricorn",
+              "symbol": "♄"
+            },
+            "planet1": {
+              "symbol": "♂",
+              "sign": "Taurus",
+              "name": "mars"
+            }
+          },
+          {
+            "applying": null,
+            "planet2": {
+              "symbol": "♀",
+              "sign": "Cancer",
+              "name": "venus"
+            },
+            "aspect": "Sextile",
+            "quality": "harmonious",
+            "planet1": {
+              "symbol": "☿",
+              "sign": "Taurus",
+              "name": "mercury"
+            },
+            "orb": 2.76
+          },
+          {
+            "quality": "neutral",
+            "planet1": {
+              "name": "jupiter",
+              "sign": "Sagittarius",
+              "symbol": "♃"
+            },
+            "aspect": "Conjunction",
+            "planet2": {
+              "sign": "Sagittarius",
+              "symbol": "♅",
+              "name": "uranus"
+            },
+            "applying": null,
+            "orb": 3.88
+          },
+          {
+            "quality": "neutral",
+            "applying": null,
+            "planet2": {
+              "symbol": "♆",
+              "sign": "Gemini",
+              "name": "neptune"
+            },
+            "orb": 1.46,
+            "planet1": {
+              "sign": "Taurus",
+              "symbol": "☉",
+              "name": "sun"
+            },
+            "aspect": "Semi-sextile"
+          },
+          {
+            "aspect": "Opposition",
+            "planet2": {
+              "name": "pluto",
+              "sign": "Gemini",
+              "symbol": "♇"
+            },
+            "planet1": {
+              "sign": "Sagittarius",
+              "name": "uranus",
+              "symbol": "♅"
+            },
+            "applying": null,
+            "quality": "challenging",
+            "orb": 6.04
+          },
+          {
+            "applying": null,
+            "planet1": {
+              "symbol": "♀",
+              "sign": "Cancer",
+              "name": "venus"
+            },
+            "quality": "challenging",
+            "orb": 6.75,
+            "aspect": "Opposition",
+            "planet2": {
+              "symbol": "♄",
+              "name": "saturn",
+              "sign": "Capricorn"
+            }
+          },
+          {
+            "planet2": {
+              "symbol": "♅",
+              "name": "uranus",
+              "sign": "Sagittarius"
+            },
+            "orb": 2.58,
+            "planet1": {
+              "name": "mercury",
+              "sign": "Taurus",
+              "symbol": "☿"
+            },
+            "applying": null,
+            "quality": "adjustment",
+            "aspect": "Quincunx"
+          },
+          {
+            "orb": 5.24,
+            "planet1": {
+              "symbol": "♂",
+              "name": "mars",
+              "sign": "Taurus"
+            },
+            "aspect": "Sextile",
+            "planet2": {
+              "sign": "Gemini",
+              "symbol": "♆",
+              "name": "neptune"
+            },
+            "applying": null,
+            "quality": "harmonious"
+          }
+        ]
+      },
+      "_description": "Raw astronomical calculations from GENESIS Sovereign Engine. Copy & paste to AI for interpretation.",
+      "retrogradePlanets": "3 planet(s) retrograde at birth:\nJupiter Retrograde in Sagittarius 7°10', in 1st House\nSaturn Retrograde in Capricorn 4°7', in 1st House\nUranus Retrograde in Sagittarius 11°3', in 1st House"
+    }
+  },
+  "lifePreferences": {
+    "questionnaire": {
+      "completed": false
+    }
+  },
+  "constitutionalSynthesis": {
+    "forAI": {
+      "growthAreas": {
+        "current": "Learning flexibility while maintaining values",
+        "lifelong": "Balancing achievement with emotional connection",
+        "shadow": "Allowing vulnerability, accepting impermanence"
+      },
+      "communicationStyle": {
+        "pace": "Moderate",
+        "tone": "Warm and grounded",
+        "medium": "Best with face-to-face or written depth",
+        "depth": "Prefers substance over flash"
+      },
+      "strengthsToReference": [
+        "Type-specific strengths",
+        "Cognitive function gifts",
+        "Natural abilities"
+      ],
+      "decisionMaking": {
+        "speed": "Deliberate but firm once decided",
+        "factors": "Values, people impact, tangible results",
+        "process": "Methodical, considers long-term impact"
+      },
+      "challengesToBeAwareOf": [
+        "Type-specific challenges",
+        "Growth areas",
+        "Blind spots"
+      ],
+      "conflictResponse": {
+        "deEscalation": "Needs time, physical space, calm approach",
+        "resolution": "Prefers practical solutions that honor everyone",
+        "triggers": [
+          "Sudden changes",
+          "Being rushed",
+          "Disrespect of values"
+        ],
+        "style": "Avoids conflict but stands ground on values"
+      },
+      "emotionalNeeds": {
+        "vulnerability": "Needs patient, non-demanding invitation",
+        "stress": "Needs time, space, and comfort to reset",
+        "safety": "Comes from tangible results and predictable patterns",
+        "primary": "Emotional security"
+      },
+      "loveLanguage": {
+        "giving": [
+          "Acts of Service",
+          "Creating Safe Spaces",
+          "Loyal Presence"
+        ],
+        "receiving": [
+          "Quality Time",
+          "Physical Touch",
+          "Consistency"
+        ]
+      }
+    },
+    "generatedAt": "2026-01-05T12:34:55.901Z",
+    "coreArchetype": "The Protagonist",
+    "essenceStatement": "A unique soul with gifts to share with the world.",
+    "version": "2.0.0",
+    "crossSystemPatterns": [
+      {
+        "pattern": "Nurturer-Teacher",
+        "interpretation": "Natural caregiver and teacher who nurtures through presence.",
+        "systems": [
+          "MBTI"
+        ]
+      }
+    ]
+  }
+}

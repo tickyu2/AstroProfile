@@ -1,0 +1,326 @@
+/**
+ * AnimatedCuspRibbon Styles
+ *
+ * Breathing animation styles for the cusp ribbon.
+ * GENESIS AstroProfile - January 2026
+ */
+
+/* =============================================================================
+   ANIMATED RIBBON BASE
+   ============================================================================= */
+
+.cusp-ribbon--animated {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease;
+}
+
+.cusp-ribbon--animated .cusp-ribbon__seg {
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cusp-ribbon--animated .cusp-ribbon__chip {
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
+}
+
+/* =============================================================================
+   BREATHING ANIMATION
+   ============================================================================= */
+
+.cusp-ribbon--breathing {
+  animation: ribbon-breathe 4s ease-in-out infinite;
+}
+
+@keyframes ribbon-breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(167, 139, 250, 0);
+  }
+  50% {
+    transform: scale(1.01);
+    box-shadow: 0 0 20px 2px rgba(167, 139, 250, 0.15);
+  }
+}
+
+/* Inhale phase - expanding */
+.cusp-ribbon--inhale {
+  animation: ribbon-inhale 4s ease-in-out infinite;
+}
+
+@keyframes ribbon-inhale {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.015);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+
+/* Exhale phase - contracting */
+.cusp-ribbon--exhale {
+  animation: ribbon-exhale 4s ease-in-out infinite;
+}
+
+@keyframes ribbon-exhale {
+  0% {
+    transform: scale(1.015);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.995);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.015);
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
+   BAR ANIMATION
+   ============================================================================= */
+
+.cusp-ribbon--breathing .cusp-ribbon__bar {
+  animation: bar-glow 4s ease-in-out infinite;
+}
+
+@keyframes bar-glow {
+  0%, 100% {
+    box-shadow: inset 0 0 4px rgba(96, 165, 250, 0.2);
+  }
+  50% {
+    box-shadow: inset 0 0 8px rgba(96, 165, 250, 0.4);
+  }
+}
+
+.cusp-ribbon--breathing .cusp-ribbon__seg--primary {
+  animation: seg-primary-pulse 4s ease-in-out infinite;
+}
+
+@keyframes seg-primary-pulse {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}
+
+.cusp-ribbon--breathing .cusp-ribbon__seg--secondary {
+  animation: seg-secondary-pulse 4s ease-in-out infinite 0.2s;
+}
+
+@keyframes seg-secondary-pulse {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
+  }
+}
+
+/* =============================================================================
+   DAY OFFSET INDICATOR
+   ============================================================================= */
+
+.cusp-ribbon__offset {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.cusp-ribbon__offset-label {
+  display: inline-block;
+  padding: 3px 10px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* =============================================================================
+   BREATH INDICATOR
+   ============================================================================= */
+
+.cusp-ribbon__breath-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.breath-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(167, 139, 250, 0.6);
+  animation: breath-dot-pulse 2s ease-in-out infinite;
+}
+
+.breath-dot--inhale {
+  animation: breath-dot-inhale 4s ease-in-out infinite;
+}
+
+.breath-dot--exhale {
+  animation: breath-dot-exhale 4s ease-in-out infinite;
+}
+
+@keyframes breath-dot-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+}
+
+@keyframes breath-dot-inhale {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+    background: rgba(167, 139, 250, 0.5);
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+    background: rgba(96, 165, 250, 0.8);
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+    background: rgba(167, 139, 250, 0.5);
+  }
+}
+
+@keyframes breath-dot-exhale {
+  0% {
+    transform: scale(1.4);
+    opacity: 1;
+    background: rgba(96, 165, 250, 0.8);
+  }
+  50% {
+    transform: scale(0.6);
+    opacity: 0.4;
+    background: rgba(167, 139, 250, 0.4);
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 1;
+    background: rgba(96, 165, 250, 0.8);
+  }
+}
+
+/* =============================================================================
+   EQUINOX EMPHASIS
+   ============================================================================= */
+
+.cusp-ribbon--equinox {
+  border-color: rgba(250, 204, 21, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(250, 204, 21, 0.08),
+    rgba(167, 139, 250, 0.06)
+  );
+}
+
+.cusp-ribbon--equinox .cusp-ribbon__cusp-name {
+  color: #fcd34d;
+  background: rgba(250, 204, 21, 0.15);
+}
+
+/* Solstice emphasis */
+.cusp-ribbon--solstice {
+  border-color: rgba(34, 211, 238, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(34, 211, 238, 0.08),
+    rgba(167, 139, 250, 0.06)
+  );
+}
+
+.cusp-ribbon--solstice .cusp-ribbon__cusp-name {
+  color: #67e8f9;
+  background: rgba(34, 211, 238, 0.15);
+}
+
+/* =============================================================================
+   SCORE TRANSITIONS
+   ============================================================================= */
+
+.score--increasing {
+  color: #22c55e;
+  animation: score-up 0.5s ease-out;
+}
+
+.score--decreasing {
+  color: #ef4444;
+  animation: score-down 0.5s ease-out;
+}
+
+.score--stable {
+  color: #e2e8f0;
+}
+
+@keyframes score-up {
+  0% {
+    transform: translateY(4px);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes score-down {
+  0% {
+    transform: translateY(-4px);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(2px);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
+   REDUCED MOTION
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .cusp-ribbon--breathing,
+  .cusp-ribbon--inhale,
+  .cusp-ribbon--exhale,
+  .cusp-ribbon--breathing .cusp-ribbon__bar,
+  .cusp-ribbon--breathing .cusp-ribbon__seg--primary,
+  .cusp-ribbon--breathing .cusp-ribbon__seg--secondary,
+  .breath-dot,
+  .breath-dot--inhale,
+  .breath-dot--exhale,
+  .score--increasing,
+  .score--decreasing {
+    animation: none;
+  }
+
+  .cusp-ribbon--animated .cusp-ribbon__seg {
+    transition: width 0.1s ease;
+  }
+}

@@ -1,0 +1,447 @@
+openapi: 3.0.3
+info:
+  title: Vedic Astrology API
+  version: 1.0.0
+  description: |
+    Vedic profile, lifecycle, and relationship engines.
+
+    ## Overview
+    This API provides comprehensive Vedic astrological calculations including:
+    - Complete Vedic profile with Lagna, Moon, and Graha positions
+    - Vimshottari Mahadasha timeline calculations
+    - Vedic compatibility analysis between two profiles
+    - Polarity archetype classification and evolution
+
+servers:
+  - url: https://api.astroprofile.com
+    description: Production server
+  - url: http://localhost:5001
+    description: Local development
+
+tags:
+  - name: Vedic Profile
+    description: Core Vedic chart calculations
+  - name: Dashas
+    description: Vimshottari Dasha timeline
+  - name: Compatibility
+    description: Vedic relationship compatibility
+
+paths:
+  /api/vedic/{id}:
+    get:
+      summary: Get Vedic profile by ID
+      tags:
+        - Vedic Profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique profile identifier
+          schema:
+            type: string
+            example: "user_123_profile_456"
+      responses:
+        "200":
+          description: Complete Vedic profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VedicProfile"
+        "404":
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/vedic/calculate:
+    post:
+      summary: Calculate new Vedic profile from birth data
+      tags:
+        - Vedic Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BirthData"
+      responses:
+        "201":
+          description: Newly calculated Vedic profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VedicProfile"
+        "400":
+          description: Invalid birth data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/vedic/{id}/dashas:
+    get:
+      summary: Get detailed Dasha timeline
+      tags:
+        - Dashas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: levels
+          in: query
+          description: How many levels deep (1-3)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3
+            default: 2
+        - name: from
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Dasha timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashaTimeline"
+
+  /api/vedic/{idA}/compatibility/{idB}:
+    get:
+      summary: Get Vedic compatibility between two profiles
+      tags:
+        - Compatibility
+      parameters:
+        - name: idA
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: idB
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Compatibility analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VedicCompatibility"
+
+components:
+  schemas:
+    BirthData:
+      type: object
+      required:
+        - date
+        - time
+        - latitude
+        - longitude
+        - timezone
+      properties:
+        date:
+          type: string
+          format: date
+          example: "1990-05-15"
+        time:
+          type: string
+          example: "14:30"
+        latitude:
+          type: number
+          format: double
+          example: 28.6139
+        longitude:
+          type: number
+          format: double
+          example: 77.2090
+        timezone:
+          type: string
+          example: "Asia/Kolkata"
+
+    VedicProfile:
+      type: object
+      properties:
+        profileId:
+          type: string
+        birth:
+          $ref: "#/components/schemas/BirthData"
+        ayanamsha:
+          type: string
+          enum: [lahiri, raman, krishnamurti]
+          default: lahiri
+        lagna:
+          $ref: "#/components/schemas/Lagna"
+        moon:
+          $ref: "#/components/schemas/Moon"
+        grahas:
+          type: array
+          items:
+            $ref: "#/components/schemas/Graha"
+        dashas:
+          $ref: "#/components/schemas/Dashas"
+        interpretation:
+          $ref: "#/components/schemas/Interpretation"
+        createdAt:
+          type: string
+          format: date-time
+
+    Lagna:
+      type: object
+      properties:
+        sign:
+          type: string
+          example: "Virgo"
+        degree:
+          type: number
+          format: double
+          example: 12.34
+        nakshatra:
+          type: string
+          example: "Hasta"
+        pada:
+          type: integer
+          minimum: 1
+          maximum: 4
+          example: 2
+        lord:
+          type: string
+          example: "Mercury"
+
+    Moon:
+      type: object
+      properties:
+        sign:
+          type: string
+          example: "Taurus"
+        degree:
+          type: number
+          format: double
+        nakshatra:
+          type: string
+          example: "Rohini"
+        pada:
+          type: integer
+          minimum: 1
+          maximum: 4
+        lord:
+          type: string
+          example: "Moon"
+
+    Graha:
+      type: object
+      properties:
+        name:
+          type: string
+          enum: [Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu]
+        sign:
+          type: string
+        degree:
+          type: number
+          format: double
+        nakshatra:
+          type: string
+        pada:
+          type: integer
+        house:
+          type: integer
+          minimum: 1
+          maximum: 12
+        dignity:
+          type: string
+          enum: [exalted, own, friend, neutral, enemy, debilitated]
+        retrograde:
+          type: boolean
+          default: false
+        combust:
+          type: boolean
+          default: false
+
+    Dashas:
+      type: object
+      properties:
+        current:
+          $ref: "#/components/schemas/DashaPeriod"
+        mahadashas:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashaPeriod"
+        antardashas:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashaPeriod"
+
+    DashaPeriod:
+      type: object
+      properties:
+        planet:
+          type: string
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        level:
+          type: string
+          enum: [mahadasha, antardasha, pratyantardasha]
+
+    DashaTimeline:
+      type: object
+      properties:
+        profileId:
+          type: string
+        currentDasha:
+          type: object
+          properties:
+            mahadasha:
+              $ref: "#/components/schemas/DashaPeriod"
+            antardasha:
+              $ref: "#/components/schemas/DashaPeriod"
+            pratyantardasha:
+              $ref: "#/components/schemas/DashaPeriod"
+        timeline:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/DashaPeriod"
+              - type: object
+                properties:
+                  themes:
+                    type: string
+                  subperiods:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DashaPeriod"
+
+    Interpretation:
+      type: object
+      properties:
+        lagna:
+          type: string
+        moon:
+          type: string
+        nakshatra:
+          type: string
+        dasha:
+          type: string
+        grahas:
+          type: object
+          additionalProperties:
+            type: string
+        overall:
+          type: string
+
+    VedicCompatibility:
+      type: object
+      properties:
+        profileIdA:
+          type: string
+        profileIdB:
+          type: string
+        overallScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        gunaCompatibility:
+          $ref: "#/components/schemas/CompatibilityAxis"
+        doshaCompatibility:
+          $ref: "#/components/schemas/CompatibilityAxis"
+        nakshatraCompatibility:
+          $ref: "#/components/schemas/NakshatraCompatibility"
+        dashaCompatibility:
+          $ref: "#/components/schemas/CompatibilityAxis"
+        polarityMap:
+          $ref: "#/components/schemas/PolarityMap"
+        support:
+          type: array
+          items:
+            type: string
+        challenges:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+
+    CompatibilityAxis:
+      type: object
+      properties:
+        score:
+          type: integer
+        harmony:
+          type: string
+        narrative:
+          type: string
+
+    NakshatraCompatibility:
+      type: object
+      properties:
+        score:
+          type: integer
+        nakshatraA:
+          type: string
+        nakshatraB:
+          type: string
+        ganaA:
+          type: string
+          enum: [Deva, Manushya, Rakshasa]
+        ganaB:
+          type: string
+          enum: [Deva, Manushya, Rakshasa]
+        resonance:
+          type: string
+        narrative:
+          type: string
+
+    PolarityMap:
+      type: object
+      properties:
+        axes:
+          type: array
+          items:
+            type: object
+            properties:
+              axis:
+                type: string
+              polarity:
+                type: string
+              score:
+                type: integer
+        dominantPolarity:
+          type: string
+        archetype:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - PROFILE_NOT_FOUND
+                - INVALID_BIRTH_DATA
+                - CALCULATION_ERROR
+                - INVALID_DATE_RANGE
+                - UNAUTHORIZED
+                - RATE_LIMITED
+            message:
+              type: string
+            details:
+              type: object

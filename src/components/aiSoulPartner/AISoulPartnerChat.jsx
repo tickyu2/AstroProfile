@@ -261,8 +261,14 @@ export function AISoulPartnerChat({ userProfile, onMessageSend }) {
     currentState
   } = useConstitutionalIntelligence(userProfile);
 
-  // Get knowledge base for context
-  const { documents: kbDocuments, buildKnowledgePrompt, getStats, createDocument, updateDocument } = useKnowledgeBase();
+  // Get knowledge base for context (lazy loaded)
+  const { documents: kbDocuments, buildKnowledgePrompt, getStats, createDocument, updateDocument, initializeKB } = useKnowledgeBase();
+
+  // Initialize KB when chat component mounts (this is where KB is actually needed)
+  useEffect(() => {
+    initializeKB();
+  }, [initializeKB]);
+
   const kbStats = getStats();
 
   // Compute profile-specific KB documents

@@ -1,0 +1,245 @@
+/**
+ * SynastryPdfReport.css
+ * Light-theme, print-friendly styles for PDF export.
+ * No animations, no backdrop-filter, no fixed positioning.
+ */
+
+/* =============================================================================
+ * REPORT CONTAINER
+ * =========================================================================== */
+
+.pdf-report {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 32px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: #1e293b;
+  font-size: 14px;
+  line-height: 1.65;
+  background: #ffffff;
+}
+
+@media print {
+  .pdf-report {
+    max-width: none;
+    padding: 0;
+  }
+}
+
+/* =============================================================================
+ * COVER SECTION
+ * =========================================================================== */
+
+.pdf-cover {
+  text-align: center;
+  padding-bottom: 32px;
+  margin-bottom: 32px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.pdf-cover-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.pdf-cover-names {
+  font-size: 20px;
+  font-weight: 400;
+  color: #475569;
+  margin: 0 0 20px;
+}
+
+.pdf-cover-score {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.pdf-cover-percent {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.pdf-cover-verdict {
+  font-size: 13px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pdf-cover-summary {
+  font-size: 15px;
+  color: #334155;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* =============================================================================
+ * SECTION HEADINGS
+ * =========================================================================== */
+
+.pdf-section {
+  margin-bottom: 28px;
+}
+
+.pdf-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.pdf-empty {
+  font-size: 13px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* =============================================================================
+ * TOP 5 DYNAMICS
+ * =========================================================================== */
+
+.pdf-dynamics-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pdf-dynamic-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pdf-dynamic-row:last-child {
+  border-bottom: none;
+}
+
+.pdf-dynamic-rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pdf-dynamic-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  flex: 1;
+}
+
+.pdf-dynamic-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.pdf-dynamic-badge.support {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.pdf-dynamic-badge.work {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pdf-dynamic-harmony {
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  min-width: 24px;
+  text-align: right;
+}
+
+.pdf-dynamic-matrix {
+  font-size: 11px;
+  color: #94a3b8;
+  min-width: 90px;
+  text-align: right;
+}
+
+/* =============================================================================
+ * BULLET LISTS (Supports / Work)
+ * =========================================================================== */
+
+.pdf-bullet-list {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 0;
+}
+
+.pdf-bullet-list li {
+  padding: 4px 0;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.6;
+}
+
+/* =============================================================================
+ * LAYERED NARRATIVE
+ * =========================================================================== */
+
+.pdf-layers {
+  page-break-before: auto;
+}
+
+.pdf-layer-block {
+  margin-bottom: 20px;
+}
+
+.pdf-layer-block:last-child {
+  margin-bottom: 0;
+}
+
+.pdf-layer-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 6px;
+}
+
+.pdf-layer-paragraph {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* =============================================================================
+ * FOOTER
+ * =========================================================================== */
+
+.pdf-footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.pdf-footer p {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}

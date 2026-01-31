@@ -1,0 +1,133 @@
+{
+  "hidden_stem_exceptions": [
+    {
+      "id": "hidden_stem_fully_revealed",
+      "name": "Hidden Stem Appears in Heavenly Stems",
+      "priority": 1,
+      "conditions": {
+        "hiddenStem": "any",
+        "alsoInHeavenlyStem": true,
+        "sameElement": true
+      },
+      "result": {
+        "hiddenStemPower": "fully_activated",
+        "strengthModifier": 1.5,
+        "note": "Hidden root has surface expression"
+      }
+    },
+    {
+      "id": "hidden_stem_main_qi",
+      "name": "Main Qi Hidden Stem Priority",
+      "priority": 2,
+      "conditions": {
+        "hiddenStemPosition": "main_qi",
+        "percentageInBranch": { "min": 60 }
+      },
+      "result": {
+        "dominantInfluence": true,
+        "useForCalculations": "primary",
+        "note": "Main qi represents branch's primary energy"
+      }
+    },
+    {
+      "id": "hidden_stem_clashed_branch",
+      "name": "Hidden Stem in Clashed Branch",
+      "priority": 1,
+      "conditions": {
+        "branchStatus": "clashed",
+        "hiddenStemsAffected": true
+      },
+      "result": {
+        "hiddenStemPower": "disrupted",
+        "strengthModifier": 0.5,
+        "note": "Clash disturbs all hidden elements within"
+      }
+    },
+    {
+      "id": "hidden_stem_combined_branch",
+      "name": "Hidden Stem in Combined Branch",
+      "priority": 2,
+      "conditions": {
+        "branchStatus": "combined",
+        "combinationTransforms": true,
+        "hiddenStemsChange": true
+      },
+      "result": {
+        "hiddenStemStatus": "transformed",
+        "newElement": "combination_result_element",
+        "originalLost": true
+      }
+    },
+    {
+      "id": "hidden_stem_yu_qi",
+      "name": "Residual Qi Hidden Stem",
+      "priority": 3,
+      "conditions": {
+        "hiddenStemPosition": "yu_qi",
+        "percentageInBranch": { "max": 20 }
+      },
+      "result": {
+        "influence": "minor",
+        "activationCondition": "when_supported_by_stem_or_luck",
+        "note": "Residual qi latent until activated"
+      }
+    },
+    {
+      "id": "hidden_stem_zhong_qi",
+      "name": "Middle Qi Hidden Stem",
+      "priority": 2,
+      "conditions": {
+        "hiddenStemPosition": "zhong_qi",
+        "percentageInBranch": { "range": [20, 40] }
+      },
+      "result": {
+        "influence": "moderate",
+        "contributesToBalance": true,
+        "note": "Secondary energy within the branch"
+      }
+    },
+    {
+      "id": "hidden_stem_useful_god_source",
+      "name": "Hidden Stem as Useful God Source",
+      "priority": 1,
+      "conditions": {
+        "usefulGodElement": "only_in_hidden",
+        "noSurfaceExpression": true,
+        "hiddenStemStrength": { "min": 30 }
+      },
+      "result": {
+        "usefulGodStatus": "latent",
+        "effectiveness": 0.6,
+        "activation": "luck_pillar_or_annual"
+      }
+    },
+    {
+      "id": "multiple_same_hidden",
+      "name": "Same Hidden Stem in Multiple Branches",
+      "priority": 2,
+      "conditions": {
+        "hiddenStemElement": "appears_multiple_times",
+        "branchCount": { "min": 2 }
+      },
+      "result": {
+        "cumulativeStrength": true,
+        "totalPercentage": "sum_all_occurrences",
+        "note": "Hidden element has significant underground presence"
+      }
+    },
+    {
+      "id": "hidden_stem_empty_branch",
+      "name": "Hidden Stem in Empty Branch",
+      "priority": 3,
+      "conditions": {
+        "branchStatus": "empty",
+        "hiddenStemsInEmpty": true
+      },
+      "result": {
+        "hiddenStemStatus": "dormant",
+        "activationCondition": "empty_filled_by_luck",
+        "currentEffect": "minimal"
+      }
+    }
+  ]
+}

@@ -87,7 +87,13 @@ function getTop3Elements(elements) {
   if (!elements) return []
 
   return Object.entries(elements)
-    .map(([element, percentage]) => [element, Math.round(percentage)])
+    .map(([element, percentage]) => {
+      // Handle string percentages like "38.75%" or numeric values
+      const numVal = typeof percentage === 'string'
+        ? parseFloat(percentage.replace('%', ''))
+        : Number(percentage)
+      return [element, Math.round(numVal) || 0]
+    })
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
 }
@@ -189,9 +195,10 @@ export function generateSoulDNA(fourPillars, tenGodsData = null) {
   const dominantGod = getDominantTenGod(tenGodsData)
   const tenGodCode = dominantGod ? getTenGodCode(dominantGod) : 'X'
 
-  // Part 3: ## (Primary element percentage)
-  const primaryPercentage = top3[0][1]
-  const percentageCode = primaryPercentage.toString().padStart(2, '0')
+  // Part 3: ## (Primary element percentage) - ensure 2 digits max
+  const rawPercentage = Number(top3[0][1]) || 0
+  const primaryPercentage = Math.min(99, Math.max(0, Math.round(rawPercentage)))
+  const percentageCode = primaryPercentage.toString().padStart(2, '0').slice(-2)
 
   // Part 4: Z (Yin/Yang polarity)
   const yinYangCode = getYinYangCode(yinYangBalance)

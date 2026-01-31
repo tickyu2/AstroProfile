@@ -1,0 +1,301 @@
+/**
+ * CuspDayScrubber Styles
+ *
+ * Day scrubber control for cusp animation.
+ * GENESIS AstroProfile - January 2026
+ */
+
+/* =============================================================================
+   SCRUBBER CONTAINER
+   ============================================================================= */
+
+.cusp-scrubber {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+
+.cusp-scrubber--compact {
+  padding: 8px 10px;
+}
+
+/* =============================================================================
+   HEADER
+   ============================================================================= */
+
+.cusp-scrubber__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.cusp-scrubber__label {
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.cusp-scrubber--compact .cusp-scrubber__label {
+  font-size: 0.8rem;
+}
+
+/* Play button */
+.cusp-scrubber__play {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(96, 165, 250, 0.15);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  color: #93c5fd;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.cusp-scrubber__play:hover {
+  background: rgba(96, 165, 250, 0.25);
+  transform: scale(1.05);
+}
+
+.cusp-scrubber__play--active {
+  background: rgba(167, 139, 250, 0.2);
+  border-color: rgba(167, 139, 250, 0.45);
+  color: #c4b5fd;
+  animation: play-pulse 2s ease-in-out infinite;
+}
+
+@keyframes play-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 8px 2px rgba(167, 139, 250, 0.2);
+  }
+}
+
+/* =============================================================================
+   DAY DOTS
+   ============================================================================= */
+
+.cusp-scrubber__dots {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.cusp-scrubber__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(148, 163, 184, 0.25);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.cusp-scrubber__dot:hover {
+  background: rgba(96, 165, 250, 0.3);
+  border-color: rgba(96, 165, 250, 0.5);
+  transform: scale(1.2);
+}
+
+.cusp-scrubber__dot--active {
+  background: rgba(96, 165, 250, 0.6);
+  border-color: rgba(96, 165, 250, 0.8);
+  transform: scale(1.3);
+  box-shadow: 0 0 6px rgba(96, 165, 250, 0.4);
+}
+
+.cusp-scrubber__dot--center {
+  background: rgba(250, 204, 21, 0.4);
+  border-color: rgba(250, 204, 21, 0.6);
+}
+
+.cusp-scrubber__dot--center:hover {
+  background: rgba(250, 204, 21, 0.5);
+}
+
+.cusp-scrubber__dot--center.cusp-scrubber__dot--active {
+  background: rgba(250, 204, 21, 0.7);
+  border-color: rgba(250, 204, 21, 0.9);
+  box-shadow: 0 0 6px rgba(250, 204, 21, 0.4);
+}
+
+.cusp-scrubber__dot--cusp {
+  background: rgba(167, 139, 250, 0.3);
+  border-color: rgba(167, 139, 250, 0.5);
+}
+
+.cusp-scrubber__dot--cusp.cusp-scrubber__dot--active {
+  background: rgba(167, 139, 250, 0.6);
+  border-color: rgba(167, 139, 250, 0.8);
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.4);
+}
+
+/* =============================================================================
+   SLIDER TRACK
+   ============================================================================= */
+
+.cusp-scrubber__track {
+  position: relative;
+  height: 6px;
+  background: rgba(2, 6, 23, 0.6);
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  margin-bottom: 10px;
+}
+
+.cusp-scrubber__slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+  margin: 0;
+}
+
+.cusp-scrubber__progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(167, 139, 250, 0.6),
+    rgba(96, 165, 250, 0.6)
+  );
+  border-radius: 999px;
+  transition: width 0.1s ease;
+  pointer-events: none;
+}
+
+/* Slider thumb (hidden but functional) */
+.cusp-scrubber__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #93c5fd;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+}
+
+.cusp-scrubber__slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #93c5fd;
+  cursor: pointer;
+  border: none;
+}
+
+/* =============================================================================
+   INFO ROW
+   ============================================================================= */
+
+.cusp-scrubber__info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.cusp-scrubber__sign {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.cusp-scrubber__cusp-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background: rgba(167, 139, 250, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-radius: 4px;
+  color: #c4b5fd;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cusp-scrubber__date {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+/* =============================================================================
+   MINI SCRUBBER
+   ============================================================================= */
+
+.cusp-scrubber--mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+}
+
+.cusp-scrubber__step {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgba(96, 165, 250, 0.12);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  color: #93c5fd;
+  font-size: 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.cusp-scrubber__step:hover:not(:disabled) {
+  background: rgba(96, 165, 250, 0.25);
+  transform: scale(1.05);
+}
+
+.cusp-scrubber__step:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cusp-scrubber__value {
+  min-width: 24px;
+  text-align: center;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================================
+   REDUCED MOTION
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .cusp-scrubber__play--active {
+    animation: none;
+  }
+
+  .cusp-scrubber__dot,
+  .cusp-scrubber__progress,
+  .cusp-scrubber__step {
+    transition: none;
+  }
+}
