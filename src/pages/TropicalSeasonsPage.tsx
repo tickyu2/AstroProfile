@@ -10,7 +10,7 @@
  * GENESIS AstroProfile - January 2026
  */
 
-import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfiles } from '../contexts/ProfileContext';
 import {
@@ -30,6 +30,11 @@ import {
   AspectType,
 } from '../data/tropicalSeasons';
 import { useSignSelection } from '../hooks/useSignSelection';
+import { useWheelDimensions } from '../hooks/useWheelDimensions';
+import { useDraggableFlap } from '../hooks/useDraggableFlap';
+import { useWheelBreathing } from '../hooks/useWheelBreathing';
+import { useProfileWestern } from '../hooks/useProfileWestern';
+import { useEphemerisIngress } from '../hooks/useEphemerisIngress';
 import {
   SEASON_EMOJI,
   type SignKey,
@@ -43,6 +48,8 @@ import { SelfAnalysisPanel } from '../components/zodiac/SelfAnalysisPanel';
 import { CompatibilityAnalysisPanel } from '../components/zodiac/CompatibilityAnalysisPanel';
 import type { RelationshipType } from '../zodiac/narrativeEngine';
 import { SeasonPanel } from '../components/zodiac/SeasonPanel';
+import { ModalityPanel } from '../components/zodiac/ModalityPanel';
+import { ElementPanel } from '../components/zodiac/ElementPanel';
 import { SignPanel } from '../components/zodiac/SignPanel';
 import { AngleTrainer } from '../components/zodiac/AngleTrainer';
 import {
@@ -52,15 +59,23 @@ import {
 import { TropicalZodiacWheel } from '../components/zodiac/TropicalZodiacWheel';
 import { WheelEducationPanel, SummaryTableTab } from '../components/zodiac/WheelEducationPanel';
 import { PhiBlendPanel } from '../components/zodiac/PhiBlendPanel';
-import {
-  getSunBlendFromDate,
-  useYearBreathing,
-  useYearWheelRotation,
-  YEAR_SPEEDS,
-  type YearSpeedKey,
-} from '../zodiac/cusp';
-import { dayOfYearToDate } from '../utils/dayOfYearToDate';
+import TaurusSpectrumExplorer from '../components/zodiac/TaurusSpectrumExplorer';
+import AriesSpectrumExplorer from '../components/zodiac/AriesSpectrumExplorer';
+import GeminiSpectrumExplorer from '../components/zodiac/GeminiSpectrumExplorer';
+import CancerSpectrumExplorer from '../components/zodiac/CancerSpectrumExplorer';
+import LeoSpectrumExplorer from '../components/zodiac/LeoSpectrumExplorer';
+import VirgoSpectrumExplorer from '../components/zodiac/VirgoSpectrumExplorer';
+import LibraSpectrumExplorer from '../components/zodiac/LibraSpectrumExplorer';
+import ScorpioSpectrumExplorer from '../components/zodiac/ScorpioSpectrumExplorer';
+import SagittariusSpectrumExplorer from '../components/zodiac/SagittariusSpectrumExplorer';
+import CapricornSpectrumExplorer from '../components/zodiac/CapricornSpectrumExplorer';
+import AquariusSpectrumExplorer from '../components/zodiac/AquariusSpectrumExplorer';
+import PiscesSpectrumExplorer from '../components/zodiac/PiscesSpectrumExplorer';
+import { type YearSpeedKey } from '../zodiac/cusp';
 import { SIGN_GLYPHS, ASPECT_TOOLTIPS, type AspectKey } from '../data/tropicalConstants';
+
+// BATCH 5: Wheel Mode System
+import { WheelModeProvider, useWheelMode } from '../seasonal-ecology';
 
 // Styles extracted to dedicated CSS file
 import './TropicalSeasonsPage.css';
@@ -72,20 +87,622 @@ import './TropicalSeasonsPage.css';
 type ViewMode = 'overview' | 'sign' | 'season' | 'compatibility';
 type AnalysisMode = 'wheel' | 'self' | 'compatibility';
 
+// Sign → SpectrumExplorer component map (for Self mode auto-rendering)
+const SPECTRUM_EXPLORER_MAP: Record<string, React.ComponentType<{ userDegree?: number | null; userName?: string | null; ephemerisTimestamps?: number[] | null }>> = {
+  Aries: AriesSpectrumExplorer,
+  Taurus: TaurusSpectrumExplorer,
+  Gemini: GeminiSpectrumExplorer,
+  Cancer: CancerSpectrumExplorer,
+  Leo: LeoSpectrumExplorer,
+  Virgo: VirgoSpectrumExplorer,
+  Libra: LibraSpectrumExplorer,
+  Scorpio: ScorpioSpectrumExplorer,
+  Sagittarius: SagittariusSpectrumExplorer,
+  Capricorn: CapricornSpectrumExplorer,
+  Aquarius: AquariusSpectrumExplorer,
+  Pisces: PiscesSpectrumExplorer,
+};
+
+const SIGN_LONGITUDE_OFFSET: Record<string, number> = {
+  Aries: 0, Taurus: 30, Gemini: 60, Cancer: 90, Leo: 120, Virgo: 150,
+  Libra: 180, Scorpio: 210, Sagittarius: 240, Capricorn: 270, Aquarius: 300, Pisces: 330,
+};
+
+// =============================================================================
+// SIGN COMBINATION MAPPING - Each sign is a unique Season + Modality + Element
+// =============================================================================
+
+/**
+ * Maps each zodiac sign to its unique combination of Season, Modality, and Element.
+ * This is the foundation for the constraint learning system.
+ */
+const SIGN_COMBINATIONS: Record<ZodiacSign, { season: Season; modality: string; element: string }> = {
+  Aries:       { season: 'Spring', modality: 'Cardinal', element: 'Fire' },
+  Taurus:      { season: 'Spring', modality: 'Fixed',    element: 'Earth' },
+  Gemini:      { season: 'Spring', modality: 'Mutable',  element: 'Air' },
+  Cancer:      { season: 'Summer', modality: 'Cardinal', element: 'Water' },
+  Leo:         { season: 'Summer', modality: 'Fixed',    element: 'Fire' },
+  Virgo:       { season: 'Summer', modality: 'Mutable',  element: 'Earth' },
+  Libra:       { season: 'Autumn', modality: 'Cardinal', element: 'Air' },
+  Scorpio:     { season: 'Autumn', modality: 'Fixed',    element: 'Water' },
+  Sagittarius: { season: 'Autumn', modality: 'Mutable',  element: 'Fire' },
+  Capricorn:   { season: 'Winter', modality: 'Cardinal', element: 'Earth' },
+  Aquarius:    { season: 'Winter', modality: 'Fixed',    element: 'Air' },
+  Pisces:      { season: 'Winter', modality: 'Mutable',  element: 'Water' },
+};
+
+/**
+ * Computes which options are still valid (not disabled) based on current selections.
+ * When you select items from different rows, only compatible options remain clickable.
+ */
+function computeValidOptions(
+  selectedSeason: Season | null,
+  highlightedModality: string | null,
+  highlightedElement: string | null
+): {
+  validSeasons: Set<Season>;
+  validModalities: Set<string>;
+  validElements: Set<string>;
+  matchingSign: ZodiacSign | null;
+} {
+  const allSigns = Object.keys(SIGN_COMBINATIONS) as ZodiacSign[];
+
+  // Filter signs that match all current selections
+  const matchingSigns = allSigns.filter(sign => {
+    const combo = SIGN_COMBINATIONS[sign];
+    if (selectedSeason && combo.season !== selectedSeason) return false;
+    if (highlightedModality && combo.modality !== highlightedModality) return false;
+    if (highlightedElement && combo.element !== highlightedElement) return false;
+    return true;
+  });
+
+  // Collect valid options from matching signs
+  const validSeasons = new Set<Season>();
+  const validModalities = new Set<string>();
+  const validElements = new Set<string>();
+
+  matchingSigns.forEach(sign => {
+    const combo = SIGN_COMBINATIONS[sign];
+    validSeasons.add(combo.season);
+    validModalities.add(combo.modality);
+    validElements.add(combo.element);
+  });
+
+  // If exactly one sign matches, that's our match
+  const matchingSign = matchingSigns.length === 1 ? matchingSigns[0] : null;
+
+  return { validSeasons, validModalities, validElements, matchingSign };
+}
+
+// =============================================================================
+// HELPER COMPONENTS - Legend Row Components (must render inside WheelModeProvider)
+// =============================================================================
+
+/**
+ * ResetButton - Corner reset button for the legend panel
+ */
+interface ResetButtonProps {
+  onReset: () => void;
+}
+
+function ResetButton({ onReset }: ResetButtonProps) {
+  const { transitionTo } = useWheelMode();
+
+  const handleReset = () => {
+    transitionTo('default');
+    onReset();
+  };
+
+  return (
+    <button
+      type="button"
+      className="legend-reset-btn"
+      onClick={handleReset}
+      title="Reset wheel and aspects to default"
+    >
+      Reset
+    </button>
+  );
+}
+
+/**
+ * SeasonsLegendRow - Clickable seasons header to highlight seasons ring
+ * Now with constraint-based disabled states for learning mode
+ * teachingSign: When set, only shows the season for that sign (double reinforcement)
+ */
+interface SeasonsLegendRowProps {
+  onSeasonClick: (season: Season) => void;
+  selectedSeason: Season | null;
+  validSeasons?: Set<Season>;
+  hasConstraints?: boolean;
+  teachingSign?: ZodiacSign | null;
+  onLabelReset?: () => void;
+}
+
+function SeasonsLegendRow({ onSeasonClick, selectedSeason, validSeasons, hasConstraints, teachingSign, onLabelReset }: SeasonsLegendRowProps) {
+  const { mode, transitionTo } = useWheelMode();
+  const isActive = mode === 'seasons';
+
+  // Get the teaching sign's season for filtering
+  const teachingSeason = teachingSign ? SIGN_COMBINATIONS[teachingSign]?.season : null;
+
+  // All seasons always rendered - teaching mode hides non-matching ones
+  const allSeasons: Season[] = ['Spring', 'Summer', 'Autumn', 'Winter'];
+
+  return (
+    <div className="legend-row">
+      <button
+        type="button"
+        className={`legend-row-label-btn ${isActive ? 'active' : ''}`}
+        onClick={() => {
+          // Reset everything first
+          onLabelReset?.();
+          // Then toggle seasons mode
+          transitionTo(isActive ? 'default' : 'seasons');
+        }}
+        title="Click to highlight the Seasons ring"
+      >
+        <span className="legend-label-icon">🌿</span>
+        <span>Seasons</span>
+      </button>
+      <div className="legend-row-items">
+        {allSeasons.map((season, index) => {
+          const isDisabled = hasConstraints && validSeasons && !validSeasons.has(season);
+          const isSelected = selectedSeason === season;
+          // In teaching mode, highlight the matching season
+          const isTeachingHighlight = teachingSeason === season;
+          // In teaching mode, hide non-matching items (but preserve space)
+          const isHiddenInTeaching = teachingSeason && teachingSeason !== season;
+          return (
+            <React.Fragment key={season}>
+              {index > 0 && <span className="legend-season-arrow">&rarr;</span>}
+              <button
+                type="button"
+                className={`legend-tag legend-tag-btn ${isSelected || isTeachingHighlight ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                data-season={season}
+                disabled={isDisabled || !!isHiddenInTeaching}
+                style={{ opacity: isHiddenInTeaching ? 0 : (isDisabled ? 0.4 : 1) }}
+                onClick={() => {
+                  if (isDisabled) return;
+                  // Deactivate the Seasons mode button when clicking a specific season
+                  transitionTo('default');
+                  onSeasonClick(season);
+                }}
+                title={isDisabled ? `${season} not compatible with current selection` : `Click to select ${season}`}
+              >
+                {season}
+              </button>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * ModalityLegendRow - Clickable modality header + individual modality buttons
+ * Now with constraint-based disabled states for learning mode
+ * teachingSign: When set, only shows the modality for that sign (double reinforcement)
+ */
+interface ModalityLegendRowProps {
+  highlightedModality: string | null;
+  setHighlightedModality: (modality: string | null) => void;
+  modalitySigns: Record<string, ZodiacSign[]>;
+  validModalities?: Set<string>;
+  hasConstraints?: boolean;
+  teachingSign?: ZodiacSign | null;
+  onLabelReset?: () => void;
+}
+
+function ModalityLegendRow({ highlightedModality, setHighlightedModality, modalitySigns, validModalities, hasConstraints, teachingSign, onLabelReset }: ModalityLegendRowProps) {
+  const { mode, transitionTo } = useWheelMode();
+  // Modality label is only active when mode is 'modality' AND no specific modality is selected
+  const isLabelActive = mode === 'modality' && !highlightedModality;
+
+  // Get the teaching sign's modality for filtering
+  const teachingModality = teachingSign ? SIGN_COMBINATIONS[teachingSign]?.modality : null;
+
+  const modalityInfo: Record<string, { color: string; phase: string }> = {
+    Cardinal: { color: '#f59e0b', phase: 'Beginning' },
+    Fixed: { color: '#8b5cf6', phase: 'Core' },
+    Mutable: { color: '#06b6d4', phase: 'Transition' },
+  };
+
+  // All modalities always rendered - teaching mode hides non-matching ones
+  const allModalities = ['Cardinal', 'Fixed', 'Mutable'] as const;
+
+  return (
+    <div className="legend-row">
+      <button
+        type="button"
+        className={`legend-row-label-btn ${isLabelActive ? 'active' : ''}`}
+        onClick={() => {
+          // Reset everything first
+          onLabelReset?.();
+          // Toggle modality mode for entire ring highlight
+          if (mode === 'modality') {
+            transitionTo('default');
+          } else {
+            transitionTo('modality');
+          }
+        }}
+        title="Click to highlight the entire Modalities ring"
+      >
+        <span className="legend-label-icon">⚡</span>
+        <span>Modalities</span>
+      </button>
+      <div className="legend-row-items modality-buttons">
+        {allModalities.map((modality, index) => {
+          const isModalityActive = highlightedModality === modality;
+          const isDisabled = hasConstraints && validModalities && !validModalities.has(modality);
+          const info = modalityInfo[modality];
+          // In teaching mode, highlight the matching modality
+          const isTeachingHighlight = teachingModality === modality;
+          // In teaching mode, hide non-matching items (but preserve space)
+          const isHiddenInTeaching = teachingModality && teachingModality !== modality;
+          return (
+            <React.Fragment key={modality}>
+              {index > 0 && <span className="legend-modality-arrow">&rarr;</span>}
+              <button
+                type="button"
+                className={`legend-modality-btn ${isModalityActive || isTeachingHighlight ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                disabled={isDisabled || !!isHiddenInTeaching}
+                style={{
+                  borderColor: isDisabled ? '#444' : info.color,
+                  color: isDisabled ? '#666' : info.color,
+                  background: (isModalityActive || isTeachingHighlight) ? `${info.color}22` : 'transparent',
+                  opacity: isHiddenInTeaching ? 0 : (isDisabled ? 0.4 : 1),
+                }}
+                onClick={() => {
+                  if (isDisabled) return;
+                  // Return to default mode when selecting specific modality
+                  transitionTo('default');
+                  // Toggle the specific modality highlight
+                  setHighlightedModality(isModalityActive ? null : modality);
+                }}
+                title={isDisabled ? `${modality} not compatible with current selection` : `Click to highlight ${modality} signs: ${modalitySigns[modality].join(', ')}`}
+              >
+                {modality.toUpperCase()}
+              </button>
+              <span
+                className={`legend-modality-map ${isDisabled ? 'disabled' : ''}`}
+                style={{ opacity: isHiddenInTeaching ? 0 : 1 }}
+              >
+                {info.phase.toUpperCase()}
+              </span>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * ElementsLegendRow - Clickable elements header + individual element buttons
+ * Now with constraint-based disabled states for learning mode
+ */
+/**
+ * ElementsLegendRow - Clickable elements header + individual element buttons
+ * Now with constraint-based disabled states for learning mode
+ * teachingSign: When set, only shows the element for that sign (double reinforcement)
+ */
+interface ElementsLegendRowProps {
+  highlightedElement: string | null;
+  setHighlightedElement: (element: string | null) => void;
+  elementSigns: Record<string, ZodiacSign[]>;
+  validElements?: Set<string>;
+  hasConstraints?: boolean;
+  teachingSign?: ZodiacSign | null;
+  onLabelReset?: () => void;
+}
+
+function ElementsLegendRow({ highlightedElement, setHighlightedElement, elementSigns, validElements, hasConstraints, teachingSign, onLabelReset }: ElementsLegendRowProps) {
+  const { mode, transitionTo } = useWheelMode();
+  // Elements label is only active when mode is 'elements' AND no specific element is selected
+  const isLabelActive = mode === 'elements' && !highlightedElement;
+
+  // Get the teaching sign's element for filtering
+  const teachingElement = teachingSign ? SIGN_COMBINATIONS[teachingSign]?.element : null;
+
+  const colors: Record<string, string> = {
+    Fire: '#ef4444',
+    Earth: '#84cc16',
+    Air: '#38bdf8',
+    Water: '#6366f1',
+  };
+
+  // All elements always rendered - teaching mode hides non-matching ones
+  const allElements = ['Fire', 'Earth', 'Air', 'Water'] as const;
+
+  return (
+    <div className="legend-row">
+      <button
+        type="button"
+        className={`legend-row-label-btn ${isLabelActive ? 'active' : ''}`}
+        onClick={() => {
+          // Reset everything first
+          onLabelReset?.();
+          // Toggle elements mode for entire ring highlight
+          if (mode === 'elements') {
+            transitionTo('default');
+          } else {
+            transitionTo('elements');
+          }
+        }}
+        title="Click to highlight the entire Elements ring"
+      >
+        <span className="legend-label-icon">🔥</span>
+        <span>Elements</span>
+      </button>
+      <div className="legend-row-items element-buttons">
+        {allElements.map((element, index) => {
+          const isElementActive = highlightedElement === element;
+          const isDisabled = hasConstraints && validElements && !validElements.has(element);
+          // In teaching mode, highlight the matching element
+          const isTeachingHighlight = teachingElement === element;
+          // In teaching mode, hide non-matching items (but preserve space)
+          const isHiddenInTeaching = teachingElement && teachingElement !== element;
+          return (
+            <React.Fragment key={element}>
+              {index > 0 && <span className="legend-element-arrow">&rarr;</span>}
+              <button
+                type="button"
+                className={`legend-element-btn ${isElementActive || isTeachingHighlight ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                disabled={isDisabled || !!isHiddenInTeaching}
+                style={{
+                  borderColor: isDisabled ? '#444' : colors[element],
+                  color: isDisabled ? '#666' : colors[element],
+                  background: (isElementActive || isTeachingHighlight) ? `${colors[element]}22` : 'transparent',
+                  opacity: isHiddenInTeaching ? 0 : (isDisabled ? 0.4 : 1),
+                }}
+                onClick={() => {
+                  if (isDisabled) return;
+                  // Return to default mode (not elements mode) when selecting specific element
+                  transitionTo('default');
+                  // Toggle the specific element highlight
+                  setHighlightedElement(isElementActive ? null : element);
+                }}
+                title={isDisabled ? `${element} not compatible with current selection` : `Click to highlight ${element} signs: ${elementSigns[element].join(', ')}`}
+              >
+                {element.toUpperCase()}
+              </button>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * MnemonicRow - Zodiac sign sequence memory aid
+ * "A Tense Gray Cat Lay Very Low, Sneaking Slowly, Carefully After Prey"
+ * Each word's first letter corresponds to a zodiac sign
+ */
+interface MnemonicRowProps {
+  selectedSign: ZodiacSign | null;
+}
+
+// Word-to-sign mapping for the mnemonic
+const MNEMONIC_WORDS: { word: string; sign: ZodiacSign }[] = [
+  { word: 'A', sign: 'Aries' },
+  { word: 'Tense', sign: 'Taurus' },
+  { word: 'Gray', sign: 'Gemini' },
+  { word: 'Cat', sign: 'Cancer' },
+  { word: 'Lay', sign: 'Leo' },
+  { word: 'Very', sign: 'Virgo' },
+  { word: 'Low,', sign: 'Libra' },
+  { word: 'Sneaking', sign: 'Scorpio' },
+  { word: 'Slowly,', sign: 'Sagittarius' },
+  { word: 'Carefully', sign: 'Capricorn' },
+  { word: 'After', sign: 'Aquarius' },
+  { word: 'Prey', sign: 'Pisces' },
+];
+
+function MnemonicRow({ selectedSign }: MnemonicRowProps) {
+  return (
+    <div className="legend-row mnemonic-row">
+      <div className="mnemonic-phrase">
+        <span className="mnemonic-quote">"</span>
+        {MNEMONIC_WORDS.map((item, index) => {
+          const isHighlighted = selectedSign === item.sign;
+          return (
+            <span
+              key={index}
+              className={`mnemonic-word ${isHighlighted ? 'highlighted' : ''}`}
+              title={item.sign}
+            >
+              {item.word}
+            </span>
+          );
+        })}
+        <span className="mnemonic-quote">"</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * SignQuizletRow - Interactive zodiac sign flashcard quiz
+ * Now with constraint-based matching sign highlight
+ * Clicking a glyph highlights the sign + its element/modality/season on the wheel
+ */
+interface SignQuizletRowProps {
+  quizletSign: ZodiacSign | null;
+  setQuizletSign: (sign: ZodiacSign | null) => void;
+  matchingSign?: ZodiacSign | null;
+  validSigns?: Set<ZodiacSign>;
+  hasConstraints?: boolean;
+  // Wheel highlight handlers - clicking a glyph highlights its attributes on the wheel
+  onHighlightSign?: (sign: ZodiacSign | null) => void;
+}
+
+function SignQuizletRow({ quizletSign, setQuizletSign, matchingSign, validSigns, hasConstraints, onHighlightSign }: SignQuizletRowProps) {
+  const rowRef = React.useRef<HTMLDivElement>(null);
+
+  // Determine which sign to show info for: quizletSign takes priority, then matchingSign
+  const displaySign = quizletSign || matchingSign;
+  const signMeta = displaySign ? SIGN_METADATA.find(m => m.sign === displaySign) : null;
+  const isMatchedByConstraints = !quizletSign && matchingSign;
+
+  // Color maps to match wheel colors
+  const elementColors: Record<string, string> = {
+    Fire: '#ef4444',
+    Earth: '#84cc16',
+    Air: '#38bdf8',
+    Water: '#6366f1',
+  };
+
+  const modalityColors: Record<string, string> = {
+    Cardinal: '#f59e0b',
+    Fixed: '#8b5cf6',
+    Mutable: '#06b6d4',
+  };
+
+  const seasonColors: Record<string, string> = {
+    Spring: '#4ade80',
+    Summer: '#fbbf24',
+    Autumn: '#f97316',
+    Winter: '#94a3b8',
+  };
+
+  // Map modality to phase label
+  const getPhaseLabel = (modality: string): string => {
+    switch (modality) {
+      case 'Cardinal': return 'BEGINNING';
+      case 'Fixed': return 'CORE';
+      case 'Mutable': return 'TRANSITION';
+      default: return '';
+    }
+  };
+
+  // Close quizlet when clicking outside
+  useEffect(() => {
+    if (!quizletSign) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (rowRef.current && !rowRef.current.contains(e.target as Node)) {
+        setQuizletSign(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [quizletSign, setQuizletSign]);
+
+  // Compute which signs are valid based on constraints
+  const allSigns = SIGN_METADATA.map(m => m.sign);
+
+  return (
+    <div ref={rowRef} className="legend-row quizlet-row">
+      <div className="legend-row-items quizlet-signs">
+        {SIGN_METADATA.map((meta) => {
+          const isActive = quizletSign === meta.sign;
+          const isMatched = matchingSign === meta.sign;
+          const isDisabled = hasConstraints && validSigns && !validSigns.has(meta.sign);
+
+          return (
+            <button
+              key={meta.sign}
+              type="button"
+              className={`quizlet-sign-btn ${isActive ? 'active' : ''} ${isMatched && !isActive ? 'matched' : ''} ${isDisabled ? 'disabled' : ''}`}
+              disabled={isDisabled}
+              onClick={() => {
+                if (isDisabled) return;
+                const newSign = quizletSign === meta.sign ? null : meta.sign;
+                setQuizletSign(newSign);
+                // Highlight this sign's attributes on the wheel
+                onHighlightSign?.(newSign);
+              }}
+              title={isDisabled ? `${meta.sign} not compatible with current selection` : meta.sign}
+              style={{
+                opacity: isDisabled ? 0.25 : 1,
+              }}
+            >
+              {meta.symbol}
+            </button>
+          );
+        })}
+      </div>
+      {signMeta && (
+        <div
+          className={`quizlet-answer ${isMatchedByConstraints ? 'constraint-match' : ''}`}
+          style={{ borderColor: elementColors[signMeta.element] }}
+        >
+          {isMatchedByConstraints && (
+            <span className="quizlet-match-label">✓ MATCH</span>
+          )}
+          <span
+            className="quizlet-item quizlet-sign-name"
+            style={{ color: elementColors[signMeta.element] }}
+          >
+            {signMeta.sign.toUpperCase()}
+          </span>
+          <span
+            className="quizlet-item quizlet-element"
+            style={{ color: elementColors[signMeta.element] }}
+          >
+            {signMeta.element.toUpperCase()}
+          </span>
+          <span
+            className="quizlet-item quizlet-modality"
+            style={{ color: modalityColors[signMeta.modality] }}
+          >
+            {signMeta.modality.toUpperCase()}
+          </span>
+          <span
+            className="quizlet-item quizlet-phase"
+            style={{ color: modalityColors[signMeta.modality] }}
+          >
+            {getPhaseLabel(signMeta.modality)}
+          </span>
+          <span
+            className="quizlet-item quizlet-season"
+            style={{ color: seasonColors[signMeta.season] }}
+          >
+            {signMeta.season}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // =============================================================================
 // MAIN COMPONENT
 // =============================================================================
 
 export default function TropicalSeasonsPage() {
   const navigate = useNavigate();
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Profile context for profile selector
-  const { profiles, loading: profilesLoading } = useProfiles();
+  const { profiles, loading: profilesLoading, recalculateSovereignData } = useProfiles();
+  const [isRecalculating, setIsRecalculating] = useState(false);
   const [selectedProfileId, setSelectedProfileId] = useState<string>('');
   const [secondProfileId, setSecondProfileId] = useState<string>('');
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('wheel');
   const [activeRelType, setActiveRelType] = useState<RelationshipType>('romantic');
+
+  // Custom hooks
+  const { dimensions, containerRef } = useWheelDimensions();
+  const { breathingEnabled, setBreathingEnabled, breathingSpeed, setBreathingSpeed, breathingDate, breathingCusp, wheelRotation, dayOfYear, progress } = useWheelBreathing();
+  const { showTableFlap, setShowTableFlap, flapPosition, isDragging, flapRef, handleFlapDragStart, handleCloseTableFlap } = useDraggableFlap();
+  const { selectedProfile, profileWestern, sunCusp } = useProfileWestern(profiles, selectedProfileId);
+  const { selectedProfile: secondProfile, profileWestern: secondProfileWestern } = useProfileWestern(profiles, secondProfileId);
+
+  // Swiss Ephemeris ingress dates for degree→date mapping
+  const birthYear = useMemo(() => {
+    if (!profileWestern?.birthDate) return null;
+    const dateStr = typeof profileWestern.birthDate === 'string'
+      ? profileWestern.birthDate
+      : (profileWestern.birthDate as Date).toISOString?.();
+    if (!dateStr) return null;
+    const year = parseInt(dateStr.substring(0, 4), 10);
+    return isNaN(year) ? null : year;
+  }, [profileWestern?.birthDate]);
+  const ephemerisIngress = useEphemerisIngress(birthYear);
 
   // Sign selection hook for compatibility
   const signSelection = useSignSelection();
@@ -94,150 +711,33 @@ export default function TropicalSeasonsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('overview');
   const [selectedSign, setSelectedSign] = useState<ZodiacSign | null>(null);
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
-  const [dimensions, setDimensions] = useState({ width: 600, height: 600 });
   const [useEnhancedCompat, setUseEnhancedCompat] = useState(true);
   const [selectedAspect, setSelectedAspect] = useState<AspectType | null>(null);
   const [aspectReferenceSign, setAspectReferenceSign] = useState<ZodiacSign | null>(null);
   const [showCalendarFlap, setShowCalendarFlap] = useState(false);
-  const [showTableFlap, setShowTableFlap] = useState(false);
-
-  // Breathing mode state
-  const [breathingEnabled, setBreathingEnabled] = useState(false);
-  const [breathingSpeed, setBreathingSpeed] = useState<YearSpeedKey>('normal');
-
-  // Draggable table flap state
-  const [flapPosition, setFlapPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragOffset = useRef({ x: 0, y: 0 });
-  const flapRef = useRef<HTMLDivElement>(null);
   const [hoveredCelestialEvent, setHoveredCelestialEvent] = useState<string | null>(null);
   const [hoveredSign, setHoveredSign] = useState<string | null>(null);
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
   const [hoveredModality, setHoveredModality] = useState<string | null>(null);
   const [hoveredAspect, setHoveredAspect] = useState<AspectKey | null>(null);
+  const [highlightedElement, setHighlightedElement] = useState<string | null>(null);
+  const [highlightedModality, setHighlightedModality] = useState<string | null>(null);
+  const [quizletSign, setQuizletSign] = useState<ZodiacSign | null>(null);
 
-  // Get selected profile data
-  const selectedProfile = useMemo(() => {
-    return profiles?.find((p: any) => p.id === selectedProfileId) || null;
-  }, [profiles, selectedProfileId]);
+  // Element to signs mapping for educational highlighting
+  const ELEMENT_SIGNS: Record<string, ZodiacSign[]> = {
+    Fire: ['Aries', 'Leo', 'Sagittarius'],
+    Earth: ['Taurus', 'Virgo', 'Capricorn'],
+    Air: ['Gemini', 'Libra', 'Aquarius'],
+    Water: ['Cancer', 'Scorpio', 'Pisces'],
+  };
 
-  // Extract Western zodiac data from profile
-  const profileWestern = useMemo(() => {
-    if (!selectedProfile) return null;
-    const western = selectedProfile.western || selectedProfile.calculations?.western;
-    if (!western) return null;
-
-    // Handle ascendant - could be string or object with .sign property
-    const ascendant = western.ascendant;
-    const risingSign = typeof ascendant === 'string'
-      ? ascendant
-      : (ascendant?.sign || western.rising?.sign || western.rising || null);
-
-    const planets = western.planets || {};
-    return {
-      sunSign: western.sun?.sign || western.sign || null,
-      moonSign: western.moon?.sign || null,
-      risingSign,
-      birthDate: selectedProfile.birthDate || selectedProfile.dateOfBirth || null,
-      birthTime: selectedProfile.birthTime || null,
-      moonLongitude: western.moon?.longitude ?? null,
-      risingLongitude: (typeof ascendant === 'object' ? ascendant?.longitude : null) ?? null,
-      venusSign: planets.venus?.sign || planets.Venus?.sign || null,
-      marsSign: planets.mars?.sign || planets.Mars?.sign || null,
-      mercurySign: planets.mercury?.sign || planets.Mercury?.sign || null,
-      jupiterSign: planets.jupiter?.sign || planets.Jupiter?.sign || null,
-      saturnSign: planets.saturn?.sign || planets.Saturn?.sign || null,
-      uranusSign: planets.uranus?.sign || planets.Uranus?.sign || null,
-      neptuneSign: planets.neptune?.sign || planets.Neptune?.sign || null,
-      plutoSign: planets.pluto?.sign || planets.Pluto?.sign || null,
-    };
-  }, [selectedProfile]);
-
-  // Calculate Sun cusp blend for selected profile
-  const sunCusp = useMemo(() => {
-    if (!profileWestern?.birthDate) return null;
-    try {
-      const date = typeof profileWestern.birthDate === 'string'
-        ? new Date(profileWestern.birthDate)
-        : profileWestern.birthDate;
-      if (isNaN(date.getTime())) return null;
-      return getSunBlendFromDate(date);
-    } catch {
-      return null;
-    }
-  }, [profileWestern?.birthDate]);
-
-  // Year breathing hooks (365-day cycle)
-  const yearBreathing = useYearBreathing({
-    autoStart: false,
-    speedMs: YEAR_SPEEDS[breathingSpeed],
-    loop: true,
-  });
-
-  // Control breathing based on toggle
-  useEffect(() => {
-    if (breathingEnabled) {
-      yearBreathing.play();
-    } else {
-      yearBreathing.pause();
-    }
-  }, [breathingEnabled]);
-
-  // Update speed when changed
-  useEffect(() => {
-    yearBreathing.setSpeed(YEAR_SPEEDS[breathingSpeed]);
-  }, [breathingSpeed]);
-
-  // Get current date and cusp for breathing mode
-  const breathingDate = useMemo(() => {
-    return dayOfYearToDate(2026, yearBreathing.dayOfYear);
-  }, [yearBreathing.dayOfYear]);
-
-  const breathingCusp = useMemo(() => {
-    if (!breathingEnabled) return null;
-    return getSunBlendFromDate(breathingDate);
-  }, [breathingEnabled, breathingDate]);
-
-  // Wheel rotation for breathing mode
-  const wheelRotation = useYearWheelRotation(yearBreathing.dayOfYear, {
-    transitionMs: YEAR_SPEEDS[breathingSpeed],
-  });
-
-  // Get second profile data for compatibility
-  const secondProfile = useMemo(() => {
-    return profiles?.find((p: any) => p.id === secondProfileId) || null;
-  }, [profiles, secondProfileId]);
-
-  // Extract Western zodiac data from second profile
-  const secondProfileWestern = useMemo(() => {
-    if (!secondProfile) return null;
-    const western = secondProfile.western || secondProfile.calculations?.western;
-    if (!western) return null;
-
-    const ascendant = western.ascendant;
-    const risingSign = typeof ascendant === 'string'
-      ? ascendant
-      : (ascendant?.sign || western.rising?.sign || western.rising || null);
-
-    const planets = western.planets || {};
-    return {
-      sunSign: western.sun?.sign || western.sign || null,
-      moonSign: western.moon?.sign || null,
-      risingSign,
-      birthDate: secondProfile.birthDate || secondProfile.dateOfBirth || null,
-      birthTime: secondProfile.birthTime || null,
-      moonLongitude: western.moon?.longitude ?? null,
-      risingLongitude: (typeof ascendant === 'object' ? ascendant?.longitude : null) ?? null,
-      venusSign: planets.venus?.sign || planets.Venus?.sign || null,
-      marsSign: planets.mars?.sign || planets.Mars?.sign || null,
-      mercurySign: planets.mercury?.sign || planets.Mercury?.sign || null,
-      jupiterSign: planets.jupiter?.sign || planets.Jupiter?.sign || null,
-      saturnSign: planets.saturn?.sign || planets.Saturn?.sign || null,
-      uranusSign: planets.uranus?.sign || planets.Uranus?.sign || null,
-      neptuneSign: planets.neptune?.sign || planets.Neptune?.sign || null,
-      plutoSign: planets.pluto?.sign || planets.Pluto?.sign || null,
-    };
-  }, [secondProfile]);
+  // Modality to signs mapping for educational highlighting
+  const MODALITY_SIGNS: Record<string, ZodiacSign[]> = {
+    Cardinal: ['Aries', 'Cancer', 'Libra', 'Capricorn'],
+    Fixed: ['Taurus', 'Leo', 'Scorpio', 'Aquarius'],
+    Mutable: ['Gemini', 'Virgo', 'Sagittarius', 'Pisces'],
+  };
 
   // Calculate which signs should be highlighted based on selected aspect
   const aspectHighlightedSigns = useMemo(() => {
@@ -245,6 +745,73 @@ export default function TropicalSeasonsPage() {
     const aspectingSigns = getAspectingSigns(aspectReferenceSign, selectedAspect);
     return new Set([aspectReferenceSign, ...aspectingSigns]);
   }, [selectedAspect, aspectReferenceSign]);
+
+  // Calculate which signs should be highlighted based on selected element
+  // Respects ALL active constraints (modality, season) - only highlight matching signs
+  const elementHighlightedSigns = useMemo(() => {
+    if (!highlightedElement) return new Set<ZodiacSign>();
+    const elementSigns = ELEMENT_SIGNS[highlightedElement] || [];
+    // If there are other constraints active, filter to only signs matching all constraints
+    if (selectedSeason || highlightedModality) {
+      return new Set(elementSigns.filter(sign => {
+        const combo = SIGN_COMBINATIONS[sign];
+        if (selectedSeason && combo.season !== selectedSeason) return false;
+        if (highlightedModality && combo.modality !== highlightedModality) return false;
+        return true;
+      }));
+    }
+    return new Set(elementSigns);
+  }, [highlightedElement, selectedSeason, highlightedModality]);
+
+  // Calculate which signs should be highlighted based on selected modality
+  // Respects ALL active constraints (element, season) - only highlight matching signs
+  const modalityHighlightedSigns = useMemo(() => {
+    if (!highlightedModality) return new Set<ZodiacSign>();
+    const modalitySigns = MODALITY_SIGNS[highlightedModality] || [];
+    // If there are other constraints active, filter to only signs matching all constraints
+    if (selectedSeason || highlightedElement) {
+      return new Set(modalitySigns.filter(sign => {
+        const combo = SIGN_COMBINATIONS[sign];
+        if (selectedSeason && combo.season !== selectedSeason) return false;
+        if (highlightedElement && combo.element !== highlightedElement) return false;
+        return true;
+      }));
+    }
+    return new Set(modalitySigns);
+  }, [highlightedModality, selectedSeason, highlightedElement]);
+
+  // Constraint system: compute valid options based on current selections
+  const constraintInfo = useMemo(() => {
+    const hasConstraints = !!(selectedSeason || highlightedModality || highlightedElement);
+    const { validSeasons, validModalities, validElements, matchingSign } = computeValidOptions(
+      selectedSeason,
+      highlightedModality,
+      highlightedElement
+    );
+
+    // Compute valid signs (signs that match all current constraints)
+    const validSigns = new Set<ZodiacSign>();
+    (Object.keys(SIGN_COMBINATIONS) as ZodiacSign[]).forEach(sign => {
+      const combo = SIGN_COMBINATIONS[sign];
+      if (selectedSeason && combo.season !== selectedSeason) return;
+      if (highlightedModality && combo.modality !== highlightedModality) return;
+      if (highlightedElement && combo.element !== highlightedElement) return;
+      validSigns.add(sign);
+    });
+
+    return { hasConstraints, validSeasons, validModalities, validElements, validSigns, matchingSign };
+  }, [selectedSeason, highlightedModality, highlightedElement]);
+
+  // When combination results in a unique matching sign, show that Sign panel
+  useEffect(() => {
+    if (constraintInfo.matchingSign && !quizletSign) {
+      // A unique sign matches the current combination (Season + Modality + Element)
+      // Show the Sign panel with that sign highlighted
+      // Don't clear selectedSeason - we still want the constraint visible in the legend
+      setSelectedSign(constraintInfo.matchingSign);
+      setViewMode('sign');
+    }
+  }, [constraintInfo.matchingSign, quizletSign]);
 
   // Derived data
   const seasonArcs = useMemo(() => buildD3SeasonArcs(), []);
@@ -279,62 +846,18 @@ export default function TropicalSeasonsPage() {
     [signSelection.signB]
   );
 
-  // Resize handler
-  useEffect(() => {
-    const handleResize = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const size = Math.min(rect.width - 40, 600);
-        setDimensions({ width: size, height: size });
-      }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Draggable table flap handlers
-  const handleFlapDragStart = useCallback((e: React.MouseEvent) => {
-    if (flapRef.current) {
-      const rect = flapRef.current.getBoundingClientRect();
-      dragOffset.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      };
-      setIsDragging(true);
+  // Recalculate handler — re-triggers Python backend for the selected profile
+  const handleRecalculate = useCallback(async () => {
+    if (!selectedProfileId || isRecalculating) return;
+    setIsRecalculating(true);
+    try {
+      await recalculateSovereignData(selectedProfileId);
+    } catch (err) {
+      console.error('Recalculation failed:', err);
+    } finally {
+      setIsRecalculating(false);
     }
-  }, []);
-
-  const handleFlapDrag = useCallback((e: MouseEvent) => {
-    if (isDragging) {
-      setFlapPosition({
-        x: e.clientX - dragOffset.current.x,
-        y: e.clientY - dragOffset.current.y,
-      });
-    }
-  }, [isDragging]);
-
-  const handleFlapDragEnd = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  // Reset flap position when closing
-  const handleCloseTableFlap = useCallback(() => {
-    setShowTableFlap(false);
-    setFlapPosition({ x: 0, y: 0 });
-  }, []);
-
-  // Attach global mouse listeners for dragging
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleFlapDrag);
-      window.addEventListener('mouseup', handleFlapDragEnd);
-      return () => {
-        window.removeEventListener('mousemove', handleFlapDrag);
-        window.removeEventListener('mouseup', handleFlapDragEnd);
-      };
-    }
-  }, [isDragging, handleFlapDrag, handleFlapDragEnd]);
+  }, [selectedProfileId, isRecalculating, recalculateSovereignData]);
 
   // Sign click handler - encapsulates viewMode-dependent behavior
   const handleSignClick = useCallback((sign: ZodiacSign) => {
@@ -357,12 +880,19 @@ export default function TropicalSeasonsPage() {
     }
   }, [viewMode, selectedSign, signSelection]);
 
-  // Season click handler
+  // Season click handler - with toggle (click again to close)
   const handleSeasonClick = useCallback((season: Season) => {
-    setSelectedSeason(season);
-    setSelectedSign(null);
-    setViewMode('season');
-  }, []);
+    if (selectedSeason === season) {
+      // Toggle off - clicking same season again
+      setSelectedSeason(null);
+      setViewMode('overview');
+    } else {
+      // Select new season
+      setSelectedSeason(season);
+      setSelectedSign(null);
+      setViewMode('season');
+    }
+  }, [selectedSeason]);
 
   // Handlers
   const handleClosePanel = useCallback(() => {
@@ -388,7 +918,27 @@ export default function TropicalSeasonsPage() {
     }
   }, [selectedSign, signSelection]);
 
+  // Quizlet glyph click handler - highlights ONLY that sign sector and shows Sign panel
+  // Teaching tool: "Where is Aries?" → Only Aries arc highlighted, Aries panel shown
+  const handleQuizletHighlight = useCallback((sign: ZodiacSign | null) => {
+    // Reset all other highlights
+    setHighlightedElement(null);
+    setHighlightedModality(null);
+    setSelectedSeason(null);  // Don't set season - it highlights entire quadrant + shows Season panel
+    setSelectedAspect(null);
+    setAspectReferenceSign(null);
+
+    // Set selectedSign to highlight ONLY this sign's arc and show Sign panel
+    setSelectedSign(sign);
+    if (sign) {
+      setViewMode('sign');
+    } else {
+      setViewMode('overview');
+    }
+  }, []);
+
   return (
+    <WheelModeProvider>
     <div className="tropical-seasons-root">
       {/* Header with Profile Selector */}
       <header className="tropical-header-enhanced">
@@ -525,6 +1075,15 @@ export default function TropicalSeasonsPage() {
         <div className="header-right">
           <button
             type="button"
+            onClick={handleRecalculate}
+            className="recalculate-button"
+            title="Recalculate profile from Python backend"
+            disabled={isRecalculating || !selectedProfileId}
+          >
+            {isRecalculating ? '⏳ Recalculating…' : '🔄 Recalculate'}
+          </button>
+          <button
+            type="button"
             onClick={() => setShowCalendarFlap(true)}
             className="calendar-button"
             title="View 2026 Seasonal Calendar"
@@ -560,11 +1119,11 @@ export default function TropicalSeasonsPage() {
                 )}
               </div>
               <div className="breathing-progress">
-                Day {yearBreathing.dayOfYear} of 365
+                Day {dayOfYear} of 365
                 <div className="breathing-progress-bar">
                   <div
                     className="breathing-progress-fill"
-                    style={{ width: `${yearBreathing.progress * 100}%` }}
+                    style={{ width: `${progress * 100}%` }}
                   />
                 </div>
               </div>
@@ -590,6 +1149,11 @@ export default function TropicalSeasonsPage() {
               selectedAspect={selectedAspect}
               aspectHighlightedSigns={aspectHighlightedSigns}
               aspectReferenceSign={aspectReferenceSign}
+              elementHighlightedSigns={elementHighlightedSigns}
+              highlightedElement={highlightedElement}
+              modalityHighlightedSigns={modalityHighlightedSigns}
+              highlightedModality={highlightedModality}
+              selectedSeason={selectedSeason}
               onSignClick={handleSignClick}
               onSeasonClick={handleSeasonClick}
               onHoverSign={setHoveredSign}
@@ -774,73 +1338,89 @@ export default function TropicalSeasonsPage() {
             );
           })()}
 
-          {/* Legend — 4-row structured layout */}
+          {/* Legend — 4-row structured layout (all interactive) */}
           <div className="tropical-legend">
-            {/* Row 1: SEASONS */}
-            <div className="legend-row">
-              <span className="legend-row-label">SEASONS</span>
-              <div className="legend-row-items">
-                <span className="legend-tag" style={{ borderColor: '#4ade80', color: '#4ade80' }}>Spring</span>
-                <span className="legend-season-arrow">&rarr;</span>
-                <span className="legend-tag" style={{ borderColor: '#fbbf24', color: '#fbbf24' }}>Summer</span>
-                <span className="legend-season-arrow">&rarr;</span>
-                <span className="legend-tag" style={{ borderColor: '#f97316', color: '#f97316' }}>Autumn</span>
-                <span className="legend-season-arrow">&rarr;</span>
-                <span className="legend-tag" style={{ borderColor: '#94a3b8', color: '#94a3b8' }}>Winter</span>
-              </div>
-            </div>
+            {/* Reset button at top-right corner */}
+            <ResetButton onReset={() => {
+              setSelectedAspect(null);
+              setAspectReferenceSign(null);
+              setHighlightedElement(null);
+              setHighlightedModality(null);
+              setSelectedSeason(null);
+              setQuizletSign(null);
+              setSelectedSign(null);
+              setViewMode('overview');
+            }} />
 
-            {/* Row 2: Season phases */}
-            <div className="legend-row">
-              <span className="legend-row-label">EACH SEASON</span>
-              <div className="legend-row-items">
-                <span className="legend-phase">BEGINNING</span>
-                <span className="legend-phase-arrow">&rarr;</span>
-                <span className="legend-phase">CORE</span>
-                <span className="legend-phase-arrow">&rarr;</span>
-                <span className="legend-phase">TRANSITION</span>
-                <span className="legend-phase-note">(to next season)</span>
-              </div>
-            </div>
+            {/* Row 1: SEASONS - Clickable to highlight seasons ring */}
+            <SeasonsLegendRow
+              onSeasonClick={handleSeasonClick}
+              selectedSeason={selectedSeason}
+              validSeasons={constraintInfo.validSeasons}
+              hasConstraints={constraintInfo.hasConstraints}
+              teachingSign={quizletSign}
+              onLabelReset={() => {
+                setSelectedAspect(null);
+                setAspectReferenceSign(null);
+                setHighlightedElement(null);
+                setHighlightedModality(null);
+                setSelectedSeason(null);
+                setQuizletSign(null);
+                setSelectedSign(null);
+              }}
+            />
 
-            {/* Row 3: MODALITY */}
-            <div className="legend-row">
-              <span className="legend-row-label">MODALITY</span>
-              <div className="legend-row-items">
-                <span className="legend-modality mod-cardinal">CARDINAL</span>
-                <span className="legend-modality-map">(Beginning)</span>
-                <span className="legend-modality mod-fixed">FIXED</span>
-                <span className="legend-modality-map">(Core)</span>
-                <span className="legend-modality mod-mutable">MUTABLE</span>
-                <span className="legend-modality-map">(Transition)</span>
-              </div>
-            </div>
+            {/* Row 2: MODALITY - Clickable to highlight modality ring + signs */}
+            <ModalityLegendRow
+              highlightedModality={highlightedModality}
+              setHighlightedModality={setHighlightedModality}
+              modalitySigns={MODALITY_SIGNS}
+              validModalities={constraintInfo.validModalities}
+              hasConstraints={constraintInfo.hasConstraints}
+              teachingSign={quizletSign}
+              onLabelReset={() => {
+                setSelectedAspect(null);
+                setAspectReferenceSign(null);
+                setHighlightedElement(null);
+                setHighlightedModality(null);
+                setSelectedSeason(null);
+                setQuizletSign(null);
+                setSelectedSign(null);
+              }}
+            />
 
-            {/* Row 4: ELEMENTS */}
-            <div className="legend-row">
-              <span className="legend-row-label">ELEMENTS</span>
-              <div className="legend-row-items">
-                <span className="legend-element" style={{ color: '#ef4444' }}>FIRE</span>
-                <span className="legend-element" style={{ color: '#84cc16' }}>EARTH</span>
-                <span className="legend-element" style={{ color: '#38bdf8' }}>AIR</span>
-                <span className="legend-element" style={{ color: '#6366f1' }}>WATER</span>
-              </div>
-            </div>
+            {/* Row 3: ELEMENTS - Clickable to highlight element ring + signs */}
+            <ElementsLegendRow
+              highlightedElement={highlightedElement}
+              setHighlightedElement={setHighlightedElement}
+              elementSigns={ELEMENT_SIGNS}
+              validElements={constraintInfo.validElements}
+              hasConstraints={constraintInfo.hasConstraints}
+              teachingSign={quizletSign}
+              onLabelReset={() => {
+                setSelectedAspect(null);
+                setAspectReferenceSign(null);
+                setHighlightedElement(null);
+                setHighlightedModality(null);
+                setSelectedSeason(null);
+                setQuizletSign(null);
+                setSelectedSign(null);
+              }}
+            />
 
-            {/* Micro-Legend - Essential Context (below the 4 rows) */}
-            <div className="micro-legend">
-              <span className="micro-legend-item">
-                <em>Season</em> = psychological imprint
-              </span>
-              <span className="micro-legend-divider">·</span>
-              <span className="micro-legend-item">
-                <em>Element</em> = how energy expresses
-              </span>
-              <span className="micro-legend-divider">·</span>
-              <span className="micro-legend-item">
-                <em>Mode</em> = how energy moves
-              </span>
-            </div>
+            {/* Mnemonic Row: Memory aid for zodiac sequence */}
+            <MnemonicRow selectedSign={quizletSign} />
+
+            {/* Row 4: SIGNS QUIZLET - Interactive zodiac sign flashcard */}
+            <SignQuizletRow
+              quizletSign={quizletSign}
+              setQuizletSign={setQuizletSign}
+              matchingSign={constraintInfo.matchingSign}
+              validSigns={constraintInfo.validSigns}
+              hasConstraints={constraintInfo.hasConstraints}
+              onHighlightSign={handleQuizletHighlight}
+            />
+
           </div>
 
           {/* Aspect Selector */}
@@ -988,16 +1568,38 @@ export default function TropicalSeasonsPage() {
 
         {/* Right: Info Panel */}
         <div className="tropical-panel">
-          {/* Self Analysis Panel */}
+          {/* Self Analysis Panel + Sun Sign Spectrum Explorer */}
           {analysisMode === 'self' && selectedProfile && profileWestern && (
-            <SelfAnalysisPanel
-              name={selectedProfile.displayName || selectedProfile.name || 'Unknown'}
-              birthDate={profileWestern.birthDate}
-              sunSign={profileWestern.sunSign}
-              moonSign={profileWestern.moonSign}
-              risingSign={profileWestern.risingSign}
-              onClose={() => setAnalysisMode('wheel')}
-            />
+            <>
+              <SelfAnalysisPanel
+                name={selectedProfile.displayName || selectedProfile.name || 'Unknown'}
+                birthDate={profileWestern.birthDate}
+                sunSign={profileWestern.sunSign}
+                moonSign={profileWestern.moonSign}
+                risingSign={profileWestern.risingSign}
+                sunLongitude={profileWestern.sunLongitude}
+                moonLongitude={profileWestern.moonLongitude}
+                risingLongitude={profileWestern.risingLongitude}
+                onClose={() => setAnalysisMode('wheel')}
+              />
+
+              {/* Zone Deep-Dive: SpectrumExplorer for the user's Sun sign */}
+              {profileWestern.sunSign && (() => {
+                const Explorer = SPECTRUM_EXPLORER_MAP[profileWestern.sunSign];
+                if (!Explorer) return null;
+                const offset = SIGN_LONGITUDE_OFFSET[profileWestern.sunSign] ?? 0;
+                const userDeg = profileWestern.sunLongitude != null
+                  ? profileWestern.sunLongitude - offset
+                  : null;
+                return (
+                  <Explorer
+                    userDegree={userDeg}
+                    userName={selectedProfile.name || null}
+                    ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                  />
+                );
+              })()}
+            </>
           )}
 
           {/* Compatibility Analysis Panel */}
@@ -1054,6 +1656,13 @@ export default function TropicalSeasonsPage() {
                 risingSign: profileWestern.risingSign,
                 moonLongitude: profileWestern.moonLongitude,
                 risingLongitude: profileWestern.risingLongitude,
+                venusSign: profileWestern.venusSign,
+                marsSign: profileWestern.marsSign,
+                venusLongitude: profileWestern.venusLongitude,
+                marsLongitude: profileWestern.marsLongitude,
+                sunLongitude: profileWestern.sunLongitude,
+                houseCusps: profileWestern.houseCusps,
+                allPlanetLongitudes: profileWestern.allPlanetLongitudes,
               }}
               profileB={{
                 id: secondProfile.id,
@@ -1065,16 +1674,42 @@ export default function TropicalSeasonsPage() {
                 risingSign: secondProfileWestern.risingSign,
                 moonLongitude: secondProfileWestern.moonLongitude,
                 risingLongitude: secondProfileWestern.risingLongitude,
+                venusSign: secondProfileWestern.venusSign,
+                marsSign: secondProfileWestern.marsSign,
+                venusLongitude: secondProfileWestern.venusLongitude,
+                marsLongitude: secondProfileWestern.marsLongitude,
+                sunLongitude: secondProfileWestern.sunLongitude,
+                houseCusps: secondProfileWestern.houseCusps,
+                allPlanetLongitudes: secondProfileWestern.allPlanetLongitudes,
               }}
               relationshipType={activeRelType}
             />
           )}
 
           {/* Wheel Mode Panels */}
-          {analysisMode === 'wheel' && selectedSeasonProfile && (
+          {/* SeasonPanel only shows if there's no unique matching sign (SignPanel takes priority) */}
+          {analysisMode === 'wheel' && selectedSeasonProfile && !constraintInfo.matchingSign && !highlightedModality && (
             <SeasonPanel
               profile={selectedSeasonProfile}
               onClose={handleClosePanel}
+            />
+          )}
+
+          {/* ModalityPanel shows when only a modality is selected (no season, no element, no unique sign) */}
+          {analysisMode === 'wheel' && highlightedModality && !selectedSeason && !highlightedElement && !constraintInfo.matchingSign && (
+            <ModalityPanel
+              modality={highlightedModality as 'Cardinal' | 'Fixed' | 'Mutable'}
+              onClose={() => setHighlightedModality(null)}
+              onSignClick={handleSignClick}
+            />
+          )}
+
+          {/* ElementPanel shows when only an element is selected (no season, no modality, no unique sign) */}
+          {analysisMode === 'wheel' && highlightedElement && !selectedSeason && !highlightedModality && !constraintInfo.matchingSign && (
+            <ElementPanel
+              element={highlightedElement as 'Fire' | 'Earth' | 'Air' | 'Water'}
+              onClose={() => setHighlightedElement(null)}
+              onSignClick={handleSignClick}
             />
           )}
 
@@ -1088,6 +1723,140 @@ export default function TropicalSeasonsPage() {
               />
               {/* Khan Academy-style Angle Trainer */}
               <AngleTrainer fromSign={selectedSignMeta.sign as SignKey} />
+
+              {/* Spectrum Explorers — 30° deep-dive per sign */}
+              {selectedSignMeta.sign === 'Aries' && (
+                <AriesSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Aries' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Taurus' && (
+                <TaurusSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Taurus' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 30
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Gemini' && (
+                <GeminiSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Gemini' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 60
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Cancer' && (
+                <CancerSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Cancer' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 90
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Leo' && (
+                <LeoSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Leo' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 120
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Virgo' && (
+                <VirgoSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Virgo' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 150
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Libra' && (
+                <LibraSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Libra' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 180
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Scorpio' && (
+                <ScorpioSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Scorpio' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 210
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Sagittarius' && (
+                <SagittariusSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Sagittarius' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 240
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Capricorn' && (
+                <CapricornSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Capricorn' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 270
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Aquarius' && (
+                <AquariusSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Aquarius' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 300
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
+              {selectedSignMeta.sign === 'Pisces' && (
+                <PiscesSpectrumExplorer
+                  userDegree={
+                    profileWestern?.sunSign === 'Pisces' && profileWestern?.sunLongitude != null
+                      ? profileWestern.sunLongitude - 330
+                      : null
+                  }
+                  userName={selectedProfile?.name || null}
+                  ephemerisTimestamps={ephemerisIngress?.ingressTimestamps ?? null}
+                />
+              )}
             </>
           )}
 
@@ -1112,7 +1881,7 @@ export default function TropicalSeasonsPage() {
             />
           )}
 
-          {/* Wheel Education Panel - Shows when nothing is selected */}
+          {/* Wheel Education Panel - Shows when nothing is selected in Wheel mode */}
           {analysisMode === 'wheel' && !selectedSeasonProfile && !selectedSignMeta && !signSelection.hasPair && (
             <WheelEducationPanel onOpenTableFlap={() => setShowTableFlap(true)} />
           )}
@@ -1254,5 +2023,6 @@ export default function TropicalSeasonsPage() {
         </div>
       )}
     </div>
+    </WheelModeProvider>
   );
 }

@@ -28,6 +28,7 @@ import {
   ASPECT_TOOLTIPS,
   type AspectKey,
 } from '../../data/tropicalConstants';
+import { useWheelMode } from '../../seasonal-ecology';
 
 // =============================================================================
 // TYPES
@@ -59,6 +60,16 @@ export interface TropicalZodiacWheelProps {
   aspectHighlightedSigns: Set<ZodiacSign>;
   /** Reference sign for aspect calculation */
   aspectReferenceSign: ZodiacSign | null;
+  /** Set of signs highlighted by element selection (educational) */
+  elementHighlightedSigns?: Set<ZodiacSign>;
+  /** Specific element to highlight in the elements ring (Fire, Earth, Air, Water) */
+  highlightedElement?: string | null;
+  /** Set of signs highlighted by modality selection (educational) */
+  modalityHighlightedSigns?: Set<ZodiacSign>;
+  /** Specific modality to highlight in the modality ring (Cardinal, Fixed, Mutable) */
+  highlightedModality?: string | null;
+  /** Currently selected season for highlighting (Spring, Summer, Autumn, Winter) */
+  selectedSeason?: Season | null;
 
   // Callbacks
   /** Called when a sign is clicked */
@@ -92,6 +103,11 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
   selectedAspect,
   aspectHighlightedSigns,
   aspectReferenceSign,
+  elementHighlightedSigns,
+  highlightedElement,
+  modalityHighlightedSigns,
+  highlightedModality,
+  selectedSeason,
   onSignClick,
   onSeasonClick,
   onHoverSign,
@@ -101,6 +117,37 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
   onHoverAspect,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
+
+  // BATCH 5: Mode-aware rendering
+  // Try to get wheel mode, fallback to 'default' if not in provider
+  let wheelMode = 'default';
+  try {
+    const modeContext = useWheelMode();
+    wheelMode = modeContext.mode;
+  } catch {
+    // Not wrapped in WheelModeProvider, use default
+  }
+
+  // Opacity helper based on current mode
+  // Each mode highlights its corresponding ring, dims others
+  const getModeOpacity = (layer: 'seasons' | 'modality' | 'element' | 'signs' | 'center'): number => {
+    const DIM = 0.35;
+    const FULL = 1;
+
+    switch (wheelMode) {
+      case 'seasons':
+        return layer === 'seasons' ? FULL : DIM;
+      case 'modality':
+        return layer === 'modality' ? FULL : DIM;
+      case 'elements':
+        return layer === 'element' ? FULL : DIM;
+      case 'signs':
+        return layer === 'signs' ? FULL : DIM;
+      default:
+        // Default mode: all layers visible
+        return FULL;
+    }
+  };
 
   // D3 Rendering
   useEffect(() => {
@@ -271,6 +318,8 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
     const getSpokeStyle = (sign: ZodiacSign) => {
       const isCompatSelected = isSignSelected(sign);
       const isAspectHighlighted = aspectHighlightedSigns.has(sign);
+      const isElementHighlighted = elementHighlightedSigns?.has(sign) ?? false;
+      const isModalityHighlighted = modalityHighlightedSigns?.has(sign) ?? false;
       const aspectDef = selectedAspect ? ASPECT_DEFINITIONS[selectedAspect] : null;
 
       if (isCompatSelected) {
@@ -278,6 +327,22 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
       }
       if (isAspectHighlighted && aspectDef) {
         return { stroke: aspectDef.color, strokeWidth: 2.5, dashArray: 'none' };
+      }
+      if (isElementHighlighted) {
+        // Use the element color for highlighting
+        const signMeta = SIGN_METADATA.find(m => m.sign === sign);
+        const elementColors: Record<string, string> = {
+          Fire: '#ef4444',
+          Earth: '#84cc16',
+          Air: '#38bdf8',
+          Water: '#6366f1',
+        };
+        const color = signMeta ? elementColors[signMeta.element] : '#fbbf24';
+        return { stroke: color, strokeWidth: 2.5, dashArray: 'none' };
+      }
+      if (isModalityHighlighted) {
+        // Use yellow for modality highlighting to make it obvious
+        return { stroke: '#fbbf24', strokeWidth: 2.5, dashArray: 'none' };
       }
       return { stroke: 'rgba(255, 255, 255, 0.12)', strokeWidth: 1, dashArray: '3,6' };
     };
@@ -346,7 +411,12 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
     };
 
     // Draw element ring (shows FIRE, EARTH, AIR, WATER for each sign)
-    const elementGroup = g.append('g').attr('class', 'element-ring');
+    // When a specific element is highlighted, only that element's sectors are bright
+    const elementGroup = g.append('g').attr('class', 'element-ring')
+      .style('opacity', getModeOpacity('element'));
+
+    // Get the selected sign's element for teaching mode highlighting
+    const selectedSignElement = selectedSign ? SIGN_METADATA.find(m => m.sign === selectedSign)?.element : null;
 
     elementGroup.selectAll('path')
       .data(signArcs)
@@ -356,9 +426,62 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
         const elementInfo = getElementLabel(d.element);
         return elementInfo.color;
       })
-      .attr('opacity', 0.7)
-      .attr('stroke', '#1e293b')
-      .attr('stroke-width', 1)
+      .attr('opacity', d => {
+        // Check if this sign matches active constraints (modality, season)
+        const matchesModality = !highlightedModality || modalityHighlightedSigns?.has(d.sign);
+        const matchesSeason = !selectedSeason || d.season === selectedSeason;
+        const matchesConstraints = matchesModality && matchesSeason;
+
+        // If a specific element is highlighted, only show that element's sectors brightly
+        // AND they must match other constraints (modality, season)
+        if (highlightedElement) {
+          if (d.element === highlightedElement && matchesConstraints) return 1;
+          return 0.2;
+        }
+        // If modality or season is selected (but not element), dim non-matching signs
+        if (highlightedModality || selectedSeason) {
+          return matchesConstraints ? 0.8 : 0.2;
+        }
+        // Teaching mode: when a sign is selected, highlight only its element
+        if (selectedSign && selectedSignElement) {
+          return d.element === selectedSignElement ? 1 : 0.2;
+        }
+        return 0.7;
+      })
+      .attr('stroke', d => {
+        // Check if this sign matches active constraints (modality, season)
+        const matchesModality = !highlightedModality || modalityHighlightedSigns?.has(d.sign);
+        const matchesSeason = !selectedSeason || d.season === selectedSeason;
+        const matchesConstraints = matchesModality && matchesSeason;
+
+        // Yellow border for highlighted element sectors that match ALL constraints
+        if (highlightedElement && d.element === highlightedElement && matchesConstraints) {
+          return '#fbbf24';
+        }
+        // Teaching mode: yellow border for selected sign's element
+        if (selectedSign && selectedSignElement && d.element === selectedSignElement) {
+          return '#fbbf24';
+        }
+        return '#1e293b';
+      })
+      .attr('stroke-width', d => {
+        const matchesModality = !highlightedModality || modalityHighlightedSigns?.has(d.sign);
+        const matchesSeason = !selectedSeason || d.season === selectedSeason;
+        const matchesConstraints = matchesModality && matchesSeason;
+
+        const isHighlighted = (highlightedElement && d.element === highlightedElement && matchesConstraints) ||
+                              (selectedSign && selectedSignElement && d.element === selectedSignElement);
+        return isHighlighted ? 3 : 1;
+      })
+      .style('filter', d => {
+        const matchesModality = !highlightedModality || modalityHighlightedSigns?.has(d.sign);
+        const matchesSeason = !selectedSeason || d.season === selectedSeason;
+        const matchesConstraints = matchesModality && matchesSeason;
+
+        const isHighlighted = (highlightedElement && d.element === highlightedElement && matchesConstraints) ||
+                              (selectedSign && selectedSignElement && d.element === selectedSignElement);
+        return isHighlighted ? 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.6))' : 'none';
+      })
       .style('cursor', 'pointer')
       .on('mouseover', function(event, d) {
         d3.select(this)
@@ -367,11 +490,25 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
           .attr('opacity', 1);
         onHoverElement(d.element);
       })
-      .on('mouseout', function() {
+      .on('mouseout', function(event, d) {
+        // Restore opacity based on all active constraints
+        const matchesModality = !highlightedModality || modalityHighlightedSigns?.has(d.sign);
+        const matchesSeason = !selectedSeason || d.season === selectedSeason;
+        const matchesConstraints = matchesModality && matchesSeason;
+
+        let restoreOpacity = 0.7;
+        if (highlightedElement) {
+          restoreOpacity = (d.element === highlightedElement && matchesConstraints) ? 1 : 0.2;
+        } else if (highlightedModality || selectedSeason) {
+          restoreOpacity = matchesConstraints ? 0.8 : 0.2;
+        } else if (selectedSign && selectedSignElement) {
+          restoreOpacity = d.element === selectedSignElement ? 1 : 0.2;
+        }
+
         d3.select(this)
           .transition()
           .duration(150)
-          .attr('opacity', 0.7);
+          .attr('opacity', restoreOpacity);
         onHoverElement(null);
       });
 
@@ -404,40 +541,127 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
         .text(elementInfo.label);
     });
 
-    // Draw modality ring (Cardinal, Fixed, Mutable)
-    const modalityGroup = g.append('g').attr('class', 'modality-ring');
+    // Yellow highlight borders when Elements mode is active
+    if (wheelMode === 'elements') {
+      g.append('circle')
+        .attr('r', elementInnerRadius)
+        .attr('fill', 'none')
+        .attr('stroke', '#fbbf24')
+        .attr('stroke-width', 2)
+        .style('filter', 'drop-shadow(0 0 4px rgba(251, 191, 36, 0.6))');
+      g.append('circle')
+        .attr('r', elementOuterRadius)
+        .attr('fill', 'none')
+        .attr('stroke', '#fbbf24')
+        .attr('stroke-width', 2)
+        .style('filter', 'drop-shadow(0 0 4px rgba(251, 191, 36, 0.6))');
+    }
 
-    // Modality colors
+    // Draw modality ring (Cardinal, Fixed, Mutable)
+    const modalityGroup = g.append('g').attr('class', 'modality-ring')
+      .style('opacity', getModeOpacity('modality'));
+
+    // Modality colors - must match legend colors
     const getModalityColor = (modality: string): string => {
       switch (modality) {
-        case 'Cardinal': return '#ec4899'; // Pink - initiators
-        case 'Fixed': return '#f59e0b';    // Amber - sustainers
-        case 'Mutable': return '#14b8a6';  // Teal - adapters
+        case 'Cardinal': return '#f59e0b'; // Amber - initiators
+        case 'Fixed': return '#8b5cf6';    // Purple - sustainers
+        case 'Mutable': return '#06b6d4';  // Cyan - adapters
         default: return '#6b7280';
       }
     };
+
+    // Get the selected sign's modality for teaching mode highlighting
+    const selectedSignModality = selectedSign ? SIGN_METADATA.find(m => m.sign === selectedSign)?.modality : null;
 
     modalityGroup.selectAll('path')
       .data(signArcs)
       .join('path')
       .attr('d', modalityArcGen)
       .attr('fill', d => getModalityColor(d.modality))
-      .attr('opacity', 0.65)
-      .attr('stroke', '#1e293b')
-      .attr('stroke-width', 1)
+      .attr('opacity', d => {
+        // Check if this sign matches active constraints (element, season)
+        const matchesElement = !highlightedElement || elementHighlightedSigns?.has(d.sign);
+        const matchesSeason = !selectedSeason || d.season === selectedSeason;
+        const matchesConstraints = matchesElement && matchesSeason;
+
+        // If a specific modality is highlighted, only show that modality's sectors brightly
+        // AND they must match other constraints (element, season)
+        if (highlightedModality) {
+          if (d.modality === highlightedModality && matchesConstraints) return 1;
+          return 0.2;
+        }
+        // If element or season is selected (but not modality), dim non-matching signs
+        if (highlightedElement || selectedSeason) {
+          return matchesConstraints ? 0.8 : 0.2;
+        }
+        // Teaching mode: when a sign is selected, highlight only its modality
+        if (selectedSign && selectedSignModality) {
+          return d.modality === selectedSignModality ? 1 : 0.2;
+        }
+        return 0.65;
+      })
+      .attr('stroke', d => {
+        // Check if this sign matches active constraints (element, season)
+        const matchesElement = !highlightedElement || elementHighlightedSigns?.has(d.sign);
+        const matchesSeason = !selectedSeason || d.season === selectedSeason;
+        const matchesConstraints = matchesElement && matchesSeason;
+
+        // Yellow border for highlighted modality sectors that match ALL constraints
+        if (highlightedModality && d.modality === highlightedModality && matchesConstraints) {
+          return '#fbbf24';
+        }
+        // Teaching mode: yellow border for selected sign's modality
+        if (selectedSign && selectedSignModality && d.modality === selectedSignModality) {
+          return '#fbbf24';
+        }
+        return '#1e293b';
+      })
+      .attr('stroke-width', d => {
+        const matchesElement = !highlightedElement || elementHighlightedSigns?.has(d.sign);
+        const matchesSeason = !selectedSeason || d.season === selectedSeason;
+        const matchesConstraints = matchesElement && matchesSeason;
+
+        const isHighlighted = (highlightedModality && d.modality === highlightedModality && matchesConstraints) ||
+                              (selectedSign && selectedSignModality && d.modality === selectedSignModality);
+        return isHighlighted ? 3 : 1;
+      })
+      .style('filter', d => {
+        const matchesElement = !highlightedElement || elementHighlightedSigns?.has(d.sign);
+        const matchesSeason = !selectedSeason || d.season === selectedSeason;
+        const matchesConstraints = matchesElement && matchesSeason;
+
+        const isHighlighted = (highlightedModality && d.modality === highlightedModality && matchesConstraints) ||
+                              (selectedSign && selectedSignModality && d.modality === selectedSignModality);
+        return isHighlighted ? 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.6))' : 'none';
+      })
       .style('cursor', 'pointer')
       .on('mouseover', function(event, d) {
         d3.select(this)
           .transition()
           .duration(150)
-          .attr('opacity', 0.9);
+          .attr('opacity', 1);
         onHoverModality(d.modality);
       })
-      .on('mouseout', function() {
+      .on('mouseout', function(event, d) {
+        // Restore opacity based on all active constraints
+        const matchesElement = !highlightedElement || elementHighlightedSigns?.has(d.sign);
+        const matchesSeason = !selectedSeason || d.season === selectedSeason;
+        const matchesConstraints = matchesElement && matchesSeason;
+
+        let restoreOpacity = 0.65;
+        if (highlightedModality) {
+          restoreOpacity = (d.modality === highlightedModality && matchesConstraints) ? 1 : 0.2;
+        } else if (highlightedElement || selectedSeason) {
+          restoreOpacity = matchesConstraints ? 0.8 : 0.2;
+        } else if (selectedSign && selectedSignModality) {
+          restoreOpacity = d.modality === selectedSignModality ? 1 : 0.2;
+        }
+
         d3.select(this)
           .transition()
           .duration(150)
-          .attr('opacity', 0.65);
+          .attr('opacity', restoreOpacity);
         onHoverModality(null);
       });
 
@@ -473,19 +697,47 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
         .text(modalityLabel);
     });
 
+    // Yellow highlight borders when Modality mode is active
+    if (wheelMode === 'modality') {
+      g.append('circle')
+        .attr('r', modalityInnerRadius)
+        .attr('fill', 'none')
+        .attr('stroke', '#fbbf24')
+        .attr('stroke-width', 2)
+        .style('filter', 'drop-shadow(0 0 4px rgba(251, 191, 36, 0.6))');
+      g.append('circle')
+        .attr('r', modalityOuterRadius)
+        .attr('fill', 'none')
+        .attr('stroke', '#fbbf24')
+        .attr('stroke-width', 2)
+        .style('filter', 'drop-shadow(0 0 4px rgba(251, 191, 36, 0.6))');
+    }
+
     // Draw seasons (thin outer ring)
-    const seasonGroup = g.append('g').attr('class', 'seasons-ring');
+    const seasonGroup = g.append('g').attr('class', 'seasons-ring')
+      .style('opacity', getModeOpacity('seasons'));
 
     seasonGroup.selectAll('path')
       .data(seasonArcs)
       .join('path')
       .attr('d', seasonArcGen)
       .attr('fill', d => d.color)
-      .attr('stroke', '#1e293b')
-      .attr('stroke-width', 2)
-      .attr('opacity', 1)
+      .attr('stroke', d => selectedSeason === d.season ? '#fbbf24' : '#1e293b')
+      .attr('stroke-width', d => selectedSeason === d.season ? 3 : 2)
+      .attr('opacity', d => {
+        // Dim non-selected seasons when one is selected
+        if (selectedSeason && selectedSeason !== d.season) return 0.3;
+        // Dim seasons that don't contain the selected sign (quizlet teaching mode)
+        if (selectedSign) {
+          const signMeta = SIGN_METADATA.find(m => m.sign === selectedSign);
+          if (signMeta && signMeta.season !== d.season) return 0.3;
+        }
+        return 1;
+      })
       .style('cursor', 'pointer')
       .on('mouseover', function(event, d) {
+        // Skip hover effects if a season is already selected
+        if (selectedSeason) return;
         // Dim other season arcs
         g.selectAll('.seasons-ring path')
           .transition()
@@ -509,6 +761,8 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
           });
       })
       .on('mouseout', function() {
+        // Skip if a season is selected (maintain selection state)
+        if (selectedSeason) return;
         // Reset all opacities
         g.selectAll('.seasons-ring path')
           .transition()
@@ -574,6 +828,8 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
       const midAngle = (arc.startAngle + arc.endAngle) / 2 - Math.PI / 2;
       const pointerStart = seasonOuterRadius + 2;
       const pointerEnd = labelRadius - 8;
+      const isSelected = selectedSeason === arc.season;
+      const isDimmed = selectedSeason && selectedSeason !== arc.season;
 
       // Pointer line from ring to label
       seasonLabelGroup.append('line')
@@ -581,18 +837,21 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
         .attr('y1', Math.sin(midAngle) * pointerStart)
         .attr('x2', Math.cos(midAngle) * pointerEnd)
         .attr('y2', Math.sin(midAngle) * pointerEnd)
-        .attr('stroke', arc.color)
-        .attr('stroke-width', 1.5)
-        .attr('opacity', 0.6);
+        .attr('stroke', isSelected ? '#fbbf24' : arc.color)
+        .attr('stroke-width', isSelected ? 2.5 : 1.5)
+        .attr('opacity', isDimmed ? 0.3 : 0.6);
 
-      // Small circle at end of pointer
+      // Small circle at end of pointer (clickable)
       seasonLabelGroup.append('circle')
         .attr('cx', Math.cos(midAngle) * pointerEnd)
         .attr('cy', Math.sin(midAngle) * pointerEnd)
-        .attr('r', 3)
-        .attr('fill', arc.color);
+        .attr('r', isSelected ? 6 : 4)
+        .attr('fill', isSelected ? '#fbbf24' : arc.color)
+        .attr('opacity', isDimmed ? 0.3 : 1)
+        .style('cursor', 'pointer')
+        .on('click', () => onSeasonClick(arc.season));
 
-      // External label text
+      // External label text (clickable)
       const labelX = Math.cos(midAngle) * labelRadius;
       const labelY = Math.sin(midAngle) * labelRadius;
 
@@ -601,10 +860,13 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
         .attr('y', labelY)
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
-        .style('font-size', '14px')
-        .style('font-weight', '600')
-        .style('fill', arc.color)
-        .style('pointer-events', 'none')
+        .style('font-size', isSelected ? '16px' : '14px')
+        .style('font-weight', isSelected ? '700' : '600')
+        .style('fill', isSelected ? '#fbbf24' : arc.color)
+        .style('opacity', isDimmed ? 0.3 : 1)
+        .style('cursor', 'pointer')
+        .style('text-shadow', isSelected ? '0 0 10px rgba(251, 191, 36, 0.5)' : 'none')
+        .on('click', () => onSeasonClick(arc.season))
         .text(`${arc.icon} ${arc.season}`);
     });
 
@@ -787,16 +1049,56 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
     });
 
     // Draw signs (main ring)
-    const signGroup = g.append('g').attr('class', 'signs-ring');
+    const signGroup = g.append('g').attr('class', 'signs-ring')
+      .style('opacity', getModeOpacity('signs'));
 
     signGroup.selectAll('path')
       .data(signArcs)
       .join('path')
       .attr('d', signArcGen)
       .attr('fill', d => d.color)
-      .attr('stroke', d => (isSignSelected(d.sign) || d.sign === selectedSign || d.sign === aspectReferenceSign) ? '#fbbf24' : '#1e293b')
-      .attr('stroke-width', d => (isSignSelected(d.sign) || d.sign === selectedSign || d.sign === aspectReferenceSign) ? 3 : 1.5)
-      .attr('opacity', 1)
+      .attr('stroke', d => {
+        const isElementHighlighted = elementHighlightedSigns?.has(d.sign) ?? false;
+        const isModalityHighlighted = modalityHighlightedSigns?.has(d.sign) ?? false;
+        if (isSignSelected(d.sign) || d.sign === selectedSign || d.sign === aspectReferenceSign) return '#fbbf24';
+        if (isElementHighlighted) {
+          const elementColors: Record<string, string> = { Fire: '#ef4444', Earth: '#84cc16', Air: '#38bdf8', Water: '#6366f1' };
+          return elementColors[d.element] || '#fbbf24';
+        }
+        if (isModalityHighlighted) {
+          // Use the modality's color to match the modality ring (consistent highlighting)
+          const modalityColors: Record<string, string> = { Cardinal: '#f59e0b', Fixed: '#8b5cf6', Mutable: '#06b6d4' };
+          return modalityColors[d.modality] || '#fbbf24';
+        }
+        return '#1e293b';
+      })
+      .attr('stroke-width', d => {
+        const isElementHighlighted = elementHighlightedSigns?.has(d.sign) ?? false;
+        const isModalityHighlighted = modalityHighlightedSigns?.has(d.sign) ?? false;
+        return (isSignSelected(d.sign) || d.sign === selectedSign || d.sign === aspectReferenceSign || isElementHighlighted || isModalityHighlighted) ? 3 : 1.5;
+      })
+      .attr('opacity', d => {
+        // Dim non-matching signs when element, modality, season, or single sign is highlighted
+        const isElementHighlighted = elementHighlightedSigns?.has(d.sign) ?? false;
+        const isModalityHighlighted = modalityHighlightedSigns?.has(d.sign) ?? false;
+        const hasElementSelection = highlightedElement !== null && highlightedElement !== undefined;
+        const hasModalitySelection = highlightedModality !== null && highlightedModality !== undefined;
+
+        // Dim other signs when a single sign is selected (quizlet teaching mode)
+        if (selectedSign && d.sign !== selectedSign) {
+          return 0.3;
+        }
+
+        // Check if sign is in the selected season
+        if (selectedSeason) {
+          const signMeta = SIGN_METADATA.find(m => m.sign === d.sign);
+          if (signMeta?.season !== selectedSeason) return 0.3;
+        }
+
+        if (hasElementSelection && !isElementHighlighted) return 0.3;
+        if (hasModalitySelection && !isModalityHighlighted) return 0.3;
+        return 1;
+      })
       .style('cursor', 'pointer')
       .style('pointer-events', 'visiblePainted')
       .on('mouseover', function(event, d) {
@@ -821,15 +1123,41 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
         onHoverSign(d.sign);
       })
       .on('mouseout', function() {
-        // Reset all opacities
+        // Restore opacities based on active constraints
         g.selectAll('.signs-ring path')
           .transition()
           .duration(150)
-          .attr('opacity', 1);
+          .attr('opacity', (signData: SignArcData) => {
+            const isElementHighlighted = elementHighlightedSigns?.has(signData.sign) ?? false;
+            const isModalityHighlighted = modalityHighlightedSigns?.has(signData.sign) ?? false;
+            const hasElementSelection = highlightedElement !== null && highlightedElement !== undefined;
+            const hasModalitySelection = highlightedModality !== null && highlightedModality !== undefined;
+
+            // Dim other signs when a single sign is selected
+            if (selectedSign && signData.sign !== selectedSign) return 0.3;
+
+            // Check if sign is in the selected season
+            if (selectedSeason) {
+              const signMeta = SIGN_METADATA.find(m => m.sign === signData.sign);
+              if (signMeta?.season !== selectedSeason) return 0.3;
+            }
+
+            if (hasElementSelection && !isElementHighlighted) return 0.3;
+            if (hasModalitySelection && !isModalityHighlighted) return 0.3;
+            return 1;
+          });
+        // Restore season ring opacity
         g.selectAll('.seasons-ring path')
           .transition()
           .duration(150)
-          .attr('opacity', 1);
+          .attr('opacity', (seasonData: D3SeasonArc) => {
+            if (selectedSeason && selectedSeason !== seasonData.season) return 0.3;
+            if (selectedSign) {
+              const signMeta = SIGN_METADATA.find(m => m.sign === selectedSign);
+              if (signMeta && signMeta.season !== seasonData.season) return 0.3;
+            }
+            return 1;
+          });
         d3.select(this)
           .transition()
           .duration(150)
@@ -870,7 +1198,7 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
         .attr('y', symbolY)
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
-        .style('font-size', isSelected ? '20px' : '16px')
+        .style('font-size', isSelected ? '24px' : '20px')
         .style('fill', isSelected ? '#fbbf24' : '#fff')
         .style('font-weight', isSelected ? '700' : '400')
         .style('pointer-events', 'none')
@@ -928,6 +1256,11 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
     selectedAspect,
     aspectHighlightedSigns,
     aspectReferenceSign,
+    elementHighlightedSigns,
+    highlightedElement,
+    modalityHighlightedSigns,
+    highlightedModality,
+    selectedSeason,
     onSignClick,
     onSeasonClick,
     onHoverSign,
@@ -935,6 +1268,7 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
     onHoverModality,
     onHoverCelestialEvent,
     onHoverAspect,
+    wheelMode,
   ]);
 
   return <svg ref={svgRef} />;
