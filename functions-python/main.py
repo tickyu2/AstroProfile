@@ -311,6 +311,68 @@ def calculate_planetary_positions(req: https_fn.Request) -> https_fn.Response:
 
 @https_fn.on_request(
     cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    memory=options.MemoryOption.MB_256,
+    timeout_sec=30
+)
+def seasonal_ingresses(req: https_fn.Request) -> https_fn.Response:
+    """
+    Return Swiss Ephemeris-precise Sun ingress dates for all 12 signs in a given year.
+
+    POST body: { "year": 1963 }   or   GET ?year=1963
+
+    Returns 12 ingress entries with exact UTC datetimes.
+    """
+    try:
+        if req.method == "GET":
+            year = int(req.args.get("year", datetime.utcnow().year))
+        else:
+            data = req.get_json() or {}
+            year = int(data.get("year", datetime.utcnow().year))
+
+        if year < 1800 or year > 2200:
+            return https_fn.Response(
+                json.dumps({"error": "Year must be between 1800 and 2200"}),
+                status=400,
+                headers={"Content-Type": "application/json"}
+            )
+
+        from luna_fusion.core.swiss_ephemeris import calculate_seasonal_ingresses
+
+        ingresses = calculate_seasonal_ingresses(year)
+
+        serialized = []
+        for ing in ingresses:
+            serialized.append({
+                "sign": ing["sign"],
+                "longitude": ing["longitude"],
+                "season": ing["season"],
+                "phase": ing["phase"],
+                "datetime_utc": ing["datetime_utc"].strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "month": ing["month"],
+                "day": ing["day"],
+                "hour": ing["hour"],
+                "minute": ing["minute"],
+                "is_equinox": ing["is_equinox"],
+                "is_solstice": ing["is_solstice"],
+                "event_name": ing.get("event_name"),
+            })
+
+        return https_fn.Response(
+            json.dumps({"year": year, "ingresses": serialized}),
+            status=200,
+            headers={"Content-Type": "application/json"}
+        )
+
+    except Exception as e:
+        return https_fn.Response(
+            json.dumps({"error": str(e)}),
+            status=500,
+            headers={"Content-Type": "application/json"}
+        )
+
+
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256
 )
 def calculate_elemental_balance(req: https_fn.Request) -> https_fn.Response:
@@ -2051,6 +2113,82 @@ def luna_composite_chart(req: https_fn.Request) -> https_fn.Response:
                 "relationshipVector": relationship_vector,
                 "interpretation": interpretation
             })),
+            status=200,
+            headers={"Content-Type": "application/json"}
+        )
+
+    except Exception as e:
+        return https_fn.Response(
+            json.dumps({"error": str(e)}),
+            status=500,
+            headers={"Content-Type": "application/json"}
+        )
+
+
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    memory=options.MemoryOption.MB_512,
+    timeout_sec=60
+)
+def luna_composite_transits(req: https_fn.Request) -> https_fn.Response:
+    """
+    P6b: Calculate transits to composite chart — relationship weather forecast.
+
+    Uses Swiss Ephemeris for precise planetary positions across a 12-month
+    scan window. Returns transit events, mythic story beats, and seasonal
+    narrative chapters.
+
+    POST body:
+    {
+        "compositeLongitudes": {
+            "Sun": 45.2, "Moon": 123.5, "Mercury": 52.1,
+            "Venus": 38.7, "Mars": 215.3, "Jupiter": 156.8,
+            "Saturn": 298.2, "Uranus": 27.9, "Neptune": 352.1, "Pluto": 301.5
+        },
+        "months": 12
+    }
+
+    Response:
+    {
+        "events": [ { "date", "label", "impact", ... } ],
+        "storyBeats": [ { "date", "label", "chamber", "direction", "narrative" } ],
+        "seasonalChapters": [ { "season", "theme", "summary", "events" } ],
+        "summary": { "totalEvents", "opensCount", "testsCount", "seasonCount", "dominantChamber" }
+    }
+    """
+    if not LUNA_FUSION_AVAILABLE:
+        return https_fn.Response(
+            json.dumps({"error": "Luna Fusion not available"}),
+            status=500,
+            headers={"Content-Type": "application/json"}
+        )
+
+    try:
+        if req.method != "POST":
+            return https_fn.Response(
+                json.dumps({"error": "Method not allowed"}),
+                status=405,
+                headers={"Content-Type": "application/json"}
+            )
+
+        data = req.get_json()
+        composite_longitudes = data.get("compositeLongitudes", {})
+
+        if not composite_longitudes:
+            return https_fn.Response(
+                json.dumps({"error": "compositeLongitudes is required"}),
+                status=400,
+                headers={"Content-Type": "application/json"}
+            )
+
+        months = data.get("months", 12)
+        months = max(1, min(months, 24))  # Clamp to 1-24
+
+        from luna_fusion.transits.composite_transits import build_composite_transit_story
+        result = build_composite_transit_story(composite_longitudes, months=months)
+
+        return https_fn.Response(
+            json.dumps(result),
             status=200,
             headers={"Content-Type": "application/json"}
         )
@@ -4084,9 +4222,29 @@ def compute_unified_profile(req: https_fn.Request) -> https_fn.Response:
         # Compute profile
         result = api_compute_profile(request)
 
-        # Return canonical output
+        # Return canonical output with ephemeris diagnostics
+        response_data = result.model_dump()
+        try:
+            from astro.calculator import get_ephe_diagnostics
+            response_data['_ephe_diag'] = get_ephe_diagnostics()
+            # Direct asteroid test to capture exact errors
+            import swisseph as swe
+            from astro.calculator import _EPHE_DIR
+            if _EPHE_DIR:
+                swe.set_ephe_path(_EPHE_DIR)  # re-assert before test
+            jd = swe.julday(1911, 2, 6, 10.2667)  # Reagan birth approx
+            asteroid_test = {}
+            for name, body_id in [('chiron', 15), ('ceres', 17), ('pallas', 18), ('juno', 19), ('vesta', 20)]:
+                try:
+                    res, flag = swe.calc_ut(jd, body_id, swe.FLG_SPEED)
+                    asteroid_test[name] = f"OK lon={res[0]:.4f}"
+                except Exception as e:
+                    asteroid_test[name] = f"ERROR: {str(e)}"
+            response_data['_asteroid_test'] = asteroid_test
+        except Exception as ex:
+            response_data['_diag_error'] = str(ex)
         return https_fn.Response(
-            json.dumps(result.model_dump()),
+            json.dumps(response_data),
             status=200,
             headers={"Content-Type": "application/json"}
         )

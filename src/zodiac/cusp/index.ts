@@ -1,15 +1,17 @@
 /**
- * Cusp Module - φ-Curve Sign Blending
+ * Cusp Module - ρ-Curve Sign Blending
  *
  * This module provides cusp-aware sign calculations using the
- * golden ratio (φ) decay curve for natural transitions.
+ * plastic number (ρ) decay curve for natural transitions.
  *
  * GENESIS AstroProfile - January 2026
  */
 
-// Core φ-curve utilities
+// Core ρ-curve utilities
 export {
   PHI,
+  PLASTIC,
+  CUSP_EXPONENT,
   DEFAULT_PHI,
   PHI_CURVE_VALUES,
   phiBlendFraction,

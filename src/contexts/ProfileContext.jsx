@@ -928,6 +928,9 @@ export function ProfileProvider({ children }) {
 
         // =====================================================================
         // LEGACY CALCULATIONS (kept for backward compatibility)
+        // Bridge: sovereignCalculation populated from Python canonical data
+        // so all consumers reading from calculations.western.sovereignCalculation
+        // continue to work until fully migrated to profile.western
         // =====================================================================
         calculations: {
           age,
@@ -936,7 +939,25 @@ export function ProfileProvider({ children }) {
             sign: western.sign,
             element: western.element,
             dateRange: getZodiacDateRange(western.sign),
-            rulingPlanet: getRulingPlanet(western.sign)
+            rulingPlanet: getRulingPlanet(western.sign),
+            ...(canonicalProfile?.western ? {
+              sovereignCalculation: {
+                sun: canonicalProfile.western.sun,
+                moon: canonicalProfile.western.moon,
+                rising: canonicalProfile.western.ascendant,
+                ascendant: canonicalProfile.western.ascendant,
+                midheaven: canonicalProfile.western.midheaven,
+                planets: canonicalProfile.western.planets,
+                houses: canonicalProfile.western.houses,
+                aspects: canonicalProfile.western.aspects,
+                elementBalance: canonicalProfile.western.elements,
+                moonPhase: canonicalProfile.western.moonPhase,
+                arabicParts: canonicalProfile.western.arabicParts,
+                houseSystem: canonicalProfile.western.houseSystem || 'Placidus',
+                engine: 'python-swiss-ephemeris',
+                calculatedAt: canonicalProfile.computedAt
+              }
+            } : {})
           },
           dayOfWeek,
           yinYang: {

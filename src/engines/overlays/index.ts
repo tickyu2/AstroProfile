@@ -125,6 +125,25 @@ export type {
 } from './houseOverlay';
 
 // ========================================
+// SYNASTRY HOUSE OVERLAY
+// ========================================
+
+export {
+  getHouseForLongitude,
+  computeSynastryHouseOverlay,
+  computeSynastryHouseOverlayPair,
+  getModeColor
+} from './synastryHouseOverlay';
+
+export type {
+  PlanetLongitudes,
+  HouseCusp as SynastryHouseCusp,
+  SynastryHouseOverlayEntry,
+  SynastryHouseOverlayResult,
+  SynastryHouseOverlayPairResult
+} from './synastryHouseOverlay';
+
+// ========================================
 // COMPOSITE LEADERSHIP OVERLAY
 // ========================================
 

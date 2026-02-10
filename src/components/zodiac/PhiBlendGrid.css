@@ -1,0 +1,499 @@
+.phi-blend-grid-container {
+  color: #e5e7eb;
+}
+
+.phi-grid-header {
+  margin-bottom: 12px;
+}
+
+.phi-grid-header h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fbbf24;
+  margin: 0 0 2px 0;
+}
+
+.phi-grid-subtitle {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* φ Score */
+.phi-score-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.phi-score-icon {
+  font-size: 28px;
+  font-weight: 800;
+  color: #fbbf24;
+  font-style: italic;
+}
+
+.phi-score-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.phi-score-value {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.phi-score-label {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Grid */
+.phi-matrix-grid {
+  display: grid;
+  grid-template-columns: 60px 70px repeat(3, 1fr);
+  gap: 4px;
+}
+
+.phi-cell {
+  padding: 8px 4px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.phi-cell.header {
+  background: rgba(251, 191, 36, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.phi-cell.header.corner {
+  font-size: 8px;
+  color: #d1d5db;
+  justify-content: center;
+  padding: 6px 2px;
+}
+
+.phi-corner-label {
+  line-height: 1.3;
+}
+
+.phi-cell.row-header {
+  background: rgba(251, 191, 36, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.phi-lens-icon {
+  font-size: 16px;
+}
+
+.phi-lens-name {
+  font-size: 10px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.phi-cell.zodiac-col-hdr {
+  justify-content: center;
+}
+
+.phi-col-name {
+  font-size: 9px;
+  color: #d1d5db;
+  font-weight: 600;
+}
+
+.phi-birth-date {
+  font-size: 8px;
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.phi-cell.zodiac-row-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(251, 191, 36, 0.08);
+  border-radius: 8px;
+  gap: 1px;
+}
+
+.phi-row-name {
+  font-size: 9px;
+  color: #d1d5db;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.phi-cell.zodiac-empty {
+  background: transparent;
+}
+
+.phi-cell.zodiac-sign {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(167, 139, 250, 0.1);
+  border-radius: 8px;
+}
+
+.phi-cell.row-zodiac {
+  background: rgba(167, 139, 250, 0.1);
+}
+
+/* Blend label in zodiac cells */
+.phi-blend-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.phi-sign-primary {
+  font-size: 11px;
+  font-weight: 600;
+  color: #c4b5fd;
+  letter-spacing: 0.3px;
+}
+
+.phi-sign-secondary {
+  font-size: 9px;
+  font-weight: 500;
+  color: #a78bfa;
+  opacity: 0.8;
+}
+
+/* Data cells */
+.phi-cell.data {
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 56px;
+}
+
+.phi-cell.data:hover {
+  transform: scale(1.02);
+}
+
+.phi-cell.data.selected {
+  border-width: 2px;
+}
+
+.phi-cell-harmony {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.phi-cell-label {
+  font-size: 8px;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.phi-cell-weight {
+  font-size: 9px;
+  color: #6b7280;
+}
+
+/* Detail Panel */
+.phi-cell-detail {
+  margin-top: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.phi-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.phi-detail-aspect {
+  font-size: 13px;
+  font-weight: 700;
+  color: #60a5fa;
+}
+
+.phi-detail-scores {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.phi-detail-blend {
+  font-size: 12px;
+  color: #d1d5db;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.phi-detail-pairs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+/* Sign Pair Card (one per blend combination) */
+.phi-detail-pair-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.phi-pair-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.phi-pair-signs {
+  color: #d1d5db;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.phi-pair-combined {
+  font-weight: 700;
+  min-width: 30px;
+  text-align: right;
+}
+
+.phi-pair-weight {
+  color: #6b7280;
+  font-size: 11px;
+  margin-left: auto;
+}
+
+/* Layer Chips (Aspect / Element / Modality) */
+.phi-pair-layers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.phi-layer-chip {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.phi-layer-chip.aspect {
+  background: rgba(96, 165, 250, 0.15);
+  color: #93c5fd;
+}
+
+.phi-layer-chip.element {
+  background: rgba(74, 222, 128, 0.15);
+  color: #86efac;
+}
+
+.phi-layer-chip.modality {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c4b5fd;
+}
+
+.phi-layer-chip.seasonal {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fcd34d;
+}
+
+/* Formula Bar */
+.phi-formula-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(251, 191, 36, 0.08);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.phi-formula-label {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.phi-formula-text {
+  color: #d1d5db;
+}
+
+/* Show Calculation Button */
+.phi-show-calc-btn {
+  display: block;
+  width: 100%;
+  padding: 6px 0;
+  background: transparent;
+  border: 1px dashed rgba(96, 165, 250, 0.3);
+  border-radius: 6px;
+  color: #60a5fa;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 6px;
+}
+
+.phi-show-calc-btn:hover {
+  background: rgba(96, 165, 250, 0.08);
+  border-color: rgba(96, 165, 250, 0.5);
+}
+
+/* Calculation Text (preformatted) */
+.phi-calc-text {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #9ca3af;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  margin: 0 0 8px 0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Aspect Badge (in detail panel) */
+.phi-detail-aspect-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+.phi-aspect-symbol {
+  font-size: 16px;
+}
+
+.phi-aspect-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.phi-aspect-degrees {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Interpretation Paragraph */
+.phi-detail-interpretation {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #c4b5fd;
+  margin: 10px 0 0 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* =============================================================================
+   NARRATIVE SYNTHESIS
+   ============================================================================= */
+
+.phi-narrative-section {
+  margin-top: 14px;
+}
+
+.phi-narrative-toggle {
+  width: 100%;
+  padding: 10px 16px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 10px;
+  color: #fbbf24;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.phi-narrative-toggle:hover {
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.phi-narrative-content {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.phi-narrative-chamber {
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid #60a5fa;
+  border-radius: 0 10px 10px 0;
+}
+
+.phi-narrative-chamber:nth-child(1) {
+  border-left-color: #fbbf24;
+}
+
+.phi-narrative-chamber:nth-child(2) {
+  border-left-color: #a78bfa;
+}
+
+.phi-narrative-chamber:nth-child(3) {
+  border-left-color: #60a5fa;
+}
+
+.phi-chamber-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.phi-chamber-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e5e7eb;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.phi-chamber-score {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.phi-chamber-text {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #d1d5db;
+  margin: 0;
+}
+
+.phi-narrative-synthesis {
+  padding: 14px;
+  background: rgba(251, 191, 36, 0.05);
+  border: 1px solid rgba(251, 191, 36, 0.20);
+  border-radius: 10px;
+}

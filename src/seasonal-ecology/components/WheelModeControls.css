@@ -1,0 +1,147 @@
+.wheel-mode-controls {
+  background: rgba(26, 26, 46, 0.95);
+  border: 1px solid rgba(100, 150, 255, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.wheel-mode-controls.compact {
+  padding: 8px;
+}
+
+.section-label {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: #6496ff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.mode-section {
+  margin-bottom: 16px;
+}
+
+.mode-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mode-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #d0d0d0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9em;
+}
+
+.mode-button:hover:not(.disabled) {
+  background: rgba(100, 150, 255, 0.15);
+  border-color: rgba(100, 150, 255, 0.4);
+}
+
+.mode-button.active {
+  background: rgba(100, 150, 255, 0.25);
+  border-color: #6496ff;
+  color: #fff;
+}
+
+.mode-button.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mode-icon {
+  font-size: 1.2em;
+}
+
+.mode-label {
+  font-weight: 500;
+}
+
+.layer-section {
+  padding-top: 16px;
+  border-top: 1px solid rgba(100, 150, 255, 0.2);
+}
+
+.layer-toggles {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.layer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.8em;
+}
+
+.layer-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.layer-toggle.enabled {
+  background: rgba(100, 150, 255, 0.15);
+  border-color: rgba(100, 150, 255, 0.3);
+  color: #b0c4ff;
+}
+
+.layer-toggle.disabled {
+  opacity: 0.5;
+}
+
+.layer-icon {
+  font-size: 1em;
+}
+
+.layer-label {
+  font-size: 0.85em;
+}
+
+/* Compact mode */
+.wheel-mode-controls.compact .mode-buttons,
+.wheel-mode-controls.compact .layer-toggles {
+  gap: 4px;
+}
+
+.wheel-mode-controls.compact .mode-button,
+.wheel-mode-controls.compact .layer-toggle {
+  padding: 6px 8px;
+}
+
+.wheel-mode-controls.compact .section-label {
+  font-size: 0.7em;
+  margin-bottom: 6px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .wheel-mode-controls {
+    padding: 12px;
+  }
+
+  .mode-button {
+    padding: 6px 10px;
+    font-size: 0.85em;
+  }
+
+  .layer-toggle {
+    padding: 4px 8px;
+    font-size: 0.75em;
+  }
+}

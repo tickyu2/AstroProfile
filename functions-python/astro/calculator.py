@@ -9,9 +9,56 @@ from typing import Dict, List, Optional, Tuple
 import pytz
 from dateutil import parser as date_parser
 import math
+import os
 
-# Initialize Swiss Ephemeris path (uses default ephemeris files)
-swe.set_ephe_path(None)
+# Initialize Swiss Ephemeris path — use bundled .se1 files for asteroid support
+# Try multiple candidate paths for Cloud Run / local environments
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR = os.path.dirname(_THIS_DIR)
+_EPHE_CANDIDATES = [
+    os.path.join(_ROOT_DIR, 'ephe'),                        # astro/../ephe
+    os.path.join(_THIS_DIR, '..', 'ephe'),                   # relative ..
+    '/workspace/ephe',                                        # Cloud Run default
+    os.path.join(os.getcwd(), 'ephe'),                       # cwd/ephe
+    '/srv/ephe',                                              # alternative Cloud Run
+    os.path.join(os.path.expanduser('~'), 'ephe'),           # home/ephe
+]
+_EPHE_DIR = None
+_EPHE_DIAG = {
+    '__file__': os.path.abspath(__file__),
+    'cwd': os.getcwd(),
+    'candidates_tried': [],
+}
+for _candidate in _EPHE_CANDIDATES:
+    _abs = os.path.abspath(_candidate)
+    _exists = os.path.isdir(_abs)
+    _EPHE_DIAG['candidates_tried'].append({'path': _abs, 'exists': _exists})
+    if _exists and _EPHE_DIR is None:
+        _EPHE_DIR = _abs
+
+if _EPHE_DIR:
+    swe.set_ephe_path(_EPHE_DIR)
+    _EPHE_DIAG['resolved'] = _EPHE_DIR
+    _EPHE_DIAG['files'] = os.listdir(_EPHE_DIR)
+    print(f"[SwissEph] Using ephemeris files from: {_EPHE_DIR}")
+    print(f"[SwissEph] Files: {os.listdir(_EPHE_DIR)}")
+else:
+    swe.set_ephe_path(None)  # fallback to Moshier (no asteroid support)
+    _EPHE_DIAG['resolved'] = None
+    _EPHE_DIAG['files'] = []
+    print(f"[SwissEph] WARNING: No ephe directory found.")
+    print(f"[SwissEph] Diagnostics: {_EPHE_DIAG}")
+    # Last resort: list contents of parent directory to see what's actually there
+    try:
+        _EPHE_DIAG['root_contents'] = os.listdir(_ROOT_DIR)
+        print(f"[SwissEph] Root dir ({_ROOT_DIR}) contents: {_EPHE_DIAG['root_contents']}")
+    except Exception as e:
+        _EPHE_DIAG['root_contents'] = f"ERROR: {e}"
+
+
+def get_ephe_diagnostics():
+    """Return ephemeris path diagnostic info for debugging"""
+    return _EPHE_DIAG
 
 
 # ============================================================================
@@ -122,7 +169,12 @@ class SwissEphemerisCalculator:
         'neptune': swe.NEPTUNE,
         'pluto': swe.PLUTO,
         'north_node': swe.MEAN_NODE,
-        'chiron': swe.CHIRON
+        'chiron': swe.CHIRON,
+        # Major asteroids (body IDs 17-20 in Swiss Ephemeris)
+        'ceres': getattr(swe, 'CERES', 17),
+        'pallas': getattr(swe, 'PALLAS', 18),
+        'juno': getattr(swe, 'JUNO', 19),
+        'vesta': getattr(swe, 'VESTA', 20),
     }
 
     # Zodiac signs
@@ -244,6 +296,9 @@ class SwissEphemerisCalculator:
         # Calculate modality balance
         modalities = self._calculate_modality_balance(planets)
 
+        # Calculate Arabic Parts (Lots)
+        arabic_parts = self.calculate_arabic_parts(planets, houses)
+
         return {
             "birthData": {
                 "date": birth_date,
@@ -258,6 +313,7 @@ class SwissEphemerisCalculator:
             "aspects": aspects,
             "elements": elements,
             "modalities": modalities,
+            "arabicParts": arabic_parts,
             "ascendant": houses.get("ascendant"),
             "midheaven": houses.get("midheaven"),
             "calculationMethod": "Swiss Ephemeris",
@@ -266,6 +322,10 @@ class SwissEphemerisCalculator:
 
     def _calculate_planets(self, jd: float) -> Dict:
         """Calculate positions for all planets"""
+        # Re-assert ephemeris path before calculation (other modules may reset it)
+        if _EPHE_DIR:
+            swe.set_ephe_path(_EPHE_DIR)
+
         planets = {}
 
         for name, planet_id in self.PLANETS.items():
@@ -293,6 +353,7 @@ class SwissEphemerisCalculator:
                     "formatted": f"{degree_in_sign:.2f}° {sign}"
                 }
             except Exception as e:
+                print(f"[SwissEph] ERROR calculating {name} (id={planet_id}): {e}")
                 planets[name] = {"error": str(e)}
 
         return planets
@@ -317,7 +378,25 @@ class SwissEphemerisCalculator:
                 }
             }
 
-            for i, cusp in enumerate(cusps[1:13], 1):  # Houses 1-12
+            # pyswisseph swe.houses() returns cusps as a tuple:
+            #   Standard (Placidus etc.): 12 elements, 0-indexed (cusps[0]=H1 ... cusps[11]=H12)
+            #   C-convention (some builds): 13 elements, 1-indexed (cusps[0] unused, cusps[1]=H1 ... cusps[12]=H12)
+            #   Gauquelin sectors: 36 elements (not used here, Placidus only)
+            cusps_len = len(cusps)
+            if cusps_len >= 13:
+                house_cusps = cusps[1:13]  # Skip unused index 0
+            else:
+                house_cusps = cusps[:12]   # 0-indexed, take all 12
+
+            # Diagnostic: store tuple metadata for debugging
+            houses["_cusps_debug"] = {
+                "tuple_length": cusps_len,
+                "slice_used": "1:13" if cusps_len >= 13 else "0:12",
+                "house_cusps_count": len(house_cusps),
+                "fix_version": "v2_2026-02-03"
+            }
+
+            for i, cusp in enumerate(house_cusps, 1):  # Houses 1-12
                 sign, degree = self._degree_to_sign(cusp)
                 houses["cusps"][f"house_{i}"] = {
                     "longitude": cusp,
@@ -853,3 +932,242 @@ class SwissEphemerisCalculator:
             'true_chitra': 'True Chitra'
         }
         return names.get(ayanamsha, ayanamsha.title())
+
+    # ========================================================================
+    # ARABIC PARTS (LOTS) CALCULATIONS
+    # ========================================================================
+
+    def _normalize_degrees(self, degrees: float) -> float:
+        """Normalize degrees to 0-360 range"""
+        normalized = degrees % 360
+        return normalized if normalized >= 0 else normalized + 360
+
+    def _is_day_chart(self, sun_longitude: float, asc_longitude: float) -> bool:
+        """
+        Determine if this is a day chart (Sun above horizon).
+
+        Day chart: Sun is in houses 7-12 (above the ASC-DSC axis)
+        Night chart: Sun is in houses 1-6 (below the ASC-DSC axis)
+
+        Geometrically: Sun is above horizon if its longitude is between
+        ASC and DSC going counter-clockwise (houses 12, 11, 10, 9, 8, 7).
+        """
+        dsc_longitude = self._normalize_degrees(asc_longitude + 180)
+
+        # Normalize both to 0-360
+        sun = self._normalize_degrees(sun_longitude)
+        asc = self._normalize_degrees(asc_longitude)
+        dsc = self._normalize_degrees(dsc_longitude)
+
+        # Sun is above horizon if it's between DSC and ASC (going through MC)
+        # This means: DSC <= Sun < ASC (with wrap-around handling)
+        if asc > dsc:
+            # Normal case: DSC is before ASC in the zodiac
+            return dsc <= sun < asc
+        else:
+            # Wrap case: ASC is before DSC (e.g., ASC=350°, DSC=170°)
+            return sun >= dsc or sun < asc
+
+    def _calculate_part(self, point_a: float, point_b: float, point_c: float) -> float:
+        """
+        Generic Arabic Part calculation: A + B - C
+
+        Args:
+            point_a: First point in degrees (usually ASC)
+            point_b: Second point in degrees
+            point_c: Third point in degrees
+
+        Returns:
+            Calculated part position in degrees (0-360)
+        """
+        result = point_a + point_b - point_c
+        return self._normalize_degrees(result)
+
+    def _get_house_for_longitude(self, longitude: float, houses: Dict) -> int:
+        """
+        Determine which house a longitude falls into.
+
+        Args:
+            longitude: Ecliptic longitude (0-360)
+            houses: Houses dict with cusps
+
+        Returns:
+            House number (1-12)
+        """
+        cusps = houses.get("cusps", {})
+        normalized = self._normalize_degrees(longitude)
+
+        # Build list of house cusps
+        house_lons = []
+        for i in range(1, 13):
+            cusp_key = f"house_{i}"
+            if cusp_key in cusps:
+                house_lons.append((i, cusps[cusp_key].get("longitude", 0)))
+
+        if not house_lons:
+            return 1  # Default
+
+        # Sort by house number
+        house_lons.sort(key=lambda x: x[0])
+
+        # Find which house the longitude falls into
+        for i in range(len(house_lons)):
+            current_house, current_cusp = house_lons[i]
+            next_house, next_cusp = house_lons[(i + 1) % 12]
+
+            # Handle wrap-around at 360/0 degrees
+            if current_cusp > next_cusp:
+                if normalized >= current_cusp or normalized < next_cusp:
+                    return current_house
+            else:
+                if current_cusp <= normalized < next_cusp:
+                    return current_house
+
+        return 1  # Default to house 1
+
+    def _format_part_data(self, degrees: float, formula: str, name: str, symbol: str, houses: Dict) -> Dict:
+        """
+        Format Arabic Part data with sign, zone, and house information.
+        """
+        sign, degree_in_sign = self._degree_to_sign(degrees)
+        zone = int(degree_in_sign // 5) + 1  # 6 zones of 5° each
+        house = self._get_house_for_longitude(degrees, houses)
+
+        return {
+            'name': name,
+            'symbol': symbol,
+            'longitude': degrees,
+            'formula': formula,
+            'sign': sign,
+            'degreeInSign': degree_in_sign,
+            'zone': zone,
+            'house': house,
+            'formatted': f"{degree_in_sign:.2f}° {sign}"
+        }
+
+    def calculate_arabic_parts(self, planets: Dict, houses: Dict) -> Dict:
+        """
+        Calculate essential Arabic Parts (Lots).
+
+        Args:
+            planets: Planetary positions dict
+            houses: Houses dict with cusps and ascendant
+
+        Returns:
+            Dictionary of Arabic Parts with positions and interpretive data
+        """
+        # Extract required positions
+        sun_lon = planets.get('sun', {}).get('longitude', 0)
+        moon_lon = planets.get('moon', {}).get('longitude', 0)
+        venus_lon = planets.get('venus', {}).get('longitude', 0)
+        mars_lon = planets.get('mars', {}).get('longitude', 0)
+        jupiter_lon = planets.get('jupiter', {}).get('longitude', 0)
+        saturn_lon = planets.get('saturn', {}).get('longitude', 0)
+        mercury_lon = planets.get('mercury', {}).get('longitude', 0)
+
+        asc_lon = houses.get('ascendant', {}).get('longitude', 0)
+        house_8_cusp = houses.get('cusps', {}).get('house_8', {}).get('longitude', 0)
+
+        # Determine day/night chart
+        is_day = self._is_day_chart(sun_lon, asc_lon)
+
+        parts = {}
+
+        # ═══════════════════════════════════════════════════════════════════
+        # PART OF FORTUNE (Pars Fortunae) - Material happiness
+        # Day: ASC + Moon - Sun | Night: ASC + Sun - Moon
+        # ═══════════════════════════════════════════════════════════════════
+        if is_day:
+            fortune_lon = self._calculate_part(asc_lon, moon_lon, sun_lon)
+            fortune_formula = "ASC + Moon - Sun (Day Chart)"
+        else:
+            fortune_lon = self._calculate_part(asc_lon, sun_lon, moon_lon)
+            fortune_formula = "ASC + Sun - Moon (Night Chart)"
+
+        parts['fortune'] = self._format_part_data(
+            fortune_lon, fortune_formula, 'Part of Fortune', '⊕', houses
+        )
+
+        # ═══════════════════════════════════════════════════════════════════
+        # PART OF SPIRIT (Pars Spiritus) - Spiritual purpose
+        # Day: ASC + Sun - Moon | Night: ASC + Moon - Sun (opposite of Fortune)
+        # ═══════════════════════════════════════════════════════════════════
+        if is_day:
+            spirit_lon = self._calculate_part(asc_lon, sun_lon, moon_lon)
+            spirit_formula = "ASC + Sun - Moon (Day Chart)"
+        else:
+            spirit_lon = self._calculate_part(asc_lon, moon_lon, sun_lon)
+            spirit_formula = "ASC + Moon - Sun (Night Chart)"
+
+        parts['spirit'] = self._format_part_data(
+            spirit_lon, spirit_formula, 'Part of Spirit', '⊙', houses
+        )
+
+        # ═══════════════════════════════════════════════════════════════════
+        # PART OF EROS - Passion and desire
+        # ASC + Venus - Mars
+        # ═══════════════════════════════════════════════════════════════════
+        eros_lon = self._calculate_part(asc_lon, venus_lon, mars_lon)
+        parts['eros'] = self._format_part_data(
+            eros_lon, "ASC + Venus - Mars", 'Part of Eros', '♥', houses
+        )
+
+        # ═══════════════════════════════════════════════════════════════════
+        # PART OF MARRIAGE - Partnership destiny
+        # ASC + Venus - Saturn (modern unified formula)
+        # ═══════════════════════════════════════════════════════════════════
+        marriage_lon = self._calculate_part(asc_lon, venus_lon, saturn_lon)
+        parts['marriage'] = self._format_part_data(
+            marriage_lon, "ASC + Venus - Saturn", 'Part of Marriage', '⚭', houses
+        )
+
+        # ═══════════════════════════════════════════════════════════════════
+        # PART OF DEATH/TRANSFORMATION - Rebirth style
+        # ASC + 8th House Cusp - Moon
+        # ═══════════════════════════════════════════════════════════════════
+        death_lon = self._calculate_part(asc_lon, house_8_cusp, moon_lon)
+        parts['death'] = self._format_part_data(
+            death_lon, "ASC + 8th Cusp - Moon", 'Part of Transformation', '⚸', houses
+        )
+
+        # ═══════════════════════════════════════════════════════════════════
+        # PART OF CHILDREN - Creative offspring
+        # ASC + Jupiter - Saturn
+        # ═══════════════════════════════════════════════════════════════════
+        children_lon = self._calculate_part(asc_lon, jupiter_lon, saturn_lon)
+        parts['children'] = self._format_part_data(
+            children_lon, "ASC + Jupiter - Saturn", 'Part of Children', '⚒', houses
+        )
+
+        # ═══════════════════════════════════════════════════════════════════
+        # PART OF PASSION - Assertive desire
+        # ASC + Mars - Venus (opposite of Eros)
+        # ═══════════════════════════════════════════════════════════════════
+        passion_lon = self._calculate_part(asc_lon, mars_lon, venus_lon)
+        parts['passion'] = self._format_part_data(
+            passion_lon, "ASC + Mars - Venus", 'Part of Passion', '⚡', houses
+        )
+
+        # ═══════════════════════════════════════════════════════════════════
+        # PART OF NECESSITY (Moira) - Binding fate
+        # ASC + Fortune - Mercury
+        # ═══════════════════════════════════════════════════════════════════
+        necessity_lon = self._calculate_part(asc_lon, fortune_lon, mercury_lon)
+        parts['necessity'] = self._format_part_data(
+            necessity_lon, "ASC + Fortune - Mercury", 'Part of Necessity', '⚛', houses
+        )
+
+        # ═══════════════════════════════════════════════════════════════════
+        # PART OF COURAGE - Bravery activation
+        # ASC + Fortune - Mars
+        # ═══════════════════════════════════════════════════════════════════
+        courage_lon = self._calculate_part(asc_lon, fortune_lon, mars_lon)
+        parts['courage'] = self._format_part_data(
+            courage_lon, "ASC + Fortune - Mars", 'Part of Courage', '⚔', houses
+        )
+
+        return {
+            'isDayChart': is_day,
+            'chartType': 'Day Chart' if is_day else 'Night Chart',
+            'parts': parts
+        }

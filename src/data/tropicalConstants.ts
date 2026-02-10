@@ -2354,3 +2354,76 @@ export {
   getPersonalSeasonalState,
   getSeasonalImbalance,
 } from './elementFlowConstants';
+
+// =============================================================================
+// DEGREE → APPROXIMATE DATE/TIME MAPPING
+// =============================================================================
+// Uses per-sign ingress dates (UTC) to account for the Sun's variable speed
+// along the ecliptic. Interpolates linearly within each 30° sign.
+// Approximate — actual ingress shifts ±1 day across the 4-year leap cycle.
+
+// Average Sun ingress into each sign (UTC), based on multi-year averages.
+// Format: [month (0-indexed), day, hour]
+const SIGN_INGRESS_UTC: [number, number, number][] = [
+  [2, 20, 11],   // 0° Aries:       ~Mar 20 11:00 UTC
+  [3, 19, 22],   // 0° Taurus:      ~Apr 19 22:00 UTC
+  [4, 20, 21],   // 0° Gemini:      ~May 20 21:00 UTC
+  [5, 21, 5],    // 0° Cancer:      ~Jun 21 05:00 UTC
+  [6, 22, 16],   // 0° Leo:         ~Jul 22 16:00 UTC
+  [7, 23, 0],    // 0° Virgo:       ~Aug 23 00:00 UTC
+  [8, 22, 21],   // 0° Libra:       ~Sep 22 21:00 UTC
+  [9, 23, 6],    // 0° Scorpio:     ~Oct 23 06:00 UTC
+  [10, 22, 3],   // 0° Sagittarius: ~Nov 22 03:00 UTC
+  [11, 21, 16],  // 0° Capricorn:   ~Dec 21 16:00 UTC
+  [0, 20, 3],    // 0° Aquarius:    ~Jan 20 03:00 UTC (next year)
+  [1, 18, 17],   // 0° Pisces:      ~Feb 18 17:00 UTC (next year)
+];
+
+/**
+ * Convert an absolute ecliptic degree (0–360) to an approximate calendar date/time (UTC).
+ * Returns a string like "Apr 22  6:08 AM UTC".
+ *
+ * If ephemerisTimestamps is provided (12 UTC ms values from Swiss Ephemeris),
+ * uses those for year-specific precision (~4-hour accuracy).
+ * Otherwise falls back to multi-year-average static dates.
+ */
+export function degreeToApproxDateTime(
+  absoluteEclipticDegree: number,
+  ephemerisTimestamps?: number[] | null
+): string {
+  const signIndex = Math.floor(absoluteEclipticDegree / 30) % 12;
+  const degreeInSign = absoluteEclipticDegree % 30;
+
+  let dates: number[];
+
+  if (ephemerisTimestamps && ephemerisTimestamps.length === 12 && ephemerisTimestamps[0] > 0) {
+    // Swiss Ephemeris precise data — year-specific
+    dates = [...ephemerisTimestamps];
+    // Sentinel: estimate next Aries (current Aries + ~365.25 days)
+    dates.push(ephemerisTimestamps[0] + 365.25 * 24 * 60 * 60 * 1000);
+  } else {
+    // Fallback: static multi-year averages
+    const baseYear = 2025;
+    dates = SIGN_INGRESS_UTC.map(([m, d, h], i) => {
+      const y = i >= 10 ? baseYear + 1 : baseYear;
+      return Date.UTC(y, m, d, h);
+    });
+    dates.push(Date.UTC(baseYear + 1, 2, 20, 11));
+  }
+
+  const startMs = dates[signIndex];
+  const endMs = dates[signIndex + 1];
+  const fraction = degreeInSign / 30;
+  const resultMs = startMs + fraction * (endMs - startMs);
+  const d = new Date(resultMs);
+
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const month = months[d.getUTCMonth()];
+  const day = d.getUTCDate();
+  let hours = d.getUTCHours();
+  const minutes = d.getUTCMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+
+  return `${month} ${day}  ${hours}:${minutes.toString().padStart(2, '0')} ${ampm} UTC`;
+}

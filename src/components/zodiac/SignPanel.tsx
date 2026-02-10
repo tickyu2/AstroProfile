@@ -8,6 +8,7 @@
  * Extracted from TropicalSeasonsPage.tsx for better modularity.
  */
 
+import './SignPanel.css';
 import React, { useMemo } from 'react';
 import {
   ELEMENT_COLORS,

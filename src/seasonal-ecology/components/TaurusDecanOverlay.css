@@ -1,0 +1,87 @@
+.taurus-decan-overlay {
+  background: linear-gradient(135deg,
+    rgba(200, 184, 144, 0.1) 0%,
+    rgba(26, 26, 46, 0.95) 100%
+  );
+  border: 1px solid rgba(200, 184, 144, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.overlay-title {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: #d8c8a0;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.overlay-degree {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #ffd700;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 16px;
+}
+
+.overlay-section {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.overlay-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-header {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #d8c8a0;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-detail {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.detail-label {
+  color: #888;
+  font-size: 0.85em;
+}
+
+.detail-value {
+  color: #ffd700;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.section-theme {
+  color: #b0b0b0;
+  font-size: 0.85em;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.section-name {
+  color: #e0e0e0;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .taurus-decan-overlay {
+    padding: 16px;
+  }
+
+  .overlay-degree {
+    font-size: 1.5em;
+  }
+}

@@ -4,6 +4,7 @@ import { ResponsiveRadar } from '@nivo/radar'
 import { getZodiacSecrets, SECTION_TITLES } from '../../data/westernZodiacContent'
 import { useProfiles } from '../../contexts/ProfileContext'
 import SoulFamilyPanel from '../soul/SoulFamilyPanel'
+import HouseSignZonePopup from './HouseSignZonePopup'
 
 // Element colors for Western astrology radar
 const WESTERN_ELEMENT_COLORS = {
@@ -3843,6 +3844,7 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
     const [secretsUnlocked, setSecretsUnlocked] = useState(false)
     const [isRecalculating, setIsRecalculating] = useState(false)
     const [showSoulFamily, setShowSoulFamily] = useState(false)
+    const [showHouseMap, setShowHouseMap] = useState(false)
     const { recalculateSovereignData } = useProfiles()
 
     // Sovereign astronomical data (real Sun/Moon/Rising)
@@ -3888,6 +3890,24 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-amber-500/30">
                 <span className="text-xl">{zodiacEmojis[western.sign]}</span>
                 <h2 className="text-sm font-bold text-amber-400">WESTERN ZODIAC</h2>
+                {hasSovereignData && (
+                    <button
+                        onClick={() => setShowHouseMap(true)}
+                        className="text-[9px] px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded-full border border-purple-500/30 hover:bg-purple-500/30 transition-colors"
+                        title="How houses work from your Rising sign"
+                    >
+                        House Map
+                    </button>
+                )}
+                {hasSovereignData && (
+                    <button
+                        onClick={() => navigate('/natal-wheel')}
+                        className="text-[9px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-full border border-amber-500/30 hover:bg-amber-500/30 transition-colors"
+                        title="Full natal chart wheel with Placidus houses"
+                    >
+                        Natal Wheel
+                    </button>
+                )}
                 <div className="ml-auto flex items-center gap-2">
                     {hasSovereignData && (
                         <span className="text-[9px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">
@@ -4051,7 +4071,15 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
 
                     {/* House Cusps (Placidus) */}
                     {/* Supports both v2.0 array format and legacy object format */}
-                    {sovereign.houses && (Array.isArray(sovereign.houses) ? sovereign.houses.length > 0 : sovereign.houses.houses) && (
+                    {sovereign.houses && (Array.isArray(sovereign.houses) ? sovereign.houses.length > 0 : sovereign.houses.houses) && (() => {
+                        // Normalize houses to array
+                        const housesArr = Array.isArray(sovereign.houses)
+                            ? sovereign.houses
+                            : Array.isArray(sovereign.houses?.houses)
+                                ? sovereign.houses.houses
+                                : Object.entries(sovereign.houses?.houses || {}).map(([num, h]) => ({ house: parseInt(num), ...h }))
+
+                        return (
                         <div className="bg-slate-900/40 rounded-lg p-3">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="text-sm text-white/60 uppercase tracking-wider font-medium">House Cusps</div>
@@ -4060,27 +4088,28 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 gap-2">
-                                {/* Handle v2.0 array format: [{house: 1, sign, degree, degreeFormatted}] */}
-                                {Array.isArray(sovereign.houses) ? (
-                                    sovereign.houses.map((house) => (
-                                        <div key={house.house} className="text-center p-2 bg-slate-800/50 rounded">
-                                            <div className="text-base text-purple-300 font-bold">{house.house}</div>
+                                {housesArr.map((house, idx) => {
+                                    const hNum = house.house || (idx + 1)
+                                    // Next cusp degree = next house's degree (wraps at 12)
+                                    const nextHouse = housesArr[(idx + 1) % housesArr.length]
+                                    const nextDeg = nextHouse ? (nextHouse.degreeFormatted || `${(nextHouse.degree || 0).toFixed(1)}\u00B0 ${nextHouse.sign || ''}`) : ''
+                                    const isAngular = hNum === 1 || hNum === 4 || hNum === 7 || hNum === 10
+                                    const angularTag = hNum === 1 ? 'ASC' : hNum === 4 ? 'IC' : hNum === 7 ? 'DSC' : hNum === 10 ? 'MC' : null
+                                    return (
+                                        <div key={hNum} className={`text-center p-2 rounded ${isAngular ? 'bg-purple-500/15 border border-purple-500/30' : 'bg-slate-800/50'}`}>
+                                            <div className="flex items-center justify-center gap-1">
+                                                <span className={`text-base font-bold ${isAngular ? 'text-purple-300' : 'text-purple-300/70'}`}>{hNum}</span>
+                                                {angularTag && <span className="text-[8px] text-purple-400 font-bold bg-purple-500/25 px-1 rounded">{angularTag}</span>}
+                                            </div>
                                             <div className="text-lg">{zodiacEmojis[house.sign]}</div>
                                             <div className="text-xs text-white/80">{house.sign}</div>
-                                            <div className="text-[11px] text-white/50">{house.degreeFormatted || formatDegree(house)}</div>
+                                            <div className="text-[10px] text-white/50">{house.degreeFormatted || `${(house.degree || 0).toFixed(2)}\u00B0 ${house.sign || ''}`}</div>
+                                            <div className="text-[8px] text-white/30 mt-0.5" title={`Cusp ${hNum} starts here, ends at cusp ${(hNum % 12) + 1}`}>
+                                                {'\u2192'} {nextDeg}
+                                            </div>
                                         </div>
-                                    ))
-                                ) : (
-                                    /* Legacy object format: {houses: {1: {sign, degree}}} */
-                                    Object.entries(sovereign.houses.houses).map(([num, house]) => (
-                                        <div key={num} className="text-center p-2 bg-slate-800/50 rounded">
-                                            <div className="text-base text-purple-300 font-bold">{num}</div>
-                                            <div className="text-lg">{zodiacEmojis[house.sign]}</div>
-                                            <div className="text-xs text-white/80">{house.sign}</div>
-                                            <div className="text-[11px] text-white/50">{house.degreeFormatted || formatDegree(house)}</div>
-                                        </div>
-                                    ))
-                                )}
+                                    )
+                                })}
                             </div>
                             {/* Angular Houses Highlight */}
                             <div className="mt-3 pt-2 border-t border-purple-500/30">
@@ -4088,31 +4117,32 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
                                     <div className="text-xs">
                                         <span className="text-purple-400 font-bold">ASC</span>
                                         <span className="text-white/70 ml-1">
-                                            {sovereign.ascendant?.sign || sovereign.houses?.angles?.ascendant?.sign || '—'}
+                                            {sovereign.ascendant?.sign || sovereign.rising?.sign || housesArr.find(h => h.house === 1)?.sign || '—'}
                                         </span>
                                     </div>
                                     <div className="text-xs">
                                         <span className="text-purple-400 font-bold">IC</span>
                                         <span className="text-white/70 ml-1">
-                                            {(Array.isArray(sovereign.houses) ? sovereign.houses[3]?.sign : sovereign.houses?.angles?.ic?.sign) || '—'}
+                                            {housesArr.find(h => h.house === 4)?.sign || housesArr[3]?.sign || '—'}
                                         </span>
                                     </div>
                                     <div className="text-xs">
                                         <span className="text-purple-400 font-bold">DSC</span>
                                         <span className="text-white/70 ml-1">
-                                            {(Array.isArray(sovereign.houses) ? sovereign.houses[6]?.sign : sovereign.houses?.angles?.descendant?.sign) || '—'}
+                                            {housesArr.find(h => h.house === 7)?.sign || housesArr[6]?.sign || '—'}
                                         </span>
                                     </div>
                                     <div className="text-xs">
                                         <span className="text-purple-400 font-bold">MC</span>
                                         <span className="text-white/70 ml-1">
-                                            {sovereign.midheaven?.sign || sovereign.houses?.angles?.mc?.sign || '—'}
+                                            {sovereign.midheaven?.sign || housesArr.find(h => h.house === 10)?.sign || '—'}
                                         </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    )}
+                        )
+                    })()}
 
                     {/* Planetary Aspects */}
                     {sovereign.aspects && sovereign.aspects.length > 0 && (
@@ -4280,6 +4310,21 @@ export default function WesternAstrologyPanel({ westZodiac, profileId, onRecalcu
                         </p>
                     </div>
                 </div>
+            )}
+
+            {/* House Map Educational Popup */}
+            {showHouseMap && hasSovereignData && (
+                <HouseSignZonePopup
+                    isOpen={showHouseMap}
+                    onClose={() => setShowHouseMap(false)}
+                    houses={sovereign.houses}
+                    planets={sovereign.planets}
+                    rising={sovereign.rising}
+                    sun={sovereign.sun}
+                    moon={sovereign.moon}
+                    midheaven={sovereign.midheaven}
+                    ascendant={sovereign.ascendant}
+                />
             )}
         </div>
     )

@@ -35,6 +35,20 @@ export default function DynamicPersonalityPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Parse birth date/time from profile's stored fields
+  const parsedBirth = useMemo(() => {
+    if (!selectedProfile?.birthDate) return null;
+    const [year, month, day] = selectedProfile.birthDate.split('-').map(Number);
+    const [hour, minute] = (selectedProfile.birthTime || '12:00').split(':').map(Number);
+    const lat = selectedProfile.birthLat
+      ?? selectedProfile.location?.coordinates?.lat ?? 0;
+    const lng = selectedProfile.birthLng
+      ?? selectedProfile.location?.coordinates?.lng ?? 0;
+    const tz = typeof selectedProfile.timezone === 'number'
+      ? selectedProfile.timezone : 0;
+    return { year, month, day, hour: hour || 12, minute: minute || 0, timezone: tz, latitude: lat, longitude: lng };
+  }, [selectedProfile]);
+
   // Select first profile by default
   useEffect(() => {
     if (profiles.length > 0 && !selectedProfile) {
@@ -62,24 +76,12 @@ export default function DynamicPersonalityPage() {
         enneagram: selectedProfile.enneagram,
         big5: selectedProfile.big5,
         bazi: selectedProfile.bazi,
-        natal: selectedProfile.westernChart,
+        natal: selectedProfile.westernChart || selectedProfile.western,
         numerology: selectedProfile.numerology
       };
 
-      // Prepare birth data
-      const birthData = {
-        year: selectedProfile.birthYear,
-        month: selectedProfile.birthMonth,
-        day: selectedProfile.birthDay,
-        hour: selectedProfile.birthHour || 12,
-        minute: selectedProfile.birthMinute || 0,
-        timezone: selectedProfile.timezone || 0,
-        latitude: selectedProfile.latitude,
-        longitude: selectedProfile.longitude
-      };
-
       // Generate complete profile
-      const result = await generateCompleteProfile(sources, birthData, 'Nurturing Guide');
+      const result = await generateCompleteProfile(sources, parsedBirth, 'Nurturing Guide');
       setPersonalityData(result);
     } catch (err) {
       console.error('Error loading personality data:', err);
@@ -91,21 +93,10 @@ export default function DynamicPersonalityPage() {
 
   // Extract data for child components
   const natalPositions = useMemo(() => {
-    return selectedProfile?.westernChart?.planets || null;
-  }, [selectedProfile]);
-
-  const birthData = useMemo(() => {
-    if (!selectedProfile) return null;
-    return {
-      year: selectedProfile.birthYear,
-      month: selectedProfile.birthMonth,
-      day: selectedProfile.birthDay,
-      hour: selectedProfile.birthHour || 12,
-      minute: selectedProfile.birthMinute || 0,
-      timezone: selectedProfile.timezone || 0,
-      latitude: selectedProfile.latitude,
-      longitude: selectedProfile.longitude
-    };
+    return selectedProfile?.westernChart?.planets
+      || selectedProfile?.western?.planets
+      || selectedProfile?.calculations?.western?.planets
+      || null;
   }, [selectedProfile]);
 
   const personalityVector = useMemo(() => {
@@ -189,12 +180,10 @@ export default function DynamicPersonalityPage() {
               ))}
             </select>
 
-            {selectedProfile && (
+            {selectedProfile?.birthDate && (
               <div className="text-sm text-white/50">
-                Born: {selectedProfile.birthMonth}/{selectedProfile.birthDay}/{selectedProfile.birthYear}
-                {selectedProfile.birthHour !== undefined && (
-                  <> at {selectedProfile.birthHour}:{String(selectedProfile.birthMinute || 0).padStart(2, '0')}</>
-                )}
+                Born: {selectedProfile.birthDate}
+                {selectedProfile.birthTime && <> at {selectedProfile.birthTime}</>}
               </div>
             )}
           </div>
@@ -276,7 +265,7 @@ export default function DynamicPersonalityPage() {
             {/* P8: Progressions Tab */}
             {activeTab === 'progressions' && (
               <ProgressionsPanel
-                birthData={birthData}
+                birthData={parsedBirth}
                 showAllPlanets={false}
               />
             )}
@@ -467,7 +456,7 @@ function OverviewTab({ profile, personalityData, onRefresh }) {
               BaZi
             </span>
           )}
-          {profile.westernChart && (
+          {(profile.westernChart || profile.western) && (
             <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs">
               Western Chart
             </span>

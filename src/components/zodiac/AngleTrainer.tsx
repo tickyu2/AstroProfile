@@ -7,6 +7,7 @@
  * Extracted from TropicalSeasonsPage.tsx for better modularity.
  */
 
+import './AngleTrainer.css';
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   ANGLE_LESSONS,

@@ -50,6 +50,7 @@ import type { RelationshipType } from '../zodiac/narrativeEngine';
 import { SeasonPanel } from '../components/zodiac/SeasonPanel';
 import { ModalityPanel } from '../components/zodiac/ModalityPanel';
 import { ElementPanel } from '../components/zodiac/ElementPanel';
+import { PlanetPanel } from '../components/zodiac/PlanetPanel';
 import { SignPanel } from '../components/zodiac/SignPanel';
 import { AngleTrainer } from '../components/zodiac/AngleTrainer';
 import {
@@ -525,6 +526,68 @@ function MnemonicRow({ selectedSign }: MnemonicRowProps) {
 }
 
 /**
+ * PlanetRulerRow - Shows traditional planetary rulers below each zodiac sign glyph
+ */
+const PLANET_LEGEND_COLORS: Record<string, string> = {
+  Mars:    '#ef4444',
+  Venus:   '#ec4899',
+  Mercury: '#06b6d4',
+  Moon:    '#a78bfa',
+  Sun:     '#f59e0b',
+  Jupiter: '#8b5cf6',
+  Saturn:  '#64748b',
+};
+
+const SIGN_RULER_MAP: { sign: ZodiacSign; planet: string; glyph: string }[] = [
+  { sign: 'Aries',       planet: 'Mars',    glyph: '\u2642' },
+  { sign: 'Taurus',      planet: 'Venus',   glyph: '\u2640' },
+  { sign: 'Gemini',      planet: 'Mercury', glyph: '\u263F' },
+  { sign: 'Cancer',      planet: 'Moon',    glyph: '\u263D' },
+  { sign: 'Leo',         planet: 'Sun',     glyph: '\u2609' },
+  { sign: 'Virgo',       planet: 'Mercury', glyph: '\u263F' },
+  { sign: 'Libra',       planet: 'Venus',   glyph: '\u2640' },
+  { sign: 'Scorpio',     planet: 'Mars',    glyph: '\u2642' },
+  { sign: 'Sagittarius', planet: 'Jupiter', glyph: '\u2643' },
+  { sign: 'Capricorn',   planet: 'Saturn',  glyph: '\u2644' },
+  { sign: 'Aquarius',    planet: 'Saturn',  glyph: '\u2644' },
+  { sign: 'Pisces',      planet: 'Jupiter', glyph: '\u2643' },
+];
+
+interface PlanetRulerRowProps {
+  selectedSign: ZodiacSign | null;
+  onPlanetClick?: (planet: string) => void;
+}
+
+function PlanetRulerRow({ selectedSign, onPlanetClick }: PlanetRulerRowProps) {
+  return (
+    <div className="legend-row planet-ruler-row">
+      <div className="legend-row-items planet-ruler-signs">
+        {SIGN_RULER_MAP.map((item) => {
+          const isHighlighted = selectedSign === item.sign;
+          const color = PLANET_LEGEND_COLORS[item.planet] || '#94a3b8';
+          return (
+            <span
+              key={item.sign}
+              className={`planet-ruler-glyph ${isHighlighted ? 'highlighted' : ''}`}
+              title={`${item.planet} rules ${item.sign}`}
+              style={{
+                color: isHighlighted ? '#fbbf24' : color,
+                borderColor: isHighlighted ? '#fbbf24' : `${color}60`,
+                background: isHighlighted ? 'rgba(251, 191, 36, 0.15)' : `${color}18`,
+                cursor: onPlanetClick ? 'pointer' : 'default',
+              }}
+              onClick={() => onPlanetClick?.(item.planet)}
+            >
+              {item.glyph}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
  * SignQuizletRow - Interactive zodiac sign flashcard quiz
  * Now with constraint-based matching sign highlight
  * Clicking a glyph highlights the sign + its element/modality/season on the wheel
@@ -723,6 +786,7 @@ export default function TropicalSeasonsPage() {
   const [highlightedElement, setHighlightedElement] = useState<string | null>(null);
   const [highlightedModality, setHighlightedModality] = useState<string | null>(null);
   const [quizletSign, setQuizletSign] = useState<ZodiacSign | null>(null);
+  const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
 
   // Element to signs mapping for educational highlighting
   const ELEMENT_SIGNS: Record<string, ZodiacSign[]> = {
@@ -889,15 +953,27 @@ export default function TropicalSeasonsPage() {
     } else {
       // Select new season
       setSelectedSeason(season);
-      setSelectedSign(null);
-      setViewMode('season');
+      // If a sign is already selected (e.g. from constraint matching), keep it
+      // if it belongs to the season being clicked — otherwise clear it
+      if (selectedSign) {
+        const signMeta = SIGN_METADATA.find(m => m.sign === selectedSign);
+        if (signMeta && signMeta.season === season) {
+          // Sign is in this season — keep the sign panel open
+        } else {
+          setSelectedSign(null);
+          setViewMode('season');
+        }
+      } else {
+        setViewMode('season');
+      }
     }
-  }, [selectedSeason]);
+  }, [selectedSeason, selectedSign]);
 
   // Handlers
   const handleClosePanel = useCallback(() => {
     setSelectedSign(null);
     setSelectedSeason(null);
+    setSelectedPlanet(null);
     signSelection.clearAll();
     setViewMode('overview');
     setSelectedAspect(null);
@@ -924,7 +1000,8 @@ export default function TropicalSeasonsPage() {
     // Reset all other highlights
     setHighlightedElement(null);
     setHighlightedModality(null);
-    setSelectedSeason(null);  // Don't set season - it highlights entire quadrant + shows Season panel
+    setSelectedSeason(null);
+    setSelectedPlanet(null);
     setSelectedAspect(null);
     setAspectReferenceSign(null);
 
@@ -1161,6 +1238,7 @@ export default function TropicalSeasonsPage() {
               onHoverModality={setHoveredModality}
               onHoverCelestialEvent={setHoveredCelestialEvent}
               onHoverAspect={setHoveredAspect}
+              onPlanetClick={setSelectedPlanet}
             />
           </div>
 
@@ -1420,6 +1498,9 @@ export default function TropicalSeasonsPage() {
               hasConstraints={constraintInfo.hasConstraints}
               onHighlightSign={handleQuizletHighlight}
             />
+
+            {/* Row 5: PLANET RULERS - Traditional planetary rulers under each sign */}
+            <PlanetRulerRow selectedSign={quizletSign} onPlanetClick={setSelectedPlanet} />
 
           </div>
 
@@ -1710,6 +1791,14 @@ export default function TropicalSeasonsPage() {
               element={highlightedElement as 'Fire' | 'Earth' | 'Air' | 'Water'}
               onClose={() => setHighlightedElement(null)}
               onSignClick={handleSignClick}
+            />
+          )}
+
+          {/* PlanetPanel shows when a planet ruler glyph is clicked */}
+          {analysisMode === 'wheel' && selectedPlanet && (
+            <PlanetPanel
+              planet={selectedPlanet as 'Mars' | 'Venus' | 'Mercury' | 'Moon' | 'Sun' | 'Jupiter' | 'Saturn'}
+              onClose={() => setSelectedPlanet(null)}
             />
           )}
 

@@ -7,6 +7,7 @@
  * Extracted from TropicalSeasonsPage.tsx for better modularity.
  */
 
+import './SignCompatibilityPanels.css';
 import React, { useState } from 'react';
 import {
   ELEMENT_COLORS,

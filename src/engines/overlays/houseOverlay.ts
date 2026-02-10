@@ -398,7 +398,7 @@ export const HousePersonaVoices: Record<HouseMode, {
   Succedent: {
     mentor: 'Your power lies in building lasting structures. Do not rush—what you create slowly, endures. Value what you cultivate.',
     oracle: 'The treasure houses open for you. You are keeper of resources both tangible and invisible.',
-    companion: 'You really know how to create comfort and stability. Just don't forget to shake things up sometimes!',
+    companion: 'You really know how to create comfort and stability. Just don\'t forget to shake things up sometimes!',
     mirror: 'Notice how you naturally build and consolidate. That capacity for sustaining is your gift—appreciate its worth.'
   },
   Cadent: {

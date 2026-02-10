@@ -16,8 +16,9 @@ import { CUSP_ARCHETYPES, CuspTransition, CuspDayArchetype } from '../../data/cu
 // CONSTANTS
 // =============================================================================
 
-// The golden ratio curve values (pre-calculated for days 1-6)
-const PHI_CURVE = [0.13, 0.37, 0.58, 0.75, 0.89, 0.98];
+// The plastic number curve values (pre-calculated for days 1-6)
+// ρ ≈ 1.325 — "the new golden ratio" (ρ³ = ρ + 1)
+const PHI_CURVE = [0.19, 0.36, 0.52, 0.67, 0.81, 0.92];
 
 // Month abbreviations for display
 const MONTH_ABBREV = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -110,7 +111,7 @@ export const CuspSliderInteractive: React.FC<CuspSliderInteractiveProps> = ({
           🌀 Interactive Cusp Explorer
         </div>
         <div style={{ fontSize: '11px', color: '#6b7280' }}>
-          Drag the slider to see the φ-curve blend in real-time
+          Drag the slider to see the ρ-curve blend in real-time
         </div>
       </div>
 
@@ -219,7 +220,7 @@ export const CuspSliderInteractive: React.FC<CuspSliderInteractiveProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
           <span style={{ fontSize: '11px', color: '#9ca3af' }}>Day 1</span>
           <span style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 600 }}>
-            φ-Curve: {blendPercent}%
+            ρ-Curve: {blendPercent}%
           </span>
           <span style={{ fontSize: '11px', color: '#9ca3af' }}>Day 6</span>
         </div>
@@ -306,15 +307,15 @@ export const CuspSliderInteractive: React.FC<CuspSliderInteractiveProps> = ({
           <span style={{ color: '#9ca3af' }}>{linearPercent}%</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: '#fbbf24', fontWeight: 600 }}>φ-Curve gives:</span>
+          <span style={{ color: '#fbbf24', fontWeight: 600 }}>ρ-Curve gives:</span>
           <span style={{ color: '#fbbf24', fontWeight: 600 }}>{blendPercent}%</span>
         </div>
         <div style={{ marginTop: '8px', color: '#a78bfa', fontSize: '10px' }}>
           {blendPercent < linearPercent
-            ? `φ-curve is ${linearPercent - blendPercent}% slower here (ease-in effect)`
+            ? `ρ-curve is ${linearPercent - blendPercent}% slower here (ease-in effect)`
             : blendPercent > linearPercent
-            ? `φ-curve is ${blendPercent - linearPercent}% faster here (ease-out effect)`
-            : 'φ-curve matches linear at this point'}
+            ? `ρ-curve is ${blendPercent - linearPercent}% faster here (ease-out effect)`
+            : 'ρ-curve matches linear at this point'}
         </div>
       </div>
 
@@ -480,7 +481,7 @@ export const CuspSliderInteractive: React.FC<CuspSliderInteractiveProps> = ({
       {/* Mini φ-Curve Visualization */}
       <div style={{ marginTop: '16px' }}>
         <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '8px' }}>
-          φ-Curve Shape:
+          ρ-Curve Shape:
         </div>
         <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '60px' }}>
           {PHI_CURVE.map((value, i) => (

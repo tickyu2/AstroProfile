@@ -1,0 +1,77 @@
+.season-legend {
+  background: rgba(26, 26, 46, 0.9);
+  border: 1px solid rgba(100, 150, 255, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+.legend-title {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: #6496ff;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legend-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: flex-start;
+}
+
+.legend-color-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.legend-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.legend-text strong {
+  color: #e0e0e0;
+  font-size: 0.95em;
+  font-weight: 600;
+}
+
+.legend-text span {
+  color: #b0b0b0;
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
+.legend-values {
+  color: #8496ff !important;
+  font-style: italic;
+  font-size: 0.8em !important;
+  margin-top: 2px;
+}
+
+.legend-note {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(100, 150, 255, 0.2);
+  color: #999;
+  font-size: 0.8em;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .season-legend {
+    padding: 16px;
+  }
+
+  .legend-item {
+    gap: 10px;
+  }
+}

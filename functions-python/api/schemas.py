@@ -226,6 +226,24 @@ class MoonPhaseSchema(BaseModel):
     emoji: str = Field("", description="Moon phase emoji")
 
 
+class ArabicPartSchema(BaseModel):
+    """Single Arabic Part (Lot) position."""
+    longitude: float = Field(..., description="Absolute ecliptic longitude (0-359.99)")
+    sign: str = Field(..., description="Zodiac sign name")
+    degreeInSign: float = Field(..., description="Degree within sign (0-29.99)")
+    formatted: str = Field("", description="Display string: '{degree}° {sign}'")
+    house: Optional[int] = Field(None, description="House number (1-12)")
+    formula: str = Field("", description="Calculation formula used")
+    zone: Optional[int] = Field(None, description="Zone number within sign (1-6)")
+
+
+class ArabicPartsSchema(BaseModel):
+    """Collection of Arabic Parts (Lots)."""
+    isDayChart: bool = Field(..., description="True if Sun is above horizon")
+    chartType: str = Field(..., description="'Day Chart' or 'Night Chart'")
+    parts: Dict[str, ArabicPartSchema] = Field(default_factory=dict)
+
+
 class WesternChartSchema(BaseModel):
     """Complete Western chart - canonical v2.0 output with pre-formatted display fields."""
     # Core placements
@@ -250,6 +268,9 @@ class WesternChartSchema(BaseModel):
 
     # Moon phase
     moonPhase: Optional[MoonPhaseSchema] = None
+
+    # Arabic Parts (Lots)
+    arabicParts: Optional[ArabicPartsSchema] = None
 
     # Chart shape (if computed)
     chartShape: Optional[str] = None

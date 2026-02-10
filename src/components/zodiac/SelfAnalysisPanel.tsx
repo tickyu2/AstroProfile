@@ -14,6 +14,9 @@ import { SIGN_LESSONS, type SignKey } from '../../zodiac/tropicalMap';
 import { SIGN_NEEDS } from '../../zodiac/signNeeds';
 import type { Lens } from '../../zodiac/narrativeEngine';
 import { ProfileComparisonModal } from './ProfileComparisonModal';
+import { CuspRibbon } from './CuspRibbon';
+import { getSunBlendFromDate } from '../../zodiac/cusp/getSunBlendFromDate';
+import { getBlendFromLongitude } from '../../zodiac/cusp/getBlendFromLongitude';
 
 // =============================================================================
 // TYPES
@@ -25,6 +28,9 @@ interface SelfAnalysisPanelProps {
   sunSign: string | null;
   moonSign: string | null;
   risingSign: string | null;
+  sunLongitude?: number | null;
+  moonLongitude?: number | null;
+  risingLongitude?: number | null;
   onClose?: () => void;
 }
 
@@ -44,6 +50,40 @@ const LENS_DESCRIPTIONS: Record<Lens, string> = {
   Rising: 'Your social interface, first impression, and approach to life. How others see you.',
 };
 
+/**
+ * Khan Academy-style "why this matters" for each lens.
+ * Short, clear, no jargon — explains what it means in everyday life.
+ */
+const LENS_KHAN_ACADEMY: Record<Lens, { what: string; why: string; everyday: string }> = {
+  Sun: {
+    what: 'The Sun represents your fundamental character — the person you are becoming across your lifetime.',
+    why: 'It moves about 1° per day, staying in each sign for ~30 days. Your Sun sign reflects the season you were born in and the core energy you radiate.',
+    everyday: 'When someone asks "what\'s your sign?" — this is it. It shapes your ambitions, pride, and what makes you feel alive.',
+  },
+  Moon: {
+    what: 'The Moon represents your emotional instincts — the private self that only close people see.',
+    why: 'It moves the fastest of any celestial body (~12° per day), changing sign every ~2.5 days. That\'s why two people born days apart can feel very different.',
+    everyday: 'It drives what you need to feel safe, how you react under stress, and what kind of comfort you crave.',
+  },
+  Rising: {
+    what: 'The Rising sign (Ascendant) is the zodiac sign that was on the eastern horizon at the exact minute of your birth.',
+    why: 'It changes sign every ~2 hours, making it the most time-sensitive point in your chart. Without an accurate birth time, it cannot be calculated.',
+    everyday: 'It shapes your first impression, your physical style, and how you instinctively approach new situations and people.',
+  },
+};
+
+/**
+ * Format an ecliptic longitude (0-360°) into sign-relative degrees.
+ * e.g., 42.7° → "12° 42'"  (12 degrees and 42 arc-minutes into Taurus)
+ */
+function formatSignDegree(longitude: number | null | undefined): string | null {
+  if (longitude == null) return null;
+  const inSign = longitude % 30;
+  const deg = Math.floor(inSign);
+  const min = Math.round((inSign - deg) * 60);
+  return `${deg}° ${min.toString().padStart(2, '0')}'`;
+}
+
 // =============================================================================
 // COMPONENT
 // =============================================================================
@@ -54,6 +94,9 @@ export const SelfAnalysisPanel: React.FC<SelfAnalysisPanelProps> = ({
   sunSign,
   moonSign,
   risingSign,
+  sunLongitude,
+  moonLongitude,
+  risingLongitude,
   onClose,
 }) => {
   const [activeLens, setActiveLens] = useState<Lens>('Sun');
@@ -68,9 +111,37 @@ export const SelfAnalysisPanel: React.FC<SelfAnalysisPanelProps> = ({
     }
   }, [activeLens, sunSign, moonSign, risingSign]);
 
+  // Get the longitude for current lens
+  const currentLongitude = useMemo(() => {
+    switch (activeLens) {
+      case 'Sun': return sunLongitude;
+      case 'Moon': return moonLongitude;
+      case 'Rising': return risingLongitude;
+    }
+  }, [activeLens, sunLongitude, moonLongitude, risingLongitude]);
+
   // Get lesson and needs for current sign
   const lesson = currentSign ? SIGN_LESSONS[currentSign] : null;
   const needs = currentSign ? SIGN_NEEDS[currentSign] : null;
+  const khanAcademy = LENS_KHAN_ACADEMY[activeLens];
+
+  // Compute cusp blends for Sun/Moon/Rising
+  const sunBlendResult = useMemo(() => {
+    if (!birthDate) return null;
+    try {
+      return getSunBlendFromDate(new Date(birthDate));
+    } catch { return null; }
+  }, [birthDate]);
+
+  const moonBlend = useMemo(() => {
+    if (moonLongitude == null) return null;
+    return getBlendFromLongitude(moonLongitude);
+  }, [moonLongitude]);
+
+  const risingBlend = useMemo(() => {
+    if (risingLongitude == null) return null;
+    return getBlendFromLongitude(risingLongitude);
+  }, [risingLongitude]);
 
   if (!sunSign && !moonSign && !risingSign) {
     return (
@@ -106,10 +177,39 @@ export const SelfAnalysisPanel: React.FC<SelfAnalysisPanelProps> = ({
         <span>View Profile Details</span>
       </button>
 
+      {/* Cusp Blending Ribbons */}
+      <div className="cusp-ribbons-section">
+        {sunBlendResult && sunBlendResult.blend.length > 0 && (
+          <CuspRibbon
+            title={`${name} Sun Blend`}
+            blend={sunBlendResult.blend}
+            cuspDescription={sunBlendResult.cuspDescription}
+            birthDate={birthDate}
+            compact
+          />
+        )}
+        {moonBlend && moonBlend.length > 0 && (
+          <CuspRibbon
+            title={`${name} Moon Blend`}
+            blend={moonBlend}
+            compact
+          />
+        )}
+        {risingBlend && risingBlend.length > 0 && (
+          <CuspRibbon
+            title={`${name} Rising Blend`}
+            blend={risingBlend}
+            compact
+          />
+        )}
+      </div>
+
       {/* Lens Tabs */}
       <div className="lens-tabs">
         {(['Sun', 'Moon', 'Rising'] as Lens[]).map((lens) => {
           const sign = lens === 'Sun' ? sunSign : lens === 'Moon' ? moonSign : risingSign;
+          const lon = lens === 'Sun' ? sunLongitude : lens === 'Moon' ? moonLongitude : risingLongitude;
+          const deg = formatSignDegree(lon);
           return (
             <button
               key={lens}
@@ -120,6 +220,7 @@ export const SelfAnalysisPanel: React.FC<SelfAnalysisPanelProps> = ({
               <span className="lens-icon">{LENS_ICONS[lens]}</span>
               <span className="lens-label">{lens}</span>
               {sign && <span className="lens-sign">{sign}</span>}
+              {deg && <span className="lens-degree">{deg}</span>}
             </button>
           );
         })}
@@ -128,6 +229,30 @@ export const SelfAnalysisPanel: React.FC<SelfAnalysisPanelProps> = ({
       {/* Lens Description */}
       <div className="lens-description">
         {LENS_DESCRIPTIONS[activeLens]}
+      </div>
+
+      {/* Khan Academy: What / Why / Everyday */}
+      <div className="khan-box">
+        <div className="khan-row">
+          <span className="khan-label">What it is</span>
+          <p className="khan-text">{khanAcademy.what}</p>
+        </div>
+        <div className="khan-row">
+          <span className="khan-label">Why it matters</span>
+          <p className="khan-text">{khanAcademy.why}</p>
+        </div>
+        <div className="khan-row">
+          <span className="khan-label">In everyday life</span>
+          <p className="khan-text">{khanAcademy.everyday}</p>
+        </div>
+        {currentLongitude != null && (
+          <div className="khan-degree-row">
+            <span className="khan-degree-icon">{LENS_ICONS[activeLens]}</span>
+            <span className="khan-degree-text">
+              {currentSign} at {formatSignDegree(currentLongitude)} — absolute position: {currentLongitude.toFixed(2)}° ecliptic
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Sign Content */}
@@ -242,6 +367,8 @@ export const SelfAnalysisPanel: React.FC<SelfAnalysisPanelProps> = ({
           color: #e5e7eb;
           max-height: 80vh;
           overflow-y: auto;
+          overflow-x: hidden;
+          contain: paint;
         }
 
         .self-analysis-panel.empty {
@@ -321,6 +448,14 @@ export const SelfAnalysisPanel: React.FC<SelfAnalysisPanelProps> = ({
           border-color: rgba(59, 130, 246, 0.5);
         }
 
+        /* Cusp Ribbons Section */
+        .cusp-ribbons-section {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          margin-bottom: 12px;
+        }
+
         /* Lens Tabs */
         .lens-tabs {
           display: flex;
@@ -376,6 +511,17 @@ export const SelfAnalysisPanel: React.FC<SelfAnalysisPanelProps> = ({
           color: #e5e7eb;
         }
 
+        .lens-degree {
+          font-size: 10px;
+          color: #60a5fa;
+          font-weight: 500;
+          font-family: monospace;
+        }
+
+        .lens-tab.active .lens-degree {
+          color: #93c5fd;
+        }
+
         .lens-description {
           font-size: 12px;
           color: #6b7280;
@@ -384,6 +530,60 @@ export const SelfAnalysisPanel: React.FC<SelfAnalysisPanelProps> = ({
           padding: 8px 12px;
           background: rgba(255, 255, 255, 0.03);
           border-radius: 8px;
+        }
+
+        /* Khan Academy Box */
+        .khan-box {
+          background: rgba(59, 130, 246, 0.06);
+          border: 1px solid rgba(59, 130, 246, 0.15);
+          border-radius: 10px;
+          padding: 12px;
+          margin-bottom: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .khan-row {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .khan-label {
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: #60a5fa;
+        }
+
+        .khan-text {
+          font-size: 12px;
+          line-height: 1.6;
+          color: #d1d5db;
+          margin: 0;
+        }
+
+        .khan-degree-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 10px;
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 6px;
+          margin-top: 2px;
+        }
+
+        .khan-degree-icon {
+          font-size: 16px;
+          color: #fbbf24;
+        }
+
+        .khan-degree-text {
+          font-size: 11px;
+          color: #9ca3af;
+          font-family: monospace;
         }
 
         /* Sign Header */

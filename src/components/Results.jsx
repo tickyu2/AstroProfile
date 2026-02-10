@@ -259,8 +259,12 @@ export default function Results() {
                     sun: profile.western.sun,
                     moon: profile.western.moon,
                     rising: profile.western.ascendant,
+                    ascendant: profile.western.ascendant,
+                    midheaven: profile.western.midheaven,
                     planets: profile.western.planets,
-                    houses: { houses: profile.western.houses, system: profile.western.houseSystem },
+                    houses: profile.western.houses,
+                    houseSystem: profile.western.houseSystem,
+                    aspects: profile.western.aspects,
                     elementBalance: profile.western.elements,
                     moonPhase: profile.western.moonPhase
                 }

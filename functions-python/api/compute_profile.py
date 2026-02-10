@@ -34,6 +34,8 @@ from .schemas import (
     AspectSchema,
     WesternElementsSchema,
     WesternModalitiesSchema,
+    ArabicPartSchema,
+    ArabicPartsSchema,
     VedicChartSchema,
     NakshatraSchema,
     RashiSchema,
@@ -339,6 +341,9 @@ def _assign_planet_to_house(planet_longitude: float, house_cusps: List[Dict]) ->
     Assign a planet to a house based on its longitude and house cusps.
     Planet is in house N if: cusp[N] <= longitude < cusp[N+1]
     Handle 360° wrap-around for house 12 → house 1
+
+    house_cusps: List of dicts with 'longitude' and optionally 'house' keys.
+                 Index 0 should be House 1, Index 1 = House 2, etc.
     """
     if not house_cusps or len(house_cusps) < 12:
         return None
@@ -346,15 +351,21 @@ def _assign_planet_to_house(planet_longitude: float, house_cusps: List[Dict]) ->
     for i in range(12):
         current_cusp = house_cusps[i]["longitude"]
         next_cusp = house_cusps[(i + 1) % 12]["longitude"]
+        # Expected house number is i+1 (index 0 = House 1)
+        expected_house = i + 1
+        # If house number is in the data, use it for verification
+        actual_house = house_cusps[i].get("house", expected_house)
+        if actual_house != expected_house:
+            print(f"[HOUSE_WARN] Index {i} has house={actual_house}, expected {expected_house}")
 
         if current_cusp <= next_cusp:
             # Normal case: cusp values increase
             if current_cusp <= planet_longitude < next_cusp:
-                return i + 1
+                return actual_house
         else:
             # Wrap around 360° (e.g., house 12 spans from 350° to 20°)
             if planet_longitude >= current_cusp or planet_longitude < next_cusp:
-                return i + 1
+                return actual_house
 
     return 1  # Should never reach here, default to house 1
 
@@ -439,6 +450,9 @@ def compute_western(
         cusps_data = houses_data.get("cusps", {})
 
         house_cusps_list = []
+        # Debug: log cusps debug info from calculator
+        cusps_debug = houses_data.get("_cusps_debug", {})
+        print(f"[HOUSES_DEBUG] cusps_debug={cusps_debug}, cusps_data_keys={list(cusps_data.keys())}")
         for i in range(1, 13):
             cusp_key = f"house_{i}"
             cusp = cusps_data.get(cusp_key, {})
@@ -450,18 +464,53 @@ def compute_western(
                     degree=cusp.get("degree", 0),
                     degreeFormatted=cusp.get("formatted", _format_degree(cusp.get("degree", 0), cusp.get("sign", "")))
                 ))
+        print(f"[HOUSES_DEBUG] house_cusps_list count={len(house_cusps_list)}, houses={[(h.house, h.sign) for h in house_cusps_list]}")
+
+        # Validate house cusps are complete and properly ordered
+        # CRITICAL: Must have exactly 12 houses in order 1-12 for correct planet assignment
+        house_numbers = [h.house for h in house_cusps_list]
+        if house_numbers != list(range(1, 13)):
+            print(f"[HOUSES_ERROR] House cusps not in correct order! Expected [1..12], got {house_numbers}")
+            # Attempt to fix by sorting
+            house_cusps_list_sorted = sorted(house_cusps_list, key=lambda h: h.house)
+            # Verify all 12 present
+            if len(house_cusps_list_sorted) == 12 and [h.house for h in house_cusps_list_sorted] == list(range(1, 13)):
+                print(f"[HOUSES_FIX] Reordered house cusps successfully")
+                house_cusps_list = house_cusps_list_sorted
+            else:
+                print(f"[HOUSES_ERROR] Cannot fix house cusps - missing houses")
 
         # Prepare cusp data for house assignment (list of dicts with longitude)
-        cusp_longitudes = [{"longitude": h.longitude} for h in house_cusps_list] if house_cusps_list else []
+        # Index 0 = House 1, Index 1 = House 2, etc.
+        cusp_longitudes = [{"longitude": h.longitude, "house": h.house} for h in house_cusps_list] if house_cusps_list else []
+        print(f"[HOUSES_DEBUG] cusp_longitudes: {[(c['house'], f\"{c['longitude']:.2f}°\") for c in cusp_longitudes]}")
 
         # =================================================================
         # CONVERT PLANETS TO SCHEMA WITH HOUSE ASSIGNMENTS
         # =================================================================
         planets = {}
-        for name, data in chart.get("planets", {}).items():
+        _raw_planets = chart.get("planets", {})
+        _asteroid_keys = ['chiron', 'ceres', 'pallas', 'juno', 'vesta']
+        _failed_planets = {k: v for k, v in _raw_planets.items() if isinstance(v, dict) and "error" in v}
+        if _failed_planets:
+            from astro.calculator import get_ephe_diagnostics
+            _diag = get_ephe_diagnostics()
+            print(f"[ASTEROID_DEBUG] Failed planets: {_failed_planets}")
+            print(f"[ASTEROID_DEBUG] Ephe diagnostics: {_diag}")
+        for name, data in _raw_planets.items():
             if isinstance(data, dict) and "longitude" in data:
                 planet_longitude = data["longitude"]
                 planet_house = _assign_planet_to_house(planet_longitude, cusp_longitudes) if cusp_longitudes else None
+
+                # Debug logging for asteroids
+                if name in _asteroid_keys:
+                    print(f"[HOUSE_ASSIGN] {name}: lon={planet_longitude:.2f}°, sign={data.get('sign')}, degree={data.get('degree'):.2f}°, assigned_house={planet_house}")
+                    # Log relevant cusp boundaries
+                    if planet_house and cusp_longitudes:
+                        prev_idx = (planet_house - 2) % 12
+                        curr_idx = planet_house - 1
+                        next_idx = planet_house % 12
+                        print(f"[HOUSE_ASSIGN] {name}: H{prev_idx+1}={cusp_longitudes[prev_idx]['longitude']:.2f}°, H{curr_idx+1}={cusp_longitudes[curr_idx]['longitude']:.2f}°, H{next_idx+1}={cusp_longitudes[next_idx]['longitude']:.2f}°")
 
                 planets[name] = PlanetPositionSchema(
                     longitude=planet_longitude,
@@ -578,6 +627,32 @@ def compute_western(
         moon_phase = _calculate_moon_phase(sun_longitude, moon_longitude)
 
         # =================================================================
+        # ARABIC PARTS (LOTS)
+        # =================================================================
+        arabic_parts = None
+        arabic_parts_data = chart.get("arabicParts", {})
+        if arabic_parts_data and arabic_parts_data.get("parts"):
+            parts_dict = {}
+            for part_key, part_data in arabic_parts_data.get("parts", {}).items():
+                if isinstance(part_data, dict) and "longitude" in part_data:
+                    # Assign house to the Arabic Part
+                    part_house = _assign_planet_to_house(part_data["longitude"], cusp_longitudes) if cusp_longitudes else None
+                    parts_dict[part_key] = ArabicPartSchema(
+                        longitude=part_data["longitude"],
+                        sign=part_data.get("sign", ""),
+                        degreeInSign=part_data.get("degreeInSign", 0),
+                        formatted=part_data.get("formatted", ""),
+                        house=part_house,
+                        formula=part_data.get("formula", ""),
+                        zone=part_data.get("zone")
+                    )
+            arabic_parts = ArabicPartsSchema(
+                isDayChart=arabic_parts_data.get("isDayChart", True),
+                chartType=arabic_parts_data.get("chartType", "Day Chart"),
+                parts=parts_dict
+            )
+
+        # =================================================================
         # BUILD FINAL SCHEMA
         # =================================================================
         return WesternChartSchema(
@@ -591,6 +666,7 @@ def compute_western(
             elements=elements,
             modalities=modalities,
             moonPhase=moon_phase,
+            arabicParts=arabic_parts,
             houseSystem=chart.get("houseSystem", "Placidus"),
             calculationMethod="Swiss Ephemeris",
             computedAt=datetime.now().isoformat()

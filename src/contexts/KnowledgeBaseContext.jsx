@@ -44,6 +44,7 @@ import { getCuspById, getAllCusps as getAllCuspsList } from '../utils/westernZod
 import { personalizationEngine } from '../utils/personalizationEngine';
 import { generatePsychologicalProfile, generateCompletePsychologicalProfile } from '../utils/psychologicalProfileGenerator';
 import { calculateWithComparison, SEASONAL_MULTIPLIERS, QI_STATE_NAMES } from '../utils/seasonalStrength';
+import { buildZoneKnowledgeForLuna } from '../utils/zoneKnowledgeBuilder';
 
 const KnowledgeBaseContext = createContext({});
 
@@ -949,6 +950,34 @@ ${doc.content}
       lines.push(`- **Sun Sign:** ${western.sign}${western.element ? ` (${western.element})` : ''}`);
       if (western.modality) {
         lines.push(`- **Modality:** ${western.modality}`);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // ZODIAC ZONE KNOWLEDGE — 72 zones across 12 signs (5° each)
+    // Gives Luna deep understanding of the user's specific degree placement
+    // ═══════════════════════════════════════════════════════════════════════
+    const sovereignDataForZones = western?.sovereignCalculation;
+    if (sovereignDataForZones) {
+      try {
+        const sunSign = sovereignDataForZones.sun?.sign;
+        const sunDeg = sovereignDataForZones.sun?.degreeInSign;
+        const moonSign = sovereignDataForZones.moon?.sign;
+        const moonDeg = sovereignDataForZones.moon?.degreeInSign;
+        const risingSign = sovereignDataForZones.rising?.sign;
+        const risingDeg = sovereignDataForZones.rising?.degreeInSign;
+
+        if (sunSign && sunDeg != null) {
+          const zoneKnowledge = buildZoneKnowledgeForLuna(
+            sunSign, sunDeg, moonSign, moonDeg, risingSign, risingDeg
+          );
+          if (zoneKnowledge) {
+            lines.push('');
+            lines.push(zoneKnowledge);
+          }
+        }
+      } catch (err) {
+        console.warn('[KnowledgeBase] Zone knowledge unavailable:', err);
       }
     }
 

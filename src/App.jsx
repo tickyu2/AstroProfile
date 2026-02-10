@@ -62,6 +62,7 @@ const LizGreeneCathedralPage = lazy(() => import('./pages/LizGreeneCathedralPage
 const ZodiacLearningPage = lazy(() => import('./pages/ZodiacLearningPage'))
 const ZodiacAcademyPage = lazy(() => import('./pages/ZodiacAcademyPage'))
 const TropicalSeasonsPage = lazy(() => import('./pages/TropicalSeasonsPage'))
+const NatalWheelPage = lazy(() => import('./pages/NatalWheelPage'))
 
 // CCLR - Couples Cosmic Love Rejuvenation (lazy loaded)
 const CCLRHomePage = lazy(() => import('./pages/cclr').then(m => ({ default: m.CCLRHomePage })))
@@ -480,6 +481,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <TropicalSeasonsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Natal Wheel - Full Placidus chart with 72-zone system */}
+            <Route
+              path="/natal-wheel"
+              element={
+                <ProtectedRoute>
+                  <NatalWheelPage />
                 </ProtectedRoute>
               }
             />

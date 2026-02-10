@@ -1,0 +1,59 @@
+.enhanced-season-rings {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.enhanced-season-rings-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: pointer;
+}
+
+.mode-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  pointer-events: none;
+}
+
+.mode-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(100, 150, 255, 0.2);
+  border: 1px solid rgba(100, 150, 255, 0.4);
+  border-radius: 12px;
+  color: #6496ff;
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Transition effects */
+.enhanced-season-rings-svg path {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.enhanced-season-rings-svg text {
+  transition: opacity 0.4s ease, font-size 0.3s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .enhanced-season-rings {
+    max-width: 100%;
+  }
+
+  .mode-indicator {
+    top: 5px;
+    right: 5px;
+  }
+
+  .mode-badge {
+    padding: 3px 8px;
+    font-size: 0.6em;
+  }
+}

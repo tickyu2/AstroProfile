@@ -1,0 +1,444 @@
+/* ============================================
+   PLANET PANEL STYLES
+   ============================================ */
+
+.planet-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.98) 0%,
+    rgba(30, 41, 59, 0.95) 100%
+  );
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+  animation: planetPanelFadeIn 0.3s ease;
+}
+
+@keyframes planetPanelFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.planet-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 2px solid;
+  position: relative;
+}
+
+.planet-panel-glyph {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.planet-panel-header-text {
+  flex: 1;
+}
+
+.planet-panel-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.planet-panel-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.planet-panel-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.planet-panel-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* MD Import/Export toolbar */
+.planet-panel-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 20px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.planet-panel-toolbar-btn {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+  background: rgba(30, 41, 59, 0.6);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.planet-panel-toolbar-btn:hover {
+  background: rgba(148, 163, 184, 0.15);
+  border-color: rgba(148, 163, 184, 0.5);
+  color: #fff;
+}
+
+.planet-panel-toolbar-msg {
+  font-size: 10px;
+  color: rgba(74, 222, 128, 0.8);
+  align-self: center;
+  margin-left: auto;
+  animation: toolbarMsgFade 2s ease forwards;
+}
+
+@keyframes toolbarMsgFade {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Content area */
+.planet-panel-content {
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.planet-panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.planet-panel-content::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+}
+
+/* Sections */
+.planet-section {
+  margin-bottom: 20px;
+}
+
+.planet-section:last-child {
+  margin-bottom: 0;
+}
+
+.planet-section h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.planet-section p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 8px 0;
+}
+
+.planet-section p:last-child {
+  margin-bottom: 0;
+}
+
+/* Quote / callout */
+.planet-callout {
+  padding: 12px 16px;
+  border-left: 3px solid;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 8px 8px 0;
+  margin: 12px 0;
+}
+
+.planet-callout p {
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Astronomy box */
+.planet-astronomy-box {
+  padding: 16px;
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.planet-astronomy-box h4 {
+  color: #60a5fa;
+}
+
+.planet-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.planet-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.planet-stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+}
+
+.planet-stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 2px;
+}
+
+/* Rulership cards */
+.planet-rulership-cards {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.planet-rulership-card {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1.5px solid;
+  text-align: center;
+}
+
+.planet-rulership-card-glyph {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.planet-rulership-card-sign {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.planet-rulership-card-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
+.planet-rulership-card-desc {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 8px;
+}
+
+/* Speed table */
+.planet-speed-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  margin: 12px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.planet-speed-table thead th {
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(30, 41, 59, 0.8);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.planet-speed-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.planet-speed-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.planet-speed-table tbody tr.current-planet {
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.planet-speed-table tbody tr.current-planet td {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.planet-speed-table .speed-rank {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  width: 30px;
+}
+
+.planet-speed-table .speed-glyph {
+  font-size: 16px;
+  width: 30px;
+}
+
+.planet-speed-table .speed-signs {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Themed lists */
+.planet-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.planet-section ul li {
+  padding: 5px 0 5px 20px;
+  position: relative;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.planet-section ul li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+/* Keywords */
+.planet-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 20px;
+}
+
+.planet-keyword {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border: 1px solid;
+  border-radius: 12px;
+  opacity: 0.8;
+}
+
+/* MD Import modal */
+.planet-md-import-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.planet-md-import-modal {
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.planet-md-import-modal h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.planet-md-import-modal textarea {
+  width: 100%;
+  min-height: 300px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 12px;
+  resize: vertical;
+}
+
+.planet-md-import-modal textarea:focus {
+  outline: none;
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.planet-md-import-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.planet-md-import-actions button {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.planet-md-import-actions .md-cancel {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.planet-md-import-actions .md-apply {
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid #fbbf24;
+  color: #fbbf24;
+}
+
+.planet-md-import-actions .md-apply:hover {
+  background: rgba(251, 191, 36, 0.3);
+}

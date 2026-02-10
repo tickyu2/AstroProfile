@@ -2973,7 +2973,7 @@ Please create a comprehensive document. Start with a clear title on the first li
 
       // Build knowledge prompt for this conversation (with profile isolation)
       const knowledgePrompt = buildKnowledgePrompt({
-        maxTokens: 4000,
+        maxTokens: 5500,
         forProfileId: userProfile?.profileId || userProfile?.id // Only include KB docs for this profile
       });
 

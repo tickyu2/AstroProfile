@@ -5,6 +5,10 @@
  * Orchestrator for daily celestial guidance - "How today's sky affects YOUR Saturn"
  * Part of the Liz Greene Cathedral - Phase 1: Living System
  *
+ * Priority pipeline:
+ *   1. Python Swiss Ephemeris (sub-arc-second precision) via /luna_transits
+ *   2. JS approximate ephemeris fallback (transitCalculator.js)
+ *
  * Features:
  * - Current sky snapshot
  * - Personal transit analysis
@@ -12,7 +16,7 @@
  * - Daily/weekly/monthly guidance
  * - Luna integration
  *
- * GENESIS AstroProfile - January 2026
+ * GENESIS AstroProfile - February 2026
  */
 
 import {
@@ -28,6 +32,67 @@ import {
   generateDailyTransitGuidance,
   TRANSIT_PLANET_THEMES
 } from './transitInterpretation';
+
+// =============================================================================
+// PYTHON SWISS EPHEMERIS BRIDGE
+// =============================================================================
+
+const PYTHON_API_URL = import.meta.env?.VITE_PYTHON_FUNCTIONS_URL || '';
+
+/**
+ * Try calling the Python /luna_transits endpoint for precise transit data.
+ * Returns { activeTransits, transitAspects, forecast } or null on failure.
+ */
+async function fetchPythonTransits(natalPositions, forecastDays = 0) {
+  if (!PYTHON_API_URL) return null;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20_000);
+    const response = await fetch(`${PYTHON_API_URL}/luna_transits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ natalPositions, forecastDays }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Convert Python transit aspects into the shape expected by the Cathedral
+ * interpretation layer (same shape as calculateTransitsToNatal output).
+ */
+function mapPythonAspectsToLocal(pythonData) {
+  if (!pythonData?.activeTransits?.by_planet) return null;
+
+  const transits = [];
+  const byPlanet = pythonData.activeTransits.by_planet;
+
+  for (const [planet, info] of Object.entries(byPlanet)) {
+    for (const asp of (info.aspects || [])) {
+      transits.push({
+        transitPlanet: planet,
+        natalPlanet: asp.natal_planet,
+        aspect: asp.aspect,
+        orb: asp.orb,
+        quality: asp.quality,
+        applying: true,
+        importance: asp.quality === 'challenging' ? 70 : 50,
+        symbol: asp.aspect === 'Conjunction' ? '☌'
+          : asp.aspect === 'Opposition' ? '☍'
+          : asp.aspect === 'Square' ? '□'
+          : asp.aspect === 'Trine' ? '△'
+          : asp.aspect === 'Sextile' ? '✱' : '?',
+      });
+    }
+  }
+
+  return transits;
+}
 
 // =============================================================================
 // CURRENT SKY SNAPSHOT
@@ -135,20 +200,33 @@ function getSignTheme(sign) {
 // =============================================================================
 
 /**
- * Build complete personal transit report
+ * Build complete personal transit report.
+ *
+ * Tries Python Swiss Ephemeris first for precise transit aspects,
+ * falls back to JS approximate ephemeris if unavailable.
  */
-export function buildPersonalTransitReport(natalChart, date = new Date()) {
+export async function buildPersonalTransitReport(natalChart, date = new Date()) {
   if (!natalChart) {
     return { error: 'Natal chart data required' };
   }
 
-  // Get current sky
+  // Get current sky (always JS — this is planet positions + stellium detection)
   const sky = getCurrentSkySnapshot(date);
 
-  // Calculate transits to natal chart
-  const transits = calculateTransitsToNatal(natalChart, date);
+  // Try Python Swiss Ephemeris for transit aspects
+  let transits;
+  const natalPositions = natalChart.planets || {};
+  const pythonData = await fetchPythonTransits(natalPositions, 90);
+  const mapped = mapPythonAspectsToLocal(pythonData);
 
-  // Get Saturn cycle position
+  if (mapped && mapped.length > 0) {
+    transits = mapped;
+  } else {
+    // Fallback: JS approximate ephemeris
+    transits = calculateTransitsToNatal(natalChart, date);
+  }
+
+  // Get Saturn cycle position (JS — specific to 29.5-year Saturn cycle)
   const saturnCycle = calculateSaturnCycleTransit(
     natalChart.planets?.Saturn || natalChart.saturn,
     date
@@ -169,11 +247,17 @@ export function buildPersonalTransitReport(natalChart, date = new Date()) {
   }));
 
   // Get upcoming significant transits
-  const upcoming = getUpcomingSignificantTransits(natalChart, date, 90);
+  let upcoming = [];
+  if (pythonData?.forecast && pythonData.forecast.length > 0) {
+    upcoming = pythonData.forecast;
+  } else {
+    upcoming = getUpcomingSignificantTransits(natalChart, date, 90);
+  }
 
   return {
     date: sky.date,
     currentSky: sky,
+    source: mapped ? 'swiss-ephemeris' : 'js-approximate',
 
     // Transit counts
     summary: {
@@ -309,8 +393,8 @@ function getPhaseGuidance(phase) {
 /**
  * Get Saturn-focused transit report
  */
-export function getSaturnFocusedReport(natalChart, date = new Date()) {
-  const fullReport = buildPersonalTransitReport(natalChart, date);
+export async function getSaturnFocusedReport(natalChart, date = new Date()) {
+  const fullReport = await buildPersonalTransitReport(natalChart, date);
 
   // Filter for Saturn-related transits
   const saturnTransits = fullReport.majorTransits.filter(t =>
@@ -343,14 +427,19 @@ export function getSaturnFocusedReport(natalChart, date = new Date()) {
 
 /**
  * Get weekly transit overview
+ *
+ * Note: Daily breakdown uses JS approximate ephemeris for performance
+ * (7 separate API calls would be too slow). The primary transit report
+ * uses Swiss Ephemeris for the main day.
  */
-export function getWeeklyTransitOverview(natalChart, startDate = new Date()) {
+export async function getWeeklyTransitOverview(natalChart, startDate = new Date()) {
   const days = [];
 
   for (let i = 0; i < 7; i++) {
     const dayDate = new Date(startDate);
     dayDate.setDate(dayDate.getDate() + i);
 
+    // Daily breakdown uses JS for performance (7 API calls would be slow)
     const dayTransits = calculateTransitsToNatal(natalChart, dayDate);
     const majorTransits = dayTransits.filter(t => t.importance >= 50);
 
@@ -409,13 +498,13 @@ function generateWeeklyGuidance(days) {
 /**
  * Get monthly transit overview
  */
-export function getMonthlyTransitOverview(natalChart, startDate = new Date()) {
+export async function getMonthlyTransitOverview(natalChart, startDate = new Date()) {
   const weeks = [];
 
   for (let w = 0; w < 4; w++) {
     const weekStart = new Date(startDate);
     weekStart.setDate(weekStart.getDate() + (w * 7));
-    const weekOverview = getWeeklyTransitOverview(natalChart, weekStart);
+    const weekOverview = await getWeeklyTransitOverview(natalChart, weekStart);
 
     weeks.push({
       weekNumber: w + 1,

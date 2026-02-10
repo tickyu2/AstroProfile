@@ -88,6 +88,30 @@ export async function getPlanetaryPositions(datetime, latitude = 0, longitude = 
 }
 
 /**
+ * Get Swiss Ephemeris-precise Sun ingress dates for all 12 signs in a year.
+ * @param {number} year - Calendar year (e.g., 1963)
+ * @returns {Promise<Object>} { year, ingresses: [{ sign, datetime_utc, month, day, hour, minute, ... }] }
+ */
+export async function getSeasonalIngresses(year) {
+  try {
+    const response = await fetch(getCloudRunUrl('seasonal_ingresses'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ year })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Seasonal ingresses fetch failed:', error);
+    throw error;
+  }
+}
+
+/**
  * Calculate elemental balance from planetary positions
  * @param {Object} planets - Planetary positions object
  * @returns {Promise<Object>} Elemental balance percentages
@@ -164,8 +188,17 @@ export async function computeUnifiedProfile(birthData) {
       hasWestern: !!result.western,
       hasVedic: !!result.vedic,
       hasUnified: !!result.unified,
-      computeVersion: result.computeVersion
+      computeVersion: result.computeVersion,
+      planetKeys: result.western?.planets ? Object.keys(result.western.planets) : [],
+      asteroids: ['chiron','ceres','pallas','juno','vesta'].map(k => `${k}: ${result.western?.planets?.[k] ? 'YES' : 'MISSING'}`),
     });
+    if (result._ephe_diag) {
+      const d = result._ephe_diag;
+      console.log(`🔭 [EPHE] __file__=${d.__file__}, cwd=${d.cwd}, resolved=${d.resolved}`);
+      console.log(`🔭 [EPHE] files=${JSON.stringify(d.files)}`);
+      (d.candidates_tried || []).forEach(c => console.log(`🔭 [EPHE] candidate: ${c.path} => exists=${c.exists}`));
+      if (d.root_contents) console.log(`🔭 [EPHE] root_contents=${JSON.stringify(d.root_contents)}`);
+    }
 
     return result;
   } catch (error) {

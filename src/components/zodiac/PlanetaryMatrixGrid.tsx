@@ -3,7 +3,7 @@
  *
  * Reusable grid component for Matrices 2-5:
  *   Matrix 2: Chemistry & Desire (Venus/Mars) — 2×2
- *   Matrix 3: Communication (Mercury)         — 1×2
+ *   Matrix 3: Communication (Mercury/Mars)     — 2×2
  *   Matrix 4: Growth & Commitment (Jup/Sat)   — 2×2
  *   Matrix 5: Transformation (Ura/Nep/Plu)    — 3×3
  *
@@ -17,7 +17,7 @@
 
 import React, { useState } from 'react';
 import type { PlanetaryMatrix, PlanetaryCellReport, Planet } from '../../zodiac/planetaryMatrices';
-import { PLANET_ICONS, PLANET_LABELS, MATRIX_LAYER_COLORS } from '../../zodiac/planetaryMatrices';
+import { PLANET_ICONS, PLANET_LABELS, MATRIX_LAYER_COLORS, PLANET_ROLE, CELL_DESCRIPTION, LAYER_NARRATIVES } from '../../zodiac/planetaryMatrices';
 import { getCompatibilityLabel } from '../../zodiac/narrativeEngine';
 
 // =============================================================================
@@ -220,6 +220,11 @@ export const PlanetaryMatrixGrid: React.FC<PlanetaryMatrixGridProps> = ({
         </div>
       )}
 
+      {/* Layer narrative — what this matrix measures */}
+      <div className="pm-narrative" style={{ borderColor: `${accentColor}40` }}>
+        <p className="pm-narrative-text">{LAYER_NARRATIVES[layer]?.narrative}</p>
+      </div>
+
       {/* Selected Cell Detail + Show Your Work */}
       {selectedReport && (
         <div className="pm-detail" style={{ borderColor: `${accentColor}40` }}>
@@ -233,6 +238,30 @@ export const PlanetaryMatrixGrid: React.FC<PlanetaryMatrixGridProps> = ({
               {selectedReport.fromSign} → {selectedReport.toSign}
             </span>
           </div>
+
+          {/* Khan Academy: What each planet governs */}
+          <div className="pm-planet-roles">
+            <div className="pm-role-row">
+              <span className="pm-role-icon" style={{ color: accentColor }}>{PLANET_ICONS[selectedReport.fromPlanet]}</span>
+              <span className="pm-role-planet">{PLANET_LABELS[selectedReport.fromPlanet]}:</span>
+              <span className="pm-role-desc">{PLANET_ROLE[selectedReport.fromPlanet]}</span>
+            </div>
+            <span className="pm-role-cross">×</span>
+            <div className="pm-role-row">
+              <span className="pm-role-icon" style={{ color: accentColor }}>{PLANET_ICONS[selectedReport.toPlanet]}</span>
+              <span className="pm-role-planet">{PLANET_LABELS[selectedReport.toPlanet]}:</span>
+              <span className="pm-role-desc">{PLANET_ROLE[selectedReport.toPlanet]}</span>
+            </div>
+          </div>
+
+          {/* Khan Academy: Why this cell matters */}
+          {CELL_DESCRIPTION[selectedReport.pairKey] && (
+            <div className="pm-why-box">
+              <span className="pm-why-label">Why this matters</span>
+              <p className="pm-why-text">{CELL_DESCRIPTION[selectedReport.pairKey]}</p>
+            </div>
+          )}
+
           <div className="pm-detail-angle">
             {getAngleSymbol(selectedReport.angle)} {selectedReport.angle} ({getAngleDegrees(selectedReport.angle)}°)
           </div>
@@ -252,6 +281,14 @@ export const PlanetaryMatrixGrid: React.FC<PlanetaryMatrixGridProps> = ({
               <span className="pm-score-name">Weight</span>
               <span className="pm-score-val">{Math.round(selectedReport.weight * 100)}%</span>
             </div>
+          </div>
+
+          {/* Khan Academy: How we calculate — formula bar */}
+          <div className="pm-formula-bar">
+            <span className="pm-formula-label">How we score:</span>
+            <span className="pm-formula-text">
+              Aspect angle → base effort → element match → modality match → planet weight → harmony = 11 − effort
+            </span>
           </div>
 
           {/* Step-by-step breakdown — Khan Academy "show your work" */}
@@ -493,6 +530,112 @@ export const PlanetaryMatrixGrid: React.FC<PlanetaryMatrixGridProps> = ({
         .pm-insight-item {
           font-size: 13px;
           line-height: 1.5;
+          color: #d1d5db;
+        }
+
+        /* Layer Narrative */
+        .pm-narrative {
+          border-left: 3px solid;
+          border-radius: 6px;
+          padding: 10px 12px;
+          margin-bottom: 16px;
+          background: rgba(255, 255, 255, 0.03);
+        }
+
+        .pm-narrative-text {
+          font-size: 12px;
+          line-height: 1.6;
+          color: #d1d5db;
+          margin: 0;
+        }
+
+        /* Planet Roles (Khan Academy: what each planet governs) */
+        .pm-planet-roles {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 10px;
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 8px;
+          margin-bottom: 8px;
+          flex-wrap: wrap;
+        }
+
+        .pm-role-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .pm-role-icon {
+          font-size: 16px;
+        }
+
+        .pm-role-planet {
+          font-size: 11px;
+          font-weight: 600;
+          color: #e5e7eb;
+        }
+
+        .pm-role-desc {
+          font-size: 11px;
+          color: #9ca3af;
+          font-style: italic;
+        }
+
+        .pm-role-cross {
+          font-size: 12px;
+          color: #6b7280;
+          font-weight: 700;
+        }
+
+        /* Why Box (Khan Academy: why this cell matters) */
+        .pm-why-box {
+          padding: 8px 10px;
+          background: rgba(251, 191, 36, 0.06);
+          border-radius: 8px;
+          margin-bottom: 8px;
+          border: 1px solid rgba(251, 191, 36, 0.15);
+        }
+
+        .pm-why-label {
+          display: block;
+          font-size: 9px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: #fbbf24;
+          margin-bottom: 4px;
+        }
+
+        .pm-why-text {
+          font-size: 12px;
+          line-height: 1.5;
+          color: #e5e7eb;
+          margin: 0;
+        }
+
+        /* Formula Bar (Khan Academy: how we calculate) */
+        .pm-formula-bar {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 10px;
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 6px;
+          margin-bottom: 4px;
+          flex-wrap: wrap;
+        }
+
+        .pm-formula-label {
+          font-size: 10px;
+          font-weight: 600;
+          color: #9ca3af;
+          text-transform: uppercase;
+        }
+
+        .pm-formula-text {
+          font-size: 11px;
           color: #d1d5db;
         }
 

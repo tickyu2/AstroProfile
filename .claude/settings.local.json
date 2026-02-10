@@ -181,7 +181,9 @@
       "Bash(npx tsc:*)",
       "Bash(python test_neo4j_agent.py:*)",
       "Bash(./venv/Scripts/pip install:*)",
-      "Bash(./venv/Scripts/python:*)"
+      "Bash(./venv/Scripts/python:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nchore: full project backup - nodejs22 runtime, firebase-functions v7, phi-curve synastry, 5-matrix architecture\n\n- Upgraded Node.js runtime from 20 to 22 across all Firebase functions\n- Upgraded firebase-functions from v6.0.1 to v7.0.5\n- Added phi-curve cusp blending subsystem \\(zodiac/cusp/\\)\n- Added 5-matrix planetary compatibility architecture \\(planetaryMatrices.ts\\)\n- Added synastry preview engine with 7 capabilities \\(synastryPreview.ts\\)\n- Added PlanetaryMatrixGrid, PlanetSeasonPanel, SeasonalWheelWithUI components\n- Added SynastryPdfReport for print-ready synastry output\n- Extended CompatibilityAnalysisPanel for full 10-planet support\n- Added Cathedral Supernova detectors \\(80 structural modes\\)\n- Updated Python compute_profile and schemas\n- Added admin-cms, academy, assessment, saturn, transit components\n- Added docs: architecture, implementation guides, competitive analysis\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nsecurity: redact API keys from documentation files\n\nRemove exposed OpenAI and Anthropic API keys from docs to pass GitHub Push Protection.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,71 @@
+.highlight-explanation {
+  background: rgba(26, 26, 46, 0.95);
+  border: 1px solid rgba(100, 150, 255, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.highlight-degree {
+  font-size: 1.4em;
+  font-weight: 700;
+  color: #ffd700;
+  margin: 0 0 8px 0;
+}
+
+.highlight-position {
+  color: #999;
+  font-size: 0.95em;
+  margin: 0 0 16px 0;
+  font-style: italic;
+}
+
+.highlight-attributes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.highlight-attr {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.attr-label {
+  color: #888;
+  font-size: 0.9em;
+  min-width: 80px;
+}
+
+.attr-value {
+  font-weight: 600;
+  font-size: 0.95em;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.attr-value.season {
+  background: rgba(144, 238, 144, 0.2);
+  color: #90EE90;
+}
+
+.attr-value.modality {
+  background: rgba(255, 107, 107, 0.2);
+  color: #FF6B6B;
+}
+
+.attr-value.element {
+  background: rgba(255, 69, 0, 0.2);
+  color: #FF4500;
+}
+
+@media (max-width: 768px) {
+  .highlight-explanation {
+    padding: 16px;
+  }
+
+  .highlight-degree {
+    font-size: 1.2em;
+  }
+}

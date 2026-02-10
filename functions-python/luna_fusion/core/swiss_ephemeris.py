@@ -12,8 +12,12 @@ import math
 
 from .constants import PLANETS, PLANET_NAMES, ASPECT_TYPES, ASPECT_ORBS, LUMINARY_ORB_BONUS
 
-# Initialize Swiss Ephemeris (uses built-in ephemeris)
-swe.set_ephe_path(None)
+# Initialize Swiss Ephemeris — reuse ephemeris path from astro.calculator if available
+from astro.calculator import _EPHE_DIR as _CALC_EPHE_DIR
+if _CALC_EPHE_DIR:
+    swe.set_ephe_path(_CALC_EPHE_DIR)
+else:
+    swe.set_ephe_path(None)
 
 # Planet ID mapping for swisseph
 SWISSEPH_PLANETS = {

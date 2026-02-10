@@ -1,0 +1,873 @@
+/* ============================================
+   THINKING STYLE TAB - COMPREHENSIVE CSS
+   Cathedral-quality styling for cognitive diversity
+   ============================================ */
+
+.thinking-style-tab {
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #1a1d2e 0%, #2d1b3d 100%);
+  color: #e8eaf0;
+  font-family: 'Inter', 'SF Pro Display', -apple-system, sans-serif;
+}
+
+/* ============================================
+   HEADER SECTION
+   ============================================ */
+
+.thinking-style-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.thinking-style-header h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.thinking-style-header .subtitle {
+  font-size: 1.1rem;
+  color: #a8aab7;
+  margin-bottom: 1.5rem;
+}
+
+.user-thinking-highlight {
+  display: inline-block;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%);
+  border: 2px solid #FFD700;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+}
+
+.highlight-icon {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+/* ============================================
+   INTRODUCTION SECTION
+   ============================================ */
+
+.thinking-intro {
+  margin-bottom: 3rem;
+}
+
+.intro-card {
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 5px solid #FFD700;
+  border-radius: 12px;
+}
+
+.intro-card h3 {
+  color: #FFD700;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.intro-card p {
+  line-height: 1.8;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+.philosophy-note {
+  background: rgba(138, 43, 226, 0.1);
+  padding: 1rem;
+  border-left: 3px solid #8A2BE2;
+  margin-top: 1rem;
+  border-radius: 8px;
+  font-style: italic;
+}
+
+/* ============================================
+   COMPREHENSIVE MATRIX SECTION
+   ============================================ */
+
+.thinking-matrix-section {
+  margin-bottom: 4rem;
+}
+
+.section-title {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #FFD700;
+}
+
+.matrix-subtitle {
+  color: #a8aab7;
+  margin-bottom: 1.5rem;
+  font-size: 1.05rem;
+}
+
+.matrix-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.thinking-matrix {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.95rem;
+}
+
+.thinking-matrix thead th {
+  background: rgba(255, 255, 255, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 1.5rem 1rem;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.aspect-header.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  background: rgba(30, 30, 50, 0.95);
+  min-width: 200px;
+  max-width: 200px;
+}
+
+.zone-header {
+  min-width: 200px;
+  text-align: center;
+  vertical-align: top;
+}
+
+.zone-header.user-zone {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(138, 43, 226, 0.2) 100%);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.zone-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.zone-number {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #FFD700;
+}
+
+.zone-name {
+  font-size: 0.9rem;
+  color: #e8eaf0;
+}
+
+.zone-degrees {
+  font-size: 0.85rem;
+  color: #a8aab7;
+}
+
+.thinking-matrix tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.data-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.aspect-label {
+  padding: 1.25rem 1rem;
+  background: rgba(30, 30, 50, 0.95);
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  border-right: 1px solid rgba(255, 215, 0, 0.2);
+  min-width: 200px;
+  max-width: 200px;
+}
+
+.label-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+.aspect-icon {
+  font-size: 1.3rem;
+}
+
+.dimension-description {
+  font-size: 0.85rem;
+  color: #a8aab7;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.thinking-matrix td {
+  padding: 1.25rem 1rem;
+  vertical-align: top;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-zone-cell {
+  background: rgba(255, 215, 0, 0.08);
+  box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.15);
+}
+
+.section-divider td {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.2) 0%, rgba(138, 43, 226, 0.2) 100%);
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #FFD700;
+  text-align: center;
+}
+
+.highlight-row {
+  background: rgba(255, 215, 0, 0.03);
+}
+
+/* Metric rows with visual bars */
+.metric-row .metric-display {
+  width: 100%;
+}
+
+.metric-bar {
+  width: 100%;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.metric-fill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: width 0.3s ease;
+}
+
+.metric-value {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Speed display */
+.speed-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.speed-bar {
+  width: 100%;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.speed-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+/* Thought patterns */
+.thought-pattern {
+  font-style: italic;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid rgba(255, 215, 0, 0.5);
+  border-radius: 4px;
+  line-height: 1.6;
+}
+
+/* Information preferences */
+.preference-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.preference-list li {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid rgba(255, 215, 0, 0.3);
+  border-radius: 4px;
+}
+
+.preference-list li:first-child {
+  border-left-color: #FFD700;
+  font-weight: 600;
+}
+
+.motto {
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 600;
+  color: #FFD700;
+  text-align: center;
+  padding: 0.75rem;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* ============================================
+   RADAR CHART SECTION
+   ============================================ */
+
+.radar-section {
+  margin-bottom: 4rem;
+}
+
+.radar-subtitle {
+  color: #a8aab7;
+  margin-bottom: 2rem;
+  font-size: 1.05rem;
+}
+
+.radar-zone-selector {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.radar-zone-selector label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: #FFD700;
+}
+
+.zone-chips {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.zone-chip {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid;
+  border-radius: 25px;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.zone-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.zone-chip.selected {
+  box-shadow: 0 0 20px currentColor;
+}
+
+.radar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+}
+
+.radar-legend {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.legend-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.radar-chart {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+}
+
+/* ============================================
+   EXPANDABLE FLAPS
+   ============================================ */
+
+.comparison-flaps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.flap {
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.flap.expanded {
+  border-color: rgba(255, 215, 0, 0.5);
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
+}
+
+.flap-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #e8eaf0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.flap-header:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.flap-icon {
+  font-size: 1.2rem;
+  color: #FFD700;
+  transition: transform 0.3s ease;
+}
+
+.flap.expanded .flap-icon {
+  transform: rotate(90deg);
+}
+
+.flap-header h4 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.flap-badge {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 215, 0, 0.2);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #FFD700;
+}
+
+.flap-content {
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.2);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Comparison grids within flaps */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+}
+
+.radar-comparison {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+.comparison-analysis h5 {
+  color: #FFD700;
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.analysis-row {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.zone-analysis {
+  flex: 1;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.zone-analysis h6 {
+  color: #FFD700;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.zone-analysis ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.zone-analysis li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.analysis-note {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(138, 43, 226, 0.1);
+  border-left: 3px solid #8A2BE2;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.vs-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #FFD700;
+  min-width: 60px;
+}
+
+.compatibility-note,
+.progression-note {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 215, 0, 0.1);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.three-way-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Teaching comparison */
+.teaching-comparison {
+  padding: 2rem;
+}
+
+.teaching-comparison h5 {
+  color: #FFD700;
+  font-size: 1.4rem;
+  margin-bottom: 2rem;
+}
+
+.teaching-spectrum {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.teaching-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.teaching-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.teaching-score {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #FFD700;
+}
+
+.teaching-bar {
+  height: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.teaching-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.teaching-method,
+.teaching-example {
+  padding: 1rem 1.5rem;
+}
+
+.teaching-insight {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(138, 43, 226, 0.1);
+  border-left: 5px solid #8A2BE2;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+/* ============================================
+   FAMOUS EXAMPLES SECTION
+   ============================================ */
+
+.famous-examples-thinking {
+  margin-bottom: 4rem;
+}
+
+.examples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.example-card {
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.example-card:hover {
+  border-color: rgba(255, 215, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
+  transform: translateY(-4px);
+}
+
+.example-card h4 {
+  color: #FFD700;
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+}
+
+.example-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.example-content li {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid rgba(255, 215, 0, 0.5);
+  border-radius: 4px;
+}
+
+.example-note {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(138, 43, 226, 0.1);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* ============================================
+   PRACTICAL APPLICATIONS
+   ============================================ */
+
+.practical-applications {
+  margin-bottom: 4rem;
+}
+
+.application-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.app-card {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border-left: 4px solid #FFD700;
+}
+
+.app-card h4 {
+  color: #FFD700;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.app-card p {
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+/* ============================================
+   CLOSING PHILOSOPHY
+   ============================================ */
+
+.thinking-philosophy {
+  margin-top: 4rem;
+  padding: 3rem;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%);
+  border-radius: 20px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.philosophy-card h3 {
+  color: #FFD700;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.philosophy-card p {
+  font-size: 1.1rem;
+  line-height: 1.9;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.philosophy-highlight {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.final-note {
+  font-style: italic;
+  color: #FFD700;
+  font-size: 1.2rem;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1200px) {
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .three-way-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-row {
+    flex-direction: column;
+  }
+
+  .vs-divider {
+    transform: rotate(90deg);
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .thinking-style-tab {
+    padding: 1rem;
+  }
+
+  .thinking-style-header h2 {
+    font-size: 1.8rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .zone-chips {
+    justify-content: center;
+  }
+
+  .examples-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .application-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .thinking-matrix {
+    font-size: 0.85rem;
+  }
+
+  .aspect-label.sticky-col {
+    min-width: 150px;
+    max-width: 150px;
+  }
+
+  .zone-header {
+    min-width: 150px;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+.flap-header:focus,
+.zone-chip:focus {
+  outline: 3px solid #FFD700;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

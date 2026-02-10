@@ -64,27 +64,37 @@ export function TransitsPanel({ westernData, birthDate }) {
     };
   }, [westernData]);
 
-  // Generate reports
+  // Generate reports (async — Python Swiss Ephemeris first, JS fallback)
   useEffect(() => {
     if (!natalChart) {
       setLoading(false);
       return;
     }
 
+    let cancelled = false;
     setLoading(true);
-    try {
-      const transitReport = buildPersonalTransitReport(natalChart);
-      const weekly = getWeeklyTransitOverview(natalChart);
-      const saturn = getSaturnFocusedReport(natalChart);
 
-      setReport(transitReport);
-      setWeeklyReport(weekly);
-      setSaturnReport(saturn);
-    } catch (error) {
-      console.error('Transit report error:', error);
-    } finally {
-      setLoading(false);
-    }
+    (async () => {
+      try {
+        const [transitReport, weekly, saturn] = await Promise.all([
+          buildPersonalTransitReport(natalChart),
+          getWeeklyTransitOverview(natalChart),
+          getSaturnFocusedReport(natalChart),
+        ]);
+
+        if (!cancelled) {
+          setReport(transitReport);
+          setWeeklyReport(weekly);
+          setSaturnReport(saturn);
+        }
+      } catch (error) {
+        console.error('Transit report error:', error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, [natalChart]);
 
   if (loading) {

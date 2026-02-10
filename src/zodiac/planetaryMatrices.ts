@@ -5,7 +5,7 @@
  * planet-pair matrices for a complete psychological portrait:
  *
  *   Matrix 2: Chemistry & Desire (Venus/Mars)       — 2×2
- *   Matrix 3: Communication (Mercury)               — 1×2 (Mercury-Mercury + Mercury-Mars)
+ *   Matrix 3: Communication (Mercury/Mars)            — 2×2
  *   Matrix 4: Growth & Commitment (Jupiter/Saturn)  — 2×2
  *   Matrix 5: Transformation (Uranus/Neptune/Pluto) — 3×3
  *
@@ -122,17 +122,21 @@ const CHEMISTRY_INSIGHTS: Record<string, { harmony: string; challenge: string; n
 };
 
 // =============================================================================
-// MATRIX 3: COMMUNICATION (Mercury) — 1×2
+// MATRIX 3: COMMUNICATION (Mercury/Mars) — 2×2
 // =============================================================================
 
 const COMMUNICATION_PLANET_WEIGHTS: Record<string, number> = {
   'Mercury-Mercury': 1.3,  // Mind-to-mind clarity
   'Mercury-Mars':    1.1,  // Thought → action bridge
+  'Mars-Mercury':    1.1,  // Action → thought bridge (reverse)
+  'Mars-Mars':       1.0,  // Drive alignment / conflict style
 };
 
 const COMMUNICATION_CELL_WEIGHTS: Record<string, number> = {
-  'Mercury-Mercury': 0.60,
-  'Mercury-Mars':    0.40,
+  'Mercury-Mercury': 0.30,  // Core communication compatibility
+  'Mercury-Mars':    0.20,  // How your words land on their drive
+  'Mars-Mercury':    0.20,  // How your assertiveness meets their mind
+  'Mars-Mars':       0.30,  // Conflict style alignment
 };
 
 const COMMUNICATION_INSIGHTS: Record<string, { harmony: string; challenge: string; neutral: string }> = {
@@ -145,6 +149,16 @@ const COMMUNICATION_INSIGHTS: Record<string, { harmony: string; challenge: strin
     harmony: 'Words translate into action smoothly — effective team',
     challenge: 'Their impatience may cut your thought process short',
     neutral: 'Your ideas and their drive need pacing alignment',
+  },
+  'Mars-Mercury': {
+    harmony: 'Your energy fuels their ideas — action meets articulation',
+    challenge: 'Your intensity may overwhelm their thinking process',
+    neutral: 'Your assertiveness and their mind need mutual pacing',
+  },
+  'Mars-Mars': {
+    harmony: 'Matched drive and conflict style — you fight fair and move forward',
+    challenge: 'Two strong wills may escalate disagreements quickly',
+    neutral: 'Your assertive styles differ — find constructive outlets',
   },
 };
 
@@ -449,8 +463,8 @@ export function buildChemistryMatrix(
 }
 
 /**
- * Matrix 3: Communication (Mercury) — 1×2
- * Measures mental compatibility and thought-to-action bridge.
+ * Matrix 3: Communication (Mercury/Mars) — 2×2
+ * Measures mental compatibility, thought-to-action bridge, and conflict style.
  */
 export function buildCommunicationMatrix(
   positionsA: PlanetPosition[],
@@ -461,8 +475,8 @@ export function buildCommunicationMatrix(
   return buildGenericMatrix(positionsA, positionsB, {
     layer: 'communication',
     title: 'Communication',
-    subtitle: 'Mercury — how you think, talk, and process together',
-    rows: ['Mercury'],
+    subtitle: 'Mercury/Mars — how you think, speak, assert, and resolve conflict',
+    rows: ['Mercury', 'Mars'],
     cols: ['Mercury', 'Mars'],
     planetWeights: COMMUNICATION_PLANET_WEIGHTS,
     cellWeights: COMMUNICATION_CELL_WEIGHTS,
@@ -565,6 +579,54 @@ export const PLANET_LABELS: Record<Planet, string> = {
   Pluto:   'Pluto',
 };
 
+/**
+ * What each planet governs — used in "no black box" explanations.
+ */
+export const PLANET_ROLE: Record<Planet, string> = {
+  Sun:     'core identity, ego, life purpose',
+  Moon:    'emotions, instincts, inner needs',
+  Rising:  'first impression, social mask, outward style',
+  Venus:   'love language, attraction, aesthetic values',
+  Mars:    'drive, assertion, conflict style, courage',
+  Mercury: 'thinking, communication, learning style',
+  Jupiter: 'growth, optimism, beliefs, expansion',
+  Saturn:  'discipline, commitment, fears, life lessons',
+  Uranus:  'rebellion, innovation, sudden change',
+  Neptune: 'dreams, spirituality, illusions, compassion',
+  Pluto:   'transformation, power, shadow, rebirth',
+};
+
+/**
+ * What each planet-pair cell measures — the "why" behind the score.
+ * Covers all cells across Matrices 2-5.
+ */
+export const CELL_DESCRIPTION: Record<string, string> = {
+  // Chemistry (Venus/Mars)
+  'Venus-Venus':   'Do your love languages and comfort needs match?',
+  'Venus-Mars':    'Does your softness activate their drive? Classic attraction axis.',
+  'Mars-Venus':    'Does your initiative energize their receptivity?',
+  'Mars-Mars':     'Do your energies and ambitions push in the same direction?',
+  // Communication (Mercury/Mars)
+  'Mercury-Mercury': 'Do your minds work at the same speed and in the same style?',
+  'Mercury-Mars':    'Do your words translate smoothly into their action?',
+  'Mars-Mercury':    'Does your assertiveness land clearly on their mind?',
+  // Growth (Jupiter/Saturn)
+  'Jupiter-Jupiter': 'Do your visions and optimism point the same way?',
+  'Jupiter-Saturn':  'Does your expansion hit a wall or find a frame in their structure?',
+  'Saturn-Jupiter':  'Does your discipline channel or dampen their enthusiasm?',
+  'Saturn-Saturn':   'Do your shared fears and duties align or compound?',
+  // Transformation (Uranus/Neptune/Pluto)
+  'Uranus-Uranus':   'Same generation — do your rebellion styles resonate?',
+  'Uranus-Neptune':  'Does your disruption stir or shatter their dreams?',
+  'Uranus-Pluto':    'Does your freedom quest empower or threaten their depth?',
+  'Neptune-Uranus':  'Does your idealism inspire or confuse their independence?',
+  'Neptune-Neptune': 'Same generation — do your spiritual wavelengths sync?',
+  'Neptune-Pluto':   'Does your compassion soften or dissolve their intensity?',
+  'Pluto-Uranus':    'Does your power embolden or control their free spirit?',
+  'Pluto-Neptune':   'Does your depth penetrate or overwhelm their fantasies?',
+  'Pluto-Pluto':     'Same generation — do your shadow themes mirror each other?',
+};
+
 export const MATRIX_LAYER_COLORS: Record<MatrixLayerKey, string> = {
   coreBond:        '#fbbf24',  // Amber
   chemistry:       '#f472b6',  // Pink
@@ -615,12 +677,13 @@ export const LAYER_NARRATIVES: Record<MatrixLayerKey, {
   communication: {
     title: 'Communication',
     narrative:
-      'How your minds meet. ' +
-      'This layer describes how you think, speak, and solve problems together. ' +
-      'Mercury\u2013Mercury shows whether your mental rhythms sync; Mercury\u2013Mars shows ' +
-      'how words and conflict interact. High harmony feels like "we can talk about anything." ' +
-      'High effort feels like frequent misunderstandings or arguments that escalate ' +
-      'faster than either of you intend.',
+      'How your minds meet and your wills negotiate. ' +
+      'Mercury\u2013Mercury shows whether your mental rhythms sync. ' +
+      'Mercury\u2013Mars shows how words and action interact. ' +
+      'Mars\u2013Mercury shows how assertiveness lands on the other\'s thinking. ' +
+      'Mars\u2013Mars shows whether your conflict styles match or collide. ' +
+      'High harmony feels like "we can talk about anything and fight fair." ' +
+      'High effort feels like frequent misunderstandings or arguments that escalate.',
   },
   growth: {
     title: 'Growth & Commitment',

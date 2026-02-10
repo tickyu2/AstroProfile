@@ -393,3 +393,244 @@
     padding: 2px 4px;
   }
 }
+
+/* =============================================================================
+   SEASONAL RESONANCE PANEL - The Mirror
+   "Your rhythm is not a flaw. It's a function."
+   ============================================================================= */
+
+.seasonal-resonance-panel {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 16px;
+}
+
+.resonance-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.resonance-icon {
+  font-size: 28px;
+}
+
+.resonance-titles h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.resonance-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.resonance-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid;
+  margin-bottom: 16px;
+}
+
+.badge-icon {
+  font-size: 20px;
+}
+
+.badge-state {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-title {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: auto;
+}
+
+.resonance-validation {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.resonance-validation p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.resonance-guidance {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.guidance-section {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 14px;
+  border-radius: 10px;
+  border-left: 3px solid;
+}
+
+.guidance-section.lean-into {
+  border-left-color: #4ade80;
+}
+
+.guidance-section.release {
+  border-left-color: #f97316;
+}
+
+.guidance-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.guidance-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.guidance-list li {
+  margin-bottom: 6px;
+}
+
+.season-profile {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.profile-row.home {
+  color: #4ade80;
+}
+
+.profile-row.challenge {
+  color: #f97316;
+  margin-top: 16px;
+}
+
+.profile-label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.profile-value {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.profile-description {
+  margin: 0 0 0 24px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.resonance-wisdom {
+  text-align: center;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(249, 115, 22, 0.1));
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
+/* =============================================================================
+   HOME VS CHALLENGE CARD - For Sign Education
+   ============================================================================= */
+
+.home-challenge-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.hc-row {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 14px;
+  border-radius: 10px;
+  border-left: 4px solid;
+}
+
+.hc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hc-icon {
+  font-size: 18px;
+}
+
+.hc-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hc-value {
+  font-size: 14px;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+.hc-description {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hc-support {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive adjustments for Seasonal Resonance Panel */
+@media (max-width: 500px) {
+  .resonance-guidance {
+    grid-template-columns: 1fr;
+  }
+
+  .resonance-badge {
+    flex-wrap: wrap;
+  }
+
+  .badge-title {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 8px;
+  }
+}
+

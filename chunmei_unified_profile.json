@@ -1,0 +1,519 @@
+{
+  "profile": {
+    "name": "Chunmei",
+    "birth_datetime": "1983-07-06T08:40:00",
+    "birth_location": "Mianzhu, China",
+    "gender": "female"
+  },
+  "bazi": {
+    "pillars": {
+      "year": {
+        "ganzhi": "GuiHai",
+        "ganzhi_cn": "\u7678\u4ea5"
+      },
+      "month": {
+        "ganzhi": "WuWu",
+        "ganzhi_cn": "\u620a\u5348"
+      },
+      "day": {
+        "ganzhi": "YiWei",
+        "ganzhi_cn": "\u4e59\u672a"
+      },
+      "hour": {
+        "ganzhi": "GengChen",
+        "ganzhi_cn": "\u5e9a\u8fb0"
+      }
+    },
+    "day_master": {
+      "stem": "Yi",
+      "branch": "Wei",
+      "element": "Wood"
+    },
+    "element_distribution": {
+      "Wood": 21.250000000000004,
+      "Fire": 12.5,
+      "Earth": 31.25,
+      "Metal": 12.5,
+      "Water": 22.5
+    },
+    "dm_strength": {
+      "score": 0.733,
+      "classification": "resource-abundant",
+      "day_master": "Yi",
+      "day_master_element": "Wood",
+      "details": {
+        "self_element_percentage": 21.25,
+        "resource_element": "Water",
+        "resource_percentage": 22.5,
+        "combined_support": 37.0
+      }
+    },
+    "ten_gods": [
+      {
+        "pillar": "year",
+        "stem": "Gui",
+        "branch": "Hai",
+        "ten_god": "PianYin",
+        "label": "Indirect Resource (\u504f\u5370)",
+        "group_5": "Resource",
+        "is_day_master": false
+      },
+      {
+        "pillar": "month",
+        "stem": "Wu",
+        "branch": "Wu",
+        "ten_god": "ZhengCai",
+        "label": "Direct Wealth (\u6b63\u8ca1)",
+        "group_5": "Wealth",
+        "is_day_master": false
+      },
+      {
+        "pillar": "day",
+        "stem": "Yi",
+        "branch": "Wei",
+        "ten_god": "BiJian",
+        "label": "Companion (\u6bd4\u80a9)",
+        "group_5": "Companion",
+        "is_day_master": true
+      },
+      {
+        "pillar": "hour",
+        "stem": "Geng",
+        "branch": "Chen",
+        "ten_god": "ZhengGuan",
+        "label": "Direct Officer (\u6b63\u5b98)",
+        "group_5": "Power",
+        "is_day_master": false
+      }
+    ],
+    "life_palace": {
+      "branch": "Chou",
+      "branch_cn": "\u4e11",
+      "element": "Earth",
+      "interpretation": "Steady and persistent. You build security through patient effort. Success comes through reliability and long-term planning.",
+      "characteristics": [
+        "patient",
+        "reliable",
+        "grounded",
+        "persistent"
+      ],
+      "stem": "Yi",
+      "stem_cn": "\u4e59",
+      "stem_element": "Wood",
+      "gan_zhi": "Yi-Chou"
+    },
+    "growth_phases": {
+      "year": {
+        "phase": "Si",
+        "phase_cn": "\u6b7b",
+        "index": 7,
+        "interpretation": "Death phase - endings, completion, release. Not physical death but transformation.",
+        "energy_level": 0.2,
+        "branch": "Hai"
+      },
+      "month": {
+        "phase": "ChangSheng",
+        "phase_cn": "\u957f\u751f",
+        "index": 0,
+        "interpretation": "Birth energy - new beginnings, potential, vitality. Like a newborn, full of life force.",
+        "energy_level": 0.8,
+        "branch": "Wu"
+      },
+      "day": {
+        "phase": "Yang",
+        "phase_cn": "\u517b",
+        "index": 11,
+        "interpretation": "Nurturing - protected growth, preparation, building strength before emergence.",
+        "energy_level": 0.5,
+        "branch": "Wei"
+      },
+      "hour": {
+        "phase": "GuanDai",
+        "phase_cn": "\u51a0\u5e26",
+        "index": 2,
+        "interpretation": "Coming of age - gaining independence, taking on responsibilities, recognition.",
+        "energy_level": 0.7,
+        "branch": "Chen"
+      }
+    },
+    "symbolic_stars": {
+      "PeachBlossom": {
+        "detected": false,
+        "chinese": "\u6843\u82b1",
+        "english": "Peach Blossom",
+        "meaning": "Romance, attraction, charisma, social appeal",
+        "locations": []
+      },
+      "HeavenlyNoble": {
+        "detected": false,
+        "chinese": "\u5929\u4e59\u8cb4\u4eba",
+        "english": "Heavenly Noble",
+        "meaning": "Helpful people, support in times of need, protection",
+        "noble_branches": []
+      },
+      "AcademicStar": {
+        "detected": true,
+        "chinese": "\u6587\u660c",
+        "english": "Academic Star",
+        "meaning": "Academic success, writing talent, intellectual pursuits",
+        "academic_branch": "Wu"
+      },
+      "TravelingHorse": {
+        "detected": false,
+        "chinese": "\u9a5b\u99ac",
+        "english": "Traveling Horse",
+        "meaning": "Travel, movement, relocation, active career",
+        "locations": []
+      },
+      "RobberyStar": {
+        "detected": false,
+        "chinese": "\u52ab\u715e",
+        "english": "Robbery Star",
+        "meaning": "Potential for loss, competition, need for caution",
+        "robbery_branch": null
+      },
+      "HeavenlyVirtue": {
+        "detected": false,
+        "chinese": "\u5929\u5fb7",
+        "english": "Heavenly Virtue",
+        "meaning": "Divine protection, blessings, good fortune",
+        "virtue_stem": null
+      },
+      "MonthlyVirtue": {
+        "detected": false,
+        "chinese": "\u6708\u5fb7",
+        "english": "Monthly Virtue",
+        "meaning": "Monthly protection, kindness, moral character",
+        "virtue_stem": null
+      },
+      "TaiJiNoble": {
+        "detected": true,
+        "chinese": "\u592a\u6975\u8cb4\u4eba",
+        "english": "Tai Ji Noble",
+        "meaning": "Spiritual insight, wisdom, metaphysical interests",
+        "taiji_branches": [
+          "Wu"
+        ]
+      }
+    }
+  },
+  "western": {
+    "sun_sign": "Cancer",
+    "elements": {
+      "Fire": 0.15,
+      "Earth": 0.2,
+      "Air": 0.15,
+      "Water": 0.5
+    },
+    "modalities": {
+      "Cardinal": 0.45,
+      "Fixed": 0.25,
+      "Mutable": 0.3
+    },
+    "pattern_strengths": {
+      "grand_trine": 0.55,
+      "t_square": 0.25,
+      "stellium": 0.35,
+      "yod": 0.3,
+      "kite": 0.4,
+      "opposition_chain": 0.15
+    }
+  },
+  "unified_expression": {
+    "western": {
+      "archetype": [
+        0.3,
+        0.7,
+        0.8,
+        0.3,
+        0.9,
+        0.5,
+        0.5,
+        0.4,
+        0.2,
+        0.5,
+        0.5,
+        0.9,
+        0.4,
+        0.7,
+        0.9,
+        0.6
+      ],
+      "archetype_axes": [
+        "Initiator",
+        "Stabilizer",
+        "Relational",
+        "MindCentered",
+        "Intuitive",
+        "Concrete",
+        "Expressive",
+        "Transpersonal",
+        "RiskSeeking",
+        "OrderOriented",
+        "FluidIdentity",
+        "Warm",
+        "Direct",
+        "DepthOriented",
+        "Sustainer",
+        "BoundaryAware"
+      ],
+      "patterns": {
+        "grand_trine": 0.55,
+        "t_square": 0.25,
+        "stellium": 0.35,
+        "yod": 0.3,
+        "kite": 0.4,
+        "opposition_chain": 0.15
+      },
+      "elements": {
+        "Fire": 0.15,
+        "Earth": 0.2,
+        "Air": 0.15,
+        "Water": 0.5
+      },
+      "modalities": {
+        "Cardinal": 0.45,
+        "Fixed": 0.25,
+        "Mutable": 0.3
+      }
+    },
+    "bazi": {
+      "elements": {
+        "Wood": 0.21250000000000002,
+        "Fire": 0.125,
+        "Earth": 0.3125,
+        "Metal": 0.125,
+        "Water": 0.225
+      },
+      "ten_gods": {
+        "BiJian": 1.0,
+        "JieCai": 0.0,
+        "ShiShen": 0.0,
+        "ShangGuan": 0.0,
+        "ZhengCai": 1.0,
+        "PianCai": 0.0,
+        "ZhengGuan": 1.0,
+        "QiSha": 0.0,
+        "ZhengYin": 0.0,
+        "PianYin": 1.0
+      },
+      "ten_god_groups": {
+        "Performance": 0.5,
+        "Output": 0.0,
+        "Wealth": 0.5,
+        "Authority": 0.5,
+        "Resource": 0.5
+      },
+      "dm_strength": 0.733,
+      "symbolic_stars": [
+        0.0,
+        0.0,
+        0.8,
+        0.0
+      ]
+    },
+    "metadata": {
+      "sign": "Cancer",
+      "day_master": "Yi",
+      "pattern_signature": "",
+      "has_western": true,
+      "has_bazi": true,
+      "dimension": 90
+    },
+    "vector": [
+      0.3,
+      0.7,
+      0.8,
+      0.3,
+      0.9,
+      0.5,
+      0.5,
+      0.4,
+      0.2,
+      0.5,
+      0.5,
+      0.9,
+      0.4,
+      0.7,
+      0.9,
+      0.6,
+      0.55,
+      0.25,
+      0.35,
+      0.3,
+      0.4,
+      0.15,
+      0.15,
+      0.2,
+      0.15,
+      0.5,
+      0.45,
+      0.25,
+      0.3,
+      0.21250000000000002,
+      0.125,
+      0.3125,
+      0.125,
+      0.225,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      0.5,
+      0.0,
+      0.5,
+      0.5,
+      0.5,
+      0.0,
+      0.35,
+      0.0,
+      0.0,
+      0.3,
+      0.0,
+      0.15,
+      0.0,
+      0.0,
+      0.2,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.15,
+      0.0,
+      0.3,
+      0.35,
+      0.0,
+      0.0,
+      0.0,
+      0.2,
+      1.0,
+      0.0,
+      0.8749999999999999,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.25,
+      0.0,
+      0.0,
+      0.0,
+      0.625,
+      0.733,
+      0.0,
+      0.0,
+      0.8,
+      0.0,
+      0.09090909090909091,
+      0.8181818181818182
+    ]
+  },
+  "persona": {
+    "identity": {
+      "sign": "Cancer",
+      "day_master": "Yi",
+      "primary_label": "Emotional Visionary",
+      "secondary_label": "with Identity Champion function and Flow Master + Directed Flyer energy"
+    },
+    "dominant_traits": [
+      {
+        "axis": "Intuitive",
+        "value": 0.9,
+        "label": "Visionary",
+        "description": "Sees beyond the obvious",
+        "source": "western"
+      },
+      {
+        "axis": "Warm",
+        "value": 0.9,
+        "label": "Nurturer",
+        "description": "Radiates emotional warmth",
+        "source": "western"
+      },
+      {
+        "axis": "Sustainer",
+        "value": 0.9,
+        "label": "Maintainer",
+        "description": "Preserves and protects resources",
+        "source": "western"
+      },
+      {
+        "axis": "Relational",
+        "value": 0.8,
+        "label": "Connector",
+        "description": "Builds bridges between people",
+        "source": "western"
+      },
+      {
+        "axis": "Stabilizer",
+        "value": 0.7,
+        "label": "Anchor",
+        "description": "Provides stability and consistency",
+        "source": "western"
+      }
+    ],
+    "element_profile": {
+      "western_dominant": "Water",
+      "western_value": 0.5,
+      "bazi_dominant": "Earth",
+      "bazi_value": 0.312,
+      "combined_temperament": "Grounded Intuition",
+      "description": "Intuitive, sensitive, deep. Practical, stable, reliable."
+    },
+    "functional_style": {
+      "dominant_group": "Performance",
+      "secondary_group": "Wealth",
+      "label": "Identity Champion",
+      "description": "Strong sense of self"
+    },
+    "pattern_profile": {
+      "dominant_patterns": [
+        "grand_trine",
+        "kite"
+      ],
+      "signature": "Flow Master + Directed Flyer",
+      "description": "Natural grace and ease in life | Flow with purpose and direction"
+    },
+    "narrative": "A Cancer with Yi Day Master. Core temperament: Grounded Intuition. Intuitive, sensitive, deep. Practical, stable, reliable. Dominant expressions: Visionary, Nurturer, Maintainer. Functional style: Identity Champion - Strong sense of self. Pattern signature: Flow Master + Directed Flyer. Natural grace and ease in life | Flow with purpose and direction",
+    "raw_scores": {
+      "archetype": {
+        "Initiator": 0.3,
+        "Stabilizer": 0.7,
+        "Relational": 0.8,
+        "MindCentered": 0.3,
+        "Intuitive": 0.9,
+        "Concrete": 0.5,
+        "Expressive": 0.5,
+        "Transpersonal": 0.4,
+        "RiskSeeking": 0.2,
+        "OrderOriented": 0.5,
+        "FluidIdentity": 0.5,
+        "Warm": 0.9,
+        "Direct": 0.4,
+        "DepthOriented": 0.7,
+        "Sustainer": 0.9,
+        "BoundaryAware": 0.6
+      },
+      "patterns": {
+        "grand_trine": 0.55,
+        "t_square": 0.25,
+        "stellium": 0.35,
+        "yod": 0.3,
+        "kite": 0.4,
+        "opposition_chain": 0.15
+      },
+      "ten_gods": {
+        "Performance": 0.5,
+        "Output": 0.0,
+        "Wealth": 0.5,
+        "Authority": 0.5,
+        "Resource": 0.5
+      }
+    }
+  }
+}

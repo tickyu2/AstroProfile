@@ -1,0 +1,257 @@
+.taurus-zoom-strip {
+  background: linear-gradient(135deg,
+    rgba(26, 26, 46, 0.95) 0%,
+    rgba(36, 36, 56, 0.95) 100%
+  );
+  border: 1px solid rgba(200, 184, 144, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.strip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.strip-title {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: #d8c8a0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.strip-degree-display {
+  font-size: 1.3em;
+  font-weight: 700;
+  color: #ffd700;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.strip-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85em;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.strip-bar {
+  position: relative;
+  height: 60px;
+  background: linear-gradient(
+    90deg,
+    #e8d8b0 0%,
+    #e8d8b0 16.66%,
+    #d8c8a0 16.66%,
+    #d8c8a0 33.33%,
+    #c8b890 33.33%,
+    #c8b890 50%,
+    #b8a880 50%,
+    #b8a880 66.66%,
+    #a89870 66.66%,
+    #a89870 83.33%,
+    #988860 83.33%,
+    #988860 100%
+  );
+  border-radius: 10px;
+  margin: 12px 0;
+  overflow: visible;
+  cursor: pointer;
+  border: 2px solid rgba(200, 184, 144, 0.4);
+  transition: border-color 0.3s ease;
+}
+
+.strip-bar:hover {
+  border-color: rgba(255, 215, 0, 0.6);
+}
+
+.strip-bar.dragging {
+  border-color: #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.zone-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  pointer-events: none;
+}
+
+.zone-divider-line {
+  width: 1px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.zone-label {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7em;
+  color: #888;
+  white-space: nowrap;
+}
+
+.decan-divider {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 2px;
+  pointer-events: none;
+}
+
+.decan-divider-line {
+  width: 2px;
+  height: 100%;
+  background: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+.decan-label {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75em;
+  color: #d8c8a0;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.strip-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 215, 0, 0.2) 0%,
+    rgba(255, 215, 0, 0.4) 100%
+  );
+  transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  pointer-events: none;
+}
+
+.strip-marker {
+  position: absolute;
+  top: -10px;
+  bottom: -10px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.marker-line {
+  width: 2px;
+  height: 100%;
+  background: #ffd700;
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+}
+
+.marker-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: #ffd700;
+  border: 2px solid #1a1a2e;
+  border-radius: 50%;
+  box-shadow:
+    0 0 15px rgba(255, 215, 0, 0.8),
+    inset 0 0 5px rgba(255, 255, 255, 0.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 15px rgba(255, 215, 0, 0.8),
+      inset 0 0 5px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 25px rgba(255, 215, 0, 1),
+      inset 0 0 8px rgba(255, 255, 255, 0.7);
+  }
+}
+
+.marker-handle {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: #ffd700;
+  border: 2px solid #1a1a2e;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  cursor: grab;
+  pointer-events: all;
+}
+
+.strip-bar.dragging .marker-handle {
+  cursor: grabbing;
+  transform: translateX(-50%) scale(1.1);
+}
+
+.strip-metadata {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(200, 184, 144, 0.2);
+}
+
+.metadata-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metadata-label {
+  font-size: 0.75em;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metadata-value {
+  font-size: 0.9em;
+  color: #d8c8a0;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .strip-bar {
+    height: 50px;
+  }
+
+  .strip-metadata {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

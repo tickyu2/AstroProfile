@@ -1,0 +1,526 @@
+/**
+ * ============================================
+ * BAZI CALCULATOR - Industry Standard
+ * Using lunar-javascript for Solar Term precision
+ * WITH HISTORICAL DATE SUPPORT (unlimited range)
+ * ============================================
+ */
+
+import { Solar } from 'lunar-javascript';
+import {
+  STEMS,
+  BRANCHES,
+  HIDDEN_STEMS,
+  calculateWeightedElements,
+  calculateYinYang,
+  calculateTenGod,
+  checkBranchInteraction,
+  parsePillarString,
+  getConstitutionalMetaphor
+} from './baziEngine.js';
+import {
+  calculateHistoricalFourPillars,
+  calculateDayGanZhi
+} from './historicalBaziCalc.js';
+
+/**
+ * Safe default Day Master for error cases
+ * Ensures UI doesn't break even if calculation fails
+ */
+const SAFE_DEFAULT_DAYMASTER = {
+  char: '?',
+  element: 'Unknown',
+  polarity: 'Unknown',
+  english: 'Unknown',
+  chinese: '?',
+  animal: 'Unknown',
+  fullName: 'Unknown Day Master'
+};
+
+/**
+ * Main calculation function with error handling
+ * @param {Object} birthData - Birth information
+ * @returns {Object} Complete BaZi analysis
+ */
+export function calculateBaZi(birthData) {
+  try {
+    // Validate input
+    if (!birthData || typeof birthData !== 'object') {
+      console.error('BaZi calculation error: Invalid birth data - must be an object');
+      return createErrorResult(birthData, 'Invalid birth data: must be an object');
+    }
+
+    const { year, month, day, hour, minute = 0, second = 0 } = birthData;
+
+    // Validate required fields
+    if (!year || year < 1 || year > 9999) {
+      console.error(`BaZi calculation error: Invalid year: ${year}`);
+      return createErrorResult(birthData, `Invalid year: ${year}`);
+    }
+
+    if (!month || month < 1 || month > 12) {
+      console.error(`BaZi calculation error: Invalid month: ${month}`);
+      return createErrorResult(birthData, `Invalid month: ${month}`);
+    }
+
+    if (!day || day < 1 || day > 31) {
+      console.error(`BaZi calculation error: Invalid day: ${day}`);
+      return createErrorResult(birthData, `Invalid day: ${day}`);
+    }
+
+    return calculateBaZiInternal({ year, month, day, hour, minute, second });
+  } catch (error) {
+    console.error('BaZi calculation error:', error);
+    return createErrorResult(birthData, error.message);
+  }
+}
+
+/**
+ * Create an error result with safe defaults so UI doesn't break
+ */
+function createErrorResult(birthData, errorMessage) {
+  return {
+    error: true,
+    message: errorMessage,
+    birthData: birthData || {},
+    pillars: [],
+    dayMaster: SAFE_DEFAULT_DAYMASTER,
+    elements: {
+      totals: {},
+      percentages: {},
+      strengths: [],
+      weaknesses: [],
+      missing: [],
+      dominant: 'Unknown'
+    },
+    yinYang: { balance: 'Unknown' },
+    interactions: [],
+    metaphor: null,
+    calculationMethod: 'error',
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Internal calculation function (original logic)
+ * @param {Object} birthData - Validated birth information
+ * @returns {Object} Complete BaZi analysis
+ */
+function calculateBaZiInternal(birthData) {
+  const { year, month, day, hour, minute = 0, second = 0 } = birthData;
+
+  let yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi;
+  let calculationMethod = 'lunar-javascript (Industry Standard)';
+  
+  // Try library first (works for 1900-2100)
+  if (year >= 1900 && year <= 2100) {
+    try {
+      // 1. Create Solar object (uses Gregorian calendar)
+      const solar = Solar.fromYmdHms(year, month, day, hour, minute, second);
+
+      // 2. Convert to Lunar for BaZi methods
+      const lunar = solar.getLunar();
+
+      // 3. Get Four Pillars
+      yearGanZhi = lunar.getYearInGanZhiExact();
+      monthGanZhi = lunar.getMonthInGanZhiExact();  // ← This respects Jie Qi!
+
+      // DAY PILLAR FIX (Dec 2024): Use Baby Nano's verified algorithm
+      // The lunar-javascript library was off by one day!
+      // Our calculateDayGanZhi uses: (JDN - 11) % 60
+      dayGanZhi = calculateDayGanZhi(year, month, day);
+
+      hourGanZhi = lunar.getTimeInGanZhi();
+    } catch (error) {
+      console.warn('Library calculation failed, using mathematical fallback:', error);
+      calculationMethod = 'mathematical (fallback)';
+      const historical = calculateHistoricalFourPillars(year, month, day, hour, minute);
+      yearGanZhi = historical.year;
+      monthGanZhi = historical.month;
+      dayGanZhi = historical.day;
+      hourGanZhi = historical.hour;
+    }
+  } else {
+    // Use mathematical calculation for dates outside library range
+    calculationMethod = 'mathematical (historical date)';
+    const historical = calculateHistoricalFourPillars(year, month, day, hour, minute);
+    yearGanZhi = historical.year;
+    monthGanZhi = historical.month;
+    dayGanZhi = historical.day;
+    hourGanZhi = historical.hour;
+  }
+  
+  // 4. Parse each pillar
+  const yearPillar = parsePillarString(yearGanZhi);
+  const monthPillar = parsePillarString(monthGanZhi);
+  const dayPillar = parsePillarString(dayGanZhi);
+  const hourPillar = parsePillarString(hourGanZhi);
+  
+  // 5. Day Master (日主) - Your core essence
+  const dayMaster = dayPillar.stem;
+  
+  // 6. Calculate Ten Gods for each stem
+  const pillars = [
+    {
+      ...yearPillar,
+      name: 'Year Pillar',
+      chinese: '年柱',
+      ages: '0-16',
+      significance: 'Ancestral Foundation',
+      weight: 0.05
+    },
+    {
+      ...monthPillar,
+      name: 'Month Pillar',
+      chinese: '月柱',
+      ages: '17-32',
+      significance: 'Parents & Early Career',
+      weight: 0.10
+    },
+    {
+      ...dayPillar,
+      name: 'Day Pillar',
+      chinese: '日柱',
+      ages: '33-48',
+      significance: 'Self & Spouse ⭐',
+      weight: 0.70,
+      isYou: true
+    },
+    {
+      ...hourPillar,
+      name: 'Hour Pillar',
+      chinese: '时柱',
+      ages: '49+',
+      significance: 'Children & Later Life',
+      weight: 0.15
+    }
+  ];
+  
+  // Add Ten God relationships
+  pillars.forEach(pillar => {
+    pillar.tenGod = calculateTenGod(
+      dayMaster.element,
+      dayMaster.polarity,
+      pillar.stem.char
+    );
+  });
+  
+  // 7. Calculate weighted elements (THE CORE ALGORITHM)
+  const elementAnalysis = calculateWeightedElements(pillars);
+  
+  // 8. Calculate Yin/Yang balance
+  const yinYangBalance = calculateYinYang(pillars);
+  
+  // 9. Check for interactions between branches
+  const interactions = [];
+  for (let i = 0; i < pillars.length; i++) {
+    for (let j = i + 1; j < pillars.length; j++) {
+      const interaction = checkBranchInteraction(
+        pillars[i].branch.char,
+        pillars[j].branch.char
+      );
+      if (interaction) {
+        interactions.push({
+          ...interaction,
+          pillar1: i,
+          pillar2: j,
+          name1: pillars[i].name,
+          name2: pillars[j].name,
+          branch1: pillars[i].branch.animal,
+          branch2: pillars[j].branch.animal
+        });
+      }
+    }
+  }
+  
+  // 10. Get constitutional metaphor
+  const metaphor = getConstitutionalMetaphor(elementAnalysis);
+  
+  // 11. Determine strengths and weaknesses
+  const strengths = [];
+  const weaknesses = [];
+  const missing = [];
+  
+  Object.entries(elementAnalysis.percentages).forEach(([element, pct]) => {
+    const numPct = parseFloat(pct);
+    if (numPct >= 30) {
+      strengths.push({ element, pct: numPct });
+    } else if (numPct >= 10) {
+      // Moderate - not listed
+    } else if (numPct >= 5) {
+      weaknesses.push({ element, pct: numPct });
+    } else {
+      missing.push({ element, pct: numPct });
+    }
+  });
+  
+  // Sort by percentage
+  strengths.sort((a, b) => b.pct - a.pct);
+  weaknesses.sort((a, b) => a.pct - b.pct);
+  missing.sort((a, b) => a.pct - b.pct);
+  
+  // 12. Return complete analysis
+  return {
+    // Input data
+    birthData: {
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      second
+    },
+    
+    // Four Pillars
+    pillars,
+    
+    // Day Master (Core Essence)
+    dayMaster: {
+      ...dayMaster,
+      animal: dayPillar.branch.animal,
+      fullName: `${dayMaster.english} ${dayPillar.branch.animal}`,
+      chinese: dayGanZhi
+    },
+    
+    // Element Analysis (WITH WEIGHTED HIDDEN ROOTS)
+    elements: {
+      ...elementAnalysis,
+      strengths,
+      weaknesses,
+      missing,
+      dominant: strengths[0]?.element || 'Balanced'
+    },
+    
+    // Yin/Yang Balance
+    yinYang: yinYangBalance,
+    
+    // Branch Interactions
+    interactions,
+    
+    // Constitutional Metaphor
+    metaphor,
+    
+    // Metadata
+    calculationMethod,
+    solarTermsRespected: true,
+    hiddenRootsIncluded: true,
+    weightedCalculation: true,
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Legacy format wrapper - returns structure compatible with old fourPillarsCalculator
+ * Used by: Results.jsx, CompatibilityPage.jsx, etc.
+ */
+export function calculateBaZiLegacy(birthDate, birthTime, locationData) {
+  const year = birthDate.getFullYear();
+  const month = birthDate.getMonth() + 1; // JS months are 0-indexed
+  const day = birthDate.getDate();
+
+  const [hour = 12, minute = 0] = (birthTime || '12:00').split(':').map(Number);
+
+  const result = calculateBaZi({ year, month, day, hour, minute });
+
+  // Handle calculation errors
+  if (result.error) {
+    return null;
+  }
+
+  // Convert pillars array to object format expected by legacy consumers
+  const yearPillar = result.pillars[0];
+  const monthPillar = result.pillars[1];
+  const dayPillar = result.pillars[2];
+  const hourPillar = result.pillars[3];
+
+  // Convert to legacy pillar format
+  // pillar.stem and pillar.branch already have index properties from baziEngine
+  const convertPillar = (pillar) => ({
+    stem: {
+      index: pillar.stem.index || 0,
+      chinese: pillar.stem.char,
+      pinyin: pillar.stem.pinyin || '',
+      element: pillar.stem.element,
+      polarity: pillar.stem.polarity,
+      name: pillar.stem.english
+    },
+    branch: {
+      index: pillar.branch.index || 0,
+      chinese: pillar.branch.char,
+      pinyin: pillar.branch.pinyin || '',
+      animal: pillar.branch.animal,
+      element: pillar.branch.element,
+      polarity: pillar.branch.polarity
+    },
+    fullName: `${pillar.stem.char}${pillar.branch.char}`,
+    englishName: `${pillar.stem.english} ${pillar.branch.animal}`
+  });
+
+  const legacyPillars = {
+    year: convertPillar(yearPillar),
+    month: convertPillar(monthPillar),
+    day: convertPillar(dayPillar),
+    hour: convertPillar(hourPillar)
+  };
+
+  // Calculate element counts in legacy format
+  const elements = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+  result.pillars.forEach(pillar => {
+    elements[pillar.stem.element] += 2;
+    elements[pillar.branch.element] += 1;
+  });
+
+  // Calculate yin/yang in legacy format
+  let yinCount = 0, yangCount = 0;
+  result.pillars.forEach(pillar => {
+    if (pillar.stem.polarity === 'Yin') yinCount += 2; else yangCount += 2;
+    if (pillar.branch.polarity === 'Yin') yinCount += 1; else yangCount += 1;
+  });
+  const totalCount = yinCount + yangCount;
+
+  return {
+    birthDate: {
+      gregorian: birthDate.toISOString(),
+      formatted: birthDate.toLocaleString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      })
+    },
+    location: locationData || { latitude: 0, longitude: 0 },
+    pillars: legacyPillars,
+    traditional: {
+      display: `${legacyPillars.hour.fullName} ${legacyPillars.day.fullName} ${legacyPillars.month.fullName} ${legacyPillars.year.fullName}`,
+      english: `Hour: ${legacyPillars.hour.englishName} | Day: ${legacyPillars.day.englishName} | Month: ${legacyPillars.month.englishName} | Year: ${legacyPillars.year.englishName}`
+    },
+    dayMaster: {
+      stem: legacyPillars.day.stem,
+      description: `Your core self is ${legacyPillars.day.stem.name} (${legacyPillars.day.stem.chinese})`
+    },
+    elementalBalance: {
+      elements,
+      strongestElement: Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b),
+      weakestElement: Object.keys(elements).reduce((a, b) => elements[a] < elements[b] ? a : b)
+    },
+    yinYangBalance: {
+      yin: yinCount,
+      yang: yangCount,
+      yinPercentage: Math.round((yinCount / totalCount) * 100),
+      yangPercentage: Math.round((yangCount / totalCount) * 100),
+      balance: Math.abs(yinCount - yangCount) <= 2 ? 'Balanced' :
+               yinCount > yangCount ? 'Yin-dominant' : 'Yang-dominant'
+    },
+    interpretation: {
+      essence: `Your soul essence (Day Master) is ${legacyPillars.day.stem.name}, shaped by ${legacyPillars.year.branch.animal} ancestral energy, absorbing ${legacyPillars.month.branch.animal} seasonal influence, with ${legacyPillars.hour.branch.animal} private nature.`,
+      constitution: `${legacyPillars.day.stem.element} soul operating in a ${Object.keys(elements).reduce((a, b) => elements[a] > elements[b] ? a : b)}-dominant elemental environment.`
+    },
+    // Also include new format data for gradual migration
+    _newFormat: result
+  };
+}
+
+/**
+ * Drop-in replacement for old fourPillarsCalculator.calculateFourPillars
+ */
+export function calculateFourPillars(birthDate, birthTime, locationData) {
+  return calculateBaZiLegacy(birthDate, birthTime, locationData);
+}
+
+/**
+ * Calculate compatibility between two charts
+ */
+export function calculateCompatibility(chart1, chart2) {
+  // Element compatibility
+  const elem1 = chart1.elements.percentages;
+  const elem2 = chart2.elements.percentages;
+  
+  let overlapScore = 0;
+  let complementScore = 0;
+  let conflictScore = 0;
+  
+  // Calculate overlap (both strong in same element)
+  Object.keys(elem1).forEach(element => {
+    const pct1 = parseFloat(elem1[element]);
+    const pct2 = parseFloat(elem2[element]);
+    
+    if (pct1 >= 20 && pct2 >= 20) {
+      overlapScore += Math.min(pct1, pct2);
+    }
+    
+    // Complement (one strong, other weak)
+    if ((pct1 >= 30 && pct2 < 10) || (pct2 >= 30 && pct1 < 10)) {
+      complementScore += Math.abs(pct1 - pct2);
+    }
+    
+    // Check for elemental conflicts
+    // (Will implement full Five Element interaction logic)
+  });
+  
+  // Branch interactions between charts
+  const crossInteractions = [];
+  chart1.pillars.forEach(p1 => {
+    chart2.pillars.forEach(p2 => {
+      const interaction = checkBranchInteraction(
+        p1.branch.char,
+        p2.branch.char
+      );
+      if (interaction) {
+        crossInteractions.push({
+          ...interaction,
+          person1Pillar: p1.name,
+          person2Pillar: p2.name
+        });
+      }
+    });
+  });
+  
+  // Calculate overall score
+  const coverageScore = 100 - missing_coverage_calculation(elem1, elem2);
+  const harmonyScore = calculate_harmony(crossInteractions);
+  
+  const totalScore = (
+    coverageScore * 0.4 +
+    complementScore * 0.3 +
+    harmonyScore * 0.3
+  );
+  
+  return {
+    totalScore: totalScore.toFixed(1),
+    overlapScore: overlapScore.toFixed(1),
+    complementScore: complementScore.toFixed(1),
+    coverageScore: coverageScore.toFixed(1),
+    crossInteractions,
+    interpretation: getCompatibilityInterpretation(totalScore)
+  };
+}
+
+function calculate_harmony(interactions) {
+  let harmony = 50; // Start neutral
+  interactions.forEach(int => {
+    if (int.type === 'Combine') harmony += 10;
+    if (int.type === 'Clash') harmony -= 10;
+  });
+  return Math.max(0, Math.min(100, harmony));
+}
+
+function missing_coverage_calculation(elem1, elem2) {
+  let gaps = 0;
+  Object.keys(elem1).forEach(element => {
+    const combined = parseFloat(elem1[element]) + parseFloat(elem2[element]);
+    if (combined < 20) gaps += (20 - combined);
+  });
+  return gaps;
+}
+
+function getCompatibilityInterpretation(score) {
+  if (score >= 90) return 'Soul Partner - Cosmic Alignment! ✨';
+  if (score >= 80) return 'Excellent Match - Strong Synergy! 🔥';
+  if (score >= 70) return 'Good Compatibility - Works Well Together';
+  if (score >= 60) return 'Moderate - Requires Conscious Effort';
+  return 'Challenging - Major Adjustments Needed';
+}
+
+export default {
+  calculateBaZi,
+  calculateBaZiLegacy,
+  calculateCompatibility
+};

@@ -38,7 +38,8 @@ const getApiUrl = () => {
 const PLANET_SYMBOLS = {
   sun: '☉', moon: '☽', mercury: '☿', venus: '♀', mars: '♂',
   jupiter: '♃', saturn: '♄', uranus: '♅', neptune: '♆', pluto: '♇',
-  north_node: '☊', south_node: '☋', chiron: '⚷'
+  north_node: '☊', south_node: '☋', chiron: '⚷',
+  ceres: '⚳', pallas: '⚴', juno: '⚵', vesta: '⚶'
 };
 
 // Major aspects and their properties
