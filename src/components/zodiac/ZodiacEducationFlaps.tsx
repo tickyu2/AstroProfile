@@ -130,6 +130,13 @@ const highlightStyle: React.CSSProperties = {
 // DATA
 // =============================================================================
 
+const ELEMENT_STYLE: Record<string, { glyph: string; color: string }> = {
+  Fire:  { glyph: '🔥', color: '#f87171' },
+  Earth: { glyph: '🌿', color: '#4ade80' },
+  Air:   { glyph: '💨', color: '#93c5fd' },
+  Water: { glyph: '💧', color: '#38bdf8' },
+};
+
 const ZODIAC_DATES = [
   { sign: 'Aries', symbol: '♈', dates: 'March 21 – April 19', element: 'Fire' },
   { sign: 'Taurus', symbol: '♉', dates: 'April 20 – May 20', element: 'Earth' },
@@ -172,12 +179,12 @@ const GOLDEN_RATIO_CURVE = [
 
 // Taurus example (backward blend from Aries)
 const TAURUS_BACKWARD_EXAMPLE = [
-  { date: 'Apr 20', primary: 'Taurus', taurus: 13, aries: 87 },
-  { date: 'Apr 21', primary: 'Taurus', taurus: 37, aries: 63 },
-  { date: 'Apr 22', primary: 'Taurus', taurus: 58, aries: 42 },
+  { date: 'Apr 20', primary: 'Taurus', taurus: 22, aries: 78 },
+  { date: 'Apr 21', primary: 'Taurus', taurus: 42, aries: 58 },
+  { date: 'Apr 22', primary: 'Taurus', taurus: 60, aries: 40 },
   { date: 'Apr 23', primary: 'Taurus', taurus: 75, aries: 25 },
-  { date: 'Apr 24', primary: 'Taurus', taurus: 89, aries: 11 },
-  { date: 'Apr 25', primary: 'Taurus', taurus: 98, aries: 2 },
+  { date: 'Apr 24', primary: 'Taurus', taurus: 87, aries: 13 },
+  { date: 'Apr 25', primary: 'Taurus', taurus: 96, aries: 4 },
 ];
 
 // =============================================================================
@@ -197,21 +204,26 @@ export const ZodiacEducationFlaps: React.FC = () => {
           <thead>
             <tr>
               <th style={thStyle}>Sign</th>
-              <th style={thStyle}>Dates</th>
+              <th style={{ ...thStyle, textAlign: 'center' }}>Dates</th>
               <th style={thStyle}>Element</th>
             </tr>
           </thead>
           <tbody>
-            {ZODIAC_DATES.map((z) => (
-              <tr key={z.sign}>
-                <td style={tdStyle}>
-                  <span style={{ marginRight: '4px' }}>{z.symbol}</span>
-                  {z.sign}
-                </td>
-                <td style={tdStyle}>{z.dates}</td>
-                <td style={tdStyle}>{z.element}</td>
-              </tr>
-            ))}
+            {ZODIAC_DATES.map((z) => {
+              const el = ELEMENT_STYLE[z.element];
+              return (
+                <tr key={z.sign}>
+                  <td style={tdStyle}>
+                    <span style={{ marginRight: '4px' }}>{z.symbol}</span>
+                    {z.sign}
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: 'center' }}>{z.dates}</td>
+                  <td style={{ ...tdStyle, color: el?.color }}>
+                    {el?.glyph} {z.element}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </Flap>
@@ -282,7 +294,7 @@ export const ZodiacEducationFlaps: React.FC = () => {
       </Flap>
 
       {/* Flap 4: Cusp Blend Assumptions - Why φ? */}
-      <Flap title="Why Golden Ratio? (φ = 1.6)" icon="🌀">
+      <Flap title="Why Golden Ratio? (φ ≈ 1.618)" icon="🌀">
         {/* The Problem */}
         <div style={{
           background: 'rgba(239, 68, 68, 0.1)',
@@ -353,19 +365,19 @@ export const ZodiacEducationFlaps: React.FC = () => {
             textAlign: 'center',
             marginBottom: '8px',
           }}>
-            blend% = (day / 6)<sup style={{ fontSize: '10px' }}>p</sup> × 100
+            blend = 1 − ((7 − d) / 7)<sup style={{ fontSize: '10px' }}>φ</sup>
           </div>
           <p style={{ margin: '0', fontSize: '11px' }}>
-            Where <strong>p = 1.6</strong> (inspired by the golden ratio φ ≈ 1.618)
+            Where <strong>φ ≈ 1.618</strong> (the golden ratio) and <strong>d</strong> = cusp day (1–6)
           </p>
         </div>
 
         {/* Why 1.6? */}
         <p style={{ margin: '0 0 8px 0', fontWeight: 600 }}>
-          Why p = 1.6 specifically?
+          Why the golden ratio (φ ≈ 1.618)?
         </p>
         <ul style={{ margin: '0 0 12px 0', paddingLeft: '16px', fontSize: '11px' }}>
-          <li>It's close to φ (golden ratio) — nature's growth constant</li>
+          <li>φ is nature's growth constant — spirals, shells, flowers</li>
           <li>Creates a gentle <strong>ease-in</strong> at the start</li>
           <li>Creates a gentle <strong>ease-out</strong> at the end</li>
           <li>Feels like a natural spiral transition, not mechanical interpolation</li>
@@ -380,24 +392,24 @@ export const ZodiacEducationFlaps: React.FC = () => {
             <tr>
               <th style={thStyle}>Day</th>
               <th style={thStyle}>Linear (p=1)</th>
-              <th style={{ ...thStyle, color: '#fbbf24' }}>φ-Curve (p=1.6)</th>
+              <th style={{ ...thStyle, color: '#fbbf24' }}>φ-Curve (φ=1.618)</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td style={tdStyle}>Day 1</td>
               <td style={{ ...tdStyle, color: '#9ca3af' }}>17%</td>
-              <td style={{ ...tdStyle, color: '#fbbf24' }}>13%</td>
+              <td style={{ ...tdStyle, color: '#fbbf24' }}>22%</td>
             </tr>
             <tr>
               <td style={tdStyle}>Day 2</td>
               <td style={{ ...tdStyle, color: '#9ca3af' }}>33%</td>
-              <td style={{ ...tdStyle, color: '#fbbf24' }}>37%</td>
+              <td style={{ ...tdStyle, color: '#fbbf24' }}>42%</td>
             </tr>
             <tr>
               <td style={tdStyle}>Day 3</td>
               <td style={{ ...tdStyle, color: '#9ca3af' }}>50%</td>
-              <td style={{ ...tdStyle, color: '#fbbf24' }}>58%</td>
+              <td style={{ ...tdStyle, color: '#fbbf24' }}>60%</td>
             </tr>
             <tr>
               <td style={tdStyle}>Day 4</td>
@@ -407,12 +419,12 @@ export const ZodiacEducationFlaps: React.FC = () => {
             <tr>
               <td style={tdStyle}>Day 5</td>
               <td style={{ ...tdStyle, color: '#9ca3af' }}>83%</td>
-              <td style={{ ...tdStyle, color: '#fbbf24' }}>89%</td>
+              <td style={{ ...tdStyle, color: '#fbbf24' }}>87%</td>
             </tr>
             <tr>
               <td style={tdStyle}>Day 6</td>
               <td style={{ ...tdStyle, color: '#9ca3af' }}>100%</td>
-              <td style={{ ...tdStyle, color: '#fbbf24' }}>98%</td>
+              <td style={{ ...tdStyle, color: '#fbbf24' }}>96%</td>
             </tr>
           </tbody>
         </table>
@@ -576,8 +588,8 @@ export const ZodiacEducationFlaps: React.FC = () => {
             padding: '6px 8px',
             borderRadius: '4px',
           }}>
-            Day 1: 13% → Day 2: 37% → Day 3: 58%<br/>
-            Day 4: 75% → Day 5: 89% → Day 6: 98%
+            Day 1: 22% → Day 2: 42% → Day 3: 60%<br/>
+            Day 4: 75% → Day 5: 87% → Day 6: 96%
           </div>
         </div>
 

@@ -88,6 +88,14 @@ import './TropicalSeasonsPage.css';
 type ViewMode = 'overview' | 'sign' | 'season' | 'compatibility';
 type AnalysisMode = 'wheel' | 'self' | 'compatibility';
 
+/** Minimal profile shape for template type annotations */
+interface ProfileItem {
+  id: string;
+  displayName?: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
 // Sign → SpectrumExplorer component map (for Self mode auto-rendering)
 const SPECTRUM_EXPLORER_MAP: Record<string, React.ComponentType<{ userDegree?: number | null; userName?: string | null; ephemerisTimestamps?: number[] | null }>> = {
   Aries: AriesSpectrumExplorer,
@@ -1029,7 +1037,7 @@ export default function TropicalSeasonsPage() {
               title="Select a profile to view their zodiac information"
             >
               <option value="">-- Select a Profile --</option>
-              {profiles?.map((profile: any) => (
+              {profiles?.map((profile: ProfileItem) => (
                 <option key={profile.id} value={profile.id}>
                   {profile.displayName || profile.name || 'Unknown'}
                 </option>
@@ -1129,7 +1137,7 @@ export default function TropicalSeasonsPage() {
                 title="Select a second profile for compatibility analysis"
               >
                 <option value="">-- Select Profile B --</option>
-                {profiles?.filter((p: any) => p.id !== selectedProfileId).map((profile: any) => (
+                {profiles?.filter((p: ProfileItem) => p.id !== selectedProfileId).map((profile: ProfileItem) => (
                   <option key={profile.id} value={profile.id}>
                     {profile.displayName || profile.name || 'Unknown'}
                   </option>
@@ -1290,7 +1298,7 @@ export default function TropicalSeasonsPage() {
           {/* Celestial Event Tooltip */}
           {hoveredCelestialEvent && (() => {
             const events = (window as any).__celestialEvents || [];
-            const event = events.find((e: any) => e.id === hoveredCelestialEvent);
+            const event = events.find((e: { id: string }) => e.id === hoveredCelestialEvent);
             if (!event) return null;
 
             return (
