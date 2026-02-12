@@ -10,6 +10,8 @@
 import './WheelEducationPanel.css';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ReactDOM from 'react-dom';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../../config/firebase';
 import {
   WHEEL_LAYERS,
   SEASON_WISDOM,
@@ -331,12 +333,24 @@ const FloatingMdWindow: React.FC<{
   );
 };
 
+const SEASONS_MD_DOC = doc(db, 'global_config', 'seasons_md');
+
 const SeasonsTab: React.FC<SeasonsTabProps> = ({ selectedSeason, onSelectSeason }) => {
   const seasons = Object.values(SEASON_WISDOM);
   const selected = selectedSeason ? SEASON_WISDOM[selectedSeason] : null;
   const [mdContent, setMdContent] = useState<string>('');
   const [floatingMd, setFloatingMd] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load saved MD from Firestore on mount
+  useEffect(() => {
+    getDoc(SEASONS_MD_DOC).then(snap => {
+      if (snap.exists()) {
+        const saved = snap.data().content;
+        if (typeof saved === 'string' && saved) setMdContent(saved);
+      }
+    }).catch(() => {});
+  }, []);
 
   const handleImportMd = useCallback(() => {
     fileInputRef.current?.click();
@@ -351,6 +365,9 @@ const SeasonsTab: React.FC<SeasonsTabProps> = ({ selectedSeason, onSelectSeason 
       if (typeof text === 'string') {
         setMdContent(text);
         setFloatingMd(text);
+        // Persist to Firestore
+        setDoc(SEASONS_MD_DOC, { content: text, updatedAt: new Date().toISOString() })
+          .catch(() => {});
       }
     };
     reader.readAsText(file);
