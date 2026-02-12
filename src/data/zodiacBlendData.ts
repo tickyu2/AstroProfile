@@ -52,12 +52,12 @@ export interface DayBlend {
 // =============================================================================
 
 /**
- * Golden ratio (φ) based cusp curve for smooth blending
- * Each value represents blend percentage at cusp days 1-6
- * Day 1: 13% blend (just entering cusp)
- * Day 6: 98% blend (almost fully transitioned)
+ * Golden ratio (φ) based cusp curve — primary sign percentages
+ * Formula: 1 - ((7-d)/7)^φ  where d = cusp day (1-6), φ ≈ 1.618
+ * Day 1 (at boundary): 22% primary, 78% neighbor
+ * Day 6 (cusp edge):   96% primary,  4% neighbor
  */
-export const CUSP_CURVE: number[] = [0.13, 0.37, 0.58, 0.75, 0.89, 0.98];
+export const CUSP_CURVE: number[] = [0.22, 0.42, 0.60, 0.75, 0.87, 0.96];
 export const CUSP_DAYS = CUSP_CURVE.length;
 
 /**
@@ -318,8 +318,8 @@ export function generateYearBlend(year: number): DayBlend[] {
       cuspType = 'forward';
       cuspDay = CUSP_DAYS - daysUntilNext + 1;
       blendSign = nextSign;
-      // Progressive blend: approaching next sign
-      blendPercent = CUSP_CURVE[cuspDay - 1];
+      // Symmetric blend: mirror of backward cusp (distance from boundary)
+      blendPercent = 1 - CUSP_CURVE[daysUntilNext - 1];
     }
 
     result.push({
@@ -340,12 +340,13 @@ export function generateYearBlend(year: number): DayBlend[] {
  * Get blend data for a specific date
  */
 export function getBlendForDate(dateStr: string): DayBlend | null {
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return null;
+  // Parse manually to avoid timezone shift (ISO dates parsed as UTC by new Date)
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return null;
+  const year = parseInt(parts[0], 10);
+  if (isNaN(year)) return null;
 
-  const year = date.getFullYear();
   const yearData = generateYearBlend(year);
-
   return yearData.find(d => d.date === dateStr) || null;
 }
 

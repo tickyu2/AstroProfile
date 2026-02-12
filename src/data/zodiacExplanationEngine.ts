@@ -22,6 +22,7 @@ import {
   ZodiacSign,
   SIGN_RANGES,
   CUSP_CURVE,
+  CUSP_DAYS,
 } from './zodiacBlendData';
 
 // =============================================================================
@@ -554,23 +555,24 @@ function buildCuspExplanation(
     ? getMythicBoundary(blend, primary)  // emerging FROM blend INTO primary
     : getMythicBoundary(primary, blend); // transitioning FROM primary INTO blend
 
-  // Calculate percentages from φ-curve
-  // For backward cusp: day 1 = 87% blend, day 6 = 2% blend
-  // For forward cusp: day 1 = 13% blend, day 6 = 98% blend
+  // Calculate percentages from φ-curve (symmetric at boundary)
+  // CUSP_CURVE[i] = primary sign % at cusp position i+1
+  // For backward cusp: day 1 = 78% blend, day 6 = 4% blend
+  // For forward cusp: day 1 (far) = 4% blend, day 6 (boundary) = 78% blend
   let primaryPercent: number;
   let blendPercent: number;
 
   if (cuspPhase === 'backward') {
     // Emerging FROM blend INTO primary
-    // Day 1: primary is just 13%, blend is 87%
-    // Day 6: primary is 98%, blend is 2%
+    // Day 1: primary 22%, blend 78%
+    // Day 6: primary 96%, blend 4%
     primaryPercent = CUSP_CURVE[dayIndex - 1];
     blendPercent = 1 - primaryPercent;
   } else {
     // Transitioning FROM primary INTO blend
-    // Day 1: primary is 87%, blend is 13%
-    // Day 6: primary is 2%, blend is 98%
-    blendPercent = CUSP_CURVE[dayIndex - 1];
+    // Day 1 (far from boundary): primary 96%, blend 4%
+    // Day 6 (at boundary): primary 22%, blend 78%
+    blendPercent = 1 - CUSP_CURVE[CUSP_DAYS - dayIndex];
     primaryPercent = 1 - blendPercent;
   }
 

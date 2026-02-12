@@ -35,6 +35,13 @@ import {
   ELEMENT_MEANING,
   ELEMENT_INTERPRETATION,
 } from '../../data/zodiacExplanationEngine';
+import {
+  SIGN_METADATA,
+  ELEMENT_COLORS as TROPICAL_ELEMENT_COLORS,
+  SEASON_COLORS,
+  MODALITY_COLORS,
+  SEASON_ICONS,
+} from '../../data/tropicalSeasons';
 
 // =============================================================================
 // BREATHING CONSTANTS - φ-curve synchronized
@@ -139,7 +146,7 @@ const SignBadge: React.FC<{ sign: ZodiacSign; percent?: number }> = ({ sign, per
       <span style={{ fontSize: '16px' }}>{glyph}</span>
       <span style={{ color, fontWeight: 500 }}>{sign}</span>
       {percent !== undefined && (
-        <span style={{ color: '#888', fontSize: '12px' }}>
+        <span style={{ color: '#c0c0c0', fontSize: '12px' }}>
           {Math.round(percent * 100)}%
         </span>
       )}
@@ -189,7 +196,7 @@ const BlendBar: React.FC<{
           display: 'flex',
           justifyContent: 'space-between',
           fontSize: '10px',
-          color: '#666',
+          color: '#b0b0b0',
           marginTop: '4px',
         }}
       >
@@ -229,7 +236,7 @@ const Section: React.FC<{
       <span>{icon}</span>
       <span>{title}</span>
     </div>
-    <div style={{ color: '#ccc', fontSize: '13px', lineHeight: '1.6' }}>
+    <div style={{ color: '#e8e8e8', fontSize: '13px', lineHeight: '1.6' }}>
       {children}
     </div>
   </div>
@@ -274,7 +281,7 @@ const ElementalBalance: React.FC<{ day: DayBlend }> = ({ day }) => {
           fontWeight: 600,
           textTransform: 'uppercase',
           letterSpacing: '1px',
-          color: '#888',
+          color: '#c0c0c0',
           marginBottom: '10px',
         }}
       >
@@ -328,7 +335,7 @@ const ElementalBalance: React.FC<{ day: DayBlend }> = ({ day }) => {
       <div
         style={{
           fontSize: '13px',
-          color: '#bbb',
+          color: '#ddd',
           lineHeight: '1.5',
           fontStyle: 'italic',
         }}
@@ -343,37 +350,174 @@ const ElementalBalance: React.FC<{ day: DayBlend }> = ({ day }) => {
 // IDLE STATE (No hover)
 // =============================================================================
 
-const IdlePanel: React.FC = () => (
-  <div
-    style={{
-      padding: '24px',
-      textAlign: 'center',
-    }}
-  >
-    <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.5 }}>
-      {SIGN_GLYPHS.Aries}
-      {SIGN_GLYPHS.Leo}
-      {SIGN_GLYPHS.Sagittarius}
+const PLANET_RULER_SYMBOLS: Record<string, string> = {
+  Mars: '♂', Venus: '♀', Mercury: '☿', Moon: '☽', Sun: '☉',
+  Jupiter: '♃', Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇',
+};
+
+const MODALITY_PHASE: Record<string, string> = {
+  Cardinal: 'BEGINNING', Fixed: 'CORE', Mutable: 'TRANSITION',
+};
+
+const ELEMENT_EMOJIS_MAP: Record<string, string> = {
+  Fire: '🔥', Earth: '🌿', Air: '💨', Water: '💧',
+};
+
+const SEASON_GROUPS: { season: string; signs: string[] }[] = [
+  { season: 'Spring', signs: ['Aries', 'Taurus', 'Gemini'] },
+  { season: 'Summer', signs: ['Cancer', 'Leo', 'Virgo'] },
+  { season: 'Autumn', signs: ['Libra', 'Scorpio', 'Sagittarius'] },
+  { season: 'Winter', signs: ['Capricorn', 'Aquarius', 'Pisces'] },
+];
+
+const IdlePanel: React.FC = () => {
+  const [hoveredSign, setHoveredSign] = useState<string | null>(null);
+  const [selectedSign, setSelectedSign] = useState<string | null>(null);
+
+  const activeSign = selectedSign || hoveredSign;
+  const activeMeta = activeSign
+    ? SIGN_METADATA.find(m => m.sign === activeSign)
+    : null;
+
+  return (
+    <div style={{ padding: '16px 12px', textAlign: 'center' }}>
+      {/* 12 Signs in 2 rows × 2 seasonal groups */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '14px' }}>
+        {SEASON_GROUPS.map(group => {
+          const seasonColor = SEASON_COLORS[group.season];
+          return (
+            <div
+              key={group.season}
+              style={{
+                background: `${seasonColor}12`,
+                border: `1px solid ${seasonColor}30`,
+                borderRadius: '10px',
+                padding: '8px 6px 6px',
+              }}
+            >
+              <div style={{ fontSize: '10px', fontWeight: 600, color: seasonColor, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {SEASON_ICONS[group.season]} {group.season}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
+                {group.signs.map(signName => {
+                  const meta = SIGN_METADATA.find(m => m.sign === signName)!;
+                  const isActive = activeSign === meta.sign;
+                  const elementColor = TROPICAL_ELEMENT_COLORS[meta.element];
+                  return (
+                    <button
+                      key={meta.sign}
+                      type="button"
+                      onMouseEnter={() => { if (!selectedSign) setHoveredSign(meta.sign); }}
+                      onMouseLeave={() => { if (!selectedSign) setHoveredSign(null); }}
+                      onClick={() => {
+                        if (selectedSign === meta.sign) {
+                          setSelectedSign(null);
+                          setHoveredSign(null);
+                        } else {
+                          setSelectedSign(meta.sign);
+                          setHoveredSign(null);
+                        }
+                      }}
+                      title={meta.sign}
+                      style={{
+                        background: isActive ? `${elementColor}25` : 'rgba(255,255,255,0.05)',
+                        border: isActive ? `2px solid ${elementColor}` : '2px solid rgba(255,255,255,0.1)',
+                        borderRadius: '8px',
+                        padding: '5px 8px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        flexDirection: 'column' as const,
+                        alignItems: 'center',
+                        minWidth: '36px',
+                      }}
+                    >
+                      <span style={{ fontSize: '20px', color: elementColor }}>
+                        {meta.symbol}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Sign Detail Card */}
+      {activeMeta ? (
+        <div
+          style={{
+            background: 'rgba(255,255,255,0.04)',
+            border: `1px solid ${TROPICAL_ELEMENT_COLORS[activeMeta.element]}40`,
+            borderRadius: '10px',
+            padding: '14px 16px',
+            textAlign: 'left',
+            fontSize: '13px',
+            lineHeight: '1.8',
+            animation: 'panelFade 0.25s ease-out',
+          }}
+        >
+          <div style={{ fontSize: '16px', fontWeight: 700, color: TROPICAL_ELEMENT_COLORS[activeMeta.element], marginBottom: '8px' }}>
+            {activeMeta.symbol}{activeMeta.sign}
+          </div>
+          <div style={{ color: '#e0e0e0' }}>
+            <span style={{ color: '#a0a0a0' }}>Dates: </span>
+            {activeMeta.dateRange.replace(' - ', ' – ')}
+          </div>
+          <div>
+            <span style={{ color: '#a0a0a0' }}>Modality: </span>
+            <span style={{ color: MODALITY_COLORS[activeMeta.modality], fontWeight: 600 }}>
+              {activeMeta.modality.toUpperCase()}
+            </span>
+          </div>
+          <div>
+            <span style={{ color: '#a0a0a0' }}>Element: </span>
+            <span style={{ color: TROPICAL_ELEMENT_COLORS[activeMeta.element], fontWeight: 600 }}>
+              {ELEMENT_EMOJIS_MAP[activeMeta.element]} {activeMeta.element.toUpperCase()}
+            </span>
+          </div>
+          <div>
+            <span style={{ color: '#a0a0a0' }}>Season: </span>
+            <span style={{ color: SEASON_COLORS[activeMeta.season], fontWeight: 600 }}>
+              {SEASON_ICONS[activeMeta.season]}{activeMeta.season} ({MODALITY_PHASE[activeMeta.modality]})
+            </span>
+          </div>
+          <div>
+            <span style={{ color: '#a0a0a0' }}>Planet Ruler: </span>
+            <span style={{ color: '#e0e0e0', fontWeight: 600 }}>
+              {PLANET_RULER_SYMBOLS[activeMeta.ruling] || ''} {activeMeta.ruling}
+            </span>
+          </div>
+          {selectedSign && (
+            <div style={{ color: '#888', fontSize: '11px', marginTop: '8px', fontStyle: 'italic', textAlign: 'center' }}>
+              Click {activeMeta.symbol} again to close
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <div style={{ color: '#c0c0c0', fontSize: '13px', marginBottom: '12px' }}>
+            Hover over any day in the wheel to explore
+          </div>
+          <div style={{ color: '#b0b0b0', fontSize: '12px', lineHeight: '1.8' }}>
+            <p style={{ margin: '0 0 6px 0' }}>
+              Each day has its own psychological flavor based on the golden ratio (φ) cusp curve.
+            </p>
+            <p style={{ margin: '0 0 6px 0' }}>
+              <strong style={{ color: '#e0e0e0' }}>12 pure sign days</strong> express
+              the full archetype.
+            </p>
+            <p style={{ margin: 0 }}>
+              <strong style={{ color: '#e0e0e0' }}>72 cusp days</strong> blend two
+              signs, creating unique identity patterns.
+            </p>
+          </div>
+        </>
+      )}
     </div>
-    <div style={{ color: '#888', fontSize: '14px', marginBottom: '16px' }}>
-      Hover over any day in the wheel to explore
-    </div>
-    <div style={{ color: '#666', fontSize: '12px', lineHeight: '1.8' }}>
-      <p style={{ margin: '0 0 8px 0' }}>
-        Each day in the zodiac year has its own psychological flavor based on
-        the golden ratio (φ) cusp curve.
-      </p>
-      <p style={{ margin: '0 0 8px 0' }}>
-        <strong style={{ color: '#aaa' }}>12 pure sign days</strong> express
-        the full archetype.
-      </p>
-      <p style={{ margin: 0 }}>
-        <strong style={{ color: '#aaa' }}>72 cusp days</strong> blend two
-        signs, creating unique identity patterns.
-      </p>
-    </div>
-  </div>
-);
+  );
+};
 
 // =============================================================================
 // MAIN COMPONENT - WITH BREATHING ANIMATIONS
@@ -500,7 +644,7 @@ export const ZodiacExplanationPanel: React.FC<ZodiacExplanationPanelProps> = ({
               }}
             >
               {explanation.title}
-              <span style={{ color: '#888', fontWeight: 400 }}>
+              <span style={{ color: '#c0c0c0', fontWeight: 400 }}>
                 {' '}- {(() => {
                   // Format date as "June 6" from "2026-06-06"
                   const [, month, d] = day.date.split('-').map(Number);
@@ -509,7 +653,7 @@ export const ZodiacExplanationPanel: React.FC<ZodiacExplanationPanelProps> = ({
                 })()}
               </span>
             </div>
-            <div style={{ fontSize: '13px', color: '#888' }}>
+            <div style={{ fontSize: '13px', color: '#c0c0c0' }}>
               {explanation.subtitle}
             </div>
           </>
@@ -517,12 +661,12 @@ export const ZodiacExplanationPanel: React.FC<ZodiacExplanationPanelProps> = ({
           <div
             style={{
               fontSize: '14px',
-              fontWeight: 500,
-              color: '#666',
+              fontWeight: 600,
+              color: '#e0e0e0',
               textAlign: 'center',
             }}
           >
-            Zodiac Learning Panel
+            Western Zodiac Signs Cusp Learning Wheel
           </div>
         )}
       </div>
@@ -667,7 +811,7 @@ export const ZodiacExplanationPanel: React.FC<ZodiacExplanationPanelProps> = ({
                   fontSize: '10px',
                   background: 'rgba(255,255,255,0.1)',
                   borderRadius: '10px',
-                  color: '#888',
+                  color: '#c0c0c0',
                 }}
               >
                 {keyword}
@@ -805,7 +949,7 @@ export const ZodiacExplanationPanelCompact: React.FC<ZodiacExplanationPanelProps
       <div style={{ fontWeight: 600, marginBottom: '4px' }}>
         {day.date} — {explanation.title}
       </div>
-      <div style={{ marginBottom: '8px', color: '#888' }}>
+      <div style={{ marginBottom: '8px', color: '#c0c0c0' }}>
         {SIGN_GLYPHS[day.primarySign]} {day.primarySign}{' '}
         {Math.round((1 - (day.blendPercent || 0)) * 100)}%
         {day.blendSign && day.blendPercent > 0 && (
@@ -816,7 +960,7 @@ export const ZodiacExplanationPanelCompact: React.FC<ZodiacExplanationPanelProps
           </span>
         )}
       </div>
-      <div style={{ color: '#ccc' }}>{explanation.identityTone}</div>
+      <div style={{ color: '#e8e8e8' }}>{explanation.identityTone}</div>
 
       <style>{`
         @keyframes panelBreathe {

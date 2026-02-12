@@ -10,7 +10,7 @@
  * GENESIS AstroProfile - January 2026
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfiles } from '../contexts/ProfileContext';
 import {
@@ -27,6 +27,7 @@ import {
   createProfileFromDayBlend,
 } from '../data/compatibilityEngine';
 import { GRADE_COLORS } from '../data/compatibilityTypes';
+import { getBlendForDate } from '../data/zodiacBlendData';
 
 // =============================================================================
 // HELPER FUNCTIONS
@@ -85,6 +86,19 @@ function formatDateNatural(dateStr) {
   const [, month, day] = dateStr.split('-').map(Number);
   const date = new Date(2000, month - 1, day); // Year doesn't matter
   return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+}
+
+/**
+ * Shift a date string (YYYY-MM-DD) by N days
+ */
+function shiftDate(dateStr, days) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + days);
+  const ny = date.getFullYear();
+  const nm = String(date.getMonth() + 1).padStart(2, '0');
+  const nd = String(date.getDate()).padStart(2, '0');
+  return `${ny}-${nm}-${nd}`;
 }
 
 // =============================================================================
@@ -205,6 +219,88 @@ export default function ZodiacLearningPage() {
     setSelectedDay(null);
     setHoveredDay(null);
   };
+
+  // --- Momentum navigation for arrow buttons ---
+  const moveTimerRef = useRef(null);
+  const moveDelayRef = useRef(400);
+
+  const moveDate = useCallback((direction) => {
+    setSelectedDay(prev => {
+      if (!prev?.date) return prev;
+      const newDateStr = shiftDate(prev.date, direction);
+      const newBlend = getBlendForDate(newDateStr);
+      if (!newBlend) return prev;
+      setHoveredDay(newBlend);
+      // Update wheel year if we crossed a year boundary
+      const newYear = parseInt(newDateStr.split('-')[0], 10);
+      setWheelYear(wy => wy !== newYear ? newYear : wy);
+      return newBlend;
+    });
+  }, []);
+
+  const startMove = useCallback((direction) => {
+    moveDate(direction);
+    moveDelayRef.current = 400;
+
+    const tick = () => {
+      moveDate(direction);
+      moveDelayRef.current = Math.max(50, moveDelayRef.current * 0.8);
+      moveTimerRef.current = setTimeout(tick, moveDelayRef.current);
+    };
+    moveTimerRef.current = setTimeout(tick, moveDelayRef.current);
+  }, [moveDate]);
+
+  const stopMove = useCallback(() => {
+    if (moveTimerRef.current) {
+      clearTimeout(moveTimerRef.current);
+      moveTimerRef.current = null;
+    }
+    moveDelayRef.current = 400;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
+    };
+  }, []);
+
+  // Keyboard arrow navigation (momentum style, only when locked)
+  const keyDirRef = useRef(null);
+
+  useEffect(() => {
+    if (!isLocked || compatibilityMode) return;
+
+    const handleKeyDown = (e) => {
+      if (e.repeat) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        keyDirRef.current = 1;  // ← = Forward (clockwise)
+        startMove(1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        keyDirRef.current = -1; // → = Backward (counter-clockwise)
+        startMove(-1);
+      }
+    };
+    const handleKeyUp = (e) => {
+      if (e.key === 'ArrowLeft' && keyDirRef.current === 1) {
+        stopMove();
+        keyDirRef.current = null;
+      } else if (e.key === 'ArrowRight' && keyDirRef.current === -1) {
+        stopMove();
+        keyDirRef.current = null;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      stopMove();
+      keyDirRef.current = null;
+    };
+  }, [isLocked, compatibilityMode, startMove, stopMove]);
 
   // The day to display
   const displayDay = isLocked ? selectedDay : hoveredDay;
@@ -362,19 +458,6 @@ export default function ZodiacLearningPage() {
         <div className="flex flex-col lg:flex-row gap-6 items-start justify-center">
           {/* Left Side: Wheel and Explanation Panel */}
           <div className="flex flex-col items-center">
-            {/* Lock indicator */}
-            {isLocked && (
-              <div className="mb-4 flex items-center gap-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/40 rounded-full">
-                <span className="text-cyan-300 text-sm">🔒 Locked on {formatDateNatural(selectedDay?.date)}</span>
-                <button
-                  onClick={handleClearSelection}
-                  className="text-cyan-300 hover:text-white transition-colors ml-2"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
             {/* The Wheel */}
             <ZodiacBlendWheel
               year={wheelYear}
@@ -392,6 +475,85 @@ export default function ZodiacLearningPage() {
               compatibilityMode={compatibilityMode}
               compatibilityHighlights={compatibilityHighlights}
             />
+
+            {/* Lock indicator + Navigation Arrows - below the wheel */}
+            {isLocked && !compatibilityMode && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                marginTop: '10px',
+                width: '100%',
+                maxWidth: '560px',
+              }}>
+                <button
+                  onMouseDown={() => startMove(1)}
+                  onMouseUp={stopMove}
+                  onMouseLeave={stopMove}
+                  onTouchStart={(e) => { e.preventDefault(); startMove(1); }}
+                  onTouchEnd={stopMove}
+                  style={{
+                    padding: '6px 14px',
+                    background: 'rgba(0, 212, 255, 0.10)',
+                    border: '1px solid rgba(0, 212, 255, 0.30)',
+                    borderRadius: '10px',
+                    color: '#00d4ff',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'background 0.2s',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                  }}
+                  onPointerEnter={(e) => e.currentTarget.style.background = 'rgba(0, 212, 255, 0.22)'}
+                  onPointerLeave={(e) => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.10)'; stopMove(); }}
+                >
+                  <span style={{ fontSize: '16px' }}>◀</span> Fwd
+                </button>
+
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-cyan-500/20 border border-cyan-500/40 rounded-full">
+                  <span className="text-cyan-300 text-sm">🔒 Locked on {formatDateNatural(selectedDay?.date)}</span>
+                  <button
+                    onClick={handleClearSelection}
+                    className="text-cyan-300 hover:text-white transition-colors ml-1"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <button
+                  onMouseDown={() => startMove(-1)}
+                  onMouseUp={stopMove}
+                  onMouseLeave={stopMove}
+                  onTouchStart={(e) => { e.preventDefault(); startMove(-1); }}
+                  onTouchEnd={stopMove}
+                  style={{
+                    padding: '6px 14px',
+                    background: 'rgba(0, 212, 255, 0.10)',
+                    border: '1px solid rgba(0, 212, 255, 0.30)',
+                    borderRadius: '10px',
+                    color: '#00d4ff',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'background 0.2s',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                  }}
+                  onPointerEnter={(e) => e.currentTarget.style.background = 'rgba(0, 212, 255, 0.22)'}
+                  onPointerLeave={(e) => { e.currentTarget.style.background = 'rgba(0, 212, 255, 0.10)'; stopMove(); }}
+                >
+                  Back <span style={{ fontSize: '16px' }}>▶</span>
+                </button>
+              </div>
+            )}
 
             {/* Instructions */}
             <div className="mt-3 text-center text-sm text-gray-400">

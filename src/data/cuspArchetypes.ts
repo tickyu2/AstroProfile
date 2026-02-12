@@ -50,16 +50,16 @@ export type CuspTransition = {
 };
 
 // =============================================================================
-// UNIVERSAL ρ-CURVE VALUES (Plastic Number — "the new golden ratio")
+// UNIVERSAL φ-CURVE VALUES (Golden Ratio — φ = 1.618)
 // =============================================================================
 
 export const PHI_CURVE_VALUES = {
-  day1: { blendNew: 19, blendOld: 81 },
-  day2: { blendNew: 36, blendOld: 64 },
-  day3: { blendNew: 52, blendOld: 48 },
-  day4: { blendNew: 67, blendOld: 33 },
-  day5: { blendNew: 81, blendOld: 19 },
-  day6: { blendNew: 92, blendOld: 8 },
+  day1: { blendNew: 22, blendOld: 78 },
+  day2: { blendNew: 42, blendOld: 58 },
+  day3: { blendNew: 60, blendOld: 40 },
+  day4: { blendNew: 75, blendOld: 25 },
+  day5: { blendNew: 87, blendOld: 13 },
+  day6: { blendNew: 96, blendOld: 4 },
 };
 
 // =============================================================================

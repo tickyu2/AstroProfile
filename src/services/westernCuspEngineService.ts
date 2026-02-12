@@ -210,57 +210,120 @@ export function getCachedVector(profileId: string): WesternExpressionVector | un
 }
 
 // =============================================================================
+// API RESPONSE TYPES (raw shapes from Python backend)
+// =============================================================================
+
+/** Raw planet data from API */
+interface ApiPlanet {
+  planet: string;
+  longitude: number;
+  sign: string;
+  degree_in_sign: number;
+  retrograde?: boolean;
+  house?: number;
+}
+
+/** Raw aspect data from API */
+interface ApiAspect {
+  planet1: string;
+  planet2: string;
+  aspect_type: string;
+  exact_angle: number;
+  orb: number;
+  applying: boolean;
+  strength: number;
+}
+
+/** Raw aspect pattern from API */
+interface ApiAspectPattern {
+  pattern_type: string;
+  planets: string[];
+  element?: string;
+  modality?: string;
+  strength: number;
+  description: string;
+}
+
+/** Raw API response shape for Western chart analysis */
+interface ApiChartResponse {
+  birth_datetime: string;
+  location?: { latitude?: number; longitude?: number; timezone?: string };
+  planets?: ApiPlanet[];
+  houses?: { system?: string; cusps?: number[]; ascendant?: number; midheaven?: number };
+  aspects?: ApiAspect[];
+  aspect_patterns?: ApiAspectPattern[];
+  chart_shape?: { primary_shape?: string; scores?: Record<string, number>; span?: number; max_gap?: number; handle_planet?: string };
+  expression_vector?: ApiExpressionVectorResponse;
+  summary?: { sun_sign?: string; moon_sign?: string; ascendant_sign?: string };
+  calculated_at?: string;
+}
+
+/** Raw API response shape for expression vector */
+interface ApiExpressionVectorResponse {
+  elements?: Record<string, number>;
+  modalities?: Record<string, number>;
+  house_intensities?: number[];
+  planetary_psychology?: Record<string, number>;
+  archetypes?: Record<string, number>;
+  aspect_patterns?: Record<string, number>;
+  dominance?: Record<string, string | number | boolean>;
+  chart_shape?: Record<string, string | number>;
+  vector?: number[];
+  vector_dimensions?: number;
+}
+
+// =============================================================================
 // DATA TRANSFORMATION
 // =============================================================================
 
 /**
  * Transform API response to WesternChart type.
  */
-function transformToWesternChart(data: any): WesternChart {
+function transformToWesternChart(data: ApiChartResponse): WesternChart {
   return {
     birthDatetime: data.birth_datetime,
     latitude: data.location?.latitude ?? 0,
     longitude: data.location?.longitude ?? 0,
     timezone: data.location?.timezone ?? 'UTC',
 
-    planets: (data.planets || []).map((p: any) => ({
-      planet: p.planet,
+    planets: (data.planets || []).map((p: ApiPlanet) => ({
+      planet: p.planet as import('../types/western.types').PlanetName,
       longitude: p.longitude,
-      sign: p.sign,
+      sign: p.sign as import('../types/western.types').ZodiacSign,
       degreeInSign: p.degree_in_sign,
       retrograde: p.retrograde || false,
       house: p.house
     })),
 
     houses: {
-      system: data.houses?.system || 'Porphyry',
+      system: (data.houses?.system || 'Porphyry') as import('../types/western.types').HouseCusps['system'],
       cusps: data.houses?.cusps || Array(12).fill(0),
       ascendant: data.houses?.ascendant || 0,
       midheaven: data.houses?.midheaven || 0
     },
 
-    aspects: (data.aspects || []).map((a: any) => ({
+    aspects: (data.aspects || []).map((a: ApiAspect) => ({
       planet1: a.planet1,
       planet2: a.planet2,
-      aspectType: a.aspect_type,
+      aspectType: a.aspect_type as import('../types/western.types').AspectType,
       exactAngle: a.exact_angle,
       orb: a.orb,
       applying: a.applying,
       strength: a.strength
     })),
 
-    aspectPatterns: (data.aspect_patterns || []).map((p: any) => ({
-      patternType: p.pattern_type,
+    aspectPatterns: (data.aspect_patterns || []).map((p: ApiAspectPattern) => ({
+      patternType: p.pattern_type as import('../types/western.types').AspectPatternResult['patternType'],
       planets: p.planets,
-      element: p.element,
-      modality: p.modality,
+      element: p.element as import('../types/western.types').WesternElement | undefined,
+      modality: p.modality as import('../types/western.types').WesternModality | undefined,
       strength: p.strength,
       description: p.description
     })),
 
     chartShape: {
-      primaryShape: data.chart_shape?.primary_shape || 'splash',
-      scores: data.chart_shape?.scores || {},
+      primaryShape: (data.chart_shape?.primary_shape || 'splash') as import('../types/western.types').ChartShapeType,
+      scores: (data.chart_shape?.scores || {}) as Record<import('../types/western.types').ChartShapeType, number>,
       span: data.chart_shape?.span || 0,
       maxGap: data.chart_shape?.max_gap || 0,
       handlePlanet: data.chart_shape?.handle_planet
@@ -269,9 +332,9 @@ function transformToWesternChart(data: any): WesternChart {
     expressionVector: transformToExpressionVector(data.expression_vector),
 
     summary: {
-      sunSign: data.summary?.sun_sign || 'Aries',
-      moonSign: data.summary?.moon_sign || 'Aries',
-      ascendantSign: data.summary?.ascendant_sign || 'Aries'
+      sunSign: (data.summary?.sun_sign || 'Aries') as import('../types/western.types').ZodiacSign,
+      moonSign: (data.summary?.moon_sign || 'Aries') as import('../types/western.types').ZodiacSign,
+      ascendantSign: (data.summary?.ascendant_sign || 'Aries') as import('../types/western.types').ZodiacSign
     },
 
     calculatedAt: data.calculated_at || new Date().toISOString()
@@ -281,7 +344,7 @@ function transformToWesternChart(data: any): WesternChart {
 /**
  * Transform API response to WesternExpressionVector type.
  */
-function transformToExpressionVector(data: any): WesternExpressionVector {
+function transformToExpressionVector(data: ApiExpressionVectorResponse | undefined): WesternExpressionVector {
   if (!data) return createDefaultWesternVector();
 
   return {
@@ -343,23 +406,23 @@ function transformToExpressionVector(data: any): WesternExpressionVector {
 
     dominance: {
       dominantSign: {
-        sign: data.dominance?.dominant_sign || 'Aries',
-        strength: data.dominance?.sign_strength ?? 0.25
+        sign: (data.dominance?.dominant_sign || 'Aries') as import('../types/western.types').ZodiacSign,
+        strength: Number(data.dominance?.sign_strength ?? 0.25)
       },
       dominantPlanet: {
-        planet: data.dominance?.dominant_planet || 'Sun',
-        strength: data.dominance?.planet_strength ?? 0.5
+        planet: (data.dominance?.dominant_planet || 'Sun') as import('../types/western.types').PlanetName,
+        strength: Number(data.dominance?.planet_strength ?? 0.5)
       },
       dominantHouse: {
-        house: data.dominance?.dominant_house || 1,
-        strength: data.dominance?.house_strength ?? 0.25
+        house: Number(data.dominance?.dominant_house || 1),
+        strength: Number(data.dominance?.house_strength ?? 0.25)
       },
-      elementPurity: data.dominance?.element_purity ?? 0.25,
-      modalityPurity: data.dominance?.modality_purity ?? 0.33,
-      yangYinRatio: data.dominance?.yang_yin_ratio ?? 0.5,
-      nightDayEmphasis: data.dominance?.night_day_emphasis ?? 0.5,
-      retrogradeCount: data.dominance?.retrograde_count ?? 0,
-      dignityScore: data.dominance?.dignity_score ?? 0.5
+      elementPurity: Number(data.dominance?.element_purity ?? 0.25),
+      modalityPurity: Number(data.dominance?.modality_purity ?? 0.33),
+      yangYinRatio: Number(data.dominance?.yang_yin_ratio ?? 0.5),
+      nightDayEmphasis: Number(data.dominance?.night_day_emphasis ?? 0.5),
+      retrogradeCount: Number(data.dominance?.retrograde_count ?? 0),
+      dignityScore: Number(data.dominance?.dignity_score ?? 0.5)
     },
 
     chartShape: {
@@ -369,7 +432,7 @@ function transformToExpressionVector(data: any): WesternExpressionVector {
       bundle: data.chart_shape?.bundle ?? 0,
       splash: data.chart_shape?.splash ?? 0,
       seesaw: data.chart_shape?.seesaw ?? 0,
-      detected: data.chart_shape?.detected || 'splash'
+      detected: (data.chart_shape?.detected || 'splash') as import('../types/western.types').ChartShapeType
     },
 
     vector: data.vector,

@@ -10,6 +10,7 @@ import './MatrixView.css';
 import { SynastryGrid } from './SynastryGrid';
 import { PlanetaryMatrixGrid } from './PlanetaryMatrixGrid';
 import type { PlanetaryMatrix, FinalCompatibilityScore } from '../../zodiac/planetaryMatrices';
+import type { SynastryMatrix } from '../../zodiac/narrativeEngine';
 
 interface ProfileData {
   id: string;
@@ -30,7 +31,7 @@ const LAYER_LABELS: Record<string, string> = {
 
 interface MatrixViewProps {
   finalScore: FinalCompatibilityScore;
-  synastryMatrix: any;
+  synastryMatrix: SynastryMatrix | null;
   chemistryMatrix: PlanetaryMatrix | null;
   communicationMatrix: PlanetaryMatrix | null;
   growthMatrix: PlanetaryMatrix | null;

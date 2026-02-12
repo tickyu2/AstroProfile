@@ -728,10 +728,10 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
     const flowPulseGroup = g.append('g').attr('class', 'flow-pulse-container');
     const pulseRadius = seasonOuterRadius + 4;
 
-    const pulseArc = d3.arc<any>()
+    const pulseArc = d3.arc<{ startAngle: number; color: string }>()
       .innerRadius(pulseRadius).outerRadius(pulseRadius + 6)
-      .startAngle((d: any) => d.startAngle)
-      .endAngle((d: any) => d.startAngle + Math.PI / 6);
+      .startAngle((d) => d.startAngle)
+      .endAngle((d) => d.startAngle + Math.PI / 6);
 
     const pulses = flowPulseGroup.selectAll('.flow-pulse-segment')
       .data(SEASON_PULSE_COLORS)

@@ -321,16 +321,17 @@ export function getCuspStatistics() {
 }
 
 // ============================================================================
-// ρ-Curve Constants (Plastic Number Blend — "the new golden ratio")
+// φ-Curve Constants (Golden Ratio Blend)
+// Formula: 1 - ((7-d)/7)^φ where φ = 1.618
 // ============================================================================
 
 export const PHI_CURVE = {
-  day1: { blendNew: 0.19, blendOld: 0.81 },
-  day2: { blendNew: 0.36, blendOld: 0.64 },
-  day3: { blendNew: 0.52, blendOld: 0.48 },
-  day4: { blendNew: 0.67, blendOld: 0.33 },
-  day5: { blendNew: 0.81, blendOld: 0.19 },
-  day6: { blendNew: 0.92, blendOld: 0.08 }
+  day1: { blendNew: 0.22, blendOld: 0.78 },
+  day2: { blendNew: 0.42, blendOld: 0.58 },
+  day3: { blendNew: 0.60, blendOld: 0.40 },
+  day4: { blendNew: 0.75, blendOld: 0.25 },
+  day5: { blendNew: 0.87, blendOld: 0.13 },
+  day6: { blendNew: 0.96, blendOld: 0.04 }
 } as const;
 
 /**

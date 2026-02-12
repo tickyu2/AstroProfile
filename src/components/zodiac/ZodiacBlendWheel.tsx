@@ -117,19 +117,20 @@ function getSignColor(sign: ZodiacSign): string {
 /**
  * Convert day of year to angle (radians) for Math.cos/sin positioning
  * Uses standard math convention: 0 = right (3 o'clock), counter-clockwise
- * With -π/2 offset to put day 1 (Jan 1) at top (12 o'clock)
+ * With -π/2 offset to put Aries at top (12 o'clock)
+ * @param offset - day offset (Aries start day - 1) to rotate wheel
  */
-function dayToAngle(dayOfYear: number, totalDays: number): number {
-  return ((dayOfYear - 1) / totalDays) * 2 * Math.PI - Math.PI / 2;
+function dayToAngle(dayOfYear: number, totalDays: number, offset: number = 0): number {
+  return ((dayOfYear - 1 - offset) / totalDays) * 2 * Math.PI - Math.PI / 2;
 }
 
 /**
  * Convert day of year to angle for D3 arc generator
  * D3 arc convention: 0 = top (12 o'clock), clockwise
- * No offset needed - D3 already starts from top
+ * @param offset - day offset (Aries start day - 1) to rotate wheel
  */
-function dayToArcAngle(dayOfYear: number, totalDays: number): number {
-  return ((dayOfYear - 1) / totalDays) * 2 * Math.PI;
+function dayToArcAngle(dayOfYear: number, totalDays: number, offset: number = 0): number {
+  return ((dayOfYear - 1 - offset) / totalDays) * 2 * Math.PI;
 }
 
 /**
@@ -244,6 +245,10 @@ export const ZodiacBlendWheel: React.FC<ZodiacBlendWheelProps> = ({
     // Increased ring size by ~20% total for easier interaction
     const radius = Math.min(cx, cy) - 35;
 
+    // Aries-at-top: offset so Aries (Mar 21) sits at 12 o'clock
+    const ariesStartDay = getDayOfYear(`${year}-03-21`);
+    const ariesOffset = ariesStartDay - 1;
+
     // Create defs for gradients
     const defs = svg.append('defs');
 
@@ -295,8 +300,8 @@ export const ZodiacBlendWheel: React.FC<ZodiacBlendWheelProps> = ({
     const innerArc = d3.arc<DayBlend>()
       .innerRadius(radius * INNER_RING_INNER)
       .outerRadius(radius * INNER_RING_OUTER)
-      .startAngle(d => dayToArcAngle(d.dayOfYear, totalDays))
-      .endAngle(d => dayToArcAngle(d.dayOfYear + 1, totalDays))
+      .startAngle(d => dayToArcAngle(d.dayOfYear, totalDays, ariesOffset))
+      .endAngle(d => dayToArcAngle(d.dayOfYear + 1, totalDays, ariesOffset))
       .padAngle(0.002);
 
     // Arc generator for outer ring (blend halo)
@@ -308,8 +313,8 @@ export const ZodiacBlendWheel: React.FC<ZodiacBlendWheelProps> = ({
         const blendScale = d.blendPercent * 0.05;
         return radius * (OUTER_RING_OUTER + blendScale);
       })
-      .startAngle(d => dayToArcAngle(d.dayOfYear, totalDays))
-      .endAngle(d => dayToArcAngle(d.dayOfYear + 1, totalDays))
+      .startAngle(d => dayToArcAngle(d.dayOfYear, totalDays, ariesOffset))
+      .endAngle(d => dayToArcAngle(d.dayOfYear + 1, totalDays, ariesOffset))
       .padAngle(0.001);
 
     // Draw outer blend ring first (behind)
@@ -411,7 +416,7 @@ export const ZodiacBlendWheel: React.FC<ZodiacBlendWheelProps> = ({
         midDay = Math.floor((startDay + endDay) / 2);
       }
 
-      const angle = dayToAngle(midDay, totalDays);
+      const angle = dayToAngle(midDay, totalDays, ariesOffset);
       const x = Math.cos(angle) * radius * GLYPH_RADIUS;
       const y = Math.sin(angle) * radius * GLYPH_RADIUS;
 
@@ -434,7 +439,7 @@ export const ZodiacBlendWheel: React.FC<ZodiacBlendWheelProps> = ({
 
     MONTH_NAMES.forEach((month, index) => {
       const firstOfMonth = getDayOfYear(`${year}-${String(index + 1).padStart(2, '0')}-01`);
-      const angle = dayToAngle(firstOfMonth, totalDays);
+      const angle = dayToAngle(firstOfMonth, totalDays, ariesOffset);
 
       const x1 = Math.cos(angle) * radius * OUTER_RING_OUTER;
       const y1 = Math.sin(angle) * radius * OUTER_RING_OUTER;
@@ -483,7 +488,7 @@ export const ZodiacBlendWheel: React.FC<ZodiacBlendWheelProps> = ({
         midDay = Math.floor((startDay + endDay) / 2);
       }
 
-      const angle = dayToAngle(midDay, totalDays);
+      const angle = dayToAngle(midDay, totalDays, ariesOffset);
       const x = Math.cos(angle) * radius * SIGN_NAME_RADIUS;
       const y = Math.sin(angle) * radius * SIGN_NAME_RADIUS;
 
@@ -540,7 +545,7 @@ export const ZodiacBlendWheel: React.FC<ZodiacBlendWheelProps> = ({
 
     if (birthData) {
       const birthGroup = mainGroup.append('g').attr('class', 'birth-marker');
-      const angle = dayToAngle(birthData.dayOfYear, totalDays);
+      const angle = dayToAngle(birthData.dayOfYear, totalDays, ariesOffset);
 
       // Radial line
       const x1 = Math.cos(angle) * radius * INNER_RING_INNER;
@@ -593,7 +598,7 @@ export const ZodiacBlendWheel: React.FC<ZodiacBlendWheelProps> = ({
 
     if (selectedData) {
       const selectGroup = mainGroup.append('g').attr('class', 'selected-marker');
-      const angle = dayToAngle(selectedData.dayOfYear, totalDays);
+      const angle = dayToAngle(selectedData.dayOfYear, totalDays, ariesOffset);
 
       // Animated pulsing ring
       const pulseX = Math.cos(angle) * radius * ((INNER_RING_INNER + INNER_RING_OUTER) / 2);
