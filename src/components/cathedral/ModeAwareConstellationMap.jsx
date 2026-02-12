@@ -12,7 +12,6 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import PropTypes from 'prop-types';
 import { useMode } from './modeSystem';
 
 // ============================================================================
@@ -596,29 +595,6 @@ const ModeAwareConstellationMap = ({
       )}
     </div>
   );
-};
-
-ModeAwareConstellationMap.propTypes = {
-  ancestors: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      generation: PropTypes.number.isRequired,
-      type: PropTypes.oneOf(['self', 'maternal', 'paternal', 'other']).isRequired,
-      influence: PropTypes.number.isRequired,
-      x: PropTypes.number.isRequired,
-      y: PropTypes.number.isRequired,
-    })
-  ),
-  edges: PropTypes.arrayOf(
-    PropTypes.shape({
-      from: PropTypes.string.isRequired,
-      to: PropTypes.string.isRequired,
-      label: PropTypes.string,
-    })
-  ),
-  onSelectAncestor: PropTypes.func,
-  className: PropTypes.string,
 };
 
 // ============================================================================

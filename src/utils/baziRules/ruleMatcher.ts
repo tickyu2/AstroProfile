@@ -12,40 +12,42 @@ import { ChartContext, RuleCondition, BaseRule, RuleMatch } from './types';
  */
 function matchSingleCondition(
   conditionKey: string,
-  conditionValue: any,
-  ctx: ChartContext
+  conditionValue: unknown,
+  ctx: ChartContext | Record<string, unknown>
 ): boolean {
   // Handle nested object conditions
   if (typeof conditionValue === 'object' && conditionValue !== null) {
+    const condObj = conditionValue as Record<string, unknown>;
+
     // Range check: { min: X, max: Y }
-    if ('min' in conditionValue || 'max' in conditionValue) {
-      const contextValue = getNestedValue(ctx, conditionKey);
+    if ('min' in condObj || 'max' in condObj) {
+      const contextValue = getNestedValue(ctx as Record<string, unknown>, conditionKey);
       if (typeof contextValue !== 'number') return false;
 
-      if ('min' in conditionValue && contextValue < conditionValue.min) return false;
-      if ('max' in conditionValue && contextValue > conditionValue.max) return false;
+      if ('min' in condObj && typeof condObj.min === 'number' && contextValue < condObj.min) return false;
+      if ('max' in condObj && typeof condObj.max === 'number' && contextValue > condObj.max) return false;
       return true;
     }
 
     // Range array check: { range: [min, max] }
-    if ('range' in conditionValue && Array.isArray(conditionValue.range)) {
-      const contextValue = getNestedValue(ctx, conditionKey);
+    if ('range' in condObj && Array.isArray(condObj.range)) {
+      const contextValue = getNestedValue(ctx as Record<string, unknown>, conditionKey);
       if (typeof contextValue !== 'number') return false;
-      return contextValue >= conditionValue.range[0] && contextValue <= conditionValue.range[1];
+      return contextValue >= (condObj.range as number[])[0] && contextValue <= (condObj.range as number[])[1];
     }
 
     // Nested object - recursively check all properties
-    const contextObj = getNestedValue(ctx, conditionKey);
+    const contextObj = getNestedValue(ctx as Record<string, unknown>, conditionKey);
     if (typeof contextObj !== 'object' || contextObj === null) return false;
 
-    return Object.entries(conditionValue).every(([nestedKey, nestedVal]) =>
-      matchSingleCondition(nestedKey, nestedVal, contextObj as any)
+    return Object.entries(condObj).every(([nestedKey, nestedVal]) =>
+      matchSingleCondition(nestedKey, nestedVal, contextObj as Record<string, unknown>)
     );
   }
 
   // Array condition - check if context contains any/all of the values
   if (Array.isArray(conditionValue)) {
-    const contextValue = getNestedValue(ctx, conditionKey);
+    const contextValue = getNestedValue(ctx as Record<string, unknown>, conditionKey);
 
     // If context is also an array, check for intersection
     if (Array.isArray(contextValue)) {
@@ -58,13 +60,13 @@ function matchSingleCondition(
 
   // Boolean conditions
   if (typeof conditionValue === 'boolean') {
-    const contextValue = getNestedValue(ctx, conditionKey);
+    const contextValue = getNestedValue(ctx as Record<string, unknown>, conditionKey);
     return contextValue === conditionValue;
   }
 
   // String equality
   if (typeof conditionValue === 'string') {
-    const contextValue = getNestedValue(ctx, conditionKey);
+    const contextValue = getNestedValue(ctx as Record<string, unknown>, conditionKey);
 
     // Handle "any" as wildcard
     if (conditionValue === 'any') return contextValue !== undefined && contextValue !== null;
@@ -74,7 +76,7 @@ function matchSingleCondition(
 
   // Number equality
   if (typeof conditionValue === 'number') {
-    const contextValue = getNestedValue(ctx, conditionKey);
+    const contextValue = getNestedValue(ctx as Record<string, unknown>, conditionKey);
     return contextValue === conditionValue;
   }
 
@@ -85,7 +87,7 @@ function matchSingleCondition(
  * Get nested value from object using dot notation
  * e.g., "dayMaster.strength" -> ctx.dayMaster.strength
  */
-function getNestedValue(obj: any, path: string): any {
+function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   // Handle direct property access first
   if (path in obj) {
     return obj[path];
@@ -93,11 +95,11 @@ function getNestedValue(obj: any, path: string): any {
 
   // Handle dot notation
   const parts = path.split('.');
-  let current = obj;
+  let current: unknown = obj;
 
   for (const part of parts) {
     if (current === undefined || current === null) return undefined;
-    current = current[part];
+    current = (current as Record<string, unknown>)[part];
   }
 
   return current;

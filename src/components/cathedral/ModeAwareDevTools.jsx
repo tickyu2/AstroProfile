@@ -13,7 +13,6 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import PropTypes from 'prop-types';
 import { useMode, useModeFeature } from './modeSystem';
 
 // ============================================================================
@@ -674,35 +673,6 @@ const ModeAwareDevTools = ({
       </div>
     </div>
   );
-};
-
-ModeAwareDevTools.propTypes = {
-  data: PropTypes.shape({
-    emotionalTone: PropTypes.string,
-    narrativeArcs: PropTypes.arrayOf(PropTypes.string),
-    supportiveNote: PropTypes.string,
-    deltas: PropTypes.object,
-    definitions: PropTypes.arrayOf(PropTypes.shape({
-      term: PropTypes.string,
-      definition: PropTypes.string,
-    })),
-    rules: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.string,
-      name: PropTypes.string,
-      fired: PropTypes.bool,
-      delta: PropTypes.number,
-    })),
-    rawData: PropTypes.object,
-    windows: PropTypes.shape({
-      opportunity: PropTypes.array,
-      danger: PropTypes.array,
-    }),
-    recommendation: PropTypes.string,
-  }),
-  isOpen: PropTypes.bool,
-  onClose: PropTypes.func,
-  position: PropTypes.oneOf(['left', 'right']),
-  className: PropTypes.string,
 };
 
 // ============================================================================

@@ -10,7 +10,6 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import PropTypes from 'prop-types';
 import { useSceneActivation } from '../../hooks/useSceneActivation';
 import { PilgrimJourneyMini, ChamberInfo } from './PilgrimJourneyTracker';
 
@@ -164,12 +163,6 @@ function VoiceSelector({ selectedVoice, onSelect, className = '' }) {
   );
 }
 
-VoiceSelector.propTypes = {
-  selectedVoice: PropTypes.oneOf(['mentor', 'oracle', 'companion', 'mirror']).isRequired,
-  onSelect: PropTypes.func.isRequired,
-  className: PropTypes.string
-};
-
 // ========================================
 // TONE SELECTOR
 // ========================================
@@ -202,12 +195,6 @@ function ToneSelector({ selectedTone, onSelect, className = '' }) {
     </div>
   );
 }
-
-ToneSelector.propTypes = {
-  selectedTone: PropTypes.oneOf(['gentle', 'direct', 'poetic', 'clinical']).isRequired,
-  onSelect: PropTypes.func.isRequired,
-  className: PropTypes.string
-};
 
 // ========================================
 // MAIN OUTCOME CARD
@@ -329,19 +316,6 @@ function RelationshipOutcomeCard({
   );
 }
 
-RelationshipOutcomeCard.propTypes = {
-  outcome: PropTypes.oneOf(['DoNow', 'GoodWindow', 'Neutral', 'Delay', 'Avoid']),
-  showExtended: PropTypes.bool,
-  showTones: PropTypes.bool,
-  showVoices: PropTypes.bool,
-  showPilgrim: PropTypes.bool,
-  showChamber: PropTypes.bool,
-  initialTone: PropTypes.oneOf(['gentle', 'direct', 'poetic', 'clinical']),
-  initialVoice: PropTypes.oneOf(['mentor', 'oracle', 'companion', 'mirror']),
-  animateOnScroll: PropTypes.bool,
-  className: PropTypes.string
-};
-
 // ========================================
 // COMPACT CARD VARIANT
 // ========================================
@@ -377,13 +351,6 @@ export function RelationshipOutcomeCompact({
   );
 }
 
-RelationshipOutcomeCompact.propTypes = {
-  outcome: PropTypes.oneOf(['DoNow', 'GoodWindow', 'Neutral', 'Delay', 'Avoid']),
-  showVoice: PropTypes.bool,
-  voice: PropTypes.oneOf(['mentor', 'oracle', 'companion', 'mirror']),
-  className: PropTypes.string
-};
-
 // ========================================
 // OUTCOME INDICATOR (Minimal)
 // ========================================
@@ -415,12 +382,6 @@ export function OutcomeIndicator({ outcome = 'Neutral', size = 'md', className =
     </div>
   );
 }
-
-OutcomeIndicator.propTypes = {
-  outcome: PropTypes.oneOf(['DoNow', 'GoodWindow', 'Neutral', 'Delay', 'Avoid']),
-  size: PropTypes.oneOf(['sm', 'md', 'lg']),
-  className: PropTypes.string
-};
 
 // ========================================
 // EXPORTS

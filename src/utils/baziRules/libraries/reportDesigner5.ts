@@ -56,7 +56,7 @@ export type CoWriteMode = 'rewrite' | 'expand' | 'compress' | 'clarify' | 'alter
 
 export interface CoWriteRequest {
   section: CollaborativeSection;
-  ctx: any;
+  ctx: Record<string, unknown>;
   tone: TonePreset;
   mode: CoWriteMode;
   targetTone?: TonePreset;
@@ -494,11 +494,23 @@ export function getPendingSuggestions(section: CollaborativeSection): SectionSug
 /**
  * Initialize collaborative report from auto-generated report
  */
+/** Shape of auto-generated report input for collaborative initialization */
+interface AutoReportInput {
+  sections: Array<{
+    id: string;
+    label: string;
+    labelZh: string;
+    content: string;
+    contentZh: string;
+  }>;
+  tone?: TonePreset;
+}
+
 export function initCollaborativeReport(
-  autoReport: any,
+  autoReport: AutoReportInput,
   language: 'en' | 'zh' = 'en'
 ): CollaborativeReport {
-  const sections: CollaborativeSection[] = autoReport.sections.map((sec: any) => ({
+  const sections: CollaborativeSection[] = autoReport.sections.map((sec) => ({
     id: sec.id,
     label: sec.label,
     labelZh: sec.labelZh,
@@ -555,7 +567,7 @@ export function requestAISuggestion(
   report: CollaborativeReport,
   sectionId: string,
   mode: CoWriteMode,
-  ctx: any
+  ctx: Record<string, unknown>
 ): CollaborativeReport {
   const section = report.sections.find(s => s.id === sectionId);
 
@@ -618,7 +630,7 @@ export function unlockSection(
 export function changeReportTone(
   report: CollaborativeReport,
   newTone: TonePreset,
-  ctx: any
+  ctx: Record<string, unknown>
 ): CollaborativeReport {
   return {
     ...report,

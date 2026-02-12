@@ -12,7 +12,6 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
 import { useMode } from './modeSystem';
 
 // ============================================================================
@@ -559,12 +558,6 @@ const ModeAwareRitualEngine = ({
       `}</style>
     </div>
   );
-};
-
-ModeAwareRitualEngine.propTypes = {
-  onComplete: PropTypes.func,
-  onStepChange: PropTypes.func,
-  className: PropTypes.string,
 };
 
 // ============================================================================

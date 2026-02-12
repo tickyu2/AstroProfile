@@ -13,7 +13,6 @@
  */
 
 import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
 import { useMode, CATHEDRAL_MODES } from './modeSystem';
 
 // ============================================================================
@@ -567,13 +566,6 @@ const ModeAwarePilgrimMap = ({
       {renderMap()}
     </div>
   );
-};
-
-ModeAwarePilgrimMap.propTypes = {
-  current: PropTypes.string.isRequired,
-  completed: PropTypes.arrayOf(PropTypes.string),
-  onStepClick: PropTypes.func,
-  className: PropTypes.string,
 };
 
 // ============================================================================

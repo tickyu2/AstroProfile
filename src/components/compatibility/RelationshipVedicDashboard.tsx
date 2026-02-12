@@ -14,9 +14,9 @@ import VedicDashboard from "../vedic/VedicDashboard";
 import "./RelationshipVedicDashboard.css";
 
 interface Props {
-  relationshipA: any;
-  relationshipB?: any;
-  vedicProfile: any;
+  relationshipA: Record<string, unknown>;
+  relationshipB?: Record<string, unknown>;
+  vedicProfile: Record<string, unknown>;
 }
 
 const RelationshipVedicDashboard: React.FC<Props> = ({

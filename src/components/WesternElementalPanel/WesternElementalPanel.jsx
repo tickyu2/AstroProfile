@@ -85,6 +85,9 @@ const formatNarrative = (content) => {
   if (!content) return '';
 
   return content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/^- /gm, '• ')
     .split('\n')

@@ -8,7 +8,6 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import PropTypes from 'prop-types';
 import { useMode, CATHEDRAL_MODES, MODE_MATRIX } from './modeSystem';
 
 // ============================================================================
@@ -624,13 +623,6 @@ const ModeOnboarding = ({
       `}</style>
     </div>
   );
-};
-
-ModeOnboarding.propTypes = {
-  mode: PropTypes.oneOf(Object.values(CATHEDRAL_MODES)),
-  onComplete: PropTypes.func,
-  onSkip: PropTypes.func,
-  showSkip: PropTypes.bool,
 };
 
 // ============================================================================

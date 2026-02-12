@@ -8,7 +8,6 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import PropTypes from 'prop-types';
 import { useMode } from './modeSystem';
 
 // ============================================================================
@@ -190,11 +189,6 @@ function PilgrimLens({ entry, config }) {
   );
 }
 
-PilgrimLens.propTypes = {
-  entry: PropTypes.object.isRequired,
-  config: PropTypes.object.isRequired,
-};
-
 // ============================================================================
 // SCHOLAR LENS COMPONENTS
 // ============================================================================
@@ -244,11 +238,6 @@ function ScholarLens({ entry, config }) {
     </div>
   );
 }
-
-ScholarLens.propTypes = {
-  entry: PropTypes.object.isRequired,
-  config: PropTypes.object.isRequired,
-};
 
 // ============================================================================
 // ARCHITECT LENS COMPONENTS
@@ -311,11 +300,6 @@ function ArchitectLens({ entry, config }) {
   );
 }
 
-ArchitectLens.propTypes = {
-  entry: PropTypes.object.isRequired,
-  config: PropTypes.object.isRequired,
-};
-
 // ============================================================================
 // SOVEREIGN LENS COMPONENTS
 // ============================================================================
@@ -366,11 +350,6 @@ function SovereignLens({ entry, config }) {
   );
 }
 
-SovereignLens.propTypes = {
-  entry: PropTypes.object.isRequired,
-  config: PropTypes.object.isRequired,
-};
-
 // ============================================================================
 // LENS SELECTOR COMPONENT
 // ============================================================================
@@ -396,11 +375,6 @@ function LensSelector({ currentMode, onModePreview }) {
     </div>
   );
 }
-
-LensSelector.propTypes = {
-  currentMode: PropTypes.string.isRequired,
-  onModePreview: PropTypes.func.isRequired,
-};
 
 // ============================================================================
 // MAIN COMPONENT
@@ -477,13 +451,6 @@ function ModeAwareCodexLens({
   );
 }
 
-ModeAwareCodexLens.propTypes = {
-  entryId: PropTypes.string.isRequired,
-  entries: PropTypes.object,
-  allowLensSwitch: PropTypes.bool,
-  className: PropTypes.string,
-};
-
 // ============================================================================
 // CODEX BROWSER COMPONENT
 // ============================================================================
@@ -542,12 +509,6 @@ export function CodexBrowser({
     </div>
   );
 }
-
-CodexBrowser.propTypes = {
-  entries: PropTypes.object,
-  allowLensSwitch: PropTypes.bool,
-  className: PropTypes.string,
-};
 
 // ============================================================================
 // EXPORTS

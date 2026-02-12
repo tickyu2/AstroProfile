@@ -8,6 +8,7 @@
 
 import {
   ChartContext,
+  Element,
   StructureRule,
   StructureEvaluation,
   StructureType,
@@ -27,7 +28,7 @@ export function evaluateStructures(
 
   // Default to normal structure
   let determinedStructure: StructureType = 'normal';
-  let usefulGodOverride: any = undefined;
+  let usefulGodOverride: Element | null | undefined = undefined;
 
   // Process matched rules in priority order
   for (const match of matchedRules) {

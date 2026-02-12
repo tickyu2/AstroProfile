@@ -35,7 +35,7 @@ export interface TechnicalPoint {
   id: string;
   rule: string;
   ruleZh?: string;
-  value: any;
+  value: unknown;
   explanation: string;
   explanationZh?: string;
   category: 'interaction' | 'luck' | 'annual' | 'useful_god' | 'seasonal' | 'special';
@@ -172,7 +172,7 @@ export function getEmotionalToneForTheme(theme: NarrativeTheme): EmotionalTone {
  */
 export function deriveStory(
   theme: NarrativeTheme,
-  value: any,
+  value: unknown,
   rule: string
 ): { story: string; storyZh: string } {
   const storyMap: Record<NarrativeTheme, { en: string; zh: string }> = {
@@ -241,7 +241,7 @@ export function deriveStory(
 /**
  * Get context for specific rule
  */
-function getContextForRule(rule: string, value: any, lang: 'en' | 'zh'): string {
+function getContextForRule(rule: string, value: unknown, lang: 'en' | 'zh'): string {
   const ruleLower = rule.toLowerCase();
 
   if (ruleLower.includes('clash')) {

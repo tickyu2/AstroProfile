@@ -254,9 +254,9 @@ export function generateMarkdownExport(ctx: ChartContext, chartId?: string): str
  * Integration with existing BaZi analysis pipeline
  */
 export function enhanceExistingAnalysis(
-  existingAnalysis: any,
+  existingAnalysis: Record<string, unknown>,
   ctx: ChartContext
-): any {
+): Record<string, unknown> & { cathedral: { codex: KnowledgeCodex; topInsights: CodexEntry[]; summary: string } } {
   const cathedralOutput = generateLightweightOutput(ctx);
 
   return {

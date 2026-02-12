@@ -93,19 +93,11 @@ export interface SynastryHeatmap {
   romanceHotspots: SynastryCell[];
   summary: string;
   nivoData: NivoHeatmapData[];
-  echartsData: EChartsHeatmapData;
 }
 
 export interface NivoHeatmapData {
   id: string;
   data: Array<{ x: string; y: number }>;
-}
-
-export interface EChartsHeatmapData {
-  xAxis: string[];
-  yAxis: string[];
-  data: Array<[number, number, number]>;
-  visualMap: { min: number; max: number };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -813,7 +805,6 @@ export function computeSynastryHeatmap(
 
   // Format for visualization libraries
   const nivoData = formatForNivo(grid, aPillars, bPillars);
-  const echartsData = formatForECharts(grid, aPillars, bPillars);
 
   return {
     personA: personAName,
@@ -827,8 +818,7 @@ export function computeSynastryHeatmap(
     strongestTension,
     romanceHotspots,
     summary,
-    nivoData,
-    echartsData
+    nivoData
   };
 }
 
@@ -889,30 +879,6 @@ function formatForNivo(
       y: grid[rowIndex][colIndex].normalizedScore
     }))
   }));
-}
-
-/**
- * Format for ECharts Heatmap
- */
-function formatForECharts(
-  grid: SynastryCell[][],
-  aPillars: PillarInfo[],
-  bPillars: PillarInfo[]
-): EChartsHeatmapData {
-  const data: Array<[number, number, number]> = [];
-
-  for (let row = 0; row < grid.length; row++) {
-    for (let col = 0; col < grid[row].length; col++) {
-      data.push([col, row, grid[row][col].normalizedScore]);
-    }
-  }
-
-  return {
-    xAxis: bPillars.map(p => p.labelChinese),
-    yAxis: aPillars.map(p => p.labelChinese),
-    data,
-    visualMap: { min: -100, max: 100 }
-  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1022,10 +988,6 @@ export function formatSynastryHeatmapDebug(heatmap: SynastryHeatmap): string {
       }
     }
   }
-
-  lines.push('');
-  lines.push('ECharts Data:');
-  lines.push(JSON.stringify(heatmap.echartsData, null, 2));
 
   return lines.join('\n');
 }

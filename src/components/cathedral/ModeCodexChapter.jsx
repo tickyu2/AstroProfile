@@ -8,7 +8,6 @@
  */
 
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import { useMode, CATHEDRAL_MODES, MODE_MATRIX } from './modeSystem';
 
 // ============================================================================
@@ -554,10 +553,6 @@ const ModeCodexChapter = ({ onClose }) => {
       </div>
     </div>
   );
-};
-
-ModeCodexChapter.propTypes = {
-  onClose: PropTypes.func,
 };
 
 // ============================================================================

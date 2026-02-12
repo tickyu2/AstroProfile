@@ -31,6 +31,27 @@ import {
 import { DEFAULT_SECTION_WEIGHTS, DEFAULT_GAMMA } from '../types/western.types';
 
 // =============================================================================
+// PROFILE TYPES
+// =============================================================================
+
+/** Partial chart data from API/backend for building vectors */
+interface PartialChartData {
+  elements?: { fire?: number; Fire?: number; earth?: number; Earth?: number; air?: number; Air?: number; water?: number; Water?: number };
+  modalities?: { cardinal?: number; Cardinal?: number; fixed?: number; Fixed?: number; mutable?: number; Mutable?: number };
+  chartShape?: { primary?: string; detected?: string };
+  [key: string]: unknown;
+}
+
+/** Profile shape expected by Western compatibility helpers */
+export interface WesternProfile {
+  westernVector?: WesternExpressionVector;
+  westernExpressionVector?: WesternExpressionVector;
+  natalChart?: PartialChartData;
+  western?: PartialChartData;
+  [key: string]: unknown;
+}
+
+// =============================================================================
 // PROFILE INTEGRATION
 // =============================================================================
 
@@ -41,7 +62,7 @@ import { DEFAULT_SECTION_WEIGHTS, DEFAULT_GAMMA } from '../types/western.types';
  * Otherwise, build from available natal chart data.
  */
 export function getWesternVectorFromProfile(
-  profile: any
+  profile: WesternProfile
 ): WesternExpressionVector {
   // Check if pre-computed vector exists
   if (profile.westernVector) {
@@ -70,7 +91,7 @@ export function getWesternVectorFromProfile(
  * Full calculations should happen in Python backend.
  */
 export function buildWesternVectorFromChart(
-  chart: any
+  chart: PartialChartData | null
 ): WesternExpressionVector {
   const vector = createDefaultWesternVector();
 
@@ -99,7 +120,7 @@ export function buildWesternVectorFromChart(
   if (chart.chartShape) {
     vector.chartShape = {
       ...vector.chartShape,
-      detected: chart.chartShape.primary || chart.chartShape.detected || 'splash'
+      detected: (chart.chartShape.primary || chart.chartShape.detected || 'splash') as import('../types/western.types').ChartShapeType
     };
   }
 
@@ -119,8 +140,8 @@ export function buildWesternVectorFromChart(
  * @returns Western compatibility score
  */
 export function calculateWesternCompatibility(
-  profileA: any,
-  profileB: any,
+  profileA: WesternProfile,
+  profileB: WesternProfile,
   weights: SectionWeights = DEFAULT_SECTION_WEIGHTS
 ): WesternCompatibilityScore {
   const vecA = getWesternVectorFromProfile(profileA);
@@ -135,8 +156,8 @@ export function calculateWesternCompatibility(
  * This is the value used in the extended matchScore formula.
  */
 export function getWesternCompatibilityScore(
-  profileA: any,
-  profileB: any
+  profileA: WesternProfile,
+  profileB: WesternProfile
 ): number {
   const result = calculateWesternCompatibility(profileA, profileB);
   return result.total / 100;  // Convert to 0-1
@@ -146,8 +167,8 @@ export function getWesternCompatibilityScore(
  * Get raw cosine similarity between two profiles' Western vectors.
  */
 export function getWesternCosineSimilarity(
-  profileA: any,
-  profileB: any
+  profileA: WesternProfile,
+  profileB: WesternProfile
 ): number {
   const vecA = flattenWesternVector(getWesternVectorFromProfile(profileA));
   const vecB = flattenWesternVector(getWesternVectorFromProfile(profileB));
@@ -247,8 +268,8 @@ export interface ExtendedMatchScoreOptions {
  * @returns Western contribution (gamma * westernScore)
  */
 export function calculateWesternContribution(
-  profileA: any,
-  profileB: any,
+  profileA: WesternProfile,
+  profileB: WesternProfile,
   gamma: number = DEFAULT_GAMMA
 ): { contribution: number; score: number; details: WesternCompatibilityScore } {
   const westernScore = getWesternCompatibilityScore(profileA, profileB);

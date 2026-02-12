@@ -346,7 +346,21 @@ export function createPlanetState(
  * Create PlanetState array from sovereign chart data
  * (Helper for integration with existing chart service)
  */
-export function fromSovereignChart(sovereignData: any): PlanetState[] {
+/** Raw planet data from sovereign chart format */
+interface SovereignPlanetData {
+  sign?: string;
+  degree?: number;
+  house?: number;
+  isRetrograde?: boolean;
+}
+
+/** Sovereign chart data shape */
+interface SovereignChartData {
+  planets?: Record<string, SovereignPlanetData>;
+  [key: string]: unknown;
+}
+
+export function fromSovereignChart(sovereignData: SovereignChartData | null | undefined): PlanetState[] {
   if (!sovereignData?.planets) return [];
 
   const planetMap: Record<string, Planet> = {
@@ -366,13 +380,12 @@ export function fromSovereignChart(sovereignData: any): PlanetState[] {
     const planetName = planetMap[key];
     if (!planetName) continue;
 
-    const p = planet as any;
     states.push({
       planet: planetName,
-      sign: p.sign || '',
-      degree: p.degree || 0,
-      house: p.house || 0,
-      isRetrograde: p.isRetrograde === true
+      sign: planet.sign || '',
+      degree: planet.degree || 0,
+      house: planet.house || 0,
+      isRetrograde: planet.isRetrograde === true
     });
   }
 

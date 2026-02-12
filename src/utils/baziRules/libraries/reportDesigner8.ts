@@ -92,10 +92,10 @@ export interface DashboardWidget {
   label: string;
   labelZh: string;
   type: 'chart' | 'heatmap' | 'timeline' | 'network' | 'radar' | 'matrix' | 'gauge';
-  data: any;
+  data: unknown;
   insights: string[];
   insightsZh: string[];
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 export interface PredictiveDashboard {

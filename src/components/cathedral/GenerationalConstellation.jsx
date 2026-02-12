@@ -11,8 +11,6 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import PropTypes from 'prop-types';
-
 // ========================================
 // CONSTELLATION NODE
 // ========================================
@@ -100,14 +98,6 @@ function ConstellationNode({
   );
 }
 
-ConstellationNode.propTypes = {
-  node: PropTypes.object.isRequired,
-  position: PropTypes.string,
-  isActive: PropTypes.bool,
-  isPilgrim: PropTypes.bool,
-  onClick: PropTypes.func
-};
-
 // ========================================
 // CONSTELLATION THREAD
 // ========================================
@@ -135,13 +125,6 @@ function ConstellationThread({ from, to, pattern, isActive }) {
     />
   );
 }
-
-ConstellationThread.propTypes = {
-  from: PropTypes.object.isRequired,
-  to: PropTypes.object.isRequired,
-  pattern: PropTypes.string,
-  isActive: PropTypes.bool
-};
 
 // ========================================
 // PATTERN LEGEND
@@ -246,11 +229,6 @@ function NodeDetailPanel({ node, onClose }) {
     </div>
   );
 }
-
-NodeDetailPanel.propTypes = {
-  node: PropTypes.object,
-  onClose: PropTypes.func.isRequired
-};
 
 // ========================================
 // MAIN CONSTELLATION COMPONENT
@@ -409,29 +387,6 @@ function GenerationalConstellation({
     </div>
   );
 }
-
-GenerationalConstellation.propTypes = {
-  pilgrim: PropTypes.shape({
-    id: PropTypes.string,
-    archetype: PropTypes.string,
-    patterns: PropTypes.array,
-    generation: PropTypes.string
-  }).isRequired,
-  ancestors: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    archetype: PropTypes.string,
-    patterns: PropTypes.array,
-    generation: PropTypes.string,
-    name: PropTypes.string
-  })),
-  threads: PropTypes.arrayOf(PropTypes.shape({
-    from: PropTypes.string.isRequired,
-    to: PropTypes.string.isRequired,
-    pattern: PropTypes.oneOf(['inherited', 'broken', 'healed', 'repeating'])
-  })),
-  activeOverlays: PropTypes.arrayOf(PropTypes.string),
-  className: PropTypes.string
-};
 
 // ========================================
 // STYLES

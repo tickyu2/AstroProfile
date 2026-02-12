@@ -8,8 +8,6 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import PropTypes from 'prop-types';
-
 // ============================================================================
 // STORY LADDER COMPONENT - Vertical Timeline G1-G7
 // ============================================================================
@@ -799,42 +797,6 @@ const GenerationalStoryDashboard = ({
       </div>
     </div>
   );
-};
-
-GenerationalStoryDashboard.propTypes = {
-  generations: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string,
-    era: PropTypes.string,
-  })),
-  patterns: PropTypes.arrayOf(PropTypes.shape({
-    type: PropTypes.oneOf(['gift', 'wound', 'lesson', 'fear', 'pattern']).isRequired,
-    generation: PropTypes.string.isRequired,
-    intensity: PropTypes.number.isRequired,
-    description: PropTypes.string,
-  })),
-  storyBeats: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    narrative: PropTypes.string.isRequired,
-    generation: PropTypes.string.isRequired,
-    type: PropTypes.oneOf(['origin', 'crisis', 'triumph', 'transformation', 'inheritance']),
-  })),
-  emotionalArc: PropTypes.arrayOf(PropTypes.shape({
-    generation: PropTypes.string.isRequired,
-    value: PropTypes.number.isRequired,
-    emotion: PropTypes.string,
-  })),
-  timing: PropTypes.shape({
-    currentPhase: PropTypes.string,
-    cyclePosition: PropTypes.string,
-    ancestralWindow: PropTypes.string,
-    status: PropTypes.oneOf(['active', 'dormant', 'awakening', 'integrating']),
-    narrative: PropTypes.string,
-  }),
-  onGenerationSelect: PropTypes.func,
-  onBeatSelect: PropTypes.func,
-  onPatternClick: PropTypes.func,
 };
 
 export default GenerationalStoryDashboard;

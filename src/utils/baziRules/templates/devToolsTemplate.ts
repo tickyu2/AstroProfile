@@ -193,7 +193,7 @@ export function buildRuleDebugInfo(
   return debugInfo;
 }
 
-function buildConditionsFromRule(rule: any, ctx: ChartContext): RuleCondition[] {
+function buildConditionsFromRule(rule: { conditions?: Record<string, unknown> }, ctx: ChartContext): RuleCondition[] {
   const conditions: RuleCondition[] = [];
 
   if (rule.conditions) {
@@ -211,7 +211,7 @@ function buildConditionsFromRule(rule: any, ctx: ChartContext): RuleCondition[] 
   return conditions;
 }
 
-function evaluateCondition(condition: any, ctx: ChartContext): unknown {
+function evaluateCondition(condition: unknown, ctx: ChartContext): unknown {
   // Simplified condition evaluation
   return true;
 }

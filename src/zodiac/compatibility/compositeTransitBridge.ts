@@ -265,11 +265,14 @@ async function fetchTransitsPython(
     if (!Array.isArray(raw)) return null;
 
     // Map Python response to frontend TransitEvent shape
-    return raw.map((e: any) => ({
-      date: e.date as string,
-      label: e.label as string,
-      impact: (e.impact || {}) as Partial<Record<string, number>>,
-    }));
+    return raw.map((e) => {
+      const evt = e as { date: string; label: string; impact?: Record<string, number> };
+      return {
+        date: evt.date,
+        label: evt.label,
+        impact: (evt.impact || {}) as Partial<Record<string, number>>,
+      };
+    });
   } catch {
     // Network error, timeout, or CORS — fall through to JS fallback
     return null;

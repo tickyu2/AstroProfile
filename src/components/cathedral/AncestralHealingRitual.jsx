@@ -11,8 +11,6 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import PropTypes from 'prop-types';
-
 // ========================================
 // RITUAL STAGES
 // ========================================
@@ -206,11 +204,6 @@ function RitualCompass({ currentStage, onStageClick }) {
   );
 }
 
-RitualCompass.propTypes = {
-  currentStage: PropTypes.string.isRequired,
-  onStageClick: PropTypes.func
-};
-
 // ========================================
 // REVEAL STAGE
 // ========================================
@@ -246,11 +239,6 @@ function RevealStage({ pattern, onContinue }) {
     </div>
   );
 }
-
-RevealStage.propTypes = {
-  pattern: PropTypes.object.isRequired,
-  onContinue: PropTypes.func.isRequired
-};
 
 // ========================================
 // ALIGN STAGE
@@ -297,11 +285,6 @@ function AlignStage({ pattern, onSelect }) {
     </div>
   );
 }
-
-AlignStage.propTypes = {
-  pattern: PropTypes.object.isRequired,
-  onSelect: PropTypes.func.isRequired
-};
 
 // ========================================
 // ACT STAGE
@@ -385,12 +368,6 @@ function ActStage({ pattern, alignment, onComplete }) {
   );
 }
 
-ActStage.propTypes = {
-  pattern: PropTypes.object.isRequired,
-  alignment: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired
-};
-
 // ========================================
 // INTEGRATE STAGE
 // ========================================
@@ -428,13 +405,6 @@ function IntegrateStage({ pattern, alignment, lineageMessage, onClose }) {
     </div>
   );
 }
-
-IntegrateStage.propTypes = {
-  pattern: PropTypes.object.isRequired,
-  alignment: PropTypes.string.isRequired,
-  lineageMessage: PropTypes.string,
-  onClose: PropTypes.func.isRequired
-};
 
 // ========================================
 // MAIN RITUAL COMPONENT
@@ -514,20 +484,6 @@ function AncestralHealingRitual({
     </div>
   );
 }
-
-AncestralHealingRitual.propTypes = {
-  pattern: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    type: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    generation: PropTypes.string,
-    emotionalSignature: PropTypes.string
-  }).isRequired,
-  lineageMessage: PropTypes.string,
-  microTimingWindow: PropTypes.string,
-  onComplete: PropTypes.func,
-  className: PropTypes.string
-};
 
 // ========================================
 // STYLES

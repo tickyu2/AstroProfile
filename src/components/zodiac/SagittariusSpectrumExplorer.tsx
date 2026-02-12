@@ -14,11 +14,12 @@ import sagittariusZones from '../../data/sagittariusZones';
 // @ts-ignore
 import { qualityCategories, compareQualityAcrossZones } from '../../data/sagittariusQualityCategories';
 // @ts-ignore
-import { getZoneFromDegree, getUserZoneInfo } from '../../utils/sagittariusZoneCalculations';
+import { getZoneFromDegree, getUserZoneInfo } from '../../utils/zoneCalculations';
 import './SagittariusSpectrumExplorer.css';
 // @ts-ignore
 import SagittariusThinkingStyleTab from './SagittariusThinkingStyleTab';
 import { degreeToApproxDateTime } from '../../data/tropicalConstants';
+import type { Zone, QualityCategory, ZoneInfluence, ZoneFamousExample } from './spectrumTypes';
 
 /* ─── Types ─── */
 
@@ -41,7 +42,7 @@ const DegreeSlider: React.FC<{
   onJumpToUser?: (() => void) | null;
   ephemerisTimestamps?: number[] | null;
 }> = ({ currentDegree, onDegreeChange, userDegree = null, showUserHighlight = false, onJumpToUser = null, ephemerisTimestamps = null }) => {
-  const currentZone = getZoneFromDegree(currentDegree);
+  const currentZone = getZoneFromDegree(sagittariusZones, currentDegree);
   const [highlightedDecan, setHighlightedDecan] = useState<number | null>(null);
 
   const decanZones: Record<number, number[]> = { 1: [1, 2], 2: [3, 4], 3: [5, 6] };
@@ -51,7 +52,7 @@ const DegreeSlider: React.FC<{
     onDegreeChange((decan - 1) * 10 + 5);
   };
 
-  const handleZoneClick = (zone: any) => {
+  const handleZoneClick = (zone: Zone) => {
     setHighlightedDecan(null);
     onDegreeChange((zone.degreeRange.start + zone.degreeRange.end) / 2);
   };
@@ -97,7 +98,7 @@ const DegreeSlider: React.FC<{
 
       {/* Zone Markers */}
       <div className="tse-zone-markers">
-        {sagittariusZones.map((zone: any) => {
+        {sagittariusZones.map((zone: Zone) => {
           const isHighlighted = highlightedDecan
             ? decanZones[highlightedDecan]?.includes(zone.id)
             : currentZone?.id === zone.id;
@@ -229,7 +230,7 @@ const ZoneSelector: React.FC<{
   selectedZones: number[];
   onZoneToggle: (id: number) => void;
   maxSelections: number;
-  allZones: any[];
+  allZones: Zone[];
 }> = ({ selectedZones, onZoneToggle, maxSelections, allZones }) => (
   <div className="tse-zone-selector">
     <label className="tse-selector-label">
@@ -239,7 +240,7 @@ const ZoneSelector: React.FC<{
       )}
     </label>
     <div className="tse-zone-buttons">
-      {allZones.map((zone: any) => {
+      {allZones.map((zone: Zone) => {
         const isSelected = selectedZones.includes(zone.id);
         const isDisabled = maxSelections > 1 && !isSelected && selectedZones.length >= maxSelections;
         return (
@@ -269,7 +270,7 @@ const ZoneSelector: React.FC<{
 
 /* ─── Sub-component: SingleZoneView ─── */
 
-function getArchetypeDescription(zone: any): string {
+function getArchetypeDescription(zone: Zone): string {
   const descriptions: Record<number, string> = {
     1: "You're the Sagittarius who arrives with Scorpio's transformative intensity still weaving through your expansive core. While other Archers leap without looking, you probe beneath the surface before launching your philosophical arrows. You're 75% Jupiterian expansive optimism, 25% Plutonian depth. Think of yourself as the truth-seeker with X-ray vision\u2014you explore not just the horizon but the hidden depths beneath it.",
     2: "You've hit pure Jupiter territory\u2014no dilution, no compromise. The Scorpio intensity has dissolved into raw, unfiltered adventure and boundless optimism. You are the eternal explorer, the unstoppable seeker of truth, the one who sees possibility in every horizon. You don't just wander\u2014you QUEST with purpose and infinite enthusiasm.",
@@ -289,7 +290,7 @@ function formatLabel(key: string): string {
 }
 
 const SingleZoneView: React.FC<{
-  zone: any;
+  zone: Zone;
   currentDegree: number;
   isUserZone?: boolean;
 }> = ({ zone, currentDegree, isUserZone = false }) => (
@@ -347,7 +348,7 @@ const SingleZoneView: React.FC<{
 
       <div className="tse-influences">
         <h5>Planetary Influences:</h5>
-        {zone.influences.map((influence: any, idx: number) => (
+        {zone.influences.map((influence: ZoneInfluence, idx: number) => (
           <div key={idx} className="tse-influence-item">
             <div className="tse-influence-header">
               <span className="tse-influence-source">{influence.source}</span>
@@ -375,7 +376,7 @@ const SingleZoneView: React.FC<{
     <section className="tse-section">
       <h4 className="tse-section-title">{'\uD83D\uDD2C'} Quality Profile</h4>
       <div className="tse-quality-bars">
-        {qualityCategories.map((category: any) => {
+        {qualityCategories.map((category: QualityCategory) => {
           const quality = zone.qualities[category.id];
           if (!quality) return null;
           return (
@@ -447,7 +448,7 @@ const SingleZoneView: React.FC<{
     <section className="tse-section">
       <h4 className="tse-section-title">{'\u2764\uFE0F'} Relationship Style</h4>
       <div className="tse-relationship-grid">
-        {Object.entries(zone.relationshipStyle).map(([key, value]: [string, any]) => (
+        {Object.entries(zone.relationshipStyle).map(([key, value]: [string, string]) => (
           <div key={key} className="tse-relationship-item">
             <label>{formatLabel(key)}</label>
             <div className="tse-relationship-value">{value}</div>
@@ -461,7 +462,7 @@ const SingleZoneView: React.FC<{
       <section className="tse-section">
         <h4 className="tse-section-title">{'\uD83C\uDF0D'} Famous Examples</h4>
         <div className="tse-famous-examples-grid">
-          {zone.famousExamples.map((person: any, idx: number) => (
+          {zone.famousExamples.map((person: ZoneFamousExample, idx: number) => (
             <div key={idx} className="tse-famous-person-card">
               <div className="tse-person-name">{person.name}</div>
               <div className="tse-person-details">{person.birthdate} {'\u2022'} {person.degree}</div>
@@ -512,12 +513,12 @@ const SingleZoneView: React.FC<{
 /* ─── Sub-component: SideBySideView ─── */
 
 const SideBySideView: React.FC<{
-  zones: any[];
+  zones: Zone[];
   userDegree?: number | null;
 }> = ({ zones }) => {
   const insights = useMemo(() => {
     const result: { category: string; icon: string; text: string; significance: string }[] = [];
-    qualityCategories.forEach((category: any) => {
+    qualityCategories.forEach((category: QualityCategory) => {
       const comparison = compareQualityAcrossZones(zones, category.id);
       if (comparison.range > 30) {
         result.push({
@@ -539,7 +540,7 @@ const SideBySideView: React.FC<{
       </div>
 
       <div className="tse-comparison-grid" style={{ gridTemplateColumns: `repeat(${zones.length}, 1fr)` }}>
-        {zones.map((zone: any) => (
+        {zones.map((zone: Zone) => (
           <div key={zone.id} className="tse-zone-column">
             <header className="tse-zone-column-header" style={{ background: zone.colorTheme.gradient }}>
               <div className="tse-zone-id">Zone {zone.id}</div>
@@ -549,7 +550,7 @@ const SideBySideView: React.FC<{
             </header>
 
             <div className="tse-influence-summary">
-              {zone.influences.map((inf: any, idx: number) => (
+              {zone.influences.map((inf: ZoneInfluence, idx: number) => (
                 <div key={idx} className="tse-influence-chip" title={inf.traits.join(', ')}>
                   <span className="tse-influence-chip-source">{inf.source}</span>
                   <span className="tse-influence-chip-percent">{inf.percentage}%</span>
@@ -558,7 +559,7 @@ const SideBySideView: React.FC<{
             </div>
 
             <div className="tse-qualities-compact">
-              {qualityCategories.map((category: any) => {
+              {qualityCategories.map((category: QualityCategory) => {
                 const quality = zone.qualities[category.id];
                 if (!quality) return null;
                 return (
@@ -638,7 +639,7 @@ const SideBySideView: React.FC<{
 /* ─── Shared: MatrixTableContent (reused inline & in flap) ─── */
 
 const MatrixTableContent: React.FC<{
-  zones: any[];
+  zones: Zone[];
   highlightZones?: number[];
   isFlap?: boolean;
 }> = ({ zones, highlightZones = [], isFlap = false }) => (
@@ -647,7 +648,7 @@ const MatrixTableContent: React.FC<{
       <thead>
         <tr>
           <th className="tse-th-quality">Quality</th>
-          {zones.map((zone: any) => (
+          {zones.map((zone: Zone) => (
             <th
               key={zone.id}
               className={`tse-th-zone ${highlightZones.includes(zone.id) ? 'tse-highlighted' : ''}`}
@@ -663,13 +664,13 @@ const MatrixTableContent: React.FC<{
         </tr>
       </thead>
       <tbody>
-        {qualityCategories.map((category: any) => (
+        {qualityCategories.map((category: QualityCategory) => (
           <tr key={category.id}>
             <td className="tse-td-quality-label">
               <span className="tse-td-icon">{category.icon}</span>
               <span>{category.label}</span>
             </td>
-            {zones.map((zone: any) => {
+            {zones.map((zone: Zone) => {
               const quality = zone.qualities[category.id];
               return (
                 <td key={zone.id} className={`tse-td-quality ${highlightZones.includes(zone.id) ? 'tse-highlighted' : ''}`}>
@@ -691,16 +692,16 @@ const MatrixTableContent: React.FC<{
         </tr>
 
         {[
-          { icon: '\uD83D\uDCBC', label: 'Primary Career Style', getter: (z: any) => z.careerSignatures[0] },
-          { icon: '\u2764\uFE0F', label: 'Commitment Timeline', getter: (z: any) => z.relationshipStyle.commitmentSpeed },
-          { icon: '\u2694\uFE0F', label: 'Conflict Response', getter: (z: any) => z.relationshipStyle.conflict },
+          { icon: '\uD83D\uDCBC', label: 'Primary Career Style', getter: (z: Zone) => z.careerSignatures[0] },
+          { icon: '\u2764\uFE0F', label: 'Commitment Timeline', getter: (z: Zone) => z.relationshipStyle.commitmentSpeed },
+          { icon: '\u2694\uFE0F', label: 'Conflict Response', getter: (z: Zone) => z.relationshipStyle.conflict },
         ].map((row) => (
           <tr key={row.label} className="tse-info-row">
             <td className="tse-td-info-label">
               <span className="tse-td-icon">{row.icon}</span>
               <span>{row.label}</span>
             </td>
-            {zones.map((zone: any) => (
+            {zones.map((zone: Zone) => (
               <td key={zone.id} className={`tse-td-info ${highlightZones.includes(zone.id) ? 'tse-highlighted' : ''}`}>
                 {row.getter(zone)}
               </td>
@@ -713,15 +714,15 @@ const MatrixTableContent: React.FC<{
         </tr>
 
         {[
-          { icon: '\uD83D\uDCAA', label: 'Primary Strength', getter: (z: any) => z.strengths[0] },
-          { icon: '\u26A0\uFE0F', label: 'Main Shadow', getter: (z: any) => z.shadows[0] },
+          { icon: '\uD83D\uDCAA', label: 'Primary Strength', getter: (z: Zone) => z.strengths[0] },
+          { icon: '\u26A0\uFE0F', label: 'Main Shadow', getter: (z: Zone) => z.shadows[0] },
         ].map((row) => (
           <tr key={row.label} className="tse-info-row">
             <td className="tse-td-info-label">
               <span className="tse-td-icon">{row.icon}</span>
               <span>{row.label}</span>
             </td>
-            {zones.map((zone: any) => (
+            {zones.map((zone: Zone) => (
               <td key={zone.id} className={`tse-td-info ${highlightZones.includes(zone.id) ? 'tse-highlighted' : ''}`}>
                 {row.getter(zone)}
               </td>
@@ -736,7 +737,7 @@ const MatrixTableContent: React.FC<{
 /* ─── Sub-component: FullMatrixView ─── */
 
 const FullMatrixView: React.FC<{
-  zones: any[];
+  zones: Zone[];
   userDegree?: number | null;
   highlightZone?: number | null;
   externalOpen?: boolean;
@@ -766,7 +767,7 @@ const FullMatrixView: React.FC<{
 
   // Active zone from slider degree (for readout + slider track)
   const flapActiveZone = useMemo(() =>
-    zones.find((z: any) => flapDegree >= z.degreeRange.start && flapDegree <= z.degreeRange.end) ?? zones[0],
+    zones.find((z: Zone) => flapDegree >= z.degreeRange.start && flapDegree <= z.degreeRange.end) ?? zones[0],
     [flapDegree, zones]
   );
 
@@ -831,17 +832,17 @@ const FullMatrixView: React.FC<{
     md += '## Zone Overview\n\n';
     md += '| Zone | Name | Degrees | Dates | Decan |\n';
     md += '|------|------|---------|-------|-------|\n';
-    zones.forEach((z: any) => {
+    zones.forEach((z: Zone) => {
       md += `| ${z.id} | ${z.name} | ${z.degreeRange.start}\u00B0\u2013${z.degreeRange.end}\u00B0 | ${z.dateRange.start} \u2013 ${z.dateRange.end} | ${z.decan} |\n`;
     });
 
     // Quality matrix
     md += '\n## Quality Comparison Matrix\n\n';
-    md += '| Quality |' + zones.map((z: any) => ` Zone ${z.id} `).join('|') + '|\n';
+    md += '| Quality |' + zones.map((z: Zone) => ` Zone ${z.id} `).join('|') + '|\n';
     md += '|---------|' + zones.map(() => '-----').join('|') + '|\n';
-    qualityCategories.forEach((q: any) => {
+    qualityCategories.forEach((q: QualityCategory) => {
       md += `| ${q.icon} ${q.label} |`;
-      zones.forEach((z: any) => {
+      zones.forEach((z: Zone) => {
         const lv = z.qualities?.[q.id]?.level ?? '\u2013';
         md += ` ${lv}/100 |`;
       });
@@ -881,7 +882,7 @@ const FullMatrixView: React.FC<{
 
     // Zone details
     md += '\n## Zone Details\n\n';
-    zones.forEach((z: any) => {
+    zones.forEach((z: Zone) => {
       md += `### Zone ${z.id}: ${z.name}\n\n`;
       md += `- **Archetype:** ${z.archetype || '\u2013'}\n`;
       md += `- **Degrees:** ${z.degreeRange.start}\u00B0\u2013${z.degreeRange.end}\u00B0\n`;
@@ -945,7 +946,7 @@ const FullMatrixView: React.FC<{
             {[[1, 2], [3, 4], [5, 6]].map((grp, gi) => (
               <div key={gi} className="tse-float-zgrp">
                 {grp.map(zid => {
-                  const z = zones.find((zz: any) => zz.id === zid);
+                  const z = zones.find((zz: Zone) => zz.id === zid);
                   if (!z) return null;
                   return (
                     <button
@@ -972,7 +973,7 @@ const FullMatrixView: React.FC<{
         <div className="tse-float-interactive">
           <div className="tse-float-slider-wrap">
             <div className="tse-float-track">
-              {zones.map((z: any) => (
+              {zones.map((z: Zone) => (
                 <div
                   key={z.id}
                   className="tse-float-track-seg"
@@ -994,7 +995,7 @@ const FullMatrixView: React.FC<{
               onChange={e => {
                 const deg = parseFloat(e.target.value);
                 setFlapDegree(deg);
-                const az = zones.find((zz: any) => deg >= zz.degreeRange.start && deg <= zz.degreeRange.end);
+                const az = zones.find((zz: Zone) => deg >= zz.degreeRange.start && deg <= zz.degreeRange.end);
                 if (az) setHighlightedZones([az.id]);
               }}
               title="Sagittarius degree position"
@@ -1010,7 +1011,7 @@ const FullMatrixView: React.FC<{
             )}
           </div>
           <div className="tse-float-dates">
-            {zones.map((z: any) => (
+            {zones.map((z: Zone) => (
               <button
                 key={z.id}
                 className={`tse-float-dm ${highlightedZones.includes(z.id) ? 'tse-float-dm--active' : ''}`}
@@ -1045,7 +1046,7 @@ const FullMatrixView: React.FC<{
                         onClick={() => {
                           const deg = i;
                           setFlapDegree(deg);
-                          const z = zones.find((zz: any) => deg >= zz.degreeRange.start && deg <= zz.degreeRange.end);
+                          const z = zones.find((zz: Zone) => deg >= zz.degreeRange.start && deg <= zz.degreeRange.end);
                           if (z) setHighlightedZones([z.id]);
                         }}
                       >
@@ -1080,7 +1081,7 @@ const FullMatrixView: React.FC<{
                         onClick={() => {
                           const deg = Math.min(29.59, 25 + i);
                           setFlapDegree(deg);
-                          const z = zones.find((zz: any) => deg >= zz.degreeRange.start && deg <= zz.degreeRange.end);
+                          const z = zones.find((zz: Zone) => deg >= zz.degreeRange.start && deg <= zz.degreeRange.end);
                           if (z) setHighlightedZones([z.id]);
                         }}
                       >
@@ -1137,7 +1138,7 @@ const FullMatrixView: React.FC<{
     <section className="tse-spectrum-visual">
       <h3>The Complete Sagittarius Spectrum</h3>
       <div className="tse-spectrum-bar">
-        {zones.map((zone: any) => (
+        {zones.map((zone: Zone) => (
           <div
             key={zone.id}
             className={`tse-spectrum-segment ${highlightZone === zone.id ? 'tse-highlighted' : ''}`}
@@ -1264,7 +1265,7 @@ const SagittariusSpectrumExplorer: React.FC<SagittariusSpectrumExplorerProps> = 
   // Update selected zone when degree changes
   useEffect(() => {
     const currentZone = sagittariusZones.find(
-      (zone: any) => currentDegree >= zone.degreeRange.start && currentDegree <= zone.degreeRange.end
+      (zone: Zone) => currentDegree >= zone.degreeRange.start && currentDegree <= zone.degreeRange.end
     );
     if (currentZone && viewMode === 'single') {
       setSelectedZones([currentZone.id]);
@@ -1289,7 +1290,7 @@ const SagittariusSpectrumExplorer: React.FC<SagittariusSpectrumExplorerProps> = 
     if (viewMode === 'matrix') return;
     if (viewMode === 'single') {
       setSelectedZones([zoneId]);
-      const zone = sagittariusZones.find((z: any) => z.id === zoneId);
+      const zone = sagittariusZones.find((z: Zone) => z.id === zoneId);
       if (zone) setCurrentDegree((zone.degreeRange.start + zone.degreeRange.end) / 2);
     } else if (viewMode === 'sideBySide') {
       setSelectedZones((prev) => {
@@ -1310,11 +1311,11 @@ const SagittariusSpectrumExplorer: React.FC<SagittariusSpectrumExplorerProps> = 
 
   const displayZones = useMemo(() => {
     if (viewMode === 'matrix') return sagittariusZones;
-    return sagittariusZones.filter((zone: any) => selectedZones.includes(zone.id));
+    return sagittariusZones.filter((zone: Zone) => selectedZones.includes(zone.id));
   }, [viewMode, selectedZones]);
 
   const userZoneInfo = useMemo(
-    () => (userDegree != null ? getUserZoneInfo(userDegree) : null),
+    () => (userDegree != null ? getUserZoneInfo('Sagittarius', sagittariusZones, userDegree) : null),
     [userDegree]
   );
 

@@ -17,7 +17,6 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import PropTypes from 'prop-types';
 import { NEO_FACETS, FACET_ORDER, DOMAIN_ORDER } from '../../data/neoFacetSchema';
 
 // Domain display names
@@ -137,14 +136,6 @@ function FacetSlider({ facet, calculatedValue, adjustedValue, onAdjust, compact 
   );
 }
 
-FacetSlider.propTypes = {
-  facet: PropTypes.object.isRequired,
-  calculatedValue: PropTypes.number.isRequired,
-  adjustedValue: PropTypes.number,
-  onAdjust: PropTypes.func.isRequired,
-  compact: PropTypes.bool
-};
-
 /**
  * Domain section with collapsible facets
  */
@@ -236,14 +227,6 @@ function DomainSection({ domain, facets, calculatedFacets, adjustedFacets, onAdj
     </div>
   );
 }
-
-DomainSection.propTypes = {
-  domain: PropTypes.string.isRequired,
-  facets: PropTypes.array.isRequired,
-  calculatedFacets: PropTypes.array.isRequired,
-  adjustedFacets: PropTypes.array.isRequired,
-  onAdjust: PropTypes.func.isRequired
-};
 
 /**
  * Main Personality Feedback Component
@@ -512,13 +495,5 @@ export function PersonalityFeedback({
     </div>
   );
 }
-
-PersonalityFeedback.propTypes = {
-  calculatedFacets: PropTypes.arrayOf(PropTypes.number).isRequired,
-  constitutionalData: PropTypes.object.isRequired,
-  userId: PropTypes.string,
-  onSubmit: PropTypes.func,
-  onCancel: PropTypes.func
-};
 
 export default PersonalityFeedback;

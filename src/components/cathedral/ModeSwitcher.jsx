@@ -8,7 +8,6 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import PropTypes from 'prop-types';
 import { useMode, CATHEDRAL_MODES, MODE_MATRIX } from './modeSystem';
 
 // ============================================================================
@@ -354,12 +353,6 @@ const ModeSwitcher = ({
       {showInfo && <ModeInfoPanel mode={mode} effects={effects} />}
     </div>
   );
-};
-
-ModeSwitcher.propTypes = {
-  variant: PropTypes.oneOf(['full', 'compact', 'dropdown']),
-  showInfo: PropTypes.bool,
-  className: PropTypes.string,
 };
 
 export default ModeSwitcher;

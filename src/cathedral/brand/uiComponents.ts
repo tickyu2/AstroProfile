@@ -553,7 +553,7 @@ export const RITUAL_COMPONENTS: ComponentSpec[] = [
     props: [
       { name: 'stages', type: 'JourneyStage[]', required: true, description: 'Journey stages' },
       { name: 'currentStage', type: 'number', required: true, description: 'Current stage index' },
-      { name: 'onStageComplete', type: '(stage: number, data: any) => void', required: true, description: 'Stage completion handler' },
+      { name: 'onStageComplete', type: '(stage: number, data: Record<string, unknown>) => void', required: true, description: 'Stage completion handler' },
       { name: 'onComplete', type: '(archetype: ArchetypeConstellation) => void', required: true, description: 'Flow completion handler' },
     ],
   },

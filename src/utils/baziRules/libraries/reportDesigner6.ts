@@ -68,7 +68,7 @@ export interface SyncEvent {
   type: SyncEventType;
   authorId: string;
   sectionId?: string;
-  payload: any;
+  payload: unknown;
   timestamp: number;
   workspaceId: string;
 }

@@ -10,8 +10,6 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
-
 // ========================================
 // CATEGORY COLORS
 // ========================================
@@ -81,13 +79,6 @@ function RuleSlider({ rule, value, onChange, showDetails = true }) {
   );
 }
 
-RuleSlider.propTypes = {
-  rule: PropTypes.object.isRequired,
-  value: PropTypes.number.isRequired,
-  onChange: PropTypes.func.isRequired,
-  showDetails: PropTypes.bool
-};
-
 // ========================================
 // CATEGORY GROUP
 // ========================================
@@ -130,15 +121,6 @@ function CategoryGroup({ category, rules, weights, onChange, collapsed, onToggle
     </div>
   );
 }
-
-CategoryGroup.propTypes = {
-  category: PropTypes.string.isRequired,
-  rules: PropTypes.array.isRequired,
-  weights: PropTypes.object.isRequired,
-  onChange: PropTypes.func.isRequired,
-  collapsed: PropTypes.bool,
-  onToggle: PropTypes.func.isRequired
-};
 
 // ========================================
 // OUTCOME PREVIEW
@@ -194,11 +176,6 @@ function OutcomePreview({ original, adjusted }) {
     </div>
   );
 }
-
-OutcomePreview.propTypes = {
-  original: PropTypes.object,
-  adjusted: PropTypes.object
-};
 
 // ========================================
 // MAIN RULE TUNER
@@ -358,16 +335,6 @@ function RuleTuner({
     </div>
   );
 }
-
-RuleTuner.propTypes = {
-  rules: PropTypes.array.isRequired,
-  initialWeights: PropTypes.object,
-  originalBreakdown: PropTypes.object,
-  onWeightsChange: PropTypes.func,
-  onRecompute: PropTypes.func,
-  adjustedBreakdown: PropTypes.object,
-  className: PropTypes.string
-};
 
 // ========================================
 // STYLES

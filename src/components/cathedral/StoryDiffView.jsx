@@ -10,8 +10,6 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import PropTypes from 'prop-types';
-
 // ========================================
 // BEAT DIFF ITEM
 // ========================================
@@ -42,12 +40,6 @@ function BeatDiffItem({ beat, type, onSelect }) {
     </div>
   );
 }
-
-BeatDiffItem.propTypes = {
-  beat: PropTypes.object.isRequired,
-  type: PropTypes.oneOf(['added', 'removed', 'modified']).isRequired,
-  onSelect: PropTypes.func
-};
 
 // ========================================
 // EMOTIONAL ARC CHART
@@ -100,12 +92,6 @@ function EmotionalArcChart({ before, after, shift }) {
   );
 }
 
-EmotionalArcChart.propTypes = {
-  before: PropTypes.arrayOf(PropTypes.number).isRequired,
-  after: PropTypes.arrayOf(PropTypes.number).isRequired,
-  shift: PropTypes.arrayOf(PropTypes.number).isRequired
-};
-
 // ========================================
 // OVERLAY CHANGES
 // ========================================
@@ -146,11 +132,6 @@ function OverlayChanges({ added, removed }) {
   );
 }
 
-OverlayChanges.propTypes = {
-  added: PropTypes.arrayOf(PropTypes.string).isRequired,
-  removed: PropTypes.arrayOf(PropTypes.string).isRequired
-};
-
 // ========================================
 // SIGNIFICANT CHANGES SUMMARY
 // ========================================
@@ -171,10 +152,6 @@ function SignificantChanges({ changes }) {
     </div>
   );
 }
-
-SignificantChanges.propTypes = {
-  changes: PropTypes.arrayOf(PropTypes.string).isRequired
-};
 
 // ========================================
 // MAIN STORY DIFF VIEW
@@ -282,28 +259,6 @@ function StoryDiffView({
     </div>
   );
 }
-
-StoryDiffView.propTypes = {
-  diff: PropTypes.shape({
-    dateA: PropTypes.string.isRequired,
-    dateB: PropTypes.string.isRequired,
-    beatsAdded: PropTypes.array.isRequired,
-    beatsRemoved: PropTypes.array.isRequired,
-    beatsModified: PropTypes.array.isRequired,
-    emotionalShift: PropTypes.array.isRequired,
-    timingShift: PropTypes.array.isRequired,
-    overlaysAdded: PropTypes.array.isRequired,
-    overlaysRemoved: PropTypes.array.isRequired,
-    outcomeChanged: PropTypes.bool.isRequired,
-    previousOutcome: PropTypes.string.isRequired,
-    newOutcome: PropTypes.string.isRequired,
-    significantChanges: PropTypes.array.isRequired
-  }).isRequired,
-  cockpitA: PropTypes.object,
-  cockpitB: PropTypes.object,
-  onBeatSelect: PropTypes.func,
-  className: PropTypes.string
-};
 
 // ========================================
 // HELPER

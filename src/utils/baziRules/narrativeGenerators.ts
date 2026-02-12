@@ -6,11 +6,29 @@
  * ============================================
  */
 
-import { ClassicalEdgeCaseResult } from './types';
+import type {
+  ClassicalEdgeCaseResult,
+  StructureRule,
+  UsefulGodEvaluation,
+  LuckPillarEvaluation,
+  DetectedClash,
+  DetectedHarm,
+  DetectedPunishment,
+  PillarPosition,
+  HiddenStem
+} from './types';
+
+// Inline types for evaluated items from ClassicalEdgeCaseResult
+type CombinationItem = ClassicalEdgeCaseResult['combinations']['combinations'][number];
+type ClashItem = ClassicalEdgeCaseResult['clashHarmPunishment']['clashes'][number];
+type HarmItem = ClassicalEdgeCaseResult['clashHarmPunishment']['harms'][number];
+type PunishmentItem = ClassicalEdgeCaseResult['clashHarmPunishment']['punishments'][number];
+type HiddenStemItem = ClassicalEdgeCaseResult['hiddenStems']['stems'][number];
+type ClashHarmPunishmentInteraction = ClashItem | HarmItem | PunishmentItem;
 
 // ==================== STRUCTURE NARRATIVES ====================
 
-export function buildStructurePersonaHook(rule: any, result: ClassicalEdgeCaseResult): string {
+export function buildStructurePersonaHook(rule: StructureRule, result: ClassicalEdgeCaseResult): string {
   const hooks: Record<string, string> = {
     'fake_follow_wealth': '我看见财星汹涌，却知你并非真正随财之命，而是身弱被财所逼。表面的富贵之象，实藏着内心的挣扎。',
     'pseudo_cong_officer': '你似乎想要追随官星，但根气未断，我知你并非真随。此格不稳，需要谨慎对待。',
@@ -26,7 +44,7 @@ export function buildStructurePersonaHook(rule: any, result: ClassicalEdgeCaseRe
   return hooks[rule.id] || '在此处，我微调了你的格局，使之更贴近命局本真。';
 }
 
-export function buildStructureJourneyHint(rule: any, result: ClassicalEdgeCaseResult): string {
+export function buildStructureJourneyHint(rule: StructureRule, result: ClassicalEdgeCaseResult): string {
   const hints: Record<string, string> = {
     'fake_follow_wealth': 'In the Structure Chamber, I reveal to you: though wealth stars abound, this is not a true follow-wealth destiny. You will learn how to maintain your core self while navigating external pressures, rather than blindly chasing material success.',
     'pseudo_cong_officer': 'In the Structure Chamber, we see an almost-but-not-quite surrender to authority. Your hidden root keeps you tethered to self. Here you will learn to balance compliance with autonomy.',
@@ -41,7 +59,7 @@ export function buildStructureJourneyHint(rule: any, result: ClassicalEdgeCaseRe
 
 // ==================== COMBINATION NARRATIVES ====================
 
-export function buildCombinationPersonaHook(combo: any, result: ClassicalEdgeCaseResult): string {
+export function buildCombinationPersonaHook(combo: CombinationItem, result: ClassicalEdgeCaseResult): string {
   const type = combo.combination?.type || combo.type;
   const status = combo.finalStatus;
 
@@ -66,7 +84,7 @@ export function buildCombinationPersonaHook(combo: any, result: ClassicalEdgeCas
   return '此组合影响着你命局中的气场流动。';
 }
 
-export function buildCombinationJourneyHint(combo: any, result: ClassicalEdgeCaseResult): string {
+export function buildCombinationJourneyHint(combo: CombinationItem, result: ClassicalEdgeCaseResult): string {
   const status = combo.finalStatus;
 
   if (status === 'transformed') {
@@ -82,7 +100,7 @@ export function buildCombinationJourneyHint(combo: any, result: ClassicalEdgeCas
 
 // ==================== USEFUL GOD NARRATIVES ====================
 
-export function buildUsefulGodPersonaHook(ug: any, result: ClassicalEdgeCaseResult): string {
+export function buildUsefulGodPersonaHook(ug: UsefulGodEvaluation, result: ClassicalEdgeCaseResult): string {
   const element = ug.primaryUsefulGod;
   const status = ug.status;
 
@@ -111,7 +129,7 @@ export function buildUsefulGodPersonaHook(ug: any, result: ClassicalEdgeCaseResu
   return `用神${elementChinese}是你命局的关键，需要细心呵护。`;
 }
 
-export function buildUsefulGodJourneyHint(ug: any, result: ClassicalEdgeCaseResult): string {
+export function buildUsefulGodJourneyHint(ug: UsefulGodEvaluation, result: ClassicalEdgeCaseResult): string {
   const status = ug.status;
 
   if (status === 'active') {
@@ -131,9 +149,9 @@ export function buildUsefulGodJourneyHint(ug: any, result: ClassicalEdgeCaseResu
 
 // ==================== CLASH NARRATIVES ====================
 
-export function buildClashPersonaHook(interaction: any, result: ClassicalEdgeCaseResult): string {
+export function buildClashPersonaHook(interaction: ClashHarmPunishmentInteraction, result: ClassicalEdgeCaseResult): string {
   // Handle clash
-  if (interaction.clash) {
+  if ('clash' in interaction) {
     const pair = interaction.clash.pair;
     if (interaction.effect === 'beneficial') {
       return `${pair.join('')}相冲，看似凶险，实则驱散了你命中的忌神。有时，冲突恰是解药。`;
@@ -142,12 +160,12 @@ export function buildClashPersonaHook(interaction: any, result: ClassicalEdgeCas
   }
 
   // Handle harm
-  if (interaction.harm) {
+  if ('harm' in interaction) {
     return `${interaction.harm.pair.join('')}相害，暗中生嫌。此为隐患，表面无恙，内里有伤。`;
   }
 
   // Handle punishment
-  if (interaction.punishment) {
+  if ('punishment' in interaction) {
     const type = interaction.punishment.type;
     if (type === 'three_unkindness') {
       return '寅巳申三刑，无恩之刑也。此刑主恩将仇报、知恩不报之事。需修心养德以化之。';
@@ -163,19 +181,19 @@ export function buildClashPersonaHook(interaction: any, result: ClassicalEdgeCas
   return '此处有气场冲突，需要留意应对。';
 }
 
-export function buildClashJourneyHint(interaction: any, result: ClassicalEdgeCaseResult): string {
-  if (interaction.clash) {
+export function buildClashJourneyHint(interaction: ClashHarmPunishmentInteraction, result: ClassicalEdgeCaseResult): string {
+  if ('clash' in interaction) {
     if (interaction.effect === 'beneficial') {
       return 'In the Clash & Conflict Court, we discover a surprising truth: this clash serves you well. Like surgery that heals, this conflict removes what harms you.';
     }
     return 'In the Clash & Conflict Court, we face the tensions woven into your destiny. These are not curses but teachers - here you learn to navigate conflict with wisdom.';
   }
 
-  if (interaction.harm) {
+  if ('harm' in interaction) {
     return 'In the Clash & Conflict Court, we uncover hidden frictions. Six Harm relationships work beneath the surface - awareness is your first defense.';
   }
 
-  if (interaction.punishment) {
+  if ('punishment' in interaction) {
     return 'In the Clash & Conflict Court, we confront the deepest lessons. Punishment patterns speak to karmic themes that call for conscious growth and transformation.';
   }
 
@@ -223,7 +241,7 @@ export function buildSeasonalJourneyHint(element: string, modifier: number, resu
 
 // ==================== HIDDEN STEM NARRATIVES ====================
 
-export function buildHiddenStemPersonaHook(stem: any, result: ClassicalEdgeCaseResult): string {
+export function buildHiddenStemPersonaHook(stem: HiddenStemItem, result: ClassicalEdgeCaseResult): string {
   const status = stem.status;
   const element = stem.stem.element;
   const pillar = stem.pillar;
@@ -258,7 +276,7 @@ export function buildHiddenStemPersonaHook(stem: any, result: ClassicalEdgeCaseR
   return `${pillarChinese}支中藏有${elementChinese}气，暗中影响着你的命运。`;
 }
 
-export function buildHiddenStemJourneyHint(stem: any, result: ClassicalEdgeCaseResult): string {
+export function buildHiddenStemJourneyHint(stem: HiddenStemItem, result: ClassicalEdgeCaseResult): string {
   const status = stem.status;
 
   if (status === 'active') {
@@ -282,7 +300,7 @@ export function buildHiddenStemJourneyHint(stem: any, result: ClassicalEdgeCaseR
 
 // ==================== LUCK PILLAR NARRATIVES ====================
 
-export function buildLuckPillarPersonaHook(lp: any, result: ClassicalEdgeCaseResult): string {
+export function buildLuckPillarPersonaHook(lp: LuckPillarEvaluation, result: ClassicalEdgeCaseResult): string {
   const quality = lp.periodQuality;
 
   if (quality === 'favorable') {
@@ -304,7 +322,7 @@ export function buildLuckPillarPersonaHook(lp: any, result: ClassicalEdgeCaseRes
   return '大运流转，影响着你这十年的命运走向。';
 }
 
-export function buildLuckPillarJourneyHint(lp: any, result: ClassicalEdgeCaseResult): string {
+export function buildLuckPillarJourneyHint(lp: LuckPillarEvaluation, result: ClassicalEdgeCaseResult): string {
   const quality = lp.periodQuality;
 
   if (quality === 'favorable') {

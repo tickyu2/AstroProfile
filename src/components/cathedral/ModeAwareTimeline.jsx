@@ -13,7 +13,6 @@
  */
 
 import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
 import { useMode, CATHEDRAL_MODES } from './modeSystem';
 
 // ============================================================================
@@ -516,32 +515,6 @@ const ModeAwareTimeline = ({
       `}</style>
     </div>
   );
-};
-
-ModeAwareTimeline.propTypes = {
-  events: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      description: PropTypes.string,
-      mythicLabel: PropTypes.string,
-      academicLabel: PropTypes.string,
-      technicalLabel: PropTypes.string,
-      strategicLabel: PropTypes.string,
-      narrative: PropTypes.string,
-      analysis: PropTypes.string,
-      technicalNote: PropTypes.string,
-      strategicBrief: PropTypes.string,
-      annotation: PropTypes.string,
-      metrics: PropTypes.object,
-      isDecisionPoint: PropTypes.bool,
-      decisionPrompt: PropTypes.string,
-      completed: PropTypes.bool,
-    })
-  ),
-  currentEventId: PropTypes.string,
-  onEventClick: PropTypes.func,
-  className: PropTypes.string,
 };
 
 // ============================================================================

@@ -10,7 +10,6 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import PropTypes from 'prop-types';
 import OutcomeTimeline from './OutcomeTimeline';
 import RelationshipDevToolsOverlay from './RelationshipDevTools';
 
@@ -51,10 +50,6 @@ function AlignmentIndicator({ alignment }) {
   );
 }
 
-AlignmentIndicator.propTypes = {
-  alignment: PropTypes.number.isRequired
-};
-
 // ========================================
 // COMPARISON HEADER
 // ========================================
@@ -80,11 +75,6 @@ function ComparisonHeader({ left, right }) {
     </div>
   );
 }
-
-ComparisonHeader.propTypes = {
-  left: PropTypes.object.isRequired,
-  right: PropTypes.object.isRequired
-};
 
 // ========================================
 // MAIN COMPARE COMPONENT
@@ -223,17 +213,6 @@ function CompareTimelines({
     </div>
   );
 }
-
-CompareTimelines.propTypes = {
-  comparison: PropTypes.shape({
-    left: PropTypes.object.isRequired,
-    right: PropTypes.object.isRequired,
-    alignment: PropTypes.number.isRequired
-  }).isRequired,
-  syncPlayback: PropTypes.bool,
-  showDevTools: PropTypes.bool,
-  className: PropTypes.string
-};
 
 // ========================================
 // HELPER FUNCTIONS

@@ -10,7 +10,6 @@
  */
 
 import React from 'react';
-import PropTypes from 'prop-types';
 
 // ========================================
 // SCORE BAR COMPONENT
@@ -47,14 +46,6 @@ function ScoreBar({ label, value, min = -0.5, max = 0.5, color = 'gold' }) {
     </div>
   );
 }
-
-ScoreBar.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.number.isRequired,
-  min: PropTypes.number,
-  max: PropTypes.number,
-  color: PropTypes.string
-};
 
 // ========================================
 // MAIN DEVTOOLS OVERLAY
@@ -206,23 +197,6 @@ function RelationshipDevToolsOverlay({ breakdown, isOpen = true, onClose }) {
   );
 }
 
-RelationshipDevToolsOverlay.propTypes = {
-  breakdown: PropTypes.shape({
-    baseScore: PropTypes.number.isRequired,
-    iap: PropTypes.number.isRequired,
-    iapTier: PropTypes.string.isRequired,
-    retroDecisionDelta: PropTypes.number.isRequired,
-    retroSynastryDelta: PropTypes.number.isRequired,
-    autonomyBoost: PropTypes.number.isRequired,
-    finalScore: PropTypes.number.isRequired,
-    outcome: PropTypes.string.isRequired,
-    retrogradeCount: PropTypes.number.isRequired,
-    retrogradePlanets: PropTypes.arrayOf(PropTypes.string).isRequired
-  }),
-  isOpen: PropTypes.bool,
-  onClose: PropTypes.func
-};
-
 // ========================================
 // COMPACT DEVTOOLS (for inline display)
 // ========================================
@@ -244,10 +218,6 @@ export function DevToolsCompact({ breakdown }) {
     </div>
   );
 }
-
-DevToolsCompact.propTypes = {
-  breakdown: PropTypes.object
-};
 
 // ========================================
 // DEVTOOLS CSS

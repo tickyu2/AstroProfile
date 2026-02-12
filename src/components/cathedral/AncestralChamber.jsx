@@ -8,8 +8,6 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import PropTypes from 'prop-types';
-
 // Chamber Components
 import GenerationalConstellation from './GenerationalConstellation';
 import AncestralHealingRitual from './AncestralHealingRitual';
@@ -459,20 +457,6 @@ const AncestralChamber = ({
       `}</style>
     </section>
   );
-};
-
-AncestralChamber.propTypes = {
-  overlays: PropTypes.shape({
-    constellationNodes: PropTypes.array,
-    ritualPattern: PropTypes.object,
-    storyData: PropTypes.object,
-    initiationData: PropTypes.object,
-  }),
-  pilgrimName: PropTypes.string,
-  personaRole: PropTypes.oneOf(['mentor', 'oracle', 'companion', 'mirror']),
-  onComplete: PropTypes.func,
-  onStageChange: PropTypes.func,
-  initialStage: PropTypes.oneOf(['constellation', 'ritual', 'story', 'initiation', 'complete']),
 };
 
 export default AncestralChamber;

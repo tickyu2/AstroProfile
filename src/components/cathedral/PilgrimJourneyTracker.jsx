@@ -10,7 +10,6 @@
  */
 
 import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
 
 // ========================================
 // JOURNEY STEPS DATA
@@ -112,19 +111,6 @@ function JourneyStep({ step, status, showDescription, compact }) {
     </li>
   );
 }
-
-JourneyStep.propTypes = {
-  step: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
-    description: PropTypes.string,
-    icon: PropTypes.string,
-    colorClass: PropTypes.string
-  }).isRequired,
-  status: PropTypes.oneOf(['passed', 'active', 'upcoming']).isRequired,
-  showDescription: PropTypes.bool,
-  compact: PropTypes.bool
-};
 
 // ========================================
 // MAIN TRACKER COMPONENT
@@ -228,17 +214,6 @@ function PilgrimJourneyTracker({
   );
 }
 
-PilgrimJourneyTracker.propTypes = {
-  currentOutcome: PropTypes.oneOf(['DoNow', 'GoodWindow', 'Neutral', 'Delay', 'Avoid']),
-  currentStepId: PropTypes.string,
-  passedStepIds: PropTypes.arrayOf(PropTypes.string),
-  showDescriptions: PropTypes.bool,
-  showProgress: PropTypes.bool,
-  compact: PropTypes.bool,
-  vertical: PropTypes.bool,
-  className: PropTypes.string
-};
-
 // ========================================
 // MINI TRACKER (Compact version)
 // ========================================
@@ -256,11 +231,6 @@ export function PilgrimJourneyMini({ currentOutcome, className = '' }) {
     </div>
   );
 }
-
-PilgrimJourneyMini.propTypes = {
-  currentOutcome: PropTypes.oneOf(['DoNow', 'GoodWindow', 'Neutral', 'Delay', 'Avoid']),
-  className: PropTypes.string
-};
 
 // ========================================
 // CHAMBER INFO COMPONENT
@@ -355,12 +325,6 @@ export function ChamberInfo({ stepId, currentOutcome, className = '' }) {
     </div>
   );
 }
-
-ChamberInfo.propTypes = {
-  stepId: PropTypes.string,
-  currentOutcome: PropTypes.oneOf(['DoNow', 'GoodWindow', 'Neutral', 'Delay', 'Avoid']),
-  className: PropTypes.string
-};
 
 // ========================================
 // EXPORTS

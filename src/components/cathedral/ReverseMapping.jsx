@@ -10,8 +10,6 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import PropTypes from 'prop-types';
-
 // ========================================
 // RULE CATEGORY COLORS
 // ========================================
@@ -99,11 +97,6 @@ function RuleCard({ rule, contribution }) {
   );
 }
 
-RuleCard.propTypes = {
-  rule: PropTypes.object.isRequired,
-  contribution: PropTypes.object
-};
-
 // ========================================
 // STORY BEAT INSPECTOR
 // ========================================
@@ -152,12 +145,6 @@ function StoryBeatInspector({ beat, rules, contributions }) {
   );
 }
 
-StoryBeatInspector.propTypes = {
-  beat: PropTypes.object,
-  rules: PropTypes.array.isRequired,
-  contributions: PropTypes.array
-};
-
 // ========================================
 // BEATS LIST
 // ========================================
@@ -200,12 +187,6 @@ function BeatsList({ beats, selectedBeat, onSelect }) {
     </div>
   );
 }
-
-BeatsList.propTypes = {
-  beats: PropTypes.array.isRequired,
-  selectedBeat: PropTypes.object,
-  onSelect: PropTypes.func.isRequired
-};
 
 // ========================================
 // MAIN REVERSE MAPPING COMPONENT
@@ -255,13 +236,6 @@ function ReverseMapping({
     </div>
   );
 }
-
-ReverseMapping.propTypes = {
-  cockpit: PropTypes.object,
-  rules: PropTypes.array.isRequired,
-  contributions: PropTypes.array,
-  className: PropTypes.string
-};
 
 // ========================================
 // STYLES

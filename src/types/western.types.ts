@@ -371,7 +371,7 @@ export interface MatchScoreResultWithWestern {
     alpha: number;
     beta: number;
     gamma: number;  // NEW: Western weight
-    neo_details: any;
+    neo_details: Record<string, unknown>;
     bazi_raw: number;
     bazi_adjusted: number;
     western_raw: number;  // NEW
@@ -442,7 +442,7 @@ export interface WesternExplainL2 {
   level: 'L2';
   formulas: Record<string, string>;
   coefficients: Record<string, Record<string, number>>;
-  computedValues: Record<string, any>;
+  computedValues: Record<string, unknown>;
 }
 
 export interface WesternExplainL3 {

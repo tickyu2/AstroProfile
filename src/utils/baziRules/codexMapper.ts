@@ -26,8 +26,25 @@ import {
   SeasonalRule,
   HiddenStemRule,
   LuckPillarRule,
-  RuleMatch
+  RuleMatch,
+  BaseRule,
+  Element,
+  UsefulGodEvaluation,
+  LuckPillarEvaluation,
+  DetectedClash,
+  DetectedHarm,
+  DetectedPunishment,
+  DetectedCombination,
+  HiddenStem,
+  PillarPosition
 } from './types';
+
+// Inline types for evaluated items from ClassicalEdgeCaseResult
+type CombinationItem = ClassicalEdgeCaseResult['combinations']['combinations'][number];
+type ClashItem = ClassicalEdgeCaseResult['clashHarmPunishment']['clashes'][number];
+type HarmItem = ClassicalEdgeCaseResult['clashHarmPunishment']['harms'][number];
+type PunishmentItem = ClassicalEdgeCaseResult['clashHarmPunishment']['punishments'][number];
+type HiddenStemItem = ClassicalEdgeCaseResult['hiddenStems']['stems'][number];
 
 // Import rule JSON files
 import structuresJson from '../../data/rules/structures.json';
@@ -316,7 +333,7 @@ function buildClashHarmPunishmentEntries(result: ClassicalEdgeCaseResult): Codex
       severity: 'minor',
       effect: 'challenging',
       confidence: 80,
-      personaHook: buildClashPersonaHook(harm as any, result),
+      personaHook: buildClashPersonaHook(harm, result),
       journeyStepHint: 'In the Court of Conflicts, we acknowledge hidden frictions that shape your path.',
       journeyChamber: 'Clash & Conflict Court',
       iconHint: '🔄'
@@ -343,7 +360,7 @@ function buildClashHarmPunishmentEntries(result: ClassicalEdgeCaseResult): Codex
       severity: punishment.severity === 'high' ? 'significant' : 'moderate',
       effect: 'challenging',
       confidence: punishment.punishment.complete ? 90 : 70,
-      personaHook: buildClashPersonaHook(punishment as any, result),
+      personaHook: buildClashPersonaHook(punishment, result),
       journeyStepHint: 'In the Court of Conflicts, we face the deeper lessons of punishment patterns.',
       journeyChamber: 'Clash & Conflict Court',
       iconHint: '⚠️'
@@ -549,7 +566,7 @@ function generateClosingNarrative(summary: KnowledgeCodex['summary'], result: Cl
   return `You have journeyed through ${summary.totalFindings} chambers of wisdom. Remember: the chart reveals tendencies, not fate. Your awareness transforms destiny into choice.`;
 }
 
-function calculateConfidence(match: RuleMatch<any>): number {
+function calculateConfidence(match: RuleMatch<BaseRule>): number {
   return Math.min(95, 70 + match.matchedConditions.length * 5);
 }
 
@@ -655,42 +672,42 @@ function determineStructureEffect(rule: StructureRule): CodexEffect {
 }
 
 // Additional placeholder helpers
-function describeCombinationSummary(combo: any): string {
+function describeCombinationSummary(combo: CombinationItem): string {
   return `${combo.combination.participants.join(' and ')} form a ${combo.combination.type} with status: ${combo.finalStatus}`;
 }
 
-function describeCombinationTechnical(combo: any): string {
+function describeCombinationTechnical(combo: CombinationItem): string {
   return `Type: ${combo.combination.type}, Result Element: ${combo.combination.resultElement || 'N/A'}`;
 }
 
-function interpretCombinationEffect(combo: any): string {
+function interpretCombinationEffect(combo: CombinationItem): string {
   if (combo.finalStatus === 'transformed') return 'These branches have merged their energies into a unified force.';
   if (combo.finalStatus === 'broken') return 'This combination was disrupted by conflicting forces in your chart.';
   return 'These branches share an affinity but have not fully transformed.';
 }
 
-function buildCombinationRecommendations(combo: any): string[] {
+function buildCombinationRecommendations(combo: CombinationItem): string[] {
   if (combo.finalStatus === 'transformed') {
     return [`Leverage the unified ${combo.combination.resultElement} energy`];
   }
   return ['Monitor this combination during favorable luck pillars'];
 }
 
-function describeUsefulGodSummary(ug: any): string {
+function describeUsefulGodSummary(ug: UsefulGodEvaluation): string {
   return `Your useful god (${ug.primaryUsefulGod}) is ${ug.status} at ${ug.effectivenessPercent}% effectiveness.`;
 }
 
-function describeUsefulGodTechnical(ug: any): string {
+function describeUsefulGodTechnical(ug: UsefulGodEvaluation): string {
   return `Element: ${ug.primaryUsefulGod}, Status: ${ug.status}, Effectiveness: ${ug.effectivenessPercent}%`;
 }
 
-function interpretUsefulGodEffect(ug: any): string {
+function interpretUsefulGodEffect(ug: UsefulGodEvaluation): string {
   if (ug.status === 'active') return 'Your guiding element is functioning well and provides balance.';
   if (ug.status === 'blocked') return 'Your useful god is obstructed - seek alternative paths.';
   return 'Your useful god needs support to function optimally.';
 }
 
-function buildUsefulGodRecommendations(ug: any): string[] {
+function buildUsefulGodRecommendations(ug: UsefulGodEvaluation): string[] {
   const recs: string[] = [];
   recs.push(`Strengthen ${ug.primaryUsefulGod} through colors, directions, and timing`);
   if (ug.secondaryUsefulGod) {
@@ -699,38 +716,38 @@ function buildUsefulGodRecommendations(ug: any): string[] {
   return recs;
 }
 
-function describeClashSummary(clash: any): string {
+function describeClashSummary(clash: ClashItem): string {
   return `${clash.clash.pair.join(' and ')} are in direct opposition (${clash.clash.strength} strength).`;
 }
 
-function describeClashTechnical(clash: any): string {
+function describeClashTechnical(clash: ClashItem): string {
   return `Positions: ${clash.clash.positions.join(' vs ')}, Strength: ${clash.clash.strength}`;
 }
 
-function interpretClashEffect(clash: any): string {
+function interpretClashEffect(clash: ClashItem): string {
   if (clash.effect === 'beneficial') return 'This clash actually helps by removing obstructive energy.';
   return 'This clash creates tension and potential disruption in the affected life areas.';
 }
 
-function buildClashRecommendations(clash: any): string[] {
+function buildClashRecommendations(clash: ClashItem): string[] {
   return ['Be mindful during clash-related timing', 'Use mediating elements to soften conflict'];
 }
 
-function describePunishmentSummary(p: any): string {
+function describePunishmentSummary(p: PunishmentItem): string {
   return `${p.punishment.participants.join(', ')} form a ${p.punishment.type} punishment pattern.`;
 }
 
-function describePunishmentTechnical(p: any): string {
+function describePunishmentTechnical(p: PunishmentItem): string {
   return `Type: ${p.punishment.type}, Complete: ${p.punishment.complete}, Severity: ${p.severity}`;
 }
 
-function interpretPunishmentEffect(p: any): string {
+function interpretPunishmentEffect(p: PunishmentItem): string {
   if (p.punishment.type === 'three_unkindness') return 'This pattern speaks to themes of ingratitude or betrayal in life lessons.';
   if (p.punishment.type === 'self') return 'This pattern indicates internal conflict and self-sabotage tendencies.';
   return 'This punishment pattern indicates karmic lessons requiring attention.';
 }
 
-function buildPunishmentRecommendations(p: any): string[] {
+function buildPunishmentRecommendations(p: PunishmentItem): string[] {
   return ['Practice self-awareness around punishment themes', 'Use mindfulness to break negative patterns'];
 }
 
@@ -754,36 +771,36 @@ function buildSeasonalRecommendations(element: string, isWeak: boolean, supportN
   return recs;
 }
 
-function describeHiddenStemSummary(stem: any): string {
+function describeHiddenStemSummary(stem: HiddenStemItem): string {
   return `Hidden ${stem.stem.stem} (${stem.stem.element}) in ${stem.pillar} pillar is ${stem.status} at ${stem.effectiveStrength}% strength.`;
 }
 
-function describeHiddenStemTechnical(stem: any): string {
+function describeHiddenStemTechnical(stem: HiddenStemItem): string {
   return `Type: ${stem.stem.type}, Base: ${stem.stem.percentage}%, Effective: ${stem.effectiveStrength}%`;
 }
 
-function interpretHiddenStemEffect(stem: any): string {
+function interpretHiddenStemEffect(stem: HiddenStemItem): string {
   if (stem.status === 'disrupted') return 'This hidden energy is disturbed by external conflicts.';
   if (stem.status === 'dormant') return 'This hidden energy awaits activation by favorable timing.';
   return 'This hidden energy provides underground support to your chart.';
 }
 
-function buildHiddenStemRecommendations(stem: any): string[] {
+function buildHiddenStemRecommendations(stem: HiddenStemItem): string[] {
   if (stem.status === 'dormant') {
     return ['Watch for luck pillars that activate this hidden element'];
   }
   return ['Acknowledge the hidden influence in relevant life areas'];
 }
 
-function describeLuckPillarSummary(lp: any): string {
+function describeLuckPillarSummary(lp: LuckPillarEvaluation): string {
   return `Current luck pillar period quality: ${lp.periodQuality}`;
 }
 
-function describeLuckPillarTechnical(lp: any): string {
+function describeLuckPillarTechnical(lp: LuckPillarEvaluation): string {
   return `Activated patterns: ${lp.activatedPatterns.length}, Structure impact: ${lp.structureImpact || 'none'}`;
 }
 
-function interpretLuckPillarEffect(lp: any): string {
+function interpretLuckPillarEffect(lp: LuckPillarEvaluation): string {
   const desc: Record<string, string> = {
     'favorable': 'This is an auspicious period where opportunities flow more easily.',
     'neutral': 'This is a stable period without major shifts.',
@@ -793,7 +810,7 @@ function interpretLuckPillarEffect(lp: any): string {
   return desc[lp.periodQuality] || 'Navigate this period with awareness.';
 }
 
-function buildLuckPillarRecommendations(lp: any): string[] {
+function buildLuckPillarRecommendations(lp: LuckPillarEvaluation): string[] {
   const recs: string[] = [];
   if (lp.periodQuality === 'favorable') {
     recs.push('Take advantage of favorable timing for major decisions');

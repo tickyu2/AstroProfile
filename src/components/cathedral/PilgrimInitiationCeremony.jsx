@@ -17,8 +17,6 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import PropTypes from 'prop-types';
-
 // ============================================================================
 // CEREMONY STEPS CONFIGURATION
 // ============================================================================
@@ -756,18 +754,6 @@ Your Ancestors`;
       `}</style>
     </div>
   );
-};
-
-PilgrimInitiationCeremony.propTypes = {
-  pilgrimName: PropTypes.string,
-  ancestralData: PropTypes.shape({
-    lineageArchetype: PropTypes.string,
-    inheritedGift: PropTypes.string,
-    emotionalInheritance: PropTypes.string,
-    coreWound: PropTypes.string,
-  }),
-  onComplete: PropTypes.func,
-  onClose: PropTypes.func,
 };
 
 export default PilgrimInitiationCeremony;

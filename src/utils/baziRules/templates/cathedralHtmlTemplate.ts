@@ -15,7 +15,7 @@ import { formatCategory, formatSeverity, formatEffect, getSeverityIcon } from '.
 export function generateCathedralHtml(
   codex: KnowledgeCodex,
   journey: PilgrimJourney,
-  chartData?: any
+  chartData?: Record<string, unknown>
 ): string {
   return `<!DOCTYPE html>
 <html lang="en">

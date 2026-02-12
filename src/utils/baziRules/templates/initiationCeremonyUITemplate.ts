@@ -122,7 +122,7 @@ function renderPhase(phase: RitePhase | any, index: number, lang: 'en' | 'zh'): 
       </div>
 
       <div class="phase-instructions">
-        ${instructions.map((inst: any) => {
+        ${instructions.map((inst: string | { text: string; textZh?: string; action?: string }) => {
           const text = typeof inst === 'string' ? inst : (lang === 'zh' ? (inst.textZh || inst.text) : inst.text);
           const action = typeof inst === 'object' ? inst.action : null;
           return `
@@ -183,7 +183,7 @@ function renderCompletion(lang: 'en' | 'zh'): string {
 
 // ==================== HELPER FUNCTIONS ====================
 
-function getProgressPercentage(progress: any, total: number): number {
+function getProgressPercentage(progress: { currentPhaseIndex?: number; currentStageIndex?: number }, total: number): number {
   const current = 'currentPhaseIndex' in progress ? progress.currentPhaseIndex : progress.currentStageIndex;
   return Math.round((current / total) * 100);
 }

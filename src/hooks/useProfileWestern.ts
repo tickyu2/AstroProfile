@@ -31,12 +31,42 @@ export interface WesternData {
   allPlanetLongitudes: Record<string, number> | null;
 }
 
+/** Planet data from backend (sign + longitude + optional fields) */
+interface PlanetData {
+  sign?: string;
+  longitude?: number;
+  [key: string]: unknown;
+}
+
+/** Western astrology data from backend (loosely typed for API flexibility) */
+interface WesternBackendData {
+  sun?: PlanetData;
+  moon?: PlanetData;
+  sign?: string;
+  ascendant?: string | PlanetData;
+  rising?: PlanetData | string;
+  planets?: Record<string, PlanetData>;
+  houses?: Array<{ house: number; longitude: number; sign: string; degree: number }>;
+  [key: string]: unknown;
+}
+
+/** Minimal profile shape for western data extraction */
+interface ProfileRecord {
+  id: string;
+  birthDate?: string;
+  dateOfBirth?: string;
+  birthTime?: string;
+  western?: WesternBackendData;
+  calculations?: { western?: WesternBackendData };
+  [key: string]: unknown;
+}
+
 export function useProfileWestern(
-  profiles: any[] | null | undefined,
+  profiles: ProfileRecord[] | null | undefined,
   profileId: string
 ) {
   const selectedProfile = useMemo(() => {
-    return profiles?.find((p: any) => p.id === profileId) || null;
+    return profiles?.find((p) => p.id === profileId) || null;
   }, [profiles, profileId]);
 
   const profileWestern = useMemo((): WesternData | null => {
@@ -45,17 +75,18 @@ export function useProfileWestern(
     if (!western) return null;
 
     const ascendant = western.ascendant;
+    const rising = western.rising;
     const risingSign = typeof ascendant === 'string'
       ? ascendant
-      : (ascendant?.sign || western.rising?.sign || western.rising || null);
+      : (ascendant?.sign || (typeof rising === 'object' ? rising?.sign : rising) || null);
 
-    const planets = western.planets || {};
+    const planets: Record<string, PlanetData> = western.planets || {};
 
     // Extract house cusps (12 cusps from Python backend)
     const rawHouses = western.houses;
     const houseCusps: HouseCuspData[] | null =
       Array.isArray(rawHouses) && rawHouses.length >= 12
-        ? rawHouses.map((h: any) => ({
+        ? rawHouses.map((h: { house: number; longitude: number; sign: string; degree: number }) => ({
             house: h.house as number,
             longitude: h.longitude as number,
             sign: h.sign as string,

@@ -173,7 +173,7 @@ export interface ShenShaPresence {
 // ==================== RULE DEFINITIONS ====================
 
 export interface RuleCondition {
-  [key: string]: any;  // Flexible condition matching
+  [key: string]: unknown;  // Flexible condition matching
 }
 
 export interface BaseRule {

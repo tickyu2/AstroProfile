@@ -346,7 +346,7 @@ function buildSeasonalAlignmentParagraph(
   return `The ${seasonalInfluence.season} season has neutral effect on your chart. ${seasonInfo.wisdom}`;
 }
 
-function buildConflictsParagraph(monthly: MonthlyLuckFavorability, conflicts: any[]): string {
+function buildConflictsParagraph(monthly: MonthlyLuckFavorability, conflicts: Array<{ severity: string; description: string }>): string {
   const majorConflicts = conflicts.filter(c => c.severity === 'major');
 
   if (majorConflicts.length > 0) {

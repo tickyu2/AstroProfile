@@ -8,8 +8,6 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
-
 // Route configuration
 import {
   PILGRIM_ROUTES,
@@ -502,15 +500,6 @@ const PilgrimJourneyRouter = ({
       `}</style>
     </div>
   );
-};
-
-PilgrimJourneyRouter.propTypes = {
-  userId: PropTypes.string.isRequired,
-  overlays: PropTypes.object,
-  personaRole: PropTypes.oneOf(['mentor', 'oracle', 'companion', 'mirror']),
-  showPathSelector: PropTypes.bool,
-  showProgressBar: PropTypes.bool,
-  onJourneyComplete: PropTypes.func,
 };
 
 export default PilgrimJourneyRouter;

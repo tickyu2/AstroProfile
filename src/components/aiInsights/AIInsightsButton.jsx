@@ -130,7 +130,7 @@ export default function AIInsightsButton({ profile }) {
   // Enhance with Claude API (force AI generation)
   const handleEnhanceWithAI = async () => {
     if (!isAPIAvailable) {
-      setError('Claude API key not configured. Add VITE_ANTHROPIC_API_KEY to .env.local');
+      setError('Claude API not available. Please sign in and try again.');
       return;
     }
 

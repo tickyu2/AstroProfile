@@ -10,7 +10,6 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import PropTypes from 'prop-types';
 
 // ========================================
 // OUTCOME COLOR MAPPING
@@ -111,16 +110,6 @@ function TimelinePoint({
   );
 }
 
-TimelinePoint.propTypes = {
-  point: PropTypes.object.isRequired,
-  isActive: PropTypes.bool,
-  showHeatmap: PropTypes.bool,
-  heatmapIntensity: PropTypes.number,
-  onClick: PropTypes.func,
-  onHover: PropTypes.func,
-  compact: PropTypes.bool
-};
-
 // ========================================
 // ZOOM CONTROLS
 // ========================================
@@ -143,11 +132,6 @@ function ZoomControls({ zoom, onZoomChange }) {
     </div>
   );
 }
-
-ZoomControls.propTypes = {
-  zoom: PropTypes.oneOf(['day', 'week', 'month']).isRequired,
-  onZoomChange: PropTypes.func.isRequired
-};
 
 // ========================================
 // PLAYBACK CONTROLS
@@ -200,15 +184,6 @@ function PlaybackControls({
     </div>
   );
 }
-
-PlaybackControls.propTypes = {
-  isPlaying: PropTypes.bool.isRequired,
-  onPlayPause: PropTypes.func.isRequired,
-  onStepBack: PropTypes.func.isRequired,
-  onStepForward: PropTypes.func.isRequired,
-  speed: PropTypes.number.isRequired,
-  onSpeedChange: PropTypes.func.isRequired
-};
 
 // ========================================
 // MAIN TIMELINE COMPONENT
@@ -362,21 +337,6 @@ function OutcomeTimeline({
     </div>
   );
 }
-
-OutcomeTimeline.propTypes = {
-  series: PropTypes.shape({
-    points: PropTypes.array.isRequired,
-    summary: PropTypes.object
-  }),
-  activeDate: PropTypes.string,
-  onHover: PropTypes.func,
-  onClick: PropTypes.func,
-  showHeatmap: PropTypes.bool,
-  showPlayback: PropTypes.bool,
-  showZoom: PropTypes.bool,
-  compact: PropTypes.bool,
-  className: PropTypes.string
-};
 
 // ========================================
 // HELPER FUNCTIONS

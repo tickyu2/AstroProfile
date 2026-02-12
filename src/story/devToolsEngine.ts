@@ -75,6 +75,52 @@ import type {
 import { DEFAULT_DEVTOOLS_CONFIG } from './devToolsTypes';
 
 // ============================================================================
+// SAFE CONDITION EVALUATOR
+// ============================================================================
+
+/** Resolve a value token — context property, number, boolean, or quoted string */
+function resolveValue(token: string, context: Record<string, unknown>): unknown {
+  if (token === 'true') return true;
+  if (token === 'false') return false;
+  if (token === 'null') return null;
+  if (token === 'undefined') return undefined;
+  if (/^-?\d+(\.\d+)?$/.test(token)) return Number(token);
+  if ((token.startsWith("'") && token.endsWith("'")) ||
+      (token.startsWith('"') && token.endsWith('"'))) {
+    return token.slice(1, -1);
+  }
+  return token.split('.').reduce<unknown>((obj, key) =>
+    obj != null && typeof obj === 'object' ? (obj as Record<string, unknown>)[key] : undefined,
+    context
+  );
+}
+
+/** Safely evaluate a condition string without new Function() */
+function safeEvalCondition(condition: string, context: Record<string, unknown>): boolean {
+  const trimmed = condition.trim();
+  if (trimmed.startsWith('!')) return !resolveValue(trimmed.slice(1).trim(), context);
+  const operators = ['===', '!==', '>=', '<=', '==', '!=', '>', '<'] as const;
+  for (const op of operators) {
+    const idx = trimmed.indexOf(op);
+    if (idx !== -1) {
+      const left = resolveValue(trimmed.slice(0, idx).trim(), context);
+      const right = resolveValue(trimmed.slice(idx + op.length).trim(), context);
+      switch (op) {
+        case '===': return left === right;
+        case '!==': return left !== right;
+        case '==':  return left == right;
+        case '!=':  return left != right;
+        case '>':   return (left as number) > (right as number);
+        case '>=':  return (left as number) >= (right as number);
+        case '<':   return (left as number) < (right as number);
+        case '<=':  return (left as number) <= (right as number);
+      }
+    }
+  }
+  return !!resolveValue(trimmed, context);
+}
+
+// ============================================================================
 // INTERNAL STATE
 // ============================================================================
 
@@ -217,9 +263,7 @@ export function checkBreakpoint(
     // Evaluate condition if present
     if (bp.condition) {
       try {
-        // Simple condition evaluation (in production, use a safe evaluator)
-        const conditionFn = new Function('context', `with(context) { return ${bp.condition}; }`);
-        if (!conditionFn(context)) continue;
+        if (!safeEvalCondition(bp.condition, context)) continue;
       } catch {
         // Condition evaluation failed, skip this breakpoint
         continue;
