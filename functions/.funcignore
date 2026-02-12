@@ -1,0 +1,15 @@
+# Test files — not needed in deployed Cloud Functions
+test/
+test-sdk-pro.js
+
+# Offline scripts and data loaders
+scripts/
+dataLoaders/
+
+# Development config
+.env
+.env.*
+.eslintrc*
+
+# Documentation
+*.md

@@ -65,34 +65,26 @@ const providers: ProviderConfig[] = [
 
 // ============================================================================
 // CONFIGURATION DETECTION
+// All providers now route through the server-side llmProxy Cloud Function.
+// Keys are managed server-side — providers are always "available" from the
+// frontend's perspective. The server will error if a key is missing.
+// Azure is disabled (no server-side secret configured).
 // ============================================================================
 
 function hasAzureConfig(): boolean {
-  return !!(
-    (import.meta.env.VITE_AZURE_OPENAI_ENDPOINT && import.meta.env.VITE_AZURE_OPENAI_API_KEY) ||
-    (typeof process !== 'undefined' && process.env?.AZURE_OPENAI_ENDPOINT && process.env?.AZURE_OPENAI_API_KEY)
-  );
+  return false; // Azure secrets not in server proxy — disabled
 }
 
 function hasAnthropicConfig(): boolean {
-  return !!(
-    import.meta.env.VITE_ANTHROPIC_API_KEY ||
-    (typeof process !== 'undefined' && process.env?.ANTHROPIC_API_KEY)
-  );
+  return true; // Server-side proxy handles key availability
 }
 
 function hasOpenAIConfig(): boolean {
-  return !!(
-    import.meta.env.VITE_OPENAI_API_KEY ||
-    (typeof process !== 'undefined' && process.env?.OPENAI_API_KEY)
-  );
+  return true; // Server-side proxy handles key availability
 }
 
 function hasGroqConfig(): boolean {
-  return !!(
-    import.meta.env.VITE_GROQ_API_KEY ||
-    (typeof process !== 'undefined' && process.env?.GROQ_API_KEY)
-  );
+  return true; // Server-side proxy handles key availability
 }
 
 // ============================================================================

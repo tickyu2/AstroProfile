@@ -7,6 +7,7 @@
 .env.production.local
 functions/.env
 functions/.env.*
+!functions/.env.example
 
 # Firebase/GCP Service Account Keys - NEVER commit these!
 **/serviceAccountKey.json
@@ -16,6 +17,13 @@ functions/.env.*
 **/credentials.json
 **/*.pem
 **/*.p12
+# GCP project service account keys (e.g. astroprofile-391e6-*.json)
+astroprofile-*.json
+
+# Additional .env locations
+backend/.env
+mcp-server/.env
+functions-python/.env
 
 # Firebase local files
 .firebase/
