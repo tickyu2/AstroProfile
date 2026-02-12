@@ -23,9 +23,11 @@ from dataclasses import dataclass, asdict
 try:
     from firebase_functions import https_fn, options
     from firebase_admin import firestore
+    from routes.shared import ALLOWED_ORIGINS
     FIREBASE_AVAILABLE = True
 except ImportError:
     FIREBASE_AVAILABLE = False
+    ALLOWED_ORIGINS = ["*"]  # fallback for local mode
     print("Firebase SDK not available - running in local mode")
 
 
@@ -203,7 +205,7 @@ if FIREBASE_AVAILABLE:
 
     @https_fn.on_call(
         cors=options.CorsOptions(
-            cors_origins=["*"],
+            cors_origins=ALLOWED_ORIGINS,
             cors_methods=["GET", "POST"]
         )
     )

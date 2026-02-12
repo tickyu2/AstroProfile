@@ -13,6 +13,7 @@
 
 import { ref, get, set, update } from 'firebase/database';
 import { database } from '../config/firebase';
+import { callClaudeProxy } from './llmProxyService';
 
 // ════════════════════════════════════════════════════
 // CONFIGURATION
@@ -20,7 +21,7 @@ import { database } from '../config/firebase';
 
 const PROMPT_VERSION = "1.0.0";  // Increment when prompt changes
 const MAX_RETRIES = 3;
-const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
+// API calls now go through server-side llmProxy Cloud Function
 
 // Simple hash function for prompt fingerprinting
 function hashString(str) {
@@ -230,55 +231,31 @@ export async function setForceRegenerateAll(value = true) {
 // ════════════════════════════════════════════════════
 
 /**
- * Call Anthropic Claude API to generate insights
+ * Generate insights via server-side llmProxy Cloud Function
  */
 async function generateInsightsFromAI(typeA, typeB) {
   const systemPrompt = buildSystemPrompt();
   const userPrompt = buildUserPrompt(typeA, typeB);
-  
-  const requestBody = {
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 2000,
-    temperature: 0.7,
-    system: systemPrompt,
-    messages: [
-      {
-        role: "user",
-        content: userPrompt
-      }
-    ]
-  };
-  
+
   try {
-    const response = await fetch(ANTHROPIC_API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.VITE_ANTHROPIC_API_KEY || '',
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify(requestBody)
+    const result = await callClaudeProxy({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      temperature: 0.7,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
     });
-    
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    // Extract token usage
+
     const tokenUsage = {
-      input: data.usage?.input_tokens || 0,
-      output: data.usage?.output_tokens || 0,
-      total: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0)
+      input: 0,
+      output: result.tokens || 0,
+      total: result.tokens || 0
     };
-    
-    // Parse the JSON response from Claude
-    const contentText = data.content[0]?.text || '{}';
-    const insights = JSON.parse(contentText);
-    
+
+    const insights = JSON.parse(result.text || '{}');
+
     return { insights, tokenUsage };
-    
+
   } catch (error) {
     console.error('Error generating insights from AI:', error);
     throw error;

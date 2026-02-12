@@ -483,7 +483,7 @@ def compute_western(
         # Prepare cusp data for house assignment (list of dicts with longitude)
         # Index 0 = House 1, Index 1 = House 2, etc.
         cusp_longitudes = [{"longitude": h.longitude, "house": h.house} for h in house_cusps_list] if house_cusps_list else []
-        print(f"[HOUSES_DEBUG] cusp_longitudes: {[(c['house'], f\"{c['longitude']:.2f}°\") for c in cusp_longitudes]}")
+        print(f"[HOUSES_DEBUG] cusp_longitudes: {[(c['house'], round(c['longitude'], 2)) for c in cusp_longitudes]}")
 
         # =================================================================
         # CONVERT PLANETS TO SCHEMA WITH HOUSE ASSIGNMENTS

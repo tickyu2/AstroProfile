@@ -14,7 +14,10 @@
  */
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
+
+const elevenLabsKey = defineSecret('ELEVENLABS_API_KEY');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ELEVENLABS API CONFIGURATION
@@ -542,6 +545,7 @@ function getDb() {
 const getAvailableVoices = onCall({
   timeoutSeconds: 30,
   memory: '256MiB',
+  secrets: [elevenLabsKey],
 }, async (request) => {
   // Authentication optional for voice list
 
@@ -712,6 +716,7 @@ const saveVoicePreferences = onCall({
 const generateSpeechElevenLabs = onCall({
   timeoutSeconds: 60,
   memory: '512MiB',
+  secrets: [elevenLabsKey],
 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Authentication required');
@@ -949,6 +954,7 @@ const generateSpeechElevenLabs = onCall({
 const getVoicePreview = onCall({
   timeoutSeconds: 30,
   memory: '256MiB',
+  secrets: [elevenLabsKey],
 }, async (request) => {
   const { voiceId, previewText } = request.data;
 
@@ -1030,6 +1036,7 @@ const getVoicePreview = onCall({
 const getVoiceStreamingSession = onCall({
   timeoutSeconds: 30,
   memory: '256MiB',
+  secrets: [elevenLabsKey],
 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Authentication required');

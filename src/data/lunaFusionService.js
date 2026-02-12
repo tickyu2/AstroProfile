@@ -26,6 +26,8 @@
  * For: GENESIS AI Soul Partner System
  */
 
+import { auth } from '../config/firebase';
+
 // ============================================
 // CONFIGURATION
 // ============================================
@@ -125,11 +127,15 @@ async function callPythonFunction(endpoint, data = {}) {
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
   try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (auth.currentUser) {
+      const token = await auth.currentUser.getIdToken();
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(data),
       signal: controller.signal
     });

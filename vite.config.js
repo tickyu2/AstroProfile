@@ -5,6 +5,10 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
+    minify: 'esbuild',
+    esbuild: {
+      drop: ['console', 'debugger'],
+    },
     rollupOptions: {
       output: {
         manualChunks: {
@@ -12,28 +16,18 @@ export default defineConfig({
           'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage', 'firebase/functions'],
           // Charts - only needed on specific pages
           'charts': ['chart.js', 'react-chartjs-2', 'recharts'],
-          // Animation libraries
-          'animation': ['framer-motion', 'gsap', '@react-spring/web'],
+          // Animation library
+          'animation': ['framer-motion'],
           // Maps - only needed on profile creation
           'maps': ['mapbox-gl'],
           // PDF generation - only for exports
           'pdf': ['jspdf', 'jspdf-autotable'],
           // Lunar calculations
-          'lunar': ['lunar-javascript']
-        }
-      }
-    },
-    chunkSizeWarningLimit: 600 // Increase limit slightly since Firebase chunk will be large
-  },
-  server: {
-    proxy: {
-      // Proxy Claude API requests to avoid CORS issues
-      '/api/claude': {
-        target: 'https://api.anthropic.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/claude/, '/v1/messages'),
-        headers: {
-          'anthropic-version': '2023-06-01'
+          'lunar': ['lunar-javascript'],
+          // Nivo charts - heavy, only used on specific pages
+          'nivo': ['@nivo/bar', '@nivo/core', '@nivo/heatmap', '@nivo/line', '@nivo/pie', '@nivo/radar'],
+          // D3 - used by wheel and Nivo internals
+          'd3': ['d3']
         }
       }
     }

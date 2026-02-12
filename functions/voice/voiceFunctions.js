@@ -14,9 +14,12 @@
  */
 
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
+
+const geminiKey = defineSecret('GEMINI_API_KEY');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // COLD START MITIGATION - Global Scope Initialization
@@ -712,6 +715,7 @@ exports.getVoiceSession = onCall({
   minInstances: 1,        // 🔥 COLD START MITIGATION: Always keep 1 instance warm
   maxInstances: 10,       // Scale up during peak usage
   concurrency: 80,        // Handle multiple concurrent requests per instance
+  secrets: [geminiKey],
 }, async (request) => {
   // ═══════════════════════════════════════════════════════════════════════════
   // WARMUP HANDLER - Fast exit for Cloud Scheduler pings
@@ -965,6 +969,7 @@ exports.getVoiceCapabilities = onCall({
   timeoutSeconds: 10,
   memory: '128MiB',
   minInstances: 1,  // Keep warm - often first call users make
+  secrets: [geminiKey],
 }, async (request) => {
   // Warmup handler
   if (request.data?.type === 'warmup') {
@@ -1130,6 +1135,7 @@ Return a JSON object with:
 exports.generateSpeech = onCall({
   timeoutSeconds: 30,
   memory: '256MiB',
+  secrets: [geminiKey],
 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Authentication required');

@@ -7,12 +7,20 @@ from firebase_functions import https_fn, options
 import json
 from datetime import datetime
 from routes.shared import (
+    ALLOWED_ORIGINS,
     WESTERN_ENGINE_AVAILABLE,
     WESTERN_ENGINE_ERROR,
-    analyze_western,
-    explain_western_chart,
-    explain_compatibility,
+    verify_auth,
+    error_response,
 )
+
+# These are only available when WESTERN_ENGINE_AVAILABLE is True
+if WESTERN_ENGINE_AVAILABLE:
+    from routes.shared import (
+        analyze_western,
+        explain_western_chart,
+        explain_compatibility,
+    )
 
 
 # =============================================================================
@@ -20,7 +28,7 @@ from routes.shared import (
 # =============================================================================
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -66,6 +74,10 @@ def calculate_western_expression_vector(req: https_fn.Request) -> https_fn.Respo
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
         if not data:
@@ -238,15 +250,11 @@ def calculate_western_expression_vector(req: https_fn.Request) -> https_fn.Respo
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -288,6 +296,10 @@ def calculate_western_compatibility(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
         if not data:
@@ -348,15 +360,11 @@ def calculate_western_compatibility(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET"]),
     memory=options.MemoryOption.MB_256,
     timeout_sec=10
 )

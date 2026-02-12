@@ -7,6 +7,9 @@
  */
 
 const { onRequest } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
+
+const leonardoKey = defineSecret('LEONARDO_API_KEY');
 
 /**
  * Generate an image using Leonardo.ai API
@@ -16,7 +19,8 @@ exports.generateLeonardoImage = onRequest({
   cors: true,
   maxInstances: 10,
   timeoutSeconds: 120,
-  memory: '512MiB'
+  memory: '512MiB',
+  secrets: [leonardoKey],
 }, async (req, res) => {
   const apiKey = process.env.LEONARDO_API_KEY;
   if (!apiKey) {
@@ -177,7 +181,8 @@ exports.getLeonardoModels = onRequest({
  */
 exports.getLeonardoUsage = onRequest({
   cors: true,
-  maxInstances: 5
+  maxInstances: 5,
+  secrets: [leonardoKey],
 }, async (req, res) => {
   const apiKey = process.env.LEONARDO_API_KEY;
   if (!apiKey) {

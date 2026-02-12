@@ -10,6 +10,7 @@ from datetime import datetime
 
 from astro.calculator import SwissEphemerisCalculator
 from astro.interpretation import build_interpretations
+from routes.shared import ALLOWED_ORIGINS, verify_auth, error_response
 
 
 # =============================================================================
@@ -17,7 +18,7 @@ from astro.interpretation import build_interpretations
 # =============================================================================
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -41,6 +42,10 @@ def calculate_natal_chart(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
 
@@ -71,15 +76,11 @@ def calculate_natal_chart(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -105,6 +106,10 @@ def calculate_vedic_chart(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
 
@@ -141,15 +146,11 @@ def calculate_vedic_chart(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256
 )
 def calculate_planetary_positions(req: https_fn.Request) -> https_fn.Response:
@@ -171,6 +172,10 @@ def calculate_planetary_positions(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         calculator = SwissEphemerisCalculator()
@@ -187,15 +192,11 @@ def calculate_planetary_positions(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256,
     timeout_sec=30
 )
@@ -208,6 +209,10 @@ def seasonal_ingresses(req: https_fn.Request) -> https_fn.Response:
     Returns 12 ingress entries with exact UTC datetimes.
     """
     try:
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         if req.method == "GET":
             year = int(req.args.get("year", datetime.utcnow().year))
         else:
@@ -249,15 +254,11 @@ def seasonal_ingresses(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256
 )
 def calculate_elemental_balance(req: https_fn.Request) -> https_fn.Response:
@@ -281,6 +282,10 @@ def calculate_elemental_balance(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         calculator = SwissEphemerisCalculator()
@@ -293,8 +298,4 @@ def calculate_elemental_balance(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)

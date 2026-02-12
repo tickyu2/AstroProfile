@@ -1016,8 +1016,11 @@ function ThirdChartCard({ thirdChart }) {
 function NarrativeSection({ narrative, title }) {
   if (!narrative) return null;
 
-  // Parse markdown-like formatting
+  // Escape HTML first, then apply markdown-like formatting
   const formattedNarrative = narrative
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
     .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
     .replace(/\n\n/g, '</p><p class="mt-3">')
     .replace(/\n/g, '<br/>');

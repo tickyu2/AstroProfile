@@ -6,17 +6,24 @@ Handles unified profile computation, compatibility, and API status.
 from firebase_functions import https_fn, options
 import json
 from routes.shared import (
+    ALLOWED_ORIGINS,
     UNIFIED_API_AVAILABLE,
     UNIFIED_API_ERROR,
     BAZI_ENGINE_AVAILABLE,
     WESTERN_ENGINE_AVAILABLE,
     BAZI_SYNASTRY_AVAILABLE,
-    api_compute_profile,
-    api_compute_compatibility,
-    ComputeProfileRequest,
-    ComputeCompatibilityRequest,
-    BirthDataInput,
+    verify_auth,
+    error_response,
 )
+
+if UNIFIED_API_AVAILABLE:
+    from routes.shared import (
+        api_compute_profile,
+        api_compute_compatibility,
+        ComputeProfileRequest,
+        ComputeCompatibilityRequest,
+        BirthDataInput,
+    )
 
 
 # =============================================================================
@@ -26,7 +33,7 @@ from routes.shared import (
 # read directly by frontend. No transformations.
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.GB_1,
     timeout_sec=120
 )
@@ -76,6 +83,10 @@ def compute_unified_profile(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         # Validate required fields
@@ -113,27 +124,27 @@ def compute_unified_profile(req: https_fn.Request) -> https_fn.Response:
         # Compute profile
         result = api_compute_profile(request)
 
-        # Return canonical output with ephemeris diagnostics
+        # Return canonical output (diagnostics only when ?debug=true)
         response_data = result.model_dump()
-        try:
-            from astro.calculator import get_ephe_diagnostics
-            response_data['_ephe_diag'] = get_ephe_diagnostics()
-            # Direct asteroid test to capture exact errors
-            import swisseph as swe
-            from astro.calculator import _EPHE_DIR
-            if _EPHE_DIR:
-                swe.set_ephe_path(_EPHE_DIR)  # re-assert before test
-            jd = swe.julday(1911, 2, 6, 10.2667)  # Reagan birth approx
-            asteroid_test = {}
-            for name, body_id in [('chiron', 15), ('ceres', 17), ('pallas', 18), ('juno', 19), ('vesta', 20)]:
-                try:
-                    res, flag = swe.calc_ut(jd, body_id, swe.FLG_SPEED)
-                    asteroid_test[name] = f"OK lon={res[0]:.4f}"
-                except Exception as e:
-                    asteroid_test[name] = f"ERROR: {str(e)}"
-            response_data['_asteroid_test'] = asteroid_test
-        except Exception as ex:
-            response_data['_diag_error'] = str(ex)
+        if req.args.get("debug") == "true":
+            try:
+                from astro.calculator import get_ephe_diagnostics
+                response_data['_ephe_diag'] = get_ephe_diagnostics()
+                import swisseph as swe
+                from astro.calculator import _EPHE_DIR
+                if _EPHE_DIR:
+                    swe.set_ephe_path(_EPHE_DIR)
+                jd = swe.julday(1911, 2, 6, 10.2667)
+                asteroid_test = {}
+                for name, body_id in [('chiron', 15), ('ceres', 17), ('pallas', 18), ('juno', 19), ('vesta', 20)]:
+                    try:
+                        res, flag = swe.calc_ut(jd, body_id, swe.FLG_SPEED)
+                        asteroid_test[name] = f"OK lon={res[0]:.4f}"
+                    except Exception as e:
+                        asteroid_test[name] = f"ERROR: {str(e)}"
+                response_data['_asteroid_test'] = asteroid_test
+            except Exception as ex:
+                response_data['_diag_error'] = str(ex)
         return https_fn.Response(
             json.dumps(response_data),
             status=200,
@@ -141,15 +152,11 @@ def compute_unified_profile(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.GB_1,
     timeout_sec=180
 )
@@ -207,6 +214,10 @@ def compute_unified_compatibility(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         # Validate required fields
@@ -260,15 +271,11 @@ def compute_unified_compatibility(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET"]),
     memory=options.MemoryOption.MB_256,
     timeout_sec=10
 )

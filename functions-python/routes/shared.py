@@ -4,7 +4,10 @@ Secrets, helpers, and engine availability flags.
 """
 
 import os
+import json
+from firebase_functions import https_fn
 from firebase_functions.params import SecretParam
+from firebase_admin import auth as firebase_auth
 from graph.neo4j_service import Neo4jService
 from graph.graphrag_queries import GraphRAGService
 
@@ -16,6 +19,66 @@ NEO4J_URI_SECRET = SecretParam("NEO4J_URI")
 NEO4J_PASSWORD_SECRET = SecretParam("NEO4J_PASSWORD")
 OPENAI_API_KEY_SECRET = SecretParam("OPENAI_API_KEY")
 ANTHROPIC_API_KEY_SECRET = SecretParam("ANTHROPIC_API_KEY")
+ADMIN_KEY_SECRET = SecretParam("ADMIN_KEY")
+
+# =============================================================================
+# CORS ALLOWED ORIGINS
+# =============================================================================
+# Add custom domains here (e.g. "https://yourdomain.com")
+
+ALLOWED_ORIGINS = [
+    "https://astroprofile-391e6.web.app",
+    "https://astroprofile-391e6.firebaseapp.com",
+    "http://localhost:5173",
+    "http://localhost:5174",
+]
+
+# =============================================================================
+# FIREBASE AUTH VERIFICATION
+# =============================================================================
+
+def verify_auth(req):
+    """Verify Firebase ID token from Authorization: Bearer <token> header.
+
+    Returns (decoded_token, None) on success.
+    Returns (None, https_fn.Response) on failure — caller should return the Response.
+
+    Usage in endpoints:
+        user, err = verify_auth(req)
+        if err:
+            return err
+    """
+    auth_header = req.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return None, https_fn.Response(
+            json.dumps({"error": "Authentication required"}),
+            status=401,
+            headers={"Content-Type": "application/json"}
+        )
+
+    token = auth_header.split("Bearer ", 1)[1]
+    try:
+        decoded = firebase_auth.verify_id_token(token)
+        return decoded, None
+    except firebase_auth.ExpiredIdTokenError:
+        return None, https_fn.Response(
+            json.dumps({"error": "Token expired"}),
+            status=401,
+            headers={"Content-Type": "application/json"}
+        )
+    except firebase_auth.RevokedIdTokenError:
+        return None, https_fn.Response(
+            json.dumps({"error": "Token revoked"}),
+            status=401,
+            headers={"Content-Type": "application/json"}
+        )
+    except Exception:
+        return None, https_fn.Response(
+            json.dumps({"error": "Invalid token"}),
+            status=401,
+            headers={"Content-Type": "application/json"}
+        )
+
 
 # =============================================================================
 # HELPERS
@@ -173,6 +236,24 @@ try:
 except ImportError as e:
     UNIFIED_API_AVAILABLE = False
     UNIFIED_API_ERROR = str(e)
+
+
+# =============================================================================
+# ERROR RESPONSE HELPER
+# =============================================================================
+
+import logging
+logger = logging.getLogger(__name__)
+
+def error_response(e, context=""):
+    """Return a safe 500 response — logs the full error server-side,
+    returns a generic message to the client to avoid leaking internals."""
+    logger.exception("Internal error%s: %s", f" in {context}" if context else "", e)
+    return https_fn.Response(
+        json.dumps({"error": "Internal server error"}),
+        status=500,
+        headers={"Content-Type": "application/json"}
+    )
 
 
 # =============================================================================

@@ -9,17 +9,25 @@ import os
 from datetime import datetime
 from firebase_admin import firestore
 from routes.shared import (
+    ALLOWED_ORIGINS,
     NEO4J_URI_SECRET,
     NEO4J_PASSWORD_SECRET,
     OPENAI_API_KEY_SECRET,
     ANTHROPIC_API_KEY_SECRET,
+    ADMIN_KEY_SECRET,
     get_neo4j_service,
+    verify_auth,
+    error_response,
     BIOGRAPHER_AVAILABLE,
     BIOGRAPHER_ERROR,
-    BiographicExtractor,
-    consolidate_memory,
-    ingest_into_graph,
 )
+
+if BIOGRAPHER_AVAILABLE:
+    from routes.shared import (
+        BiographicExtractor,
+        consolidate_memory,
+        ingest_into_graph,
+    )
 
 
 # =============================================================================
@@ -32,7 +40,7 @@ from routes.shared import (
 
 # TEMPORARILY COMMENTED OUT - set PG_PASSWORD secret first: firebase functions:secrets:set PG_PASSWORD
 # @https_fn.on_request(
-#     cors=options.CorsOptions(cors_origins="*", cors_methods=["POST"]),
+#     cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["POST"]),
 #     memory=options.MemoryOption.MB_512,
 #     timeout_sec=120,
 #     secrets=[PG_PASSWORD_SECRET]
@@ -55,10 +63,20 @@ def _run_rag_migration_disabled(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json() or {}
 
         # Admin key check
-        admin_key = os.environ.get("ADMIN_KEY", "genesis-admin-2024")
+        admin_key = os.environ.get("ADMIN_KEY")
+        if not admin_key:
+            return https_fn.Response(
+                json.dumps({"error": "ADMIN_KEY not configured"}),
+                status=500,
+                headers={"Content-Type": "application/json"}
+            )
         if data.get("adminKey") != admin_key:
             return https_fn.Response(
                 json.dumps({"error": "Unauthorized"}),
@@ -177,11 +195,7 @@ def _run_rag_migration_disabled(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 # =============================================================================
@@ -189,7 +203,7 @@ def _run_rag_migration_disabled(req: https_fn.Request) -> https_fn.Response:
 # =============================================================================
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["POST"]),
     memory=options.MemoryOption.GB_1,
     timeout_sec=300,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET, OPENAI_API_KEY_SECRET]
@@ -213,6 +227,10 @@ def ingest_biography(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
 
@@ -261,18 +279,14 @@ def ingest_biography(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["POST"]),
     memory=options.MemoryOption.GB_1,
     timeout_sec=300,
-    secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET, OPENAI_API_KEY_SECRET]
+    secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET, OPENAI_API_KEY_SECRET, ADMIN_KEY_SECRET]
 )
 def ingest_sample_reagan(req: https_fn.Request) -> https_fn.Response:
     """
@@ -291,10 +305,20 @@ def ingest_sample_reagan(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json() or {}
 
         # Admin key check
-        admin_key = os.environ.get("ADMIN_KEY", "genesis-admin-2024")
+        admin_key = os.environ.get("ADMIN_KEY")
+        if not admin_key:
+            return https_fn.Response(
+                json.dumps({"error": "ADMIN_KEY not configured"}),
+                status=500,
+                headers={"Content-Type": "application/json"}
+            )
         if data.get("adminKey") != admin_key:
             return https_fn.Response(
                 json.dumps({"error": "Unauthorized"}),
@@ -379,11 +403,7 @@ once said, "My life really began when I married my husband."
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 # =============================================================================
@@ -391,7 +411,7 @@ once said, "My life really began when I married my husband."
 # =============================================================================
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["POST"]),
     memory=options.MemoryOption.GB_2,
     timeout_sec=540,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET, OPENAI_API_KEY_SECRET]
@@ -438,6 +458,10 @@ def ingest_diary_epub(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         # Import diary ingester
         try:
@@ -530,15 +554,11 @@ def ingest_diary_epub(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["POST"]),
     memory=options.MemoryOption.GB_2,
     timeout_sec=540,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET, OPENAI_API_KEY_SECRET]
@@ -597,6 +617,10 @@ def ingest_diary_complete(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         # Import multi-database ingester
         try:
@@ -705,19 +729,11 @@ def ingest_diary_complete(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        import traceback
-        return https_fn.Response(
-            json.dumps({
-                "error": str(e),
-                "traceback": traceback.format_exc()
-            }),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=30,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -743,6 +759,10 @@ def query_diary_entries(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         # Import query helpers
         try:
@@ -833,11 +853,7 @@ def query_diary_entries(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 # =============================================================================
@@ -845,7 +861,7 @@ def query_diary_entries(req: https_fn.Request) -> https_fn.Response:
 # =============================================================================
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=120,
     secrets=[ANTHROPIC_API_KEY_SECRET, NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -900,6 +916,10 @@ def extract_biographic_data(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
 
@@ -1054,15 +1074,11 @@ def extract_biographic_data(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=300,  # 5 minutes for batch consolidation
     secrets=[ANTHROPIC_API_KEY_SECRET, NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -1101,6 +1117,10 @@ def consolidate_session(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         user_id = data.get("userId")
@@ -1122,7 +1142,7 @@ def consolidate_session(req: https_fn.Request) -> https_fn.Response:
         try:
             neo4j_service = get_neo4j_service()
             neo4j_driver = neo4j_service.driver
-        except:
+        except Exception:
             pass  # Continue without Neo4j if not configured
 
         # Run consolidation
@@ -1145,7 +1165,7 @@ def consolidate_session(req: https_fn.Request) -> https_fn.Response:
         if neo4j_driver:
             try:
                 neo4j_service.close()
-            except:
+            except Exception:
                 pass
 
         return https_fn.Response(
@@ -1155,8 +1175,4 @@ def consolidate_session(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)

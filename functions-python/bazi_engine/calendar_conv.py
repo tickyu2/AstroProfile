@@ -146,7 +146,7 @@ def get_lunar_year_info(year: int) -> dict:
                     if lunar:
                         info["leap_month"] = month
                         break
-                except:
+                except Exception:
                     continue
         except Exception as e:
             logger.debug(f"Error getting lunar year info: {e}")

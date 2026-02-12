@@ -28,39 +28,21 @@ import {
 
 /**
  * AI Insight Generator for Personality Radar
- * Uses Claude API to generate deeper personality insights
+ * Routes through server-side llmProxy Cloud Function
  */
 async function generatePersonalityInsight(insightData) {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-
-  if (!apiKey) {
-    // Fallback: return archetype-based insight without API
-    return generateLocalInsight(insightData);
-  }
-
   try {
+    const { callClaudeProxy } = await import('../services/llmProxyService');
     const prompt = buildInsightPrompt(insightData);
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        temperature: 0.7,
-        messages: [{ role: 'user', content: prompt }]
-      })
+    const result = await callClaudeProxy({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      temperature: 0.7,
+      messages: [{ role: 'user', content: prompt }]
     });
 
-    if (!response.ok) throw new Error('API error');
-
-    const data = await response.json();
-    return data.content?.[0]?.text || generateLocalInsight(insightData);
+    return result.text || generateLocalInsight(insightData);
   } catch (error) {
     console.error('AI insight error:', error);
     return generateLocalInsight(insightData);

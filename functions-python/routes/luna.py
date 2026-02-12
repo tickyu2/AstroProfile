@@ -2,23 +2,28 @@ from firebase_functions import https_fn, options
 import json
 from datetime import datetime
 from routes.shared import (
+    ALLOWED_ORIGINS, verify_auth, error_response,
     LUNA_FUSION_AVAILABLE, LUNA_FUSION_ERROR, _numpy_to_list,
-    fuse_to_30_facets, get_luna_personality, adapt_luna_to_user, generate_complete_profile,
-    _calculate_natal_aspects as calculate_natal_aspects,
-    aspects_to_30_facets,
-    _detect_aspect_patterns as detect_aspect_patterns,
-    calculate_transit_aspects, transits_to_30_facets, get_active_transits, get_transit_forecast,
-    compute_synastry_fusion, generate_insights, get_behavioral_adjustments,
-    calculate_composite_chart, composite_to_30_facets, get_composite_interpretation,
-    get_dominant_archetypes, get_archetype_profile,
-    generate_full_narrative, get_archetype_question_prompts,
-    calculate_progressions, progressions_to_30_facets, get_progression_interpretation,
-    LUNA_PRESETS, ACCURACY_TIERS
 )
+
+if LUNA_FUSION_AVAILABLE:
+    from routes.shared import (
+        fuse_to_30_facets, get_luna_personality, adapt_luna_to_user, generate_complete_profile,
+        _calculate_natal_aspects as calculate_natal_aspects,
+        aspects_to_30_facets,
+        _detect_aspect_patterns as detect_aspect_patterns,
+        calculate_transit_aspects, transits_to_30_facets, get_active_transits, get_transit_forecast,
+        compute_synastry_fusion, generate_insights, get_behavioral_adjustments,
+        calculate_composite_chart, composite_to_30_facets, get_composite_interpretation,
+        get_dominant_archetypes, get_archetype_profile,
+        generate_full_narrative, get_archetype_question_prompts,
+        calculate_progressions, progressions_to_30_facets, get_progression_interpretation,
+        LUNA_PRESETS, ACCURACY_TIERS,
+    )
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -60,6 +65,10 @@ def luna_fusion(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         # Parse target date if provided
@@ -82,15 +91,11 @@ def luna_fusion(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -120,6 +125,10 @@ def luna_complete_profile(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         result = generate_complete_profile(
@@ -135,15 +144,11 @@ def luna_complete_profile(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256
 )
 def luna_natal_aspects(req: https_fn.Request) -> https_fn.Response:
@@ -175,6 +180,10 @@ def luna_natal_aspects(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
         natal_positions = data.get("natalPositions", {})
 
@@ -201,15 +210,11 @@ def luna_natal_aspects(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256
 )
 def luna_transits(req: https_fn.Request) -> https_fn.Response:
@@ -236,6 +241,10 @@ def luna_transits(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
         natal_positions = data.get("natalPositions", {})
@@ -266,15 +275,11 @@ def luna_transits(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -303,6 +308,10 @@ def luna_synastry_fusion(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
         import numpy as np
@@ -334,15 +343,11 @@ def luna_synastry_fusion(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -371,6 +376,10 @@ def luna_composite_chart(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         # Calculate composite
@@ -396,15 +405,11 @@ def luna_composite_chart(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -449,6 +454,10 @@ def luna_composite_transits(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
         composite_longitudes = data.get("compositeLongitudes", {})
 
@@ -472,15 +481,11 @@ def luna_composite_transits(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256
 )
 def luna_archetypes(req: https_fn.Request) -> https_fn.Response:
@@ -508,6 +513,10 @@ def luna_archetypes(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
         import numpy as np
@@ -542,15 +551,11 @@ def luna_archetypes(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -582,6 +587,10 @@ def luna_progressions(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         # Parse target date
@@ -612,15 +621,11 @@ def luna_progressions(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256
 )
 def luna_personality(req: https_fn.Request) -> https_fn.Response:
@@ -654,6 +659,10 @@ def luna_personality(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
 
@@ -693,8 +702,4 @@ def luna_personality(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)

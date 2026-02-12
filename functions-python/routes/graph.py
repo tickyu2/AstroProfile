@@ -22,11 +22,14 @@ from datetime import datetime
 
 from astro.calculator import SwissEphemerisCalculator
 from routes.shared import (
+    ALLOWED_ORIGINS,
     NEO4J_URI_SECRET,
     NEO4J_PASSWORD_SECRET,
     OPENAI_API_KEY_SECRET,
     get_neo4j_service,
     get_graphrag_service,
+    verify_auth,
+    error_response,
 )
 
 
@@ -35,7 +38,7 @@ from routes.shared import (
 # =============================================================================
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=30,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -64,6 +67,10 @@ def find_soul_family(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         neo4j_service = get_neo4j_service()
@@ -81,15 +88,11 @@ def find_soul_family(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=60
 )
@@ -111,6 +114,10 @@ def calculate_synastry(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         calculator = SwissEphemerisCalculator()
@@ -126,15 +133,11 @@ def calculate_synastry(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
 )
@@ -161,6 +164,10 @@ def store_profile_node(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
 
         neo4j_service = get_neo4j_service()
@@ -177,11 +184,7 @@ def store_profile_node(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 # =============================================================================
@@ -189,7 +192,7 @@ def store_profile_node(req: https_fn.Request) -> https_fn.Response:
 # =============================================================================
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=30,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -231,6 +234,10 @@ def graphrag_context(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
 
@@ -278,15 +285,11 @@ def graphrag_context(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256,
     timeout_sec=30,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -309,6 +312,10 @@ def graphrag_topic_context(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
         topic = data.get("topic")
@@ -335,15 +342,11 @@ def graphrag_topic_context(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256,
     timeout_sec=30,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -367,6 +370,10 @@ def graphrag_entity_connections(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
         entity = data.get("entity")
@@ -392,15 +399,11 @@ def graphrag_entity_connections(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256,
     timeout_sec=30,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -426,6 +429,10 @@ def graphrag_sentiment_patterns(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
         profile_id = data.get("profileId")
 
@@ -450,15 +457,11 @@ def graphrag_sentiment_patterns(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256,
     timeout_sec=30,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -483,6 +486,10 @@ def graphrag_shared_themes(req: https_fn.Request) -> https_fn.Response:
                 headers={"Content-Type": "application/json"}
             )
 
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         data = req.get_json()
         profile_id_1 = data.get("profileId1")
         profile_id_2 = data.get("profileId2")
@@ -505,15 +512,11 @@ def graphrag_shared_themes(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256,
     timeout_sec=30,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -537,6 +540,10 @@ def graphrag_timeline(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json()
         topic = data.get("topic")
@@ -562,11 +569,7 @@ def graphrag_timeline(req: https_fn.Request) -> https_fn.Response:
         )
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 # =============================================================================
@@ -574,7 +577,7 @@ def graphrag_timeline(req: https_fn.Request) -> https_fn.Response:
 # =============================================================================
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["POST"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=120,  # 2 minutes for seeding
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -602,6 +605,10 @@ def seed_reagan_universe(req: https_fn.Request) -> https_fn.Response:
                 status=405,
                 headers={"Content-Type": "application/json"}
             )
+
+        user, err = verify_auth(req)
+        if err:
+            return err
 
         data = req.get_json() or {}
         verify_only = data.get("verify_only", False)
@@ -660,15 +667,11 @@ def seed_reagan_universe(req: https_fn.Request) -> https_fn.Response:
             driver.close()
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)
 
 
 @https_fn.on_request(
-    cors=options.CorsOptions(cors_origins="*", cors_methods=["GET", "POST"]),
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256,
     timeout_sec=30,
     secrets=[NEO4J_URI_SECRET, NEO4J_PASSWORD_SECRET]
@@ -682,6 +685,10 @@ def query_person_relationships(req: https_fn.Request) -> https_fn.Response:
     or {"person_id": "historical_joan_quigley"}
     """
     try:
+        user, err = verify_auth(req)
+        if err:
+            return err
+
         from neo4j import GraphDatabase
 
         # Get person_id from query params or body
@@ -761,8 +768,4 @@ def query_person_relationships(req: https_fn.Request) -> https_fn.Response:
             driver.close()
 
     except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            headers={"Content-Type": "application/json"}
-        )
+        return error_response(e)

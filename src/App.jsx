@@ -92,529 +92,66 @@ function App() {
             <Route path="/voice-test" element={<VoiceTestPage />} />
             <Route path="/luna-voice" element={<LunaVoicePage />} />
 
-            {/* Protected routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+            {/* Protected routes — auth checked once by ProtectedRoute layout */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/create-profile" element={<DiamondProfileForm />} />
+              <Route path="/results/:profileId" element={<Results />} />
+              <Route path="/numerology/:profileId" element={<NumerologyDecodePage />} />
+              <Route path="/western/:profileId" element={<WesternAstrologyDecodePage />} />
+              <Route path="/western-elements/:profileId" element={<WesternElementalAnalysisPage />} />
+              <Route path="/vedic" element={<VedicAstrologyPage />} />
+              <Route path="/vedic/:profileId" element={<VedicAstrologyPage />} />
+              <Route path="/cathedral/:id" element={<RelationshipCathedralPage />} />
+              <Route path="/cathedral" element={<RelationshipCathedralPage />} />
+              <Route path="/cms" element={<AdminCMSPage />} />
+              <Route path="/migrate" element={<MigrationPage />} />
+              <Route path="/compatibility" element={<CompatibilityPage />} />
+              <Route path="/match" element={<CompatibilityMatchPage />} />
+              <Route path="/unified-compatibility" element={<UnifiedCompatibilityPage />} />
+              <Route path="/data-manager" element={<DataManager />} />
+              <Route path="/ai-soulpartner" element={<AISoulPartnerPage />} />
+              <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
+              <Route path="/constitutional-assessment" element={<ConstitutionalAssessmentPage />} />
+              <Route path="/systems" element={<SystemsPage />} />
+              <Route path="/operations" element={<OperationsPage />} />
+              <Route path="/admin" element={<AdminConsolePage />} />
+              <Route path="/luna-console" element={<LunaConsole />} />
+              <Route path="/timeline" element={<TimelineConsolePage />} />
+              <Route path="/customize-soulpartner/:profileId" element={<CustomizingYourSoulPartnerPage />} />
+              <Route path="/bazi-calculator" element={<BaZiCalculatorPage />} />
+              <Route path="/assessment" element={<AssessmentPage />} />
+              <Route path="/western" element={<WesternAstrologyDecodePage />} />
+              <Route path="/enneagram" element={<EnneagramPage />} />
+              <Route path="/liz-greene" element={<LizGreeneCathedralPage />} />
+              <Route path="/liz-greene/:profileId" element={<LizGreeneCathedralPage />} />
+              <Route path="/bazi-modular" element={<BaZiModularPage />} />
+              <Route path="/bazi-seasonality" element={<BaZiSeasonalityPage />} />
+              <Route path="/soul-garden" element={<SoulGardenPage />} />
+              <Route path="/sanctuary" element={<SanctuaryPage />} />
+              <Route path="/transcript-tester" element={<TranscriptTesterPage />} />
+              <Route path="/brain-architecture" element={<BrainArchitecturePage />} />
+              <Route path="/zodiac-cusps" element={<ZodiacCuspsPage />} />
+              <Route path="/zodiac-learning" element={<ZodiacLearningPage />} />
+              <Route path="/zodiac-academy" element={<ZodiacAcademyPage />} />
+              <Route path="/tropical-seasons" element={<TropicalSeasonsPage />} />
+              <Route path="/natal-wheel" element={<NatalWheelPage />} />
+              <Route path="/chinese-zodiac" element={<ChineseZodiacPage />} />
+              <Route path="/soul-family" element={<SoulFamilyPage />} />
+              <Route path="/chat" element={<GuestChat />} />
+              <Route path="/chat/:partnerId" element={<GuestChat />} />
+              <Route path="/cclr" element={<CCLRHomePage />} />
+              <Route path="/cclr/new" element={<CreateSessionPage />} />
+              <Route path="/cclr/session/:sessionId" element={<CCLRSessionPage />} />
+              <Route path="/biography" element={<BiographyJournalPage />} />
+              <Route path="/dynamic-personality" element={<DynamicPersonalityPage />} />
+              <Route path="/luna-tuner" element={<LunaPersonalityTunerPage />} />
+              <Route path="/memory-explorer" element={<MemoryExplorerPage />} />
+              <Route path="/constellation" element={<ConstellationPage />} />
+            </Route>
 
-            <Route
-              path="/create-profile"
-              element={
-                <ProtectedRoute>
-                  <DiamondProfileForm />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/results/:profileId"
-              element={
-                <ProtectedRoute>
-                  <Results />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Numerology Decode - Deep numerological analysis */}
-            <Route
-              path="/numerology/:profileId"
-              element={
-                <ProtectedRoute>
-                  <NumerologyDecodePage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Western Astrology Decode - Deep astrological analysis */}
-            <Route
-              path="/western/:profileId"
-              element={
-                <ProtectedRoute>
-                  <WesternAstrologyDecodePage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Western Elemental Analysis - Transparent calculation */}
-            <Route
-              path="/western-elements/:profileId"
-              element={
-                <ProtectedRoute>
-                  <WesternElementalAnalysisPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Vedic Astrology (Jyotish) - Sidereal zodiac */}
-            <Route
-              path="/vedic"
-              element={
-                <ProtectedRoute>
-                  <VedicAstrologyPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/vedic/:profileId"
-              element={
-                <ProtectedRoute>
-                  <VedicAstrologyPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Relationship Cathedral - Full Western + Vedic combined experience */}
-            <Route
-              path="/cathedral/:id"
-              element={
-                <ProtectedRoute>
-                  <RelationshipCathedralPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/cathedral"
-              element={
-                <ProtectedRoute>
-                  <RelationshipCathedralPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Admin CMS - Content Management System */}
-            <Route
-              path="/cms"
-              element={
-                <ProtectedRoute>
-                  <AdminCMSPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/migrate"
-              element={
-                <ProtectedRoute>
-                  <MigrationPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/compatibility"
-              element={
-                <ProtectedRoute>
-                  <CompatibilityPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* NEW: Compatibility Match with Explainability (L0-L3) */}
-            <Route
-              path="/match"
-              element={
-                <ProtectedRoute>
-                  <CompatibilityMatchPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* GENESIS Unified Compatibility - 90-Dimensional Analysis */}
-            <Route
-              path="/unified-compatibility"
-              element={
-                <ProtectedRoute>
-                  <UnifiedCompatibilityPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/data-manager"
-              element={
-                <ProtectedRoute>
-                  <DataManager />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/ai-soulpartner"
-              element={
-                <ProtectedRoute>
-                  <AISoulPartnerPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/knowledge-base"
-              element={
-                <ProtectedRoute>
-                  <KnowledgeBasePage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/constitutional-assessment"
-              element={
-                <ProtectedRoute>
-                  <ConstitutionalAssessmentPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/systems"
-              element={
-                <ProtectedRoute>
-                  <SystemsPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/operations"
-              element={
-                <ProtectedRoute>
-                  <OperationsPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <AdminConsolePage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Luna Management Console - Internal developer tool */}
-            <Route
-              path="/luna-console"
-              element={
-                <ProtectedRoute>
-                  <LunaConsole />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Timeline Console - Navigate through memories */}
-            <Route
-              path="/timeline"
-              element={
-                <ProtectedRoute>
-                  <TimelineConsolePage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Customizing Your SoulPartner - 4-Layer Precision System */}
-            <Route
-              path="/customize-soulpartner/:profileId"
-              element={
-                <ProtectedRoute>
-                  <CustomizingYourSoulPartnerPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* BaZi Calculator - What If Date Explorer */}
-            <Route
-              path="/bazi-calculator"
-              element={
-                <ProtectedRoute>
-                  <BaZiCalculatorPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Assessment - 136 Questions Questionnaire */}
-            <Route
-              path="/assessment"
-              element={
-                <ProtectedRoute>
-                  <AssessmentPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Western Astrology Decode */}
-            <Route
-              path="/western"
-              element={
-                <ProtectedRoute>
-                  <WesternAstrologyDecodePage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Enneagram Alchemical Rose */}
-            <Route
-              path="/enneagram"
-              element={
-                <ProtectedRoute>
-                  <EnneagramPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Liz Greene Cathedral of Psychological Astrology */}
-            <Route
-              path="/liz-greene"
-              element={
-                <ProtectedRoute>
-                  <LizGreeneCathedralPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/liz-greene/:profileId"
-              element={
-                <ProtectedRoute>
-                  <LizGreeneCathedralPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* BaZi Modular - Atomic Design Components */}
-            <Route
-              path="/bazi-modular"
-              element={
-                <ProtectedRoute>
-                  <BaZiModularPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* BaZi Seasonality - Learning Hall Education Module */}
-            <Route
-              path="/bazi-seasonality"
-              element={
-                <ProtectedRoute>
-                  <BaZiSeasonalityPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Soul Garden - House Strength Timeline */}
-            <Route
-              path="/soul-garden"
-              element={
-                <ProtectedRoute>
-                  <SoulGardenPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* The Sanctuary of the Unseen Self */}
-            <Route
-              path="/sanctuary"
-              element={
-                <ProtectedRoute>
-                  <SanctuaryPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* GENESIS Transcript Tester - Phase 6 Testing Interface */}
-            <Route
-              path="/transcript-tester"
-              element={
-                <ProtectedRoute>
-                  <TranscriptTesterPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* GENESIS Brain Architecture Wiki */}
-            <Route
-              path="/brain-architecture"
-              element={
-                <ProtectedRoute>
-                  <BrainArchitecturePage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* 36-Position Zodiac Cusps Page */}
-            <Route
-              path="/zodiac-cusps"
-              element={
-                <ProtectedRoute>
-                  <ZodiacCuspsPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Zodiac Learning Wheel - Interactive Blend Learning */}
-            <Route
-              path="/zodiac-learning"
-              element={
-                <ProtectedRoute>
-                  <ZodiacLearningPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Western Zodiac Academy - 12-Chapter Guided Curriculum */}
-            <Route
-              path="/zodiac-academy"
-              element={
-                <ProtectedRoute>
-                  <ZodiacAcademyPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Tropical Seasons - D3 Ring Donut Visualization */}
-            <Route
-              path="/tropical-seasons"
-              element={
-                <ProtectedRoute>
-                  <TropicalSeasonsPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Natal Wheel - Full Placidus chart with 72-zone system */}
-            <Route
-              path="/natal-wheel"
-              element={
-                <ProtectedRoute>
-                  <NatalWheelPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Chinese Zodiac + Five Elements Page */}
-            <Route
-              path="/chinese-zodiac"
-              element={
-                <ProtectedRoute>
-                  <ChineseZodiacPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Soul Family - GENESIS Family Archive */}
-            <Route
-              path="/soul-family"
-              element={
-                <ProtectedRoute>
-                  <SoulFamilyPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Guest Chat - Selection page (no guest selected) */}
-            <Route
-              path="/chat"
-              element={
-                <ProtectedRoute>
-                  <GuestChat />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Guest Chat - Chat with specific guest */}
-            <Route
-              path="/chat/:partnerId"
-              element={
-                <ProtectedRoute>
-                  <GuestChat />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* CCLR - Couples Cosmic Love Rejuvenation */}
-            <Route
-              path="/cclr"
-              element={
-                <ProtectedRoute>
-                  <CCLRHomePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/cclr/new"
-              element={
-                <ProtectedRoute>
-                  <CreateSessionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/cclr/session/:sessionId"
-              element={
-                <ProtectedRoute>
-                  <CCLRSessionPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Biography Journal - Text-based life story preservation */}
-            <Route
-              path="/biography"
-              element={
-                <ProtectedRoute>
-                  <BiographyJournalPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Dynamic Personality - P4-P8 Luna Fusion Engines */}
-            <Route
-              path="/dynamic-personality"
-              element={
-                <ProtectedRoute>
-                  <DynamicPersonalityPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Luna Personality Tuner - Customize Luna's personality */}
-            <Route
-              path="/luna-tuner"
-              element={
-                <ProtectedRoute>
-                  <LunaPersonalityTunerPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Memory Explorer - Happiness Anchors, Emotion Trends, Relationship Stats */}
-            <Route
-              path="/memory-explorer"
-              element={
-                <ProtectedRoute>
-                  <MemoryExplorerPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* AI Constellation - Multi-AI Perspectives */}
-            <Route
-              path="/constellation"
-              element={
-                <ProtectedRoute>
-                  <ConstellationPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Redirect root to dashboard (or login if not authenticated) */}
+            {/* Redirects */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-            {/* Catch all - redirect to dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
           </Suspense>

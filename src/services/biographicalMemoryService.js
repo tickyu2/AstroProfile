@@ -22,7 +22,7 @@ import {
   arrayUnion,
   serverTimestamp
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db, auth } from '../config/firebase';
 
 // Python Cloud Function URL
 const PYTHON_FUNCTIONS_URL = import.meta.env.VITE_PYTHON_FUNCTIONS_URL ||
@@ -47,9 +47,15 @@ export async function extractBiographicalFacts(messages, profileContext = {}) {
       return { facts: [], relationships: [] };
     }
 
+    const headers = { 'Content-Type': 'application/json' };
+    if (auth.currentUser) {
+      const token = await auth.currentUser.getIdToken();
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${PYTHON_FUNCTIONS_URL}/extract_biographic_data`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         messages: formattedMessages,
         profile_context: profileContext,

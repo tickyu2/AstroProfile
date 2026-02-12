@@ -5,8 +5,23 @@
  * Swiss Ephemeris calculations + Neo4j graph queries
  */
 
+import { auth } from '../config/firebase';
+
 // Cloud Run deployed functions base suffix
 const CLOUD_RUN_SUFFIX = '-sjpjwnbsmq-uc.a.run.app';
+
+/**
+ * Get authorization headers with Firebase ID token
+ * @returns {Promise<Object>} Headers object with Content-Type and optional Authorization
+ */
+async function getAuthHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth.currentUser) {
+    const token = await auth.currentUser.getIdToken();
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
 
 // Build Cloud Run URL for a function
 const getCloudRunUrl = (functionName) => {
@@ -44,9 +59,10 @@ export async function checkPythonHealth() {
  */
 export async function calculateNatalChart(birthData) {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(getCloudRunUrl('calculate_natal_chart'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(birthData)
     });
 
@@ -70,9 +86,10 @@ export async function calculateNatalChart(birthData) {
  */
 export async function getPlanetaryPositions(datetime, latitude = 0, longitude = 0) {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(getCloudRunUrl('calculate_planetary_positions'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ datetime, latitude, longitude })
     });
 
@@ -94,9 +111,10 @@ export async function getPlanetaryPositions(datetime, latitude = 0, longitude = 
  */
 export async function getSeasonalIngresses(year) {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(getCloudRunUrl('seasonal_ingresses'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ year })
     });
 
@@ -118,9 +136,10 @@ export async function getSeasonalIngresses(year) {
  */
 export async function calculateElementalBalance(planets) {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(getCloudRunUrl('calculate_elemental_balance'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ planets })
     });
 
@@ -156,9 +175,10 @@ export async function computeUnifiedProfile(birthData) {
   try {
     console.log('🐍 [computeUnifiedProfile] Calling Python endpoint with:', birthData);
 
+    const headers = await getAuthHeaders();
     const response = await fetch(getCloudRunUrl('compute_unified_profile'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         birth: {
           birthDate: birthData.birthDate,
@@ -218,9 +238,10 @@ export async function computeUnifiedCompatibility(profileA, profileB, options = 
   try {
     console.log('🐍 [computeUnifiedCompatibility] Calling Python endpoint');
 
+    const headers = await getAuthHeaders();
     const response = await fetch(getCloudRunUrl('compute_unified_compatibility'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         profileA: {
           birthDate: profileA.birthDate,
@@ -273,9 +294,10 @@ export async function computeUnifiedCompatibility(profileA, profileB, options = 
  */
 export async function calculateSynastry(chart1, chart2) {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(getCloudRunUrl('calculate_synastry'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ chart1, chart2 })
     });
 
@@ -303,9 +325,10 @@ export async function calculateSynastry(chart1, chart2) {
  */
 export async function findSoulFamily(userId, elementalProfile, limit = 10) {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(getCloudRunUrl('find_soul_family'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ userId, elementalProfile, limit })
     });
 
@@ -328,9 +351,10 @@ export async function findSoulFamily(userId, elementalProfile, limit = 10) {
  */
 export async function storeProfileNode(userId, profile) {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(getCloudRunUrl('store_profile_node'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ userId, profile })
     });
 

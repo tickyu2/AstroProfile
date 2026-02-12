@@ -7,7 +7,10 @@
  */
 
 const { onRequest } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
 const FormData = require('form-data');
+
+const stabilityKey = defineSecret('STABILITY_API_KEY');
 
 /**
  * Generate an image using Stability.ai API
@@ -17,7 +20,8 @@ exports.generateStabilityImage = onRequest({
   cors: true,
   maxInstances: 10,
   timeoutSeconds: 120,
-  memory: '512MiB'
+  memory: '512MiB',
+  secrets: [stabilityKey],
 }, async (req, res) => {
   const apiKey = process.env.STABILITY_API_KEY;
   if (!apiKey) {

@@ -2,13 +2,15 @@
  * Western Astrology AI Analysis Service
  *
  * Generates AI-powered insights from Western Astrology data
- * Matches Numerology AI service structure
+ * Routes through server-side llmProxy Cloud Function.
  *
  * GENESIS AstroProfile - Constitutional Intelligence Engine
  * January 4, 2026
  */
 
-// AI Analysis Generation using Claude API
+import { callClaudeProxy } from './llmProxyService';
+
+// AI Analysis Generation using Claude API (via server proxy)
 export async function generateWesternAIAnalysis(profile) {
   try {
     // Get sovereign calculation data (our existing structure)
@@ -33,34 +35,16 @@ export async function generateWesternAIAnalysis(profile) {
       elementBalance
     });
 
-    // Call Claude API
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 8000,
-        temperature: 0.7,
-        messages: [{
-          role: "user",
-          content: prompt
-        }]
-      })
+    // Call Claude via server-side proxy
+    const result = await callClaudeProxy({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 8000,
+      temperature: 0.7,
+      messages: [{ role: 'user', content: prompt }]
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const analysisText = data.content[0].text;
-
     // Parse JSON response
-    const analysis = JSON.parse(analysisText);
+    const analysis = JSON.parse(result.text);
 
     return {
       success: true,
