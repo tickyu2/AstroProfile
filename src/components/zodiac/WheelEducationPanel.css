@@ -740,7 +740,7 @@
 .floating-md-window {
   position: fixed;
   z-index: 9999;
-  width: 420px;
+  width: 520px;
   max-width: 90vw;
   max-height: 80vh;
   display: flex;

@@ -12,7 +12,8 @@ const FourPillarsGrid = ({
   pillars,            // Array of 4 pillars OR object { year, month, day, hour }
   compact = false,
   showHiddenRoots = false,
-  onPillarClick
+  onPillarClick = undefined,
+  pillarMeta = null   // Optional: { Year: { weight, subtitle }, Month: ..., Day: ..., Hour: ... }
 }) => {
   const theme = useBaziTheme();
 
@@ -60,6 +61,7 @@ const FourPillarsGrid = ({
           compact={compact}
           showHiddenRoots={showHiddenRoots}
           onClick={onPillarClick ? () => onPillarClick(pillar, index) : undefined}
+          metaOverride={pillarMeta ? pillarMeta[labels[index]] : undefined}
         />
       ))}
     </div>

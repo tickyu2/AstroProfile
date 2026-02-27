@@ -534,6 +534,64 @@ If no meaningful new moments can be extracted, return an empty array: []`;
   }),
 
   // =========================================================================
+  // BAZI READING GENERATOR - Auto-generate all 3 reading modes server-side
+  // =========================================================================
+
+  generateBaziReading: onCall({
+    secrets: [anthropicKey],
+    timeoutSeconds: 300,
+    memory: '1GiB',
+  }, async (request) => {
+    if (!request.auth) {
+      const { HttpsError } = require('firebase-functions/v2/https');
+      throw new HttpsError('unauthenticated', 'Must be signed in');
+    }
+
+    const { profileId, modes } = request.data || {};
+    if (!profileId) {
+      const { HttpsError } = require('firebase-functions/v2/https');
+      throw new HttpsError('invalid-argument', 'Missing profileId');
+    }
+
+    try {
+      const { generateBaziReading } = require('../bazi/generateBaziReading');
+      return await generateBaziReading({
+        profileId,
+        modes: modes || ['soul', 'master', 'shadow'],
+        userId: request.auth.uid,
+      });
+    } catch (error) {
+      logger.error('[generateBaziReading] Error:', error.message);
+      const { HttpsError } = require('firebase-functions/v2/https');
+      throw new HttpsError('internal', error.message || 'BaZi reading generation failed');
+    }
+  }),
+
+  // =========================================================================
+  // BAZI AI CHAT - Multi-turn conversational BaZi analysis
+  // =========================================================================
+
+  baziChat: onCall({
+    secrets: [anthropicKey],
+    timeoutSeconds: 120,
+    memory: '512MiB',
+  }, async (request) => {
+    if (!request.auth) {
+      const { HttpsError } = require('firebase-functions/v2/https');
+      throw new HttpsError('unauthenticated', 'Must be signed in');
+    }
+
+    try {
+      const { handleBaZiChat } = require('../bazi/baziChat');
+      return await handleBaZiChat(request.data, request);
+    } catch (error) {
+      logger.error('[baziChat] Error:', error.message);
+      const { HttpsError } = require('firebase-functions/v2/https');
+      throw new HttpsError('internal', error.message || 'BaZi chat failed');
+    }
+  }),
+
+  // =========================================================================
   // KNOWLEDGE MODULE - Personality RAG System
   // =========================================================================
 

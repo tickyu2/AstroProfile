@@ -149,24 +149,29 @@ export default function BaZiCalculatorPage() {
     }
   };
 
-  // Pillar cell component
-  const PillarCell = ({ pillar, showAnimal = true }) => {
+  // Pillar cell component — large format matching BaZi Learning Wheels
+  const PillarCell = ({ pillar }) => {
     const stemColor = ELEMENT_COLORS[pillar.stem.element];
     const branchColor = ELEMENT_COLORS[pillar.branch.element];
 
     return (
-      <div className="flex flex-col items-center gap-1">
-        {/* Chinese characters */}
-        <div className="flex gap-1">
-          <span className={`text-xl font-bold ${stemColor.text}`} title={pillar.stem.name}>
+      <div className="flex flex-col items-center gap-1.5 py-1">
+        {/* Large Chinese characters */}
+        <div className="flex gap-2 items-baseline">
+          <span className={`text-3xl font-bold ${stemColor.text}`}>
             {pillar.stem.chinese}
           </span>
-          <span className={`text-xl font-bold ${branchColor.text}`} title={pillar.branch.animal}>
+          <span className={`text-3xl font-bold ${branchColor.text}`}>
             {pillar.branch.chinese}
           </span>
         </div>
 
-        {/* Elements */}
+        {/* English: "Yin Wood | Ox" on one line */}
+        <div className="text-sm text-slate-300 font-medium whitespace-nowrap">
+          {pillar.stem.name} | {pillar.branch.animal}
+        </div>
+
+        {/* Element tags */}
         <div className="flex gap-1 text-xs">
           <span className={`px-1.5 py-0.5 rounded ${stemColor.bg} ${stemColor.text}`}>
             {ELEMENT_EMOJI[pillar.stem.element]} {pillar.stem.element}
@@ -175,18 +180,12 @@ export default function BaZiCalculatorPage() {
             {ELEMENT_EMOJI[pillar.branch.element]} {pillar.branch.element}
           </span>
         </div>
-
-        {/* English name */}
-        <div className="text-[10px] text-slate-400 text-center">
-          {pillar.stem.name}
-          {showAnimal && <span className="block">{pillar.branch.animal}</span>}
-        </div>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f2847] to-[#0a1628]">
       {/* Header */}
       <header className="bg-slate-900/50 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -461,7 +460,7 @@ export default function BaZiCalculatorPage() {
                         <PillarCell pillar={row.dayPillar} />
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-2 text-2xl font-bold">
+                        <div className="flex items-center justify-center gap-3 text-3xl font-bold">
                           <span className={ELEMENT_COLORS[row.yearPillar.stem.element].text}>
                             {row.yearPillar.fullName}
                           </span>

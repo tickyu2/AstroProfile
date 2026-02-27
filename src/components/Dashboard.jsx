@@ -53,12 +53,6 @@ export default function Dashboard() {
               {/* Navigation Links - First Row */}
               <div className="hidden md:flex items-center gap-4">
                 <Link
-                  to="/dashboard"
-                  className="px-3 py-2 text-teal-400 border-b-2 border-teal-400 text-sm font-medium"
-                >
-                  Dashboard
-                </Link>
-                <Link
                   to="/data-manager"
                   className="px-3 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium"
                 >
@@ -181,13 +175,6 @@ export default function Dashboard() {
               <span>Western</span>
             </Link>
             <Link
-              to="/bazi-modular"
-              className="px-3 py-1.5 text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium flex items-center gap-1 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:border-amber-500/50"
-            >
-              <span>🎋</span>
-              <span>BaZi Modular</span>
-            </Link>
-            <Link
               to="/match"
               className="px-3 py-1.5 text-pink-400 hover:text-pink-300 transition-colors text-sm font-medium flex items-center gap-1 bg-pink-500/10 rounded-lg border border-pink-500/30 hover:border-pink-500/50"
             >
@@ -227,6 +214,59 @@ export default function Dashboard() {
               <span>Soul Garden</span>
             </Link>
           </div>
+
+          {/* Fourth Row - Chinese BaZi */}
+          <div className="hidden md:flex items-center gap-4 pb-2">
+            <Link
+              to="/chinese-zodiac"
+              className="px-3 py-1.5 text-red-400 hover:text-red-300 transition-colors text-sm font-medium flex items-center gap-1 bg-red-500/10 rounded-lg border border-red-500/30 hover:border-red-500/50"
+            >
+              <span>🐉</span>
+              <span>Chinese Zodiac</span>
+            </Link>
+            <Link
+              to="/bazi-modular"
+              className="px-3 py-1.5 text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium flex items-center gap-1 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:border-amber-500/50"
+            >
+              <span>🎋</span>
+              <span>BaZi Modular</span>
+            </Link>
+            <Link
+              to="/bazi-learning"
+              className="px-3 py-1.5 text-orange-400 hover:text-orange-300 transition-colors text-sm font-medium flex items-center gap-1 bg-orange-500/10 rounded-lg border border-orange-500/30 hover:border-orange-500/50"
+            >
+              <span>☯</span>
+              <span>BaZi Learning</span>
+            </Link>
+            <Link
+              to="/branch-wheel"
+              className="px-3 py-1.5 text-teal-400 hover:text-teal-300 transition-colors text-sm font-medium flex items-center gap-1 bg-teal-500/10 rounded-lg border border-teal-500/30 hover:border-teal-500/50"
+            >
+              <span>🌏</span>
+              <span>BaZi Hidden Stem</span>
+            </Link>
+            <Link
+              to="/bazi-calculator"
+              className="px-3 py-1.5 text-yellow-400 hover:text-yellow-300 transition-colors text-sm font-medium flex items-center gap-1 bg-yellow-500/10 rounded-lg border border-yellow-500/30 hover:border-yellow-500/50"
+            >
+              <span>🧮</span>
+              <span>BaZi Calculator</span>
+            </Link>
+            <Link
+              to="/bazi-chat"
+              className="px-3 py-1.5 text-violet-400 hover:text-violet-300 transition-colors text-sm font-medium flex items-center gap-1 bg-violet-500/10 rounded-lg border border-violet-500/30 hover:border-violet-500/50"
+            >
+              <span>💬</span>
+              <span>BaZi Chat</span>
+            </Link>
+            <Link
+              to="/bazi-health"
+              className="px-3 py-1.5 text-emerald-400 hover:text-emerald-300 transition-colors text-sm font-medium flex items-center gap-1 bg-emerald-500/10 rounded-lg border border-emerald-500/30 hover:border-emerald-500/50"
+            >
+              <span>🏥</span>
+              <span>BaZi Health</span>
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -242,26 +282,38 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Stats - Now clickable! */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div 
+        <div className="grid grid-cols-3 gap-6 mb-12">
+          <div
             onClick={() => navigate('/create-profile')}
-            className="bg-slate-800/40 backdrop-blur-lg rounded-xl p-6 border-2 border-green-500/30 cursor-pointer hover:bg-slate-700/40 hover:border-green-500/50 transition-all group"
+            className="bg-slate-800/40 backdrop-blur-lg rounded-xl px-5 py-3 border-2 border-green-500/30 cursor-pointer hover:bg-slate-700/40 hover:border-green-500/50 transition-all group flex items-center gap-3"
           >
-            <div className="text-4xl mb-2 group-hover:scale-110 transition-transform">➕</div>
-            <div className="text-xl font-bold text-white mb-1">Create New</div>
-            <div className="text-green-300 text-sm">Add a profile</div>
+            <div className="text-2xl group-hover:scale-110 transition-transform">➕</div>
+            <div>
+              <div className="text-base font-bold text-white">Create New</div>
+              <div className="text-green-300 text-xs">Add a profile</div>
+            </div>
           </div>
 
-          <div className="bg-slate-800/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/30">
-            <div className="text-4xl mb-2">👤</div>
-            <div className="text-2xl font-bold text-white mb-1">{profiles.length}</div>
-            <div className="text-gray-300 text-sm">Total Profiles</div>
+          <div
+            onClick={() => { const el = document.getElementById('profiles-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}
+            className="bg-slate-800/40 backdrop-blur-lg rounded-xl px-5 py-3 border-2 border-purple-500/30 cursor-pointer hover:bg-slate-700/40 hover:border-purple-500/50 transition-all flex items-center gap-3"
+          >
+            <div className="text-2xl">👤</div>
+            <div>
+              <div className="text-xl font-bold text-white">{profiles.length}</div>
+              <div className="text-gray-300 text-xs">Total Profiles</div>
+            </div>
           </div>
 
-          <div className="bg-slate-800/40 backdrop-blur-lg rounded-xl p-6 border-2 border-pink-500/30">
-            <div className="text-4xl mb-2">⭐</div>
-            <div className="text-2xl font-bold text-white mb-1">{favoriteCount}</div>
-            <div className="text-gray-300 text-sm">Favorites</div>
+          <div
+            onClick={() => { const el = document.getElementById('favorites-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}
+            className="bg-slate-800/40 backdrop-blur-lg rounded-xl px-5 py-3 border-2 border-pink-500/30 cursor-pointer hover:bg-slate-700/40 hover:border-pink-500/50 transition-all flex items-center gap-3"
+          >
+            <div className="text-2xl">⭐</div>
+            <div>
+              <div className="text-xl font-bold text-white">{favoriteCount}</div>
+              <div className="text-gray-300 text-xs">Favorites</div>
+            </div>
           </div>
         </div>
 
@@ -529,9 +581,15 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Existing Profile Cards - Favorites first, then by date */}
-              {sortedProfiles.map((profile) => (
-                <ProfileCard key={profile.id} profile={profile} />
-              ))}
+              {sortedProfiles.map((profile, idx) => {
+                const isFirstFavorite = idx === 0 && profile.isFavorite;
+                const isFirstNonFav = profile.isFavorite === false && (idx === 0 || sortedProfiles[idx - 1]?.isFavorite);
+                return (
+                  <div key={profile.id} id={isFirstFavorite ? 'favorites-section' : isFirstNonFav ? 'profiles-section' : undefined}>
+                    <ProfileCard profile={profile} />
+                  </div>
+                );
+              })}
               
               {/* Add New Profile Card */}
               <div 

@@ -32,7 +32,10 @@ const TimelineConsolePage = lazy(() => import('./pages/TimelineConsolePage'))
 const CustomizingYourSoulPartnerPage = lazy(() => import('./pages/CustomizingYourSoulPartnerPage'))
 const BaZiCalculatorPage = lazy(() => import('./pages/BaZiCalculatorPage'))
 const BaZiModularPage = lazy(() => import('./pages/BaZiModularPage'))
+const BaZiHealthPage = lazy(() => import('./pages/BaZiHealthPage'))
 const BaZiSeasonalityPage = lazy(() => import('./pages/BaZiSeasonalityPage'))
+const BaZiLearningPage = lazy(() => import('./pages/BaZiLearningPage'))
+const BaZiChatPage = lazy(() => import('./pages/BaZiChatPage'))
 const SoulGardenPage = lazy(() => import('./pages/SoulGardenPage'))
 const SanctuaryPage = lazy(() => import('./pages/SanctuaryPage'))
 const TranscriptTesterPage = lazy(() => import('./pages/TranscriptTesterPage'))
@@ -63,6 +66,9 @@ const ZodiacLearningPage = lazy(() => import('./pages/ZodiacLearningPage'))
 const ZodiacAcademyPage = lazy(() => import('./pages/ZodiacAcademyPage'))
 const TropicalSeasonsPage = lazy(() => import('./pages/TropicalSeasonsPage'))
 const NatalWheelPage = lazy(() => import('./pages/NatalWheelPage'))
+const BaZiBranchWheelPage = lazy(() => import('./pages/BaZiBranchWheelPage'))
+const GrayWhaleLifeCyclePage = lazy(() => import('./pages/GrayWhaleLifeCyclePage'))
+const GrayWhaleMigrationPage = lazy(() => import('./pages/GrayWhaleMigrationPage'))
 
 // CCLR - Couples Cosmic Love Rejuvenation (lazy loaded)
 const CCLRHomePage = lazy(() => import('./pages/cclr').then(m => ({ default: m.CCLRHomePage })))
@@ -126,7 +132,10 @@ function App() {
               <Route path="/liz-greene" element={<LizGreeneCathedralPage />} />
               <Route path="/liz-greene/:profileId" element={<LizGreeneCathedralPage />} />
               <Route path="/bazi-modular" element={<BaZiModularPage />} />
+              <Route path="/bazi-health" element={<BaZiHealthPage />} />
               <Route path="/bazi-seasonality" element={<BaZiSeasonalityPage />} />
+              <Route path="/bazi-learning" element={<BaZiLearningPage />} />
+              <Route path="/bazi-chat" element={<BaZiChatPage />} />
               <Route path="/soul-garden" element={<SoulGardenPage />} />
               <Route path="/sanctuary" element={<SanctuaryPage />} />
               <Route path="/transcript-tester" element={<TranscriptTesterPage />} />
@@ -136,6 +145,9 @@ function App() {
               <Route path="/zodiac-academy" element={<ZodiacAcademyPage />} />
               <Route path="/tropical-seasons" element={<TropicalSeasonsPage />} />
               <Route path="/natal-wheel" element={<NatalWheelPage />} />
+              <Route path="/branch-wheel" element={<BaZiBranchWheelPage />} />
+              <Route path="/whale-lifecycle" element={<GrayWhaleLifeCyclePage />} />
+              <Route path="/whale-migration" element={<GrayWhaleMigrationPage />} />
               <Route path="/chinese-zodiac" element={<ChineseZodiacPage />} />
               <Route path="/soul-family" element={<SoulFamilyPage />} />
               <Route path="/chat" element={<GuestChat />} />

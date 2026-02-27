@@ -967,6 +967,37 @@ export const TropicalZodiacWheel: React.FC<TropicalZodiacWheelProps> = ({
       }
     });
 
+    // =========================================================================
+    // DEGREE LABELS at sign boundaries (0°, 30°, 60°, ... 330°)
+    // =========================================================================
+    const degreeGroup = g.append('g').attr('class', 'degree-labels');
+    const degreeRadius = seasonOuterRadius + 14;
+
+    signArcs.forEach((arc, i) => {
+      const angle = arc.startAngle - Math.PI / 2;
+      const degrees = i * 30;
+
+      // Small background for readability
+      degreeGroup.append('circle')
+        .attr('cx', Math.cos(angle) * degreeRadius)
+        .attr('cy', Math.sin(angle) * degreeRadius)
+        .attr('r', 13)
+        .attr('fill', 'rgba(15, 23, 42, 0.85)')
+        .attr('stroke', 'rgba(148, 163, 184, 0.3)')
+        .attr('stroke-width', 0.5);
+
+      degreeGroup.append('text')
+        .attr('x', Math.cos(angle) * degreeRadius)
+        .attr('y', Math.sin(angle) * degreeRadius)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .style('font-size', '9px')
+        .style('font-weight', '600')
+        .style('fill', '#94a3b8')
+        .style('pointer-events', 'none')
+        .text(`${degrees}°`);
+    });
+
     // Cleanup
     return () => {
       if ((window as any).__pulseTimer) {

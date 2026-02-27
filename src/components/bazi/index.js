@@ -74,3 +74,18 @@ export { default as SeasonalityPairComparison } from './organisms/SeasonalityPai
 
 // Yin/Yang Pair Compatibility
 export { default as YinYangPairPanel } from './organisms/YinYangPairPanel';
+
+// Wheel Explorer
+export { default as BaZiFourPillarWheels } from './BaZiFourPillarWheels';
+
+// Identity Architecture — Heaven–Earth–Human Psychological Engine (modular)
+export { default as IdentityArchitecturePanel } from './identity-architecture';
+
+// Legend & Reference
+export { default as BaziLegendPanel } from './BaziLegendPanel';
+export {
+  SeasonLegend,
+  FiveElementCycle,
+  BaziElementLegend,
+  BaziPolarityLegend,
+} from './BaziLegendPanel';

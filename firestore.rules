@@ -243,6 +243,13 @@ service cloud.firestore {
         allow read: if isProfileOwner();
         allow write: if false; // Cloud Function only
       }
+
+      // BaZi Readings - Auto-generated readings stored per profile
+      // Written by Cloud Function (Admin SDK), read by profile owner
+      match /bazi_readings/{readingId} {
+        allow read: if isProfileOwner();
+        allow write: if false; // Cloud Function only (Admin SDK bypasses rules)
+      }
     }
 
     // Knowledge Base collection - users can only access their own documents
@@ -669,6 +676,14 @@ service cloud.firestore {
         (resource.data.createdBy == request.auth.uid || request.auth.token.admin == true);
       allow delete: if isAuthenticated() &&
         (resource.data.createdBy == request.auth.uid || request.auth.token.admin == true);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // GLOBAL CONFIG - Shared MD documents (BaZi Learning, Seasons, etc.)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    match /global_config/{docId} {
+      allow read, write: if isAuthenticated();
     }
 
     // Default deny all

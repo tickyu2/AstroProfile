@@ -28,8 +28,8 @@ const DAY_MASTER_DESCRIPTIONS = {
 
 const DayMasterCard = ({
   dayMaster,          // { stem, branch?, element, fullName?, chinese? }
-  strengthLabel,      // e.g., "Resource-Abundant Metal"
-  pillars,            // Optional: { year, month, day, hour } for polarity/rootedness
+  strengthLabel = '',      // e.g., "Resource-Abundant Metal"
+  pillars = undefined,     // Optional: { year, month, day, hour } for polarity/rootedness
   showMetaphor = true,
   showDescription = true,
   showPolarityGauge = true,

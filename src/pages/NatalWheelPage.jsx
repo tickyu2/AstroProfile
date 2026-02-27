@@ -25,6 +25,8 @@ import { calculateNatalChart } from '../services/pythonFunctionsService'
 import { getHistoricalTimezone } from '../services/timezoneService'
 import LocationPicker from '../components/common/LocationPicker'
 import { HouseLearningPanel } from '../components/zodiac/HouseLearningPanel'
+import { getDegreeTheory, findNotableDegrees } from '../data/degreeTheory'
+import { getSabianSymbol, findAllSabianSymbols } from '../data/sabianSymbols'
 import './TropicalSeasonsPage.css' // shared header styles (profile-selector, etc.)
 
 // ============================================================================
@@ -333,6 +335,8 @@ export default function NatalWheelPage() {
   const [showSummary, setShowSummary] = useState(true)
   const [showAspectPanel, setShowAspectPanel] = useState(true)
   const [showHouseLearning, setShowHouseLearning] = useState(false)
+  const [showDegreeTheory, setShowDegreeTheory] = useState(false)
+  const [showSabianSymbols, setShowSabianSymbols] = useState(false)
   const [selectedHouseForLearning, setSelectedHouseForLearning] = useState(0)
   const [tooltip, setTooltip] = useState(null)
   const [recalculating, setRecalculating] = useState(false)
@@ -574,6 +578,7 @@ export default function NatalWheelPage() {
         planets: raw.planets || {},
         houses: raw.houses || [],
         aspects: raw.aspects || [],
+        arabicParts: raw.arabicParts || null,
       })
     } catch (err) {
       console.error('[LAB] Chart calculation failed:', err)
@@ -931,6 +936,30 @@ export default function NatalWheelPage() {
     return planets
   }, [sovereign?.planets])
 
+  // ── Degree Theory: notable degree hits ─────────────────
+  const degreeTheoryHits = useMemo(() => {
+    if (!showDegreeTheory) return []
+    return findNotableDegrees(pObj, angles, PLANET_SYM, PLANET_NAME)
+  }, [showDegreeTheory, pObj, angles])
+
+  const degreeTheoryByKey = useMemo(() => {
+    const map = {}
+    degreeTheoryHits.forEach(h => { map[h.key] = h })
+    return map
+  }, [degreeTheoryHits])
+
+  // ── Sabian Symbols: all planet/angle symbols ──────────
+  const sabianHits = useMemo(() => {
+    if (!showSabianSymbols) return []
+    return findAllSabianSymbols(pObj, angles, PLANET_SYM, PLANET_NAME)
+  }, [showSabianSymbols, pObj, angles])
+
+  const sabianByKey = useMemo(() => {
+    const map = {}
+    sabianHits.forEach(h => { map[h.key] = h })
+    return map
+  }, [sabianHits])
+
   // ── Loading state ──────────────────────────────────────
   // Don't show full loading screen during recalculation (keeps the chart visible)
   if (loading && !recalculating) {
@@ -1106,6 +1135,9 @@ export default function NatalWheelPage() {
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>
                       <span style={{ color: '#64748b' }}>BIRTHDATE</span>{' '}
                       <span style={{ color: '#e2e8f0' }}>{profile.birthDate || 'N/A'}</span>
+                      {profile.birthDate && parseInt(profile.birthDate.split('-')[0], 10) < 100 && (
+                        <span title="Birth year looks too low — missing century prefix?" style={{ color: '#f59e0b', marginLeft: '4px', cursor: 'help' }}>⚠</span>
+                      )}
                       {profile.birthTime && (
                         <>
                           {' '}<span style={{ color: '#64748b' }}>TIME</span>{' '}
@@ -1387,6 +1419,9 @@ export default function NatalWheelPage() {
                           <span className="text-white/90 ml-1">{a.sign}</span>
                           {zone && <span className="text-amber-400 font-medium ml-1">Zone {zone.id}</span>}
                           <span className="text-purple-300 ml-1">- House {house}</span>
+                          {showDegreeTheory && degreeTheoryByKey[`angle_${tag}`] && (() => { const n = degreeTheoryByKey[`angle_${tag}`].theory.notable; return (
+                            <span className="ml-1 text-[7px] font-bold px-1 rounded" style={{ background: `${n.color}22`, color: n.color, border: `1px solid ${n.color}44` }}>{n.shortBadge}</span>
+                          )})()}
                         </div>
                       )
                     })}
@@ -1419,6 +1454,9 @@ export default function NatalWheelPage() {
                           <span className="text-white/80 ml-1">{p.sign}</span>
                           {zone && <span className="text-amber-400 ml-1">Zone {zone.id}</span>}
                           {house && <span className="text-purple-300 ml-1">- House {house}</span>}
+                          {showDegreeTheory && degreeTheoryByKey[key] && (() => { const n = degreeTheoryByKey[key].theory.notable; return (
+                            <span className="ml-1 text-[7px] font-bold px-1 rounded" style={{ background: `${n.color}22`, color: n.color, border: `1px solid ${n.color}44` }}>{n.shortBadge}</span>
+                          )})()}
                         </div>
                       )
                     })}
@@ -1449,6 +1487,9 @@ export default function NatalWheelPage() {
                           <span className="text-white/80 ml-1">{p.sign}</span>
                           {zone && <span className="text-amber-400 ml-1">Zone {zone.id}</span>}
                           {house && <span className="text-purple-300 ml-1">- House {house}</span>}
+                          {showDegreeTheory && degreeTheoryByKey[key] && (() => { const n = degreeTheoryByKey[key].theory.notable; return (
+                            <span className="ml-1 text-[7px] font-bold px-1 rounded" style={{ background: `${n.color}22`, color: n.color, border: `1px solid ${n.color}44` }}>{n.shortBadge}</span>
+                          )})()}
                         </div>
                       )
                     })}
@@ -1471,6 +1512,52 @@ export default function NatalWheelPage() {
                         <span className="text-white/80 ml-1">{part.sign}</span>
                         {part.zone && <span className="text-amber-400 ml-1">Zone {part.zone}</span>}
                         {part.house && <span className="text-purple-300 ml-1">- House {part.house}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Degree Theory (Stojanovic) */}
+                {showDegreeTheory && degreeTheoryHits.length > 0 && (
+                  <div className="bg-rose-900/15 rounded-lg p-2 mt-2 border border-rose-500/20">
+                    <div className="text-[9px] font-bold text-rose-400 mb-1 tracking-widest uppercase">★ Degree Theory</div>
+                    <div className="text-[8px] text-white/30 mb-1.5">Stojanovic notable degrees</div>
+                    {degreeTheoryHits.map(hit => {
+                      const n = hit.theory.notable
+                      return (
+                        <div key={hit.key} className="flex items-center text-[10px] leading-relaxed py-0.5">
+                          <span style={{ fontSize: 13, color: n.color, width: 14 }}>{hit.symbol}</span>
+                          <span className="font-medium text-white/90" style={{ width: 52 }}>{hit.name}</span>
+                          <span className="text-white/60 ml-1">{fmtDeg(hit.degree)}</span>
+                          <span className="text-white/50 ml-1">{hit.sign}</span>
+                          <span className="flex-1" />
+                          <span className="text-[8px] text-rose-300/70 mr-1">{hit.theory.stojanovicGlyph} {hit.theory.stojanovicSign}</span>
+                          <span className="text-[7px] font-bold px-1 rounded" style={{ background: `${n.color}22`, color: n.color, border: `1px solid ${n.color}44` }}>{n.badge}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                {/* Sabian Symbols (Wheeler/Rudhyar) */}
+                {showSabianSymbols && sabianHits.length > 0 && (
+                  <div className="bg-teal-900/15 rounded-lg p-2 mt-2 border border-teal-500/20">
+                    <div className="text-[9px] font-bold text-teal-400 mb-1 tracking-widest uppercase">📜 Sabian Symbols</div>
+                    <div className="text-[8px] text-white/30 mb-1.5">Wheeler / Rudhyar — 360 archetypal images</div>
+                    {sabianHits.map(hit => (
+                      <div key={hit.key} className="py-1 border-b border-white/5 last:border-0">
+                        <div className="flex items-center text-[10px] leading-snug">
+                          <span style={{ fontSize: 13, width: 16 }} className="text-teal-300/80">{hit.glyph}</span>
+                          <span className="font-medium text-white/90" style={{ width: 50 }}>{hit.name}</span>
+                          <span className="text-white/60 ml-1">{fmtDeg(hit.degree)}</span>
+                          <span className="text-white/50 ml-1">{hit.sign}</span>
+                        </div>
+                        <div className="text-[8px] text-teal-300/60 italic ml-4 mt-0.5 leading-snug" style={{ maxWidth: 200 }}>
+                          &ldquo;{hit.sabian}&rdquo;
+                        </div>
+                        {hit.keynote && (
+                          <div className="text-[8px] text-teal-400/80 font-semibold ml-4 mt-0.5">
+                            &mdash; {hit.keynote}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1675,7 +1762,11 @@ export default function NatalWheelPage() {
                     <g key={i}
                       onMouseEnter={e => {
                         const zone = getZoneForPlacement(a.sign, a.degree)
-                        setTooltip({ x: e.clientX, y: e.clientY, text: `${a.tag} — ${fmtDeg(a.degree)} ${a.sign}${zone ? ` (Zone ${zone.id} "${zone.name}")` : ''}` })
+                        const dtInfo = showDegreeTheory ? getDegreeTheory(a.degree) : null
+                        const dtText = dtInfo?.notable ? ` · ${dtInfo.notable.badge} (${dtInfo.stojanovicSign} energy)` : ''
+                        const sabInfo = showSabianSymbols ? getSabianSymbol(a.sign, a.degree) : null
+                        const sabText = sabInfo ? ` · 📜 "${sabInfo.symbol}"${sabInfo.keynote ? ` — ${sabInfo.keynote}` : ''}` : ''
+                        setTooltip({ x: e.clientX, y: e.clientY, text: `${a.tag} — ${fmtDeg(a.degree)} ${a.sign}${zone ? ` (Zone ${zone.id} "${zone.name}")` : ''}${dtText}${sabText}` })
                       }}
                       onMouseLeave={() => setTooltip(null)}
                       style={{ cursor: 'pointer' }}
@@ -1710,9 +1801,13 @@ export default function NatalWheelPage() {
                       onMouseEnter={e => {
                         const zone = getZoneForPlacement(p.sign, p.degree)
                         const archetype = ASTEROID_ARCHETYPE[p.key]
+                        const dtInfo = showDegreeTheory ? getDegreeTheory(p.degree) : null
+                        const dtText = dtInfo?.notable ? ` · ${dtInfo.notable.badge} (${dtInfo.stojanovicSign} energy)` : ''
+                        const sabInfo = showSabianSymbols ? getSabianSymbol(p.sign, p.degree) : null
+                        const sabText = sabInfo ? ` · 📜 "${sabInfo.symbol}"${sabInfo.keynote ? ` — ${sabInfo.keynote}` : ''}` : ''
                         setTooltip({
                           x: e.clientX, y: e.clientY,
-                          text: `${p.symbol} ${p.name}${archetype ? ` (${archetype})` : ''} — ${fmtDeg(p.degree)} ${p.sign}${zone ? ` · Zone ${zone.id}` : ''}${pHouse ? ` · House ${pHouse}` : ''}${showRetro ? ' · Retrograde' : ''}`
+                          text: `${p.symbol} ${p.name}${archetype ? ` (${archetype})` : ''} — ${fmtDeg(p.degree)} ${p.sign}${zone ? ` · Zone ${zone.id}` : ''}${pHouse ? ` · House ${pHouse}` : ''}${showRetro ? ' · Retrograde' : ''}${dtText}${sabText}`
                         })
                       }}
                       onMouseLeave={() => setTooltip(null)}
@@ -1762,6 +1857,31 @@ export default function NatalWheelPage() {
                         fill={part.color}
                         fontSize={13} fontWeight="bold"
                         filter="url(#nw-glow)">{part.symbol}</text>
+                    </g>
+                  )
+                })}
+              </g>
+            )}
+
+            {/* ── Degree Theory Markers (toggle) ── */}
+            {showDegreeTheory && degreeTheoryHits.length > 0 && (
+              <g>
+                {degreeTheoryHits.map(hit => {
+                  const isAngle = hit.key.startsWith('angle_')
+                  const tag = isAngle ? hit.key.replace('angle_', '') : null
+                  const angleData = isAngle ? angles.find(a => a.tag === tag) : null
+                  const planetData = !isAngle ? placed.find(p => p.key === hit.key) : null
+                  if (!angleData && !planetData) return null
+                  const lon = isAngle ? angleData.lon : planetData.lon
+                  const r = isAngle ? ANGLE_OUTER : planetData.r
+                  const pos = lonXY(lon, r)
+                  const n = hit.theory.notable
+                  return (
+                    <g key={`dt-${hit.key}`}>
+                      <circle cx={pos.x} cy={pos.y} r={isAngle ? 8 : 13} fill="none" stroke={n.color} strokeWidth={1.5} opacity={0.55} strokeDasharray="3,2" />
+                      <text x={pos.x} y={pos.y + (isAngle ? 13 : 17)} textAnchor="middle" dominantBaseline="central" fill={n.color} fontSize={6} fontWeight="bold" opacity={0.8}>
+                        {n.shortBadge}
+                      </text>
                     </g>
                   )
                 })}
@@ -1822,6 +1942,14 @@ export default function NatalWheelPage() {
               <button onClick={() => { setSelectedHouseForLearning(0); setShowHouseLearning(true); }}
                 className={`text-[10px] px-3 py-1 rounded-full border transition-colors ${showHouseLearning ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300' : 'bg-slate-800/50 border-white/10 text-white/40 hover:text-white/60'}`}>
                 House Learn
+              </button>
+              <button onClick={() => setShowDegreeTheory(!showDegreeTheory)}
+                className={`text-[10px] px-3 py-1 rounded-full border transition-colors ${showDegreeTheory ? 'bg-rose-500/20 border-rose-500/40 text-rose-300' : 'bg-slate-800/50 border-white/10 text-white/40 hover:text-white/60'}`}>
+                Degree Theory
+              </button>
+              <button onClick={() => setShowSabianSymbols(!showSabianSymbols)}
+                className={`text-[10px] px-3 py-1 rounded-full border transition-colors ${showSabianSymbols ? 'bg-teal-500/20 border-teal-500/40 text-teal-300' : 'bg-slate-800/50 border-white/10 text-white/40 hover:text-white/60'}`}>
+                Sabian Symbols
               </button>
             </div>
           )}

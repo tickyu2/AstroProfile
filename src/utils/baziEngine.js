@@ -266,6 +266,55 @@ export function calculateWeightedElements(pillars) {
 }
 
 // ============================================
+// 7b. PILLAR-WEIGHTED ELEMENT CALCULATION
+// ============================================
+// Applies per-pillar weights (e.g. 0.70/0.15/0.10/0.05 for compatibility,
+// 0.25/0.25/0.25/0.25 for health) to scale each pillar's element contribution.
+// pillarWeights: array of 4 numbers [yearW, monthW, dayW, hourW]
+// Returns same shape as calculateWeightedElements.
+
+export function calculateElementsWithPillarWeights(pillars, pillarWeights) {
+  const weights = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+  const breakdown = {
+    visible: { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 },
+    hidden:  { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 }
+  };
+
+  pillars.forEach((pillar, idx) => {
+    const pw = pillarWeights[idx] ?? 0.25; // default to equal
+
+    // 1. STEM element scaled by pillar weight
+    const stemElement = pillar.stem.element;
+    weights[stemElement] += 1.0 * pw;
+    breakdown.visible[stemElement] += 1.0 * pw;
+
+    // 2. BRANCH element scaled by pillar weight
+    const branchElement = pillar.branch.element;
+    weights[branchElement] += 1.0 * pw;
+    breakdown.visible[branchElement] += 1.0 * pw;
+
+    // 3. HIDDEN ROOTS scaled by pillar weight
+    const hiddenRoots = HIDDEN_STEMS[pillar.branch.char] || [];
+    hiddenRoots.forEach(root => {
+      const rootStem = STEMS[root.stem];
+      if (rootStem) {
+        const strength = root.pct / 100;
+        weights[rootStem.element] += strength * pw;
+        breakdown.hidden[rootStem.element] += strength * pw;
+      }
+    });
+  });
+
+  const total = Object.values(weights).reduce((sum, val) => sum + val, 0);
+  const percentages = {};
+  Object.keys(weights).forEach(element => {
+    percentages[element] = ((weights[element] / total) * 100).toFixed(1);
+  });
+
+  return { raw: weights, percentages, total, breakdown };
+}
+
+// ============================================
 // 8. YIN/YANG BALANCE
 // ============================================
 
@@ -470,6 +519,7 @@ export default {
   BRANCH_COMBINES,
   calculateTenGod,
   calculateWeightedElements,
+  calculateElementsWithPillarWeights,
   calculateYinYang,
   checkBranchInteraction,
   getElementColor,

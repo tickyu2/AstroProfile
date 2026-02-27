@@ -866,7 +866,7 @@ const ThinkingStyleTab = ({ userDegree = null, zones }) => {
                           <li>⚡ 120 BPM - Fast for earth sign</li>
                           <li>💭 Instinct → Action thinking</li>
                           <li>🎯 60% focus - Moderate concentration</li>
-                          <li>📊 Gut feeling > data</li>
+                          <li>📊 Gut feeling &gt; data</li>
                         </ul>
                         <p className="analysis-note">
                           <strong>Bridge:</strong> Earth grounded by Fire. Can FEEL 
@@ -882,7 +882,7 @@ const ThinkingStyleTab = ({ userDegree = null, zones }) => {
                           <li>⚡ 100 BPM - Fast for earth sign</li>
                           <li>💭 Verbal → Conceptual thinking</li>
                           <li>🎯 50% focus - Multi-interest</li>
-                          <li>📊 Words > gut feeling</li>
+                          <li>📊 Words &gt; gut feeling</li>
                         </ul>
                         <p className="analysis-note">
                           <strong>Bridge:</strong> Earth enlightened by Air. Can THINK 
@@ -1157,3 +1157,4 @@ const ThinkingStyleTab = ({ userDegree = null, zones }) => {
 };
 
 export default ThinkingStyleTab;
+

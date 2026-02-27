@@ -68,7 +68,7 @@ export const lightBaziTheme = {
 const BaziThemeContext = createContext(defaultBaziTheme);
 
 // Theme Provider Component
-export const BaziThemeProvider = ({ theme = 'dark', customTheme, children }) => {
+export const BaziThemeProvider = ({ theme = 'dark', customTheme = undefined, children }) => {
   const baseTheme = theme === 'light' ? lightBaziTheme : defaultBaziTheme;
 
   // Merge custom theme if provided

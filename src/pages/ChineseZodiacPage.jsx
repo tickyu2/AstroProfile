@@ -12,9 +12,37 @@
  * December 31, 2025
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { db } from '../config/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import FloatingMdWindow from '../components/shared/FloatingMdWindow';
 import zodiacData from '../data/chineseZodiac.json';
+
+// Heavenly Stems (天干) — Yang and Yin for each element
+const HEAVENLY_STEMS = {
+  Wood:  { Yang: { char: '甲', pinyin: 'Jiǎ' },  Yin: { char: '乙', pinyin: 'Yǐ' } },
+  Fire:  { Yang: { char: '丙', pinyin: 'Bǐng' }, Yin: { char: '丁', pinyin: 'Dīng' } },
+  Earth: { Yang: { char: '戊', pinyin: 'Wù' },   Yin: { char: '己', pinyin: 'Jǐ' } },
+  Metal: { Yang: { char: '庚', pinyin: 'Gēng' }, Yin: { char: '辛', pinyin: 'Xīn' } },
+  Water: { Yang: { char: '壬', pinyin: 'Rén' },  Yin: { char: '癸', pinyin: 'Guǐ' } }
+};
+
+// Earthly Branches (地支) — one per animal
+const EARTHLY_BRANCHES = {
+  Rat:     { char: '子', pinyin: 'Zǐ' },
+  Ox:      { char: '丑', pinyin: 'Chǒu' },
+  Tiger:   { char: '寅', pinyin: 'Yín' },
+  Rabbit:  { char: '卯', pinyin: 'Mǎo' },
+  Dragon:  { char: '辰', pinyin: 'Chén' },
+  Snake:   { char: '巳', pinyin: 'Sì' },
+  Horse:   { char: '午', pinyin: 'Wǔ' },
+  Goat:    { char: '未', pinyin: 'Wèi' },
+  Monkey:  { char: '申', pinyin: 'Shēn' },
+  Rooster: { char: '酉', pinyin: 'Yǒu' },
+  Dog:     { char: '戌', pinyin: 'Xū' },
+  Pig:     { char: '亥', pinyin: 'Hài' }
+};
 
 // Element colors for styling
 const ELEMENT_COLORS = {
@@ -134,33 +162,38 @@ function ZodiacCard({ sign, isSelected, onSelect, onCopy }) {
 
   return (
     <div
-      className={`bg-gradient-to-br ${colors.bg} rounded-xl border ${colors.border} p-4 cursor-pointer hover:bg-white/5 transition-all duration-300 ${isSelected ? 'ring-2 ring-white/50 scale-105' : ''}`}
+      className={`bg-gradient-to-br ${colors.bg} rounded-lg border ${colors.border} px-3 py-2 cursor-pointer hover:bg-white/5 transition-all duration-300 ${isSelected ? 'ring-2 ring-white/50 scale-[1.02]' : ''}`}
       onClick={onSelect}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">{sign.emoji}</span>
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{sign.emoji}</span>
           <div>
-            <h3 className="text-white font-bold text-lg">{sign.name}</h3>
-            <p className={`text-sm ${colors.text}`}>{sign.chinese} • {sign.pinyin}</p>
+            <h3 className="text-white font-bold text-sm flex items-center gap-1.5">
+              {sign.name}
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${sign.yinYang === 'Yang' ? 'bg-red-600 text-white' : 'bg-sky-500 text-white'}`}>
+                {sign.yinYang === 'Yang' ? 'Yang 陽' : 'Yin 陰'}
+              </span>
+            </h3>
+            <p className={`text-xs ${colors.text}`}>{sign.chinese} • {sign.pinyin}</p>
           </div>
         </div>
-        <span className="text-2xl opacity-50">
+        <span className="text-xl opacity-50">
           {zodiacData.fiveElements[sign.fixedElement].emoji}
         </span>
       </div>
 
-      <p className="text-white/60 text-xs mb-3 line-clamp-2">
-        {sign.summary.substring(0, 100)}...
+      <p className="text-white/60 text-[11px] mb-1 line-clamp-2">
+        {sign.summary.substring(0, 80)}...
       </p>
 
-      <div className="flex items-center justify-between text-xs">
+      <div className="flex items-center justify-between text-[11px]">
         <span className="text-white/40">
           Years: {sign.years.slice(-3).join(', ')}
         </span>
         <button
           onClick={(e) => { e.stopPropagation(); onCopy(); }}
-          className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white/70 transition-colors"
+          className="px-2 py-0.5 bg-white/10 hover:bg-white/20 rounded text-white/70 transition-colors"
         >
           Copy
         </button>
@@ -174,42 +207,56 @@ function ElementCard({ sign, element, elementData, onCopy }) {
   const colors = ELEMENT_COLORS[element];
   const yearExamples = getYearsForElement(sign.years, element);
 
+  // The animal's polarity determines which stem it pairs with
+  const polarity = sign.yinYang; // 'Yang' or 'Yin'
+  const stem = HEAVENLY_STEMS[element][polarity];
+  const branch = EARTHLY_BRANCHES[sign.name];
+
   return (
-    <div className={`bg-gradient-to-br ${colors.bg} rounded-xl border ${colors.border} p-4`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
+    <div className={`bg-gradient-to-br ${colors.bg} rounded-lg border ${colors.border} px-3 py-2`}>
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
           <div className="flex items-center">
-            <span className="text-2xl">{elementData.emoji}</span>
-            <span className="text-2xl">{sign.emoji}</span>
+            <span className="text-lg">{elementData.emoji}</span>
+            <span className="text-lg">{sign.emoji}</span>
           </div>
           <div>
-            <h3 className="text-white font-bold">{element} {sign.name}</h3>
-            <p className={`text-sm ${colors.text}`}>
-              {elementData.chinese}{sign.chinese} • {elementData.pinyin} {sign.pinyin}
+            <h3 className="text-white font-bold text-sm flex items-center gap-1.5">
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${polarity === 'Yang' ? 'bg-red-600 text-white' : 'bg-sky-500 text-white'}`}>
+                {polarity} {element}
+              </span>
+              <span className="text-base">{stem.char}</span>
+              <span className="text-white/40 mx-0.5">+</span>
+              {sign.name} <span className="text-base">{branch.char}</span>
+              <span className="text-white/50 font-normal mx-1">=</span>
+              <span className="text-base font-bold text-amber-300">{stem.char}{branch.char}</span>
+            </h3>
+            <p className={`text-xs ${colors.text}`}>
+              {stem.pinyin} {branch.pinyin}
             </p>
           </div>
         </div>
         <button
           onClick={onCopy}
-          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-white/70 transition-colors text-sm"
+          className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-white/70 transition-colors text-xs"
         >
           Copy
         </button>
       </div>
 
-      <p className="text-white/70 text-sm mb-3">
+      <p className="text-white/70 text-xs mb-1">
         {elementData.personality}
       </p>
 
-      <div className="flex flex-wrap gap-1 mb-3">
+      <div className="flex flex-wrap gap-1 mb-1">
         {elementData.keywords.map((keyword, idx) => (
-          <span key={idx} className={`px-2 py-0.5 rounded-full text-xs ${colors.bg} ${colors.text} border ${colors.border}`}>
+          <span key={idx} className={`px-1.5 py-0 rounded-full text-[10px] ${colors.bg} ${colors.text} border ${colors.border}`}>
             {keyword}
           </span>
         ))}
       </div>
 
-      <div className="text-xs text-white/50">
+      <div className="text-[11px] text-white/50">
         Years: {yearExamples.length > 0 ? yearExamples.join(', ') : 'Varies by cycle'}
       </div>
     </div>
@@ -217,9 +264,55 @@ function ElementCard({ sign, element, elementData, onCopy }) {
 }
 
 // Main page component
+const ZODIAC_MD_DOC = doc(db, 'global_config', 'chinese_zodiac_md');
+
 export default function ChineseZodiacPage() {
   const [selectedSign, setSelectedSign] = useState(null);
   const [copied, setCopied] = useState(null);
+
+  // MD state
+  const [mdContent, setMdContent] = useState('');
+  const [showMd, setShowMd] = useState(false);
+  const mdFileRef = useRef(null);
+
+  // Load MD from Firestore on mount
+  useEffect(() => {
+    getDoc(ZODIAC_MD_DOC).then(snap => {
+      if (snap.exists()) {
+        const saved = snap.data().content;
+        if (typeof saved === 'string' && saved) setMdContent(saved);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const handleImportMd = useCallback(() => { mdFileRef.current?.click(); }, []);
+
+  const handleMdFileChange = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result;
+      if (typeof text === 'string') {
+        setMdContent(text);
+        setShowMd(true);
+        setDoc(ZODIAC_MD_DOC, { content: text, updatedAt: new Date().toISOString() }).catch(() => {});
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }, []);
+
+  const handleExportMd = useCallback(() => {
+    if (!mdContent) return;
+    const blob = new Blob([mdContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chinese_animals.md';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [mdContent]);
 
   const handleCopySign = (sign) => {
     const text = formatZodiacForCopy(sign);
@@ -251,15 +344,15 @@ export default function ChineseZodiacPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900/20 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f2847] to-[#0a1628]">
       {/* Header */}
       <div className="bg-slate-800/50 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <Link
                 to="/bazi-calculator"
-                className="text-white/50 hover:text-white transition-colors flex items-center gap-2"
+                className="text-white/50 hover:text-white transition-colors flex items-center gap-1 text-sm"
               >
                 <span>&larr;</span>
                 <span>BaZi Calculator</span>
@@ -267,35 +360,27 @@ export default function ChineseZodiacPage() {
               <span className="text-white/30">|</span>
               <Link
                 to="/zodiac-cusps"
-                className="text-white/50 hover:text-white transition-colors"
+                className="text-white/50 hover:text-white transition-colors text-sm"
               >
                 Western Cusps
               </Link>
             </div>
+            <h1 className="text-xl font-bold text-white flex items-center gap-2">
+              <span className="text-2xl">🐲</span>
+              Chinese Zodiac & Five Elements
+            </h1>
             <Link
               to="/dashboard"
-              className="text-white/50 hover:text-white transition-colors"
+              className="text-white/50 hover:text-white transition-colors text-sm"
             >
               Dashboard
             </Link>
-          </div>
-
-          <div className="mt-6">
-            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <span className="text-4xl">🐲</span>
-              Chinese Zodiac & Five Elements
-            </h1>
-            <p className="text-white/60 mt-2">
-              {selectedSign
-                ? `${selectedSign.emoji} ${selectedSign.name} enhanced by each of the Five Elements`
-                : 'Select a zodiac sign to see its five element variations'}
-            </p>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-3">
         {/* Copy notification */}
         {copied && (
           <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse">
@@ -304,22 +389,51 @@ export default function ChineseZodiacPage() {
         )}
 
         {/* Step 1: Zodiac Grid (always visible) */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-white">
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-base font-semibold text-white">
               Step 1: Select Your Chinese Zodiac Sign
             </h2>
-            {selectedSign && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setSelectedSign(null)}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/70 transition-colors text-sm"
+                onClick={() => { if (mdContent) setShowMd(true); }}
+                disabled={!mdContent}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${mdContent ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25 cursor-pointer' : 'bg-white/5 border border-white/10 text-white/30 cursor-not-allowed'}`}
               >
-                Clear Selection
+                Animals MD
               </button>
-            )}
+              <button
+                onClick={handleImportMd}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-500/15 border border-teal-500/30 text-teal-400 hover:bg-teal-500/25 cursor-pointer transition-colors"
+              >
+                Import
+              </button>
+              <button
+                onClick={handleExportMd}
+                disabled={!mdContent}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${mdContent ? 'bg-blue-500/15 border border-blue-500/30 text-blue-400 hover:bg-blue-500/25 cursor-pointer' : 'bg-white/5 border border-white/10 text-white/30 cursor-not-allowed'}`}
+              >
+                Export
+              </button>
+              <input
+                type="file"
+                ref={mdFileRef}
+                accept=".md,.markdown,.txt"
+                style={{ display: 'none' }}
+                onChange={handleMdFileChange}
+              />
+              {selectedSign && (
+                <button
+                  onClick={() => setSelectedSign(null)}
+                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-white/70 transition-colors text-xs"
+                >
+                  Clear Selection
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {zodiacData.zodiacSigns.map((sign) => (
               <ZodiacCard
                 key={sign.name}
@@ -334,17 +448,13 @@ export default function ChineseZodiacPage() {
 
         {/* Step 2: Element Variations (shown when sign is selected) */}
         {selectedSign && (
-          <div className="border-t border-white/10 pt-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-                  <span className="text-2xl">{selectedSign.emoji}</span>
-                  Step 2: {selectedSign.name} + Five Elements
-                </h2>
-                <p className="text-white/60 mt-1">
-                  Each element modifies the base {selectedSign.name} personality
-                </p>
-              </div>
+          <div className="border-t border-white/10 pt-3">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                <span className="text-xl">{selectedSign.emoji}</span>
+                Step 2: {selectedSign.name} + Five Elements
+                <span className="text-white/50 font-normal text-sm ml-2">— Each element modifies the base {selectedSign.name} personality</span>
+              </h2>
               <button
                 onClick={handleCopyAll}
                 className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-purple-300 transition-colors"
@@ -354,7 +464,7 @@ export default function ChineseZodiacPage() {
             </div>
 
             {/* Element cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {['Wood', 'Fire', 'Earth', 'Metal', 'Water'].map((element) => (
                 <ElementCard
                   key={element}
@@ -469,6 +579,14 @@ export default function ChineseZodiacPage() {
           </div>
         </div>
       </div>
+
+      {showMd && mdContent && (
+        <FloatingMdWindow
+          content={mdContent}
+          title="Chinese Animals MD"
+          onClose={() => setShowMd(false)}
+        />
+      )}
     </div>
   );
 }

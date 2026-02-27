@@ -111,7 +111,7 @@ function calculateBaZiInternal(birthData) {
 
   let yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi;
   let calculationMethod = 'lunar-javascript (Industry Standard)';
-  
+
   // Try library first (works for 1900-2100)
   if (year >= 1900 && year <= 2100) {
     try {

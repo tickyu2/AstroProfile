@@ -8,7 +8,7 @@ export function useWheelDimensions() {
     const handleResize = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        const size = Math.min(rect.width - 40, 600);
+        const size = Math.min(rect.width - 20, 920);
         setDimensions({ width: size, height: size });
       }
     };

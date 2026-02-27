@@ -49,13 +49,31 @@ const BRANCH_ENGLISH = {
   '亥': { pinyin: 'Hài', full: 'Pig' }
 };
 
+// Pillar metadata: weights and descriptive subtitles
+// Keys match the base name: 'Year', 'Month', 'Day', 'Hour'
+const PILLAR_META = {
+  Year:  { weight: '5%',  subtitle: 'Public Persona & Ancestral Foundation' },
+  Month: { weight: '10%', subtitle: 'Career Path & Social Standing' },
+  Day:   { weight: '70%', subtitle: 'Your Soul-Level Born-With Identity' },
+  Hour:  { weight: '15%', subtitle: 'Intimate Self & Private Inner World' }
+};
+
+// Extract base key from label (handles "Year", "Year Pillar", etc.)
+function getPillarKey(label) {
+  if (!label) return null;
+  const base = label.replace(/\s*pillar\s*/i, '').trim();
+  // Capitalize first letter
+  return base.charAt(0).toUpperCase() + base.slice(1).toLowerCase();
+}
+
 const ModularPillarCard = ({
   label,            // 'Year' | 'Month' | 'Day' | 'Hour'
   pillar,           // { stem, branch, element?, ganZhi?, ages?, significance? }
   isYou = false,    // Highlight for Day pillar (Self)
   compact = false,
   showHiddenRoots = false,
-  onClick
+  onClick,
+  metaOverride      // Optional: { weight: '25%', subtitle: '...' } to override PILLAR_META
 }) => {
   const theme = useBaziTheme();
   const [showHiddenExplanation, setShowHiddenExplanation] = useState(false);
@@ -71,11 +89,11 @@ const ModularPillarCard = ({
       background: theme.colors.card,
       borderRadius: theme.radius.lg,
       border: `1px solid ${isYou ? theme.colors.accent : theme.colors.border}`,
-      padding: compact ? '12px' : '16px',
+      padding: compact ? '10px' : '12px',
       minWidth: compact ? 100 : 130,
       display: 'flex',
       flexDirection: 'column',
-      gap: compact ? 8 : 12,
+      gap: compact ? 6 : 8,
       position: 'relative',
       cursor: onClick ? 'pointer' : 'default',
       transition: 'all 0.2s',
@@ -83,11 +101,16 @@ const ModularPillarCard = ({
     },
     header: {
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      flexDirection: 'column',
+      gap: compact ? 2 : 3,
       borderBottom: `1px solid ${theme.colors.border}`,
-      paddingBottom: compact ? 6 : 8,
-      marginBottom: compact ? 4 : 8
+      paddingBottom: compact ? 4 : 6,
+      marginBottom: compact ? 2 : 4
+    },
+    headerTop: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
     },
     label: {
       fontSize: compact ? '0.65rem' : '0.75rem',
@@ -96,6 +119,14 @@ const ModularPillarCard = ({
       color: theme.colors.muted,
       fontWeight: 600,
       fontFamily: theme.typography.fontFamily
+    },
+    headerSubtitle: {
+      fontSize: compact ? '0.5rem' : '0.6rem',
+      color: theme.colors.textSecondary,
+      fontWeight: 400,
+      lineHeight: 1.3,
+      fontFamily: theme.typography.fontFamily,
+      fontStyle: 'italic'
     },
     youBadge: {
       fontSize: '0.6rem',
@@ -109,8 +140,8 @@ const ModularPillarCard = ({
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      gap: compact ? 8 : 12,
-      padding: compact ? '8px 0' : '12px 0'
+      gap: compact ? 6 : 8,
+      padding: compact ? '4px 0' : '6px 0'
     },
     charWrapper: {
       display: 'flex',
@@ -137,7 +168,7 @@ const ModularPillarCard = ({
     elements: {
       display: 'flex',
       flexDirection: 'column',
-      gap: 6,
+      gap: 4,
       alignItems: 'center'
     },
     ganZhi: {
@@ -161,8 +192,8 @@ const ModularPillarCard = ({
       borderTop: `1px solid ${theme.colors.border}`
     },
     hiddenRoots: {
-      marginTop: 8,
-      padding: 10,
+      marginTop: 4,
+      padding: 8,
       background: `linear-gradient(135deg, ${theme.colors.card} 0%, ${theme.colors.cardLight || theme.colors.card}40 100%)`,
       borderRadius: theme.radius.md,
       border: `1px solid ${theme.colors.border}`
@@ -246,10 +277,23 @@ const ModularPillarCard = ({
   return (
     <div style={styles.card} onClick={onClick}>
       {/* Header */}
-      <div style={styles.header}>
-        <span style={styles.label}>{label}</span>
-        {isYou && <span style={styles.youBadge}>YOU</span>}
-      </div>
+      {(() => {
+        const key = getPillarKey(label);
+        const meta = metaOverride || (key ? PILLAR_META[key] : null);
+        return (
+          <div style={styles.header}>
+            <div style={styles.headerTop}>
+              <span style={styles.label}>
+                {key || label} Pillar{meta ? ` (${meta.weight})` : ''}
+              </span>
+              {isYou && <span style={styles.youBadge}>YOU</span>}
+            </div>
+            {meta && !compact && (
+              <span style={styles.headerSubtitle}>{meta.subtitle}</span>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Main Characters with English labels */}
       <div style={styles.characters}>
@@ -338,10 +382,7 @@ const ModularPillarCard = ({
         </div>
       )}
 
-      {/* Significance (if available) */}
-      {pillar.significance && !compact && (
-        <div style={styles.significance}>{pillar.significance}</div>
-      )}
+      {/* Significance removed — now shown in header subtitle */}
     </div>
   );
 };

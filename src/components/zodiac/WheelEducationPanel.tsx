@@ -9,9 +9,9 @@
 
 import './WheelEducationPanel.css';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
+import FloatingMdWindow, { renderMarkdownText, renderInlineMarkdown } from '../shared/FloatingMdWindow';
 import {
   WHEEL_LAYERS,
   SEASON_WISDOM,
@@ -279,59 +279,7 @@ function buildSeasonsMd(): string {
 }
 
 /** Floating draggable MD reader window */
-const FloatingMdWindow: React.FC<{
-  content: string;
-  title: string;
-  onClose: () => void;
-}> = ({ content, title, onClose }) => {
-  const [pos, setPos] = useState({ x: 900, y: 170 });
-  const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
-  const bodyRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      if (!dragRef.current) return;
-      const dx = e.clientX - dragRef.current.startX;
-      const dy = e.clientY - dragRef.current.startY;
-      setPos({ x: dragRef.current.origX + dx, y: dragRef.current.origY + dy });
-    };
-    const onUp = () => { dragRef.current = null; };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
-  }, []);
-
-  const handleDragStart = (e: React.MouseEvent) => {
-    dragRef.current = { startX: e.clientX, startY: e.clientY, origX: pos.x, origY: pos.y };
-  };
-
-  // Intercept anchor link clicks to scroll within the floating body
-  const handleBodyClick = useCallback((e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'A' && target.getAttribute('href')?.startsWith('#')) {
-      e.preventDefault();
-      const id = target.getAttribute('href')!.slice(1);
-      const el = bodyRef.current?.querySelector(`[id="${id}"]`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, []);
-
-  return ReactDOM.createPortal(
-    <div className="floating-md-window" style={{ left: pos.x, top: pos.y }}>
-      <div className="floating-md-titlebar" onMouseDown={handleDragStart}>
-        <span className="floating-md-title">{title}</span>
-        <button className="floating-md-close" onClick={onClose}>&times;</button>
-      </div>
-      <div className="floating-md-body" ref={bodyRef} onClick={handleBodyClick}>
-        {renderMarkdownText(content)}
-      </div>
-    </div>,
-    document.body,
-  );
-};
+// FloatingMdWindow + renderMarkdownText imported from '../shared/FloatingMdWindow'
 
 const SEASONS_MD_DOC = doc(db, 'global_config', 'seasons_md');
 
@@ -1107,177 +1055,7 @@ const SignsTab: React.FC = () => {
 // ASPECTS TAB - Geometric Relationships Between Signs (5W+H+Emotion Framework)
 // =============================================================================
 
-// Helper to render inline markdown (bold and italic) - reusable
-/** Render inline markdown: **bold**, *italic*, [link](url), HTML tags */
-const renderInlineMarkdown = (str: string, keyPrefix: string = 'md'): React.ReactNode[] => {
-  // Split by **bold**, *italic*, [link](url), and HTML tags
-  const tokens = str.split(/(\*\*.*?\*\*|\*[^*]+\*|\[.*?\]\(.*?\)|<[^>]+>)/g);
-
-  return tokens.flatMap((tok, idx) => {
-    if (!tok) return [];
-    if (tok.startsWith('**') && tok.endsWith('**')) {
-      return <strong key={`${keyPrefix}-${idx}`}>{tok.slice(2, -2)}</strong>;
-    }
-    if (tok.startsWith('*') && tok.endsWith('*') && tok.length > 2) {
-      return <em key={`${keyPrefix}-${idx}`}>{tok.slice(1, -1)}</em>;
-    }
-    const linkMatch = tok.match(/^\[(.*?)\]\((.*?)\)$/);
-    if (linkMatch) {
-      return <a key={`${keyPrefix}-${idx}`} href={linkMatch[2]} className="md-link">{linkMatch[1]}</a>;
-    }
-    // HTML anchor bookmark: <a name="..."></a> or <a name="..." />
-    const anchorMatch = tok.match(/^<a\s+name=["']([^"']+)["']\s*\/?\s*>$/i);
-    if (anchorMatch) {
-      return <a key={`${keyPrefix}-${idx}`} id={anchorMatch[1]} />;
-    }
-    // Self-closing / empty HTML tags: </a>, <br>, <br/>, <hr>, etc. — skip
-    if (/^<\/?[a-z][^>]*\/?>$/i.test(tok)) {
-      // <br> and <br/> → line break
-      if (/^<br\s*\/?>$/i.test(tok)) return <br key={`${keyPrefix}-${idx}`} />;
-      return [];
-    }
-    return tok;
-  });
-};
-
-/**
- * Render markdown text with headers, lists, blockquotes, hr, tables, bold/italic.
- * Handles full .md files — not just inline snippets.
- */
-const renderMarkdownText = (text: string): React.ReactNode => {
-  const lines = text.split('\n');
-  const elements: React.ReactNode[] = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    // Blank line — skip
-    if (line.trim() === '') { i++; continue; }
-
-    // HTML anchor bookmark: <a name="..."></a> (standalone line)
-    const anchorLineMatch = line.trim().match(/^<a\s+name=["']([^"']+)["']\s*>\s*<\/a>$/i);
-    if (anchorLineMatch) {
-      elements.push(<a key={`anchor-${i}`} id={anchorLineMatch[1]} />);
-      i++; continue;
-    }
-
-    // Other standalone HTML tags (skip closing tags, render <br>)
-    if (/^\s*<\/?[a-z][^>]*\/?\s*>\s*$/i.test(line.trim()) && !line.trim().startsWith('<a')) {
-      if (/^<br\s*\/?>$/i.test(line.trim())) {
-        elements.push(<br key={`br-${i}`} />);
-      }
-      i++; continue;
-    }
-
-    // Horizontal rule: ---, ***, ___
-    if (/^(\s*[-*_]){3,}\s*$/.test(line)) {
-      elements.push(<hr key={`hr-${i}`} className="md-hr" />);
-      i++; continue;
-    }
-
-    // Headers: # through ######
-    const headerMatch = line.match(/^(#{1,6})\s+(.*)/);
-    if (headerMatch) {
-      const level = headerMatch[1].length as 1 | 2 | 3 | 4 | 5 | 6;
-      const Tag = `h${level}` as keyof JSX.IntrinsicElements;
-      elements.push(<Tag key={`h-${i}`} className={`md-h${level}`}>{renderInlineMarkdown(headerMatch[2], `h${i}`)}</Tag>);
-      i++; continue;
-    }
-
-    // Blockquote: > text
-    if (line.startsWith('>')) {
-      const bqLines: string[] = [];
-      while (i < lines.length && lines[i].startsWith('>')) {
-        bqLines.push(lines[i].replace(/^>\s?/, ''));
-        i++;
-      }
-      elements.push(
-        <blockquote key={`bq-${i}`} className="md-blockquote">
-          {bqLines.map((bl, j) => (
-            <React.Fragment key={j}>{renderInlineMarkdown(bl, `bq${i}-${j}`)}{j < bqLines.length - 1 && <br />}</React.Fragment>
-          ))}
-        </blockquote>,
-      );
-      continue;
-    }
-
-    // Unordered list: - item or * item
-    if (/^\s*[-*]\s+/.test(line)) {
-      const items: string[] = [];
-      while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
-        items.push(lines[i].replace(/^\s*[-*]\s+/, ''));
-        i++;
-      }
-      elements.push(
-        <ul key={`ul-${i}`} className="md-ul">
-          {items.map((item, j) => <li key={j}>{renderInlineMarkdown(item, `ul${i}-${j}`)}</li>)}
-        </ul>,
-      );
-      continue;
-    }
-
-    // Ordered list: 1. item
-    if (/^\s*\d+\.\s+/.test(line)) {
-      const items: string[] = [];
-      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
-        items.push(lines[i].replace(/^\s*\d+\.\s+/, ''));
-        i++;
-      }
-      elements.push(
-        <ol key={`ol-${i}`} className="md-ol">
-          {items.map((item, j) => <li key={j}>{renderInlineMarkdown(item, `ol${i}-${j}`)}</li>)}
-        </ol>,
-      );
-      continue;
-    }
-
-    // Table: | col | col |
-    if (line.includes('|') && line.trim().startsWith('|')) {
-      const tableLines: string[] = [];
-      while (i < lines.length && lines[i].includes('|') && lines[i].trim().startsWith('|')) {
-        tableLines.push(lines[i]);
-        i++;
-      }
-      // Parse: first row = header, second row = separator (skip), rest = body
-      const parseRow = (r: string) => r.split('|').filter((_, ci, arr) => ci > 0 && ci < arr.length - 1).map(c => c.trim());
-      const headerCells = parseRow(tableLines[0]);
-      const bodyRows = tableLines.slice(2).map(parseRow); // skip separator row
-      elements.push(
-        <div key={`tbl-${i}`} className="md-table-wrap">
-          <table className="md-table">
-            <thead><tr>{headerCells.map((c, ci) => <th key={ci}>{renderInlineMarkdown(c, `th${i}-${ci}`)}</th>)}</tr></thead>
-            <tbody>
-              {bodyRows.map((row, ri) => (
-                <tr key={ri}>{row.map((c, ci) => <td key={ci}>{renderInlineMarkdown(c, `td${i}-${ri}-${ci}`)}</td>)}</tr>
-              ))}
-            </tbody>
-          </table>
-        </div>,
-      );
-      continue;
-    }
-
-    // Default: paragraph (collect consecutive non-special lines)
-    const paraLines: string[] = [];
-    while (i < lines.length && lines[i].trim() !== '' && !/^(#{1,6}\s|>\s*|[-*_]{3,}|\s*[-*]\s+|\s*\d+\.\s+|\|)/.test(lines[i])) {
-      paraLines.push(lines[i]);
-      i++;
-    }
-    elements.push(
-      <p key={`p-${i}`} className="edu-paragraph">
-        {paraLines.map((pl, j) => (
-          <React.Fragment key={j}>
-            {renderInlineMarkdown(pl, `p${i}-${j}`)}
-            {j < paraLines.length - 1 && <br />}
-          </React.Fragment>
-        ))}
-      </p>,
-    );
-  }
-
-  return <>{elements}</>;
-};
+// renderInlineMarkdown + renderMarkdownText imported from '../shared/FloatingMdWindow'
 
 // Aspects Educational Content (5W+H+Emotion) - Full rich content
 const ASPECTS_EDUCATION = {
