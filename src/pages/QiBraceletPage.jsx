@@ -12,7 +12,8 @@ import { Link } from 'react-router-dom';
 import { useProfiles } from '../contexts/ProfileContext';
 import { calculateBaZi } from '../utils/baziCalculator';
 import { computeQiYearMatrix } from '../utils/qiEngine';
-import { designBracelet, scoreBracelet, scoreAllStones, exportBraceletSchema, findSubstitutes } from '../data/stoneDatabase';
+import { designBracelet, scoreBracelet, scoreAllStones, exportBraceletSchema, findSubstitutes, diagnoseCollapse, computeElementRatios, engineerBracelet } from '../data/stoneDatabase';
+import EngineeredBraceletVisualizer, { QiTotalsBar, CollapseDiagnosisPanel, BraceletSummaryCard } from '../components/qi/EngineeredBraceletVisualizer';
 import { getSeasonalWeights, getSeasonInfo } from '../utils/baziSeasonality';
 import {
   BaziThemeProvider,
@@ -5221,6 +5222,53 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
                       prevLabel={prevSnapshot?.monthName}
                       allMonthBracelets={allMonthBracelets}
                     />
+
+                    {/* ═══ ENGINEERED BRACELET — Step 1-8A Qi-flow design ═══ */}
+                    {(() => {
+                      try {
+                        // Convert postClash percentages to 0-1 ratios for diagnoseCollapse
+                        const pool = snapshot.postClash || snapshot.functionalQi || {};
+                        const ratios = computeElementRatios(pool);
+                        const collapseReport = diagnoseCollapse(ratios);
+                        const branchAnimal = snapshot.branchAnimal || 'Tiger';
+                        const engineered = engineerBracelet({
+                          collapse: collapseReport,
+                          month: branchAnimal,
+                          totalBeads: 21,
+                          beadSize: 10,
+                        });
+
+                        return (
+                          <div className="mt-4 space-y-3">
+                            <div className="text-xs font-semibold text-purple-400 uppercase tracking-wider">
+                              Engineered Qi-Flow Bracelet — {snapshot.monthName}
+                            </div>
+
+                            <EngineeredBraceletVisualizer
+                              beads={engineered.beads}
+                              wrist={engineered.wrist}
+                              wristReason={engineered.wristReason}
+                              collapse={collapseReport}
+                              qiTotals={engineered.qiTotals}
+                              size={300}
+                              isDark={true}
+                            />
+
+                            <QiTotalsBar qiTotals={engineered.qiTotals} isDark={true} />
+
+                            <CollapseDiagnosisPanel collapse={collapseReport} isDark={true} />
+
+                            <BraceletSummaryCard
+                              bracelet={engineered}
+                              monthLabel={snapshot.monthName}
+                              isDark={true}
+                            />
+                          </div>
+                        );
+                      } catch {
+                        return null; // graceful fallback if data insufficient
+                      }
+                    })()}
 
                     {/* ═══ BRACELET AUTO-DESIGNER — optimal sequence ═══ */}
                     <div className="mt-3">
