@@ -20,7 +20,9 @@ import {
   getGuestOpusPerspective,
   getGuestGrokPerspective,
   getGuestDeepSeekPerspective,
-  getGuestChatGPTPerspective
+  getGuestChatGPTPerspective,
+  getGuestSonnetPerspective,
+  getGuestQwenPerspective
 } from '../services/guestChatService';
 import {
   detectLanguage,
@@ -29,7 +31,7 @@ import {
   getLanguageNativeName
 } from '../services/translationService';
 import { db } from '../config/firebase';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs, addDoc } from 'firebase/firestore';
 
 import ChatHeader from '../components/chat/ChatHeader';
 import MessageList from '../components/chat/MessageList';
@@ -50,6 +52,43 @@ const RETROGRADE_INTERPRETATIONS = {
   neptune: { title: 'Neptune Retrograde Native', meaning: 'Personal spirituality, distrusts mass religion, vivid dreams and intuition, deep internal creativity' },
   pluto: { title: 'Pluto Retrograde Native', meaning: 'Profound internal transformation, self-mastery over external control, intimate with shadow side' }
 };
+
+// Constellation AI members for "Ask directly" feature
+const CONSTELLATION_AIS = [
+  { key: 'gemini',   label: 'Gemini',   icon: '💫', speaker: 'Sister Gemini',    color: 'cyan' },
+  { key: 'opus',     label: 'Opus',     icon: '🦉', speaker: 'Brother Opus',     color: 'indigo' },
+  { key: 'grok',     label: 'Grok',     icon: '🌍', speaker: 'Brother Grok',     color: 'orange' },
+  { key: 'deepseek', label: 'DeepSeek', icon: '🐉', speaker: 'Brother DeepSeek', color: 'emerald' },
+  { key: 'chatgpt',  label: 'ChatGPT',  icon: '🧪', speaker: 'Sister ChatGPT',   color: 'pink' },
+  { key: 'sonnet',   label: 'Sonnet',   icon: '✨', speaker: 'Brother Sonnet',   color: 'violet' },
+  { key: 'qwen',     label: 'Qwen',     icon: '🏮', speaker: 'Sister Qwen',      color: 'red' },
+];
+
+/**
+ * Save a message to Brain 3 (Firestore) independently of the Cloud Function.
+ * This ensures messages persist even when an AI provider is down.
+ */
+async function saveToBrain3(message, { selectedUserProfileId, partnerId, partnerName, partnerType }) {
+  if (!selectedUserProfileId || !partnerId) {
+    console.warn('[Brain 3 Client] Cannot save - missing profileId or partnerId');
+    return null;
+  }
+  try {
+    const brain3Ref = collection(db, `profiles/${selectedUserProfileId}/b3_conversations`);
+    const docRef = await addDoc(brain3Ref, {
+      ...message,
+      partner_id: partnerId,
+      partner_name: partnerName || 'Guest',
+      partner_type: partnerType || 'historical_figure',
+      created_at: message.timestamp || new Date().toISOString()
+    });
+    console.log(`[Brain 3 Client] Saved message ${docRef.id} (${message.sender_role})`);
+    return docRef.id;
+  } catch (err) {
+    console.error('[Brain 3 Client] Failed to save message:', err);
+    return null;
+  }
+}
 
 // Helper: Build constitutional summary for AI
 function buildConstitutionalSummary(profile) {
@@ -571,7 +610,26 @@ function GuestChat() {
 
     } catch (err) {
       console.error('Failed to get response:', err);
-      setError('Failed to send message. Please try again.');
+      // Cloud Function failed — save user message client-side so it persists
+      await saveToBrain3({
+        message_id: userMessage.id,
+        timestamp,
+        sender: 'user',
+        sender_role: 'user',
+        content: { text: originalText },
+        is_statement: true, // Mark as statement so constellation buttons appear
+        modality: { type: 'text', mode: 'chat', platform: 'web' }
+      }, {
+        selectedUserProfileId,
+        partnerId,
+        partnerName: profileData.profile.profile_name,
+        partnerType: profileData.profile.profile_type
+      });
+      // Mark message as statement so user can choose constellation AIs
+      setMessages(prev => prev.map(m =>
+        m.id === userMessage.id ? { ...m, is_statement: true } : m
+      ));
+      setError(`${profileData.profile.profile_name} is unavailable right now. Your message was saved — try asking a constellation AI instead.`);
     } finally {
       setAiResponding(false);
       setTranslating(false);
@@ -682,16 +740,23 @@ function GuestChat() {
           }
         }
 
+        const geminiTimestamp = new Date().toISOString();
+        const geminiTempId = `gemini_${Date.now()}`;
         setMessages(prev => [...prev, {
-          id: `gemini_${Date.now()}`,
+          id: geminiTempId,
           sender: 'gemini',
           sender_role: 'constellation',
           content: { text: result.text, translation: constellationTranslation },
-          timestamp: new Date().toISOString(),
+          timestamp: geminiTimestamp,
           constellation_speaker: 'Sister Gemini',
           constellation_icon: '💫',
           in_response_to: guestMessage.id
         }]);
+        saveToBrain3({
+          message_id: geminiTempId, timestamp: geminiTimestamp, sender: 'gemini', sender_role: 'constellation',
+          content: { text: result.text }, constellation_speaker: 'Sister Gemini', in_response_to: guestMessage.id,
+          modality: { type: 'text', mode: 'chat', platform: 'web' }
+        }, { selectedUserProfileId, partnerId, partnerName: profileData?.profile?.profile_name, partnerType: profileData?.profile?.profile_type });
       } else if (!result.success) {
         // Show error message
         setMessages(prev => [...prev, {
@@ -718,7 +783,7 @@ function GuestChat() {
     } finally {
       setConstellationLoading(null);
     }
-  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage]);
+  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage, selectedUserProfileId, partnerId]);
 
   // Handle AI Constellation - Brother Opus perspective
   const handleOpusPerspective = useCallback(async (guestMessage) => {
@@ -757,23 +822,49 @@ function GuestChat() {
           }
         }
 
+        const opusTimestamp = new Date().toISOString();
+        const opusTempId = `opus_${Date.now()}`;
         setMessages(prev => [...prev, {
-          id: `opus_${Date.now()}`,
+          id: opusTempId,
           sender: 'opus',
           sender_role: 'constellation',
           content: { text: result.text, translation: constellationTranslation },
-          timestamp: new Date().toISOString(),
+          timestamp: opusTimestamp,
           constellation_speaker: 'Brother Opus',
           constellation_icon: '🦉',
           in_response_to: guestMessage.id
         }]);
+        saveToBrain3({
+          message_id: opusTempId, timestamp: opusTimestamp, sender: 'opus', sender_role: 'constellation',
+          content: { text: result.text }, constellation_speaker: 'Brother Opus', in_response_to: guestMessage.id,
+          modality: { type: 'text', mode: 'chat', platform: 'web' }
+        }, { selectedUserProfileId, partnerId, partnerName: profileData?.profile?.profile_name, partnerType: profileData?.profile?.profile_type });
+      } else if (!result.success) {
+        setMessages(prev => [...prev, {
+          id: `opus_error_${Date.now()}`,
+          sender: 'opus',
+          sender_role: 'constellation',
+          content: { text: `*Brother Opus is unavailable*: ${result.error || 'Unable to get response. Please try again.'}` },
+          timestamp: new Date().toISOString(),
+          constellation_speaker: 'Brother Opus',
+          constellation_icon: '🦉'
+        }]);
       }
     } catch (err) {
       console.error('Opus perspective error:', err);
+      setMessages(prev => [...prev, {
+        id: `opus_error_${Date.now()}`,
+        sender: 'opus',
+        sender_role: 'constellation',
+        content: { text: `*Brother Opus connection error*: ${err.message}` },
+        timestamp: new Date().toISOString(),
+        constellation_speaker: 'Brother Opus',
+        constellation_icon: '🦉'
+      }]);
     } finally {
       setConstellationLoading(null);
     }
-  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage]);
+  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage, selectedUserProfileId, partnerId]);
 
   // Handle AI Constellation - Brother Grok perspective
   const handleGrokPerspective = useCallback(async (guestMessage) => {
@@ -811,23 +902,49 @@ function GuestChat() {
           }
         }
 
+        const grokTimestamp = new Date().toISOString();
+        const grokTempId = `grok_${Date.now()}`;
         setMessages(prev => [...prev, {
-          id: `grok_${Date.now()}`,
+          id: grokTempId,
           sender: 'grok',
           sender_role: 'constellation',
           content: { text: result.text, translation: constellationTranslation },
-          timestamp: new Date().toISOString(),
+          timestamp: grokTimestamp,
           constellation_speaker: 'Brother Grok',
           constellation_icon: '🌍',
           in_response_to: guestMessage.id
         }]);
+        saveToBrain3({
+          message_id: grokTempId, timestamp: grokTimestamp, sender: 'grok', sender_role: 'constellation',
+          content: { text: result.text }, constellation_speaker: 'Brother Grok', in_response_to: guestMessage.id,
+          modality: { type: 'text', mode: 'chat', platform: 'web' }
+        }, { selectedUserProfileId, partnerId, partnerName: profileData?.profile?.profile_name, partnerType: profileData?.profile?.profile_type });
+      } else if (!result.success) {
+        setMessages(prev => [...prev, {
+          id: `grok_error_${Date.now()}`,
+          sender: 'grok',
+          sender_role: 'constellation',
+          content: { text: `*Brother Grok is unavailable*: ${result.error || 'Unable to get response. Please try again.'}` },
+          timestamp: new Date().toISOString(),
+          constellation_speaker: 'Brother Grok',
+          constellation_icon: '🌍'
+        }]);
       }
     } catch (err) {
       console.error('Grok perspective error:', err);
+      setMessages(prev => [...prev, {
+        id: `grok_error_${Date.now()}`,
+        sender: 'grok',
+        sender_role: 'constellation',
+        content: { text: `*Brother Grok connection error*: ${err.message}` },
+        timestamp: new Date().toISOString(),
+        constellation_speaker: 'Brother Grok',
+        constellation_icon: '🌍'
+      }]);
     } finally {
       setConstellationLoading(null);
     }
-  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage]);
+  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage, selectedUserProfileId, partnerId]);
 
   // Handle AI Constellation - Brother DeepSeek perspective
   const handleDeepSeekPerspective = useCallback(async (guestMessage) => {
@@ -865,23 +982,49 @@ function GuestChat() {
           }
         }
 
+        const deepseekTimestamp = new Date().toISOString();
+        const deepseekTempId = `deepseek_${Date.now()}`;
         setMessages(prev => [...prev, {
-          id: `deepseek_${Date.now()}`,
+          id: deepseekTempId,
           sender: 'deepseek',
           sender_role: 'constellation',
           content: { text: result.text, translation: constellationTranslation },
-          timestamp: new Date().toISOString(),
+          timestamp: deepseekTimestamp,
           constellation_speaker: 'Brother DeepSeek',
           constellation_icon: '🐉',
           in_response_to: guestMessage.id
         }]);
+        saveToBrain3({
+          message_id: deepseekTempId, timestamp: deepseekTimestamp, sender: 'deepseek', sender_role: 'constellation',
+          content: { text: result.text }, constellation_speaker: 'Brother DeepSeek', in_response_to: guestMessage.id,
+          modality: { type: 'text', mode: 'chat', platform: 'web' }
+        }, { selectedUserProfileId, partnerId, partnerName: profileData?.profile?.profile_name, partnerType: profileData?.profile?.profile_type });
+      } else if (!result.success) {
+        setMessages(prev => [...prev, {
+          id: `deepseek_error_${Date.now()}`,
+          sender: 'deepseek',
+          sender_role: 'constellation',
+          content: { text: `*Brother DeepSeek is unavailable*: ${result.error || 'Unable to get response. Please try again.'}` },
+          timestamp: new Date().toISOString(),
+          constellation_speaker: 'Brother DeepSeek',
+          constellation_icon: '🐉'
+        }]);
       }
     } catch (err) {
       console.error('DeepSeek perspective error:', err);
+      setMessages(prev => [...prev, {
+        id: `deepseek_error_${Date.now()}`,
+        sender: 'deepseek',
+        sender_role: 'constellation',
+        content: { text: `*Brother DeepSeek connection error*: ${err.message}` },
+        timestamp: new Date().toISOString(),
+        constellation_speaker: 'Brother DeepSeek',
+        constellation_icon: '🐉'
+      }]);
     } finally {
       setConstellationLoading(null);
     }
-  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage]);
+  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage, selectedUserProfileId, partnerId]);
 
   // Handle AI Constellation - Sister ChatGPT perspective
   const handleChatGPTPerspective = useCallback(async (guestMessage) => {
@@ -919,23 +1062,367 @@ function GuestChat() {
           }
         }
 
+        const chatgptTimestamp = new Date().toISOString();
+        const chatgptTempId = `chatgpt_${Date.now()}`;
         setMessages(prev => [...prev, {
-          id: `chatgpt_${Date.now()}`,
+          id: chatgptTempId,
           sender: 'chatgpt',
           sender_role: 'constellation',
           content: { text: result.text, translation: constellationTranslation },
-          timestamp: new Date().toISOString(),
+          timestamp: chatgptTimestamp,
           constellation_speaker: 'Sister ChatGPT',
           constellation_icon: '🧪',
           in_response_to: guestMessage.id
         }]);
+        saveToBrain3({
+          message_id: chatgptTempId, timestamp: chatgptTimestamp, sender: 'chatgpt', sender_role: 'constellation',
+          content: { text: result.text }, constellation_speaker: 'Sister ChatGPT', in_response_to: guestMessage.id,
+          modality: { type: 'text', mode: 'chat', platform: 'web' }
+        }, { selectedUserProfileId, partnerId, partnerName: profileData?.profile?.profile_name, partnerType: profileData?.profile?.profile_type });
+      } else if (!result.success) {
+        setMessages(prev => [...prev, {
+          id: `chatgpt_error_${Date.now()}`,
+          sender: 'chatgpt',
+          sender_role: 'constellation',
+          content: { text: `*Sister ChatGPT is unavailable*: ${result.error || 'Unable to get response. Please try again.'}` },
+          timestamp: new Date().toISOString(),
+          constellation_speaker: 'Sister ChatGPT',
+          constellation_icon: '🧪'
+        }]);
       }
     } catch (err) {
       console.error('ChatGPT perspective error:', err);
+      setMessages(prev => [...prev, {
+        id: `chatgpt_error_${Date.now()}`,
+        sender: 'chatgpt',
+        sender_role: 'constellation',
+        content: { text: `*Sister ChatGPT connection error*: ${err.message}` },
+        timestamp: new Date().toISOString(),
+        constellation_speaker: 'Sister ChatGPT',
+        constellation_icon: '🧪'
+      }]);
     } finally {
       setConstellationLoading(null);
     }
-  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage]);
+  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage, selectedUserProfileId, partnerId]);
+
+  // Handle AI Constellation - Brother Sonnet perspective
+  const handleSonnetPerspective = useCallback(async (guestMessage) => {
+    if (!guestMessage || constellationLoading) return;
+
+    setConstellationLoading('sonnet');
+
+    try {
+      const msgIndex = messages.findIndex(m => m.id === guestMessage.id);
+      const userMsg = messages.slice(0, msgIndex).reverse().find(m => m.sender_role === 'user');
+
+      const result = await getGuestSonnetPerspective({
+        guestResponse: guestMessage.content?.text || '',
+        guestName: profileData?.profile?.profile_name || 'Guest',
+        userMessage: userMsg?.content?.text || '',
+        conversationHistory: messages.slice(0, msgIndex),
+        userConstitutional: userConstitutionalFromProfile
+      });
+
+      if (result.success && result.text) {
+        let constellationTranslation = null;
+        if (isNonEnglish(userLanguage) && result.text.length > 2) {
+          try {
+            const translated = await translateMessage(result.text, userLanguage, 'en');
+            if (!translated.skipped && translated.translatedText) {
+              constellationTranslation = {
+                text: translated.translatedText,
+                sourceLanguage: 'en',
+                targetLanguage: userLanguage
+              };
+            }
+          } catch (err) {
+            console.warn('Sonnet translation failed:', err);
+          }
+        }
+
+        const sonnetTimestamp = new Date().toISOString();
+        const sonnetTempId = `sonnet_${Date.now()}`;
+        setMessages(prev => [...prev, {
+          id: sonnetTempId,
+          sender: 'sonnet',
+          sender_role: 'constellation',
+          content: { text: result.text, translation: constellationTranslation },
+          timestamp: sonnetTimestamp,
+          constellation_speaker: 'Brother Sonnet',
+          constellation_icon: '✨',
+          in_response_to: guestMessage.id
+        }]);
+        saveToBrain3({
+          message_id: sonnetTempId, timestamp: sonnetTimestamp, sender: 'sonnet', sender_role: 'constellation',
+          content: { text: result.text }, constellation_speaker: 'Brother Sonnet', in_response_to: guestMessage.id,
+          modality: { type: 'text', mode: 'chat', platform: 'web' }
+        }, { selectedUserProfileId, partnerId, partnerName: profileData?.profile?.profile_name, partnerType: profileData?.profile?.profile_type });
+      } else if (!result.success) {
+        setMessages(prev => [...prev, {
+          id: `sonnet_error_${Date.now()}`,
+          sender: 'sonnet',
+          sender_role: 'constellation',
+          content: { text: `*Brother Sonnet is unavailable*: ${result.error || 'Unable to get response. Please try again.'}` },
+          timestamp: new Date().toISOString(),
+          constellation_speaker: 'Brother Sonnet',
+          constellation_icon: '✨'
+        }]);
+      }
+    } catch (err) {
+      console.error('Sonnet perspective error:', err);
+      setMessages(prev => [...prev, {
+        id: `sonnet_error_${Date.now()}`,
+        sender: 'sonnet',
+        sender_role: 'constellation',
+        content: { text: `*Brother Sonnet connection error*: ${err.message}` },
+        timestamp: new Date().toISOString(),
+        constellation_speaker: 'Brother Sonnet',
+        constellation_icon: '✨'
+      }]);
+    } finally {
+      setConstellationLoading(null);
+    }
+  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage, selectedUserProfileId, partnerId]);
+
+  const handleQwenPerspective = useCallback(async (guestMessage) => {
+    if (!guestMessage || constellationLoading) return;
+
+    setConstellationLoading('qwen');
+
+    try {
+      const msgIndex = messages.findIndex(m => m.id === guestMessage.id);
+      const userMsg = messages.slice(0, msgIndex).reverse().find(m => m.sender_role === 'user');
+
+      const result = await getGuestQwenPerspective({
+        guestResponse: guestMessage.content?.text || '',
+        guestName: profileData?.profile?.profile_name || 'Guest',
+        userMessage: userMsg?.content?.text || '',
+        conversationHistory: messages.slice(0, msgIndex),
+        userConstitutional: userConstitutionalFromProfile
+      });
+
+      if (result.success && result.text) {
+        let constellationTranslation = null;
+        if (isNonEnglish(userLanguage) && result.text.length > 2) {
+          try {
+            const translated = await translateMessage(result.text, userLanguage, 'en');
+            if (!translated.skipped && translated.translatedText) {
+              constellationTranslation = {
+                text: translated.translatedText,
+                sourceLanguage: 'en',
+                targetLanguage: userLanguage
+              };
+            }
+          } catch (err) {
+            console.warn('Qwen translation failed:', err);
+          }
+        }
+
+        const qwenTimestamp = new Date().toISOString();
+        const qwenTempId = `qwen_${Date.now()}`;
+        setMessages(prev => [...prev, {
+          id: qwenTempId,
+          sender: 'qwen',
+          sender_role: 'constellation',
+          content: { text: result.text, translation: constellationTranslation },
+          timestamp: qwenTimestamp,
+          constellation_speaker: 'Sister Qwen',
+          constellation_icon: '🏮',
+          in_response_to: guestMessage.id
+        }]);
+        saveToBrain3({
+          message_id: qwenTempId, timestamp: qwenTimestamp, sender: 'qwen', sender_role: 'constellation',
+          content: { text: result.text }, constellation_speaker: 'Sister Qwen', in_response_to: guestMessage.id,
+          modality: { type: 'text', mode: 'chat', platform: 'web' }
+        }, { selectedUserProfileId, partnerId, partnerName: profileData?.profile?.profile_name, partnerType: profileData?.profile?.profile_type });
+      } else if (!result.success) {
+        setMessages(prev => [...prev, {
+          id: `qwen_error_${Date.now()}`,
+          sender: 'qwen',
+          sender_role: 'constellation',
+          content: { text: `*Sister Qwen is unavailable*: ${result.error || 'Unable to get response. Please try again.'}` },
+          timestamp: new Date().toISOString(),
+          constellation_speaker: 'Sister Qwen',
+          constellation_icon: '🏮'
+        }]);
+      }
+    } catch (err) {
+      console.error('Qwen perspective error:', err);
+      setMessages(prev => [...prev, {
+        id: `qwen_error_${Date.now()}`,
+        sender: 'qwen',
+        sender_role: 'constellation',
+        content: { text: `*Sister Qwen connection error*: ${err.message}` },
+        timestamp: new Date().toISOString(),
+        constellation_speaker: 'Sister Qwen',
+        constellation_icon: '🏮'
+      }]);
+    } finally {
+      setConstellationLoading(null);
+    }
+  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage, selectedUserProfileId, partnerId]);
+
+  // Post a statement to the chat without triggering a guest reply
+  // The user can then choose which constellation AI to respond
+  const handlePostStatement = useCallback(async () => {
+    const trimmedText = inputText.trim();
+    if (!trimmedText || aiResponding) return;
+
+    const timestamp = new Date().toISOString();
+    const tempId = `user_stmt_${Date.now()}`;
+
+    setInputText('');
+
+    const message = {
+      id: tempId,
+      sender: userId,
+      sender_role: 'user',
+      content: { text: trimmedText },
+      timestamp,
+      is_statement: true
+    };
+
+    setMessages(prev => [...prev, message]);
+
+    // Save to Brain 3 independently so it persists across refreshes
+    const docId = await saveToBrain3({
+      message_id: tempId,
+      timestamp,
+      sender: 'user',
+      sender_role: 'user',
+      content: { text: trimmedText },
+      is_statement: true,
+      modality: { type: 'text', mode: 'chat', platform: 'web' }
+    }, {
+      selectedUserProfileId,
+      partnerId,
+      partnerName: profileData?.profile?.profile_name,
+      partnerType: profileData?.profile?.profile_type
+    });
+
+    // Update message ID to Firestore doc ID for consistent referencing
+    if (docId) {
+      setMessages(prev => prev.map(m => m.id === tempId ? { ...m, id: docId } : m));
+    }
+  }, [inputText, userId, aiResponding, selectedUserProfileId, partnerId, profileData]);
+
+  // Handle constellation AI responding to a user statement
+  // Called from MessageList when user clicks an AI button under a statement
+  const handleStatementConstellation = useCallback(async (statementMessage, aiKey) => {
+    if (!statementMessage || constellationLoading) return;
+
+    const aiConfig = CONSTELLATION_AIS.find(a => a.key === aiKey);
+    if (!aiConfig) return;
+
+    setConstellationLoading(aiKey);
+
+    try {
+      const serviceMap = {
+        gemini:   getGuestSecondOpinion,
+        opus:     getGuestOpusPerspective,
+        grok:     getGuestGrokPerspective,
+        deepseek: getGuestDeepSeekPerspective,
+        chatgpt:  getGuestChatGPTPerspective,
+        sonnet:   getGuestSonnetPerspective,
+        qwen:     getGuestQwenPerspective,
+      };
+      const serviceFn = serviceMap[aiKey];
+
+      const msgIndex = messages.findIndex(m => m.id === statementMessage.id);
+
+      const result = await serviceFn({
+        guestResponse: '',
+        guestName: profileData?.profile?.profile_name || 'Guest',
+        userMessage: statementMessage.content?.text || '',
+        conversationHistory: messages.slice(0, msgIndex + 1),
+        userConstitutional: userConstitutionalFromProfile
+      });
+
+      if (result.success && result.text) {
+        let constellationTranslation = null;
+        if (isNonEnglish(userLanguage) && result.text.length > 2) {
+          try {
+            const translated = await translateMessage(result.text, userLanguage, 'en');
+            if (!translated.skipped && translated.translatedText) {
+              constellationTranslation = {
+                text: translated.translatedText,
+                sourceLanguage: 'en',
+                targetLanguage: userLanguage
+              };
+            }
+          } catch (err) {
+            console.warn(`${aiKey} translation failed:`, err);
+          }
+        }
+
+        const constellationTimestamp = new Date().toISOString();
+        const tempId = `${aiKey}_stmt_${Date.now()}`;
+        const constellationMsg = {
+          id: tempId,
+          sender: aiKey,
+          sender_role: 'constellation',
+          content: { text: result.text, translation: constellationTranslation },
+          timestamp: constellationTimestamp,
+          constellation_speaker: aiConfig.speaker,
+          constellation_icon: aiConfig.icon,
+          in_response_to: statementMessage.id
+        };
+
+        setMessages(prev => [...prev, constellationMsg]);
+
+        // Save constellation response to Brain 3
+        const docId = await saveToBrain3({
+          message_id: tempId,
+          timestamp: constellationTimestamp,
+          sender: aiKey,
+          sender_role: 'constellation',
+          content: { text: result.text },
+          constellation_speaker: aiConfig.speaker,
+          in_response_to: statementMessage.id,
+          modality: { type: 'text', mode: 'chat', platform: 'web' }
+        }, {
+          selectedUserProfileId,
+          partnerId,
+          partnerName: profileData?.profile?.profile_name,
+          partnerType: profileData?.profile?.profile_type
+        });
+        if (docId) {
+          setMessages(prev => prev.map(m => m.id === tempId ? { ...m, id: docId } : m));
+        }
+      } else {
+        setMessages(prev => [...prev, {
+          id: `${aiKey}_error_${Date.now()}`,
+          sender: aiKey,
+          sender_role: 'constellation',
+          content: { text: `*${aiConfig.speaker} is unavailable*: ${result.error || 'Please try again.'}` },
+          timestamp: new Date().toISOString(),
+          constellation_speaker: aiConfig.speaker,
+          constellation_icon: aiConfig.icon
+        }]);
+      }
+    } catch (err) {
+      console.error(`Statement ${aiKey} error:`, err);
+      setMessages(prev => [...prev, {
+        id: `${aiKey}_error_${Date.now()}`,
+        sender: aiKey,
+        sender_role: 'constellation',
+        content: { text: `*${aiConfig.speaker} connection error*: ${err.message}` },
+        timestamp: new Date().toISOString(),
+        constellation_speaker: aiConfig.speaker,
+        constellation_icon: aiConfig.icon
+      }]);
+    } finally {
+      setConstellationLoading(null);
+    }
+  }, [messages, profileData, userConstitutionalFromProfile, constellationLoading, userLanguage, selectedUserProfileId, partnerId]);
+
+  // Handle sending a statement to the guest (when user clicks guest button under a statement)
+  const handleStatementToGuest = useCallback(async (statementMessage) => {
+    if (!statementMessage || !profileData || aiResponding) return;
+    // Re-send as a normal guest message using the statement text
+    handleSendMessage(statementMessage.content?.text || '', []);
+  }, [profileData, aiResponding, handleSendMessage]);
 
   // Handle voice message (placeholder)
   const handleVoiceMessage = useCallback(async (audioBlob, duration) => {
@@ -1492,7 +1979,11 @@ ${conversationMessages}
           onGrokPerspective={handleGrokPerspective}
           onDeepSeekPerspective={handleDeepSeekPerspective}
           onChatGPTPerspective={handleChatGPTPerspective}
+          onSonnetPerspective={handleSonnetPerspective}
+          onQwenPerspective={handleQwenPerspective}
           onGuestResponse={handleGuestResponse}
+          onStatementConstellation={handleStatementConstellation}
+          onStatementToGuest={handleStatementToGuest}
           constellationLoading={constellationLoading}
         />
       </div>
@@ -1606,6 +2097,24 @@ ${conversationMessages}
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
               </svg>
+            </button>
+
+            {/* Statement Button — post without guest reply, then pick AI */}
+            <button
+              type="button"
+              onClick={handlePostStatement}
+              disabled={!inputText.trim() || aiResponding || constellationLoading}
+              className={`flex-shrink-0 px-3 py-2 rounded-lg flex items-center gap-1.5 text-sm font-medium transition-all ${
+                !inputText.trim() || aiResponding || constellationLoading
+                  ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  : 'bg-amber-900/50 text-amber-400 hover:bg-amber-900/70 active:scale-95'
+              }`}
+              title="Post statement without guest reply — then choose which AI responds"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+              <span>Post</span>
             </button>
 
             {/* Export MD Button */}

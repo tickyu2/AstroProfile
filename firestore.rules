@@ -208,7 +208,7 @@ service cloud.firestore {
       // Path: profiles/{profileId}/b3_conversations/{messageId} (valid 4-segment document path)
       match /b3_conversations/{messageId} {
         allow read: if isProfileOwner();
-        allow create: if false; // Cloud Function only
+        allow create: if isProfileOwner(); // Client + Cloud Function can create
         allow update, delete: if false; // Immutable
       }
 

@@ -33,7 +33,7 @@ export interface Stone {
 }
 
 // ============================================================================
-// STONE DATABASE — 32 functional stones (grouped by element)
+// STONE DATABASE — functional stones (grouped by element)
 // ============================================================================
 // Each stone carries elemental Qi. Polarity can be Yang, Yin, or Yin-Yang.
 // baseQi is the raw effectiveness before seasonal and polarity-fit modifiers.
@@ -83,6 +83,20 @@ export const STONE_DATABASE: Stone[] = [
     color: '#f5f5f0', baseQi: 0.70,
     notes: 'Water-Earth; nourishing, softening harsh Fire.',
     chineseName: '珍珠',
+  },
+  {
+    name: "Blue Tiger's Eye",
+    element: 'Water', polarity: 'Yin',
+    color: '#1a5276', baseQi: 0.82,
+    notes: 'Water-Metal; stabilizing, smooth regulator; restores flow without overwhelming.',
+    chineseName: '蓝虎眼石',
+  },
+  {
+    name: 'Black Spinel',
+    element: 'Water', polarity: 'Yin',
+    color: '#0d0d0d', baseQi: 0.88,
+    notes: 'Deep Water-Metal; clarity, purification, strong regulator for Fire-dominant cycles.',
+    chineseName: '黑尖晶石',
   },
   {
     name: 'Blue Kyanite',
@@ -694,10 +708,10 @@ export function calculateSurvivalKit(
     // Single-Dominant (從旺格) → Follow the dominant, use its child to exhaust
     if (collapse.mode === 'single-dominant') {
       const child = GENERATES[primary];  // exhaust the dominant
-      const mother = GENERATED_BY[primary]; // feeds it — forbidden as remedy
+      // GENERATED_BY[primary] feeds it — forbidden as remedy (not used directly here)
       const forbidden: ElementName[] = [CONTROLLED_BY[primary]]; // controller fights the flow
       const usefulElements: ElementName[] = [child, primary];
-      const stones = pickStones(usefulElements, dmPolarity, forbidden, maxStones);
+      const stones = pickStones(usefulElements, getBalancingPolarity(dmPolarity), forbidden, maxStones);
       return {
         status: 'collapse_override',
         collapseMode: 'single-dominant',
@@ -708,7 +722,7 @@ export function calculateSurvivalKit(
           `Do NOT use ${CONTROLLED_BY[primary]} to fight it — the structure is too strong to control. ` +
           `Follow the flow by exhausting through ${child}.`,
         usefulElements,
-        preferredPolarity: dmPolarity,
+        preferredPolarity: getBalancingPolarity(dmPolarity),
         polarityReason: `Following ${primary} dominance — use ${child} to gently exhaust`,
         recommendedStones: stones.map(s => ({
           stone: s,
@@ -726,14 +740,11 @@ export function calculateSurvivalKit(
       const secondary = capitalize(collapse.secondary) as ElementName;
       // The bridge element is the child of the primary (it mediates the flow)
       const bridge = GENERATES[primary];
-      const forbidden: ElementName[] = ELEMENT_KEYS.filter(
-        el => el !== primary && el !== secondary && el !== bridge
-      );
       const usefulElements: ElementName[] = [bridge];
       if (!usefulElements.includes(GENERATES[secondary])) {
         usefulElements.push(GENERATES[secondary]);
       }
-      const stones = pickStones(usefulElements, dmPolarity, [], maxStones);
+      const stones = pickStones(usefulElements, getBalancingPolarity(dmPolarity), [], maxStones);
       return {
         status: 'collapse_override',
         collapseMode: 'bi-polar',
@@ -743,7 +754,7 @@ export function calculateSurvivalKit(
         forbiddenReason: `兩神成象 (Two Gods Form Image): ${primary} + ${secondary} hold ${(((collapse.primaryShare || 0) + (collapse.secondaryShare || 0)) * 100).toFixed(1)}%. ` +
           `Bridge the two poles rather than fighting either.`,
         usefulElements,
-        preferredPolarity: dmPolarity,
+        preferredPolarity: getBalancingPolarity(dmPolarity),
         polarityReason: `Bridging ${primary} and ${secondary} poles`,
         recommendedStones: stones.map(s => ({
           stone: s,
@@ -761,7 +772,7 @@ export function calculateSurvivalKit(
       const parent = GENERATED_BY[primary]; // parent feeds the drained element
       const usefulElements: ElementName[] = [parent, primary];
       const forbidden: ElementName[] = [CONTROLS[primary]]; // what controls the drained element
-      const stones = pickStones(usefulElements, dmPolarity, forbidden, maxStones);
+      const stones = pickStones(usefulElements, getBalancingPolarity(dmPolarity), forbidden, maxStones);
       return {
         status: 'collapse_override',
         collapseMode: 'drained',
@@ -772,7 +783,7 @@ export function calculateSurvivalKit(
           `Do NOT use ${CONTROLS[primary]} — it would further suppress ${primary}. ` +
           `Feed through its mother ${parent} in the generating cycle.`,
         usefulElements,
-        preferredPolarity: dmPolarity,
+        preferredPolarity: getBalancingPolarity(dmPolarity),
         polarityReason: `Feeding drained ${primary} through its mother ${parent}`,
         recommendedStones: stones.map(s => ({
           stone: s,
@@ -792,7 +803,7 @@ export function calculateSurvivalKit(
       const mother = GENERATED_BY[primary];
       const forbidden: ElementName[] = [primary, mother];
       const usefulElements: ElementName[] = [controller, exhaustor];
-      const stones = pickStones(usefulElements, dmPolarity, forbidden, maxStones);
+      const stones = pickStones(usefulElements, getBalancingPolarity(dmPolarity), forbidden, maxStones);
       return {
         status: 'collapse_override',
         collapseMode: 'inverted',
@@ -802,7 +813,7 @@ export function calculateSurvivalKit(
         forbiddenReason: `反局 (Inverted): ${primary} is excessively strong. ` +
           `Avoid ${mother} (feeds ${primary}) and ${primary} itself.`,
         usefulElements,
-        preferredPolarity: dmPolarity,
+        preferredPolarity: getBalancingPolarity(dmPolarity),
         polarityReason: `Counter-balancing inverted ${primary} dominance`,
         recommendedStones: stones.map(s => ({
           stone: s,
@@ -847,20 +858,21 @@ export function calculateSurvivalKit(
 
     // Standard deficit filling with polarity awareness
     const dmPolarity = getDayMasterPolarity(dayMasterStem);
-    const stones = pickStones(deficits.map(d => d.element), dmPolarity, [], maxStones);
+    const stones = pickStones(deficits.map(d => d.element), getBalancingPolarity(dmPolarity), [], maxStones);
+    const balancingPol = getBalancingPolarity(dmPolarity);
 
     return {
       status: 'balanced',
       forbidden: [],
       usefulElements: deficits.map(d => d.element),
-      preferredPolarity: dmPolarity,
-      polarityReason: `Matching ${dmPolarity} polarity for gentle supplementation`,
+      preferredPolarity: balancingPol,
+      polarityReason: `Balancing ${dmPolarity} Day Master with ${balancingPol} polarity for gentle supplementation`,
       recommendedStones: stones.map(s => ({
         stone: s,
         reason: `${s.element} supplementation — ${s.notes}`,
         priority: 20 - dynamicPool[s.element],
       })),
-      reasoning: `Minor deficits detected. Recommending gentle ${dmPolarity} polarity stones.`,
+      reasoning: `Minor deficits detected. Recommending gentle ${balancingPol} polarity stones to balance ${dmPolarity} Day Master.`,
     };
   }
 
@@ -887,19 +899,17 @@ export function calculateSurvivalKit(
 
   // Special consideration: if the threat controls something, that victim element
   // should NOT be recommended (e.g. Fire melts Metal → avoid Metal as primary)
-  const victim = CONTROLS[threat]; // What the threat controls
-  // victim is still technically allowed but deprioritized
+  // CONTROLS[threat] = what the threat controls — still technically allowed but deprioritized
 
   // ── Step 3: Determine polarity ──────────────────────────────────────
   // (dmPolarity already computed at top of function)
-  // For critical threats, we need HEAVY remedies — match opposing polarity
-  // Yang Day Master needs Yang controller (e.g. Bing Yang Fire needs Ren Yang Water)
-  // Because same-polarity interaction is the classical "proper control" (正克)
-  const preferredPolarity = dmPolarity; // Same polarity for proper controlling
+  // Classical 陰陽調和: Yang DM is balanced by Yin remedies; Yin DM by Yang remedies.
+  // A Yin controller stone gently regulates a Yang DM; a Yang controller strongly activates a Yin DM.
+  const preferredPolarity = getBalancingPolarity(dmPolarity);
 
   const polarityReason = dmPolarity === 'Yang'
-    ? `Yang Day Master requires Yang (heavy, deep) remedies — ocean-depth ${controller} to properly control ${threat}`
-    : `Yin Day Master requires Yin (refined, precise) remedies — steady ${controller} to gently control ${threat}`;
+    ? `Yang Day Master balanced by Yin ${controller} stones — gentle, receptive energy regulates the ${threat} threat`
+    : `Yin Day Master activated by Yang ${controller} stones — assertive energy controls the ${threat} threat`;
 
   // ── Step 4: Pick polarity-matched stones ────────────────────────────
   const stones = pickStones(usefulElements, preferredPolarity, forbidden, maxStones);
@@ -1123,20 +1133,23 @@ export function generateTargetRatios(report: CollapseReport): Record<ElementName
   const raw: Record<ElementName, number> = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
 
   // Dominance collapse — drain through child
+  // 從旺格 is a chart interpretation rule, NOT a remedy rule.
+  // Dominant element gets ZERO beads — adding more worsens the collapse.
+  // Drain exclusively via child + support remaining non-forbidden elements.
   if (report.dominantElement && report.type?.includes('從旺格')) {
     const dom = report.dominantElement;
     const child = GENERATES[dom];
 
-    raw[dom]   = 0.10;    // keep dominant low (泄 drain)
-    raw[child] = 0.40;    // primary drain
-    // Fill remaining with non-forbidden elements
+    raw[dom]   = 0;       // dominant element is forbidden for remedies
+    raw[child] = 0.60;    // primary drain via child
+    // Fill remaining with non-forbidden elements (excluding dominant)
     const ELS: ElementName[] = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
-    const forbidden = new Set(report.forbidden);
-    const remaining = ELS.filter(el => el !== dom && el !== child && !forbidden.has(el));
-    const remainShare = 0.50 / Math.max(remaining.length, 1);
+    const forbidden = new Set([...report.forbidden, dom]);
+    const remaining = ELS.filter(el => el !== child && !forbidden.has(el));
+    const remainShare = 0.40 / Math.max(remaining.length, 1);
     for (const el of remaining) raw[el] = remainShare;
     // Zero out forbidden
-    for (const el of report.forbidden) raw[el] = 0;
+    for (const el of forbidden) raw[el] = 0;
 
     return normalizeRatios(raw);
   }
@@ -1200,6 +1213,8 @@ export interface EngineeredBead {
   size: number;           // mm
   element: ElementName;
   qiUnit: number;         // QiUnit for this bead in the target month
+  isBridge?: boolean;     // 5mm Qi-neutral bridge bead to repair a Sheng cycle break
+  isController?: boolean; // 調候石 — controller stone placed by Da Yun engine
 }
 
 export interface EngineeredBracelet {
@@ -1212,6 +1227,8 @@ export interface EngineeredBracelet {
   narrative: string;
   wrist: 'left' | 'right';
   wristReason: string;
+  controllerIndex?: number;         // index of the controller bead (undefined if no Da Yun)
+  controllerElement?: ElementName;  // the controlling element (克 of decade dominant)
 }
 
 /**
@@ -1227,15 +1244,28 @@ function pickStonesForElement(
 ): Stone[] {
   if (forbidden.has(element) || count <= 0) return [];
 
-  const candidates = STONE_DATABASE
+  const allCandidates = STONE_DATABASE
     .filter(s => s.element === element)
     .sort((a, b) => getStoneQiForMonth(b, month) - getStoneQiForMonth(a, month));
 
-  if (candidates.length === 0) return [];
+  if (allCandidates.length === 0) return [];
 
+  const yangPool = allCandidates.filter(s => s.polarity === 'Yang');
+  const yinPool  = allCandidates.filter(s => s.polarity === 'Yin');
+
+  // If only one polarity exists, just cycle through all candidates
+  if (yangPool.length === 0 || yinPool.length === 0) {
+    const result: Stone[] = [];
+    for (let i = 0; i < count; i++) result.push(allCandidates[i % allCandidates.length]);
+    return result;
+  }
+
+  // Alternate Yang → Yin → Yang → Yin for balanced polarity in the engineered ring
   const result: Stone[] = [];
+  let yi = 0, ni = 0;
   for (let i = 0; i < count; i++) {
-    result.push(candidates[i % candidates.length]);
+    if (i % 2 === 0) { result.push(yangPool[yi % yangPool.length]); yi++; }
+    else             { result.push(yinPool[ni % yinPool.length]);   ni++; }
   }
   return result;
 }
@@ -1313,33 +1343,198 @@ export function sequenceBeadsShengCycle(beads: EngineeredBead[]): EngineeredBead
 }
 
 /**
- * Select the best anchor stone for the bracelet.
- * Anchors stabilize the Qi circuit — placed at start and midpoint.
+ * ═══════════════════════════════════════════════════════════════════════════
+ * UNIVERSAL ANCHOR BEAD RULE
+ * ═══════════════════════════════════════════════════════════════════════════
  *
- * - Earth anchors stabilize Fire/Metal excess
- * - Metal anchors stabilize Wood/Earth excess
- * - Water anchors stabilize Fire excess
- * - For balanced charts, default to Earth (universal stabilizer)
+ * The anchor bead is the Mingmen (命門) — the single Qi origin of the circuit.
+ *
+ * Rule: Anchor Element = the first recommended element that can START
+ *       a valid Sheng chain through all other active bracelet elements.
+ *
+ * This ensures:
+ *   - The cycle begins with the user's strongest remedy
+ *   - Maximum Sheng adjacency from the very first bead
+ *   - The anchor "ignites" the generative flow
+ *
+ * Direction (handled by visualizer + determineWrist):
+ *   - Left wrist (吸氣) → clockwise  → Qi flows inward
+ *   - Right wrist (出氣) → anticlockwise → Qi flows outward
  */
-function selectAnchorElement(collapse: CollapseReport): ElementName {
-  if (!collapse.isCollapsed) return 'Earth';
+function selectAnchorElement(
+  collapse: CollapseReport,
+  activeElements: ElementName[],
+): ElementName {
+  const activeSet = new Set(activeElements);
+  let bestEl: ElementName = collapse.recommended[0] || 'Earth';
+  let bestScore = -1;
 
-  if (collapse.dominantElement) {
-    // Use the child of the dominant element — same as the drain strategy
-    return GENERATES[collapse.dominantElement];
+  // Build active Sheng chain for each candidate and score it.
+  // Scoring: +1 per active element reachable via Sheng walk,
+  //          +3 bonus if the wrap-around closes (last chain element generates anchor)
+  const candidates = collapse.recommended.length > 0
+    ? collapse.recommended
+    : activeElements;
+
+  for (const candidate of candidates) {
+    if (!activeSet.has(candidate)) continue;
+
+    // Walk Sheng cycle from candidate, collect reachable active elements
+    const chain: ElementName[] = [candidate];
+    let el = candidate;
+    for (let step = 0; step < 5; step++) {
+      const next = GENERATES[el];
+      if (activeSet.has(next) && !chain.includes(next)) {
+        chain.push(next);
+      }
+      el = GENERATES[el];
+    }
+
+    let score = chain.length;
+
+    // Bonus: does the wrap-around close? (last chain element generates anchor)
+    const lastInChain = chain[chain.length - 1];
+    if (GENERATES[lastInChain] === candidate) {
+      score += 3; // Strong preference for closed Sheng loop
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestEl = candidate;
+    }
   }
 
-  if (collapse.weakestElement) {
-    // Use the mother of the weak element — nourish
-    return GENERATED_BY[collapse.weakestElement];
+  // Fallback: if no recommended element is active, pick from active set
+  if (!activeSet.has(bestEl) && activeElements.length > 0) {
+    bestEl = activeElements[0];
   }
 
-  return 'Earth';
+  return bestEl;
 }
 
 /**
- * Insert anchor stones at position 0 (start) and midpoint.
- * Anchors are the highest-QiUnit stone of the chosen anchor element.
+ * Sequence beads in Sheng-interleaved order starting from a given anchor element.
+ *
+ * Builds the active Sheng chain (only elements with beads, in generative order
+ * starting from anchorElement), then round-robins through it.
+ *
+ * Critical: ensures the LAST bead's element generates the anchor element,
+ * closing the Sheng cycle loop. A bracelet is a closed Qi circuit —
+ * bead N must feed bead 1.
+ *
+ * Uses BLOCK sequencing: all beads of one element placed together,
+ * following the Sheng chain order starting from GENERATES[anchor].
+ * This maximizes Sheng transitions at element boundaries.
+ *
+ * ENFORCED RULES:
+ *   1. Bead 1 (position 0 after anchor insert) must be GENERATES[anchor]
+ *      → so anchor feeds bead 2 in the final bracelet
+ *   2. Last bead must be GENERATED_BY[anchor]
+ *      → so bead 21 feeds bead 1 (closed Sheng loop)
+ *
+ * Example: anchorElement=Earth, active=[Fire, Earth, Metal, Water, Wood]
+ *   → child = Metal (Earth generates Metal)
+ *   → mother = Fire (Fire generates Earth)
+ *   → chain from child: Metal → Water → Wood → Fire (stop before mother's child=Earth=anchor)
+ *   → block sequence: [all Metal], [all Water], [all Wood], [all Fire]
+ *   → last block = Fire = mother ✓
+ *   → bead 1 feeds bead 2: Earth→Metal ✓, bead 21 feeds bead 1: Fire→Earth ✓
+ */
+function sequenceFromAnchor<T extends { element: ElementName }>(
+  beads: T[],
+  anchorElement: ElementName,
+): T[] {
+  if (beads.length <= 1) return beads;
+
+  // Discover which elements have beads
+  const activeSet = new Set<ElementName>();
+  for (const b of beads) activeSet.add(b.element);
+
+  // The child of anchor (what anchor generates) must come first
+  // The mother of anchor (what generates anchor) must come last
+  const childEl = GENERATES[anchorElement];
+  const motherEl = GENERATED_BY[anchorElement];
+
+  // Build Sheng chain starting from child, walking the generative cycle.
+  // EXCLUDE anchor element — anchor is at position 0 (Mingmen), so
+  // anchor-element prescription beads get special placement.
+  const chain: ElementName[] = [];
+  let el = childEl;
+  for (let step = 0; step < 5; step++) {
+    if (el !== anchorElement && activeSet.has(el) && !chain.includes(el)) {
+      chain.push(el);
+    }
+    el = GENERATES[el];
+  }
+
+  // Fallback: if no chain built, use all active non-anchor elements in Sheng order
+  if (chain.length === 0) {
+    for (const e of SHENG_SEQUENCE) {
+      if (e !== anchorElement && activeSet.has(e)) chain.push(e);
+    }
+  }
+
+  // Ensure mother element is last in chain (for wrap-close: last→anchor = Sheng)
+  if (chain.length >= 2 && chain[chain.length - 1] !== motherEl) {
+    const mIdx = chain.indexOf(motherEl);
+    if (mIdx >= 0) {
+      chain.splice(mIdx, 1);
+      chain.push(motherEl);
+    }
+  }
+
+  // Group beads by element
+  const grouped: Record<string, T[]> = {};
+  for (const b of beads) {
+    if (!grouped[b.element]) grouped[b.element] = [];
+    grouped[b.element].push(b);
+  }
+
+  // BLOCK sequencing: place ALL beads of each chain element in order.
+  // Transitions only happen at element boundaries, and those boundaries
+  // follow the Sheng generative cycle.
+  const result: T[] = [];
+
+  // First: any extra anchor-element prescription beads go at the start.
+  // Anchor bead 1 (Mingmen) is the same element, so anchor→anchor is
+  // same-element (harmless), and the last anchor bead → child = Sheng ✓
+  if (grouped[anchorElement]) {
+    for (const bead of grouped[anchorElement]) {
+      result.push(bead);
+    }
+    grouped[anchorElement] = [];
+  }
+
+  // Then: child → ... → mother blocks in Sheng order
+  for (const chainEl of chain) {
+    if (grouped[chainEl]) {
+      for (const bead of grouped[chainEl]) {
+        result.push(bead);
+      }
+      grouped[chainEl] = [];
+    }
+  }
+
+  // Safety: any remaining beads not in the chain
+  for (const key of Object.keys(grouped)) {
+    for (const bead of grouped[key]) {
+      result.push(bead);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Insert a single anchor stone at position 0 (the Mingmen / origin).
+ *
+ * Classical BaZi and Feng Shui logic demands one anchor point:
+ *   - One origin = one coherent Qi cycle
+ *   - Two anchors = two competing "north poles" = confused Qi flow
+ *   - A bracelet is a microcosmic orbit with one Mingmen
+ *
+ * The freed-up bead slot goes to prescription stones, improving
+ * both element balance and Sheng cycle flow.
  */
 function insertAnchorStones(
   beads: EngineeredBead[],
@@ -1347,7 +1542,7 @@ function insertAnchorStones(
   month: BranchMonth,
   beadSize: number,
 ): EngineeredBead[] {
-  // Find best anchor stone
+  // Find best anchor stone (highest Qi for this month)
   const anchorCandidates = STONE_DATABASE
     .filter(s => s.element === anchorElement)
     .sort((a, b) => getStoneQiForMonth(b, month) - getStoneQiForMonth(a, month));
@@ -1363,14 +1558,111 @@ function insertAnchorStones(
     qiUnit: qi,
   };
 
-  const result = [...beads];
-  const mid = Math.floor(result.length / 2);
-
-  // Insert midpoint first so index 0 insert doesn't shift it
-  result.splice(mid, 0, { ...anchorBead });
-  result.splice(0, 0, { ...anchorBead });
-
+  // Single anchor at position 0 — the Mingmen of the circuit
+  const result = [{ ...anchorBead }, ...beads];
   return result;
+}
+
+// ============================================================================
+// CONTROLLER STONE ENGINE (調候石) — Da Yun decade management
+// ============================================================================
+
+/**
+ * Select the best controller stone for a given decade dominant element.
+ *
+ * Logic:
+ *   1. Controller element = CONTROLLED_BY[decadeDominant] (克 cycle)
+ *   2. Filter STONE_DATABASE for that element
+ *   3. Rank by: baseQi × seasonModifier × polarityFit
+ *   4. Return highest-ranked stone
+ *
+ * Returns null if controllerElement is in the forbidden list (e.g. Follow Structure)
+ * or no stones of that element exist.
+ */
+export function selectControllerStone(
+  decadeDominant: ElementName,
+  month: BranchMonth,
+  dayMasterStem: string,
+  forbidden: ElementName[] = [],
+): { stone: Stone; controllerElement: ElementName; score: number } | null {
+  const controllerElement = CONTROLLED_BY[decadeDominant];
+
+  // Follow Structure (從旺格): controller is explicitly forbidden
+  if (forbidden.includes(controllerElement)) return null;
+
+  const candidates = STONE_DATABASE.filter(s => s.element === controllerElement);
+  if (candidates.length === 0) return null;
+
+  const dmPolarity = getDayMasterPolarity(dayMasterStem);
+  const balancing = getBalancingPolarity(dmPolarity);
+  const seasonMult = MONTHLY_MULTIPLIERS[month] || {} as Record<string, number>;
+
+  const ranked = candidates
+    .map(s => {
+      const seasonFactor = (seasonMult as Record<string, number>)[s.element] ?? 1.0;
+      // Polarity fit: balancing polarity = 1.0, Yin-Yang = 0.9, same as DM = 0.7
+      const polFit = s.polarity === balancing ? 1.0
+        : s.polarity === 'Yin-Yang' ? 0.9
+        : 0.7;
+      const score = s.baseQi * seasonFactor * polFit;
+      return { stone: s, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return {
+    stone: ranked[0].stone,
+    controllerElement,
+    score: ranked[0].score,
+  };
+}
+
+/**
+ * Find the ideal index for the controller stone in a bead sequence.
+ *
+ * Strategy:
+ *   1. Primary: first Sheng-cycle break position (i+1)
+ *   2. Fallback: just before the largest run of the dominant element
+ *   3. Last resort: floor(length / 3)
+ *   Never returns 0 (reserved for Anchor / Mingmen).
+ */
+export function findControllerIndex(
+  beads: EngineeredBead[],
+  decadeDominant: ElementName,
+): number {
+  const n = beads.length;
+  if (n <= 1) return Math.min(1, n);
+
+  // 1. First Sheng-cycle break
+  for (let i = 0; i < n; i++) {
+    const curr = beads[i].element;
+    const next = beads[(i + 1) % n].element;
+    if (GENERATES[curr] !== next && curr !== next) {
+      const idx = (i + 1) % n;
+      return idx === 0 ? 1 : idx;
+    }
+  }
+
+  // 2. Before the largest run of dominant element
+  let bestStart = -1;
+  let bestLen = 0;
+  let curStart = -1;
+  let curLen = 0;
+  for (let i = 0; i < n; i++) {
+    if (beads[i].element === decadeDominant) {
+      if (curStart < 0) curStart = i;
+      curLen++;
+    } else {
+      if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+      curStart = -1;
+      curLen = 0;
+    }
+  }
+  if (curLen > bestLen) { bestStart = curStart; }
+
+  if (bestStart > 0) return bestStart;
+
+  // 3. Last resort
+  return Math.max(1, Math.floor(n / 3));
 }
 
 /**
@@ -1378,12 +1670,13 @@ function insertAnchorStones(
  *
  * Pipeline:
  *   1. Generate target ratios from collapse
- *   2. Allocate bead counts (reserving 2 for anchors)
+ *   2. Allocate bead counts (reserving 1 for anchor)
  *   3. Select stones per element
  *   4. Sequence in Sheng cycle order
- *   5. Insert anchor stones at start + midpoint
- *   6. Determine wrist
- *   7. Generate narrative
+ *   5. Insert single anchor stone at position 0 (Mingmen)
+ *   6. Optimize Sheng cycle flow ordering
+ *   7. Determine wrist
+ *   8. Generate narrative
  *
  * @param collapse   - Output of diagnoseCollapse()
  * @param month      - Target Earthly Branch month
@@ -1395,17 +1688,51 @@ export function engineerBracelet({
   month,
   totalBeads = 21,
   beadSize = 10,
+  daYunQi,
+  dayMasterStem,
+  overrideRatios,
 }: {
   collapse: CollapseReport;
   month: BranchMonth;
   totalBeads?: number;
   beadSize?: number;
+  daYunQi?: Record<string, number> | null;
+  dayMasterStem?: string | null;
+  /** When provided, these ratios are used instead of generateTargetRatios().
+   *  This allows BRQe-driven ratios to flow through the sequencing engine. */
+  overrideRatios?: Record<ElementName, number> | null;
 }): EngineeredBracelet {
-  const targetRatios = generateTargetRatios(collapse);
-  // Reserve 2 beads for anchors
-  const prescriptionBeads = Math.max(totalBeads - 2, 1);
-  const beadCounts = allocateBeadsByRatio(targetRatios, prescriptionBeads);
   const forbidden = new Set(collapse.forbidden);
+
+  // When BRQe override ratios are provided, zero out any elements that are
+  // forbidden by the collapse diagnosis, then re-normalize.  Without this,
+  // BRQe may allocate beads to forbidden elements which pickStonesForElement
+  // will skip — resulting in a near-empty bracelet.
+  let targetRatios: Record<ElementName, number>;
+  if (overrideRatios) {
+    const ELS: ElementName[] = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
+    const cleaned: Record<ElementName, number> = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+    let sum = 0;
+    for (const el of ELS) {
+      if (!forbidden.has(el)) {
+        cleaned[el] = Math.max(0, overrideRatios[el] || 0);
+        sum += cleaned[el];
+      }
+    }
+    if (sum > 0) {
+      for (const el of ELS) cleaned[el] /= sum;
+      targetRatios = cleaned;
+    } else {
+      // All positive elements are forbidden — fall back to collapse-derived ratios
+      targetRatios = generateTargetRatios(collapse);
+    }
+  } else {
+    targetRatios = generateTargetRatios(collapse);
+  }
+
+  // Reserve 1 bead for anchor (single Mingmen — one origin point)
+  const prescriptionBeads = Math.max(totalBeads - 1, 1);
+  const beadCounts = allocateBeadsByRatio(targetRatios, prescriptionBeads);
 
   // Select stones
   const rawBeads: EngineeredBead[] = [];
@@ -1420,16 +1747,59 @@ export function engineerBracelet({
     }
   }
 
-  // Sequence in Sheng cycle (interleaved round-robin)
-  const sequenced = sequenceBeadsShengCycle(rawBeads);
+  // Universal Anchor Bead Rule: pick anchor from recommended elements
+  // that best starts a Sheng chain through all active bracelet elements
+  const activeElements = Object.entries(beadCounts)
+    .filter(([, count]) => count > 0)
+    .map(([el]) => el as ElementName);
+  const anchorElement = selectAnchorElement(collapse, activeElements);
 
-  // Insert anchor stones
-  const anchorElement = selectAnchorElement(collapse);
+  // Sequence all prescription beads in Sheng-interleaved order from anchor
+  const sequenced = sequenceFromAnchor(rawBeads, anchorElement);
+
+  // Insert single anchor stone at position 0 (Mingmen)
   const beads = insertAnchorStones(sequenced, anchorElement, month, beadSize);
 
-  // Add anchor Qi to totals
+  // Add single anchor Qi to totals
   const anchorQi = beads[0]?.qiUnit || 0;
-  qiTotals[anchorElement] += anchorQi * 2;
+  qiTotals[anchorElement] += anchorQi;
+
+  // Step 6: Controller stone insertion (調候石 — Da Yun decade management)
+  // Replaces the weakest bead of the dominant element with a controller stone.
+  let controllerIndex: number | undefined;
+  let controllerElement: ElementName | undefined;
+
+  if (daYunQi && dayMasterStem) {
+    const ELS: ElementName[] = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
+    const decadeDominant = ELS.reduce((best, el) =>
+      (daYunQi[el] || 0) > (daYunQi[best] || 0) ? el : best, ELS[0]);
+
+    const selected = selectControllerStone(
+      decadeDominant, month, dayMasterStem, collapse.forbidden,
+    );
+
+    if (selected) {
+      const idx = findControllerIndex(beads, decadeDominant);
+      const qi = getStoneQiForMonth(selected.stone, month) * (beadSize / 10);
+
+      // Subtract old bead's Qi contribution
+      const oldBead = beads[idx];
+      qiTotals[oldBead.element] -= oldBead.qiUnit;
+
+      // Replace with controller stone
+      beads[idx] = {
+        stone: selected.stone,
+        size: beadSize,
+        element: selected.controllerElement,
+        qiUnit: qi,
+        isController: true,
+      };
+      qiTotals[selected.controllerElement] = (qiTotals[selected.controllerElement] || 0) + qi;
+
+      controllerIndex = idx;
+      controllerElement = selected.controllerElement;
+    }
+  }
 
   // Wrist determination
   const { wrist, reason: wristReason } = determineWrist(collapse);
@@ -1446,6 +1816,8 @@ export function engineerBracelet({
     narrative,
     wrist,
     wristReason,
+    controllerIndex,
+    controllerElement,
   };
 }
 
@@ -1543,6 +1915,15 @@ function capitalize(s: string): string {
 function getDayMasterPolarity(stemChar: string): Polarity {
   const YANG_STEMS = new Set(['甲', '丙', '戊', '庚', '壬']);
   return YANG_STEMS.has(stemChar) ? 'Yang' : 'Yin';
+}
+
+/**
+ * Return the polarity that BALANCES the Day Master.
+ * Classical BaZi: Yang DM needs Yin stones to regulate; Yin DM needs Yang stones to activate.
+ * This is 陰陽調和 (polarity counterbalance), not polarity matching.
+ */
+function getBalancingPolarity(dmPolarity: Polarity): Polarity {
+  return dmPolarity === 'Yang' ? 'Yin' : 'Yang';
 }
 
 /** Pick the best polarity-matched stones from the useful elements */
@@ -1772,14 +2153,15 @@ export function designBracelet(
       .filter(s => s.element === el && s.polarity === 'Yin')
       .sort((a, b) => b.baseQi - a.baseQi);
 
-    // DM polarity gets ceil, opposite gets floor
+    // Balancing polarity gets ceil (extra bead goes to the polarity that regulates the DM)
+    // Yang DM → Yin gets ceil; Yin DM → Yang gets ceil
     let yangCount: number, yinCount: number;
     if (dmPolarity === 'Yang') {
-      yangCount = yangPool.length > 0 ? Math.ceil(count / 2) : 0;
-      yinCount = yinPool.length > 0 ? count - yangCount : 0;
-    } else {
       yinCount = yinPool.length > 0 ? Math.ceil(count / 2) : 0;
       yangCount = yangPool.length > 0 ? count - yinCount : 0;
+    } else {
+      yangCount = yangPool.length > 0 ? Math.ceil(count / 2) : 0;
+      yinCount = yinPool.length > 0 ? count - yangCount : 0;
     }
     // If one pool is empty, the other takes all
     if (yangPool.length === 0) { yinCount = count; yangCount = 0; }
@@ -1854,7 +2236,6 @@ export function designBracelet(
   }
 
   notes.push(`Sheng cycle: ${shengElements.join(' → ')} — ${cycle} loops through ${uniqueStoneNames.size} unique stones.`);
-  notes.push('Each bead feeds the next in the generative cycle: Wood→Fire→Earth→Metal→Water.');
 
   // ── 6. Wrist side ──
   // Left = receiving (Yin side) — use when absorbing external support
@@ -1867,9 +2248,27 @@ export function designBracelet(
 
   notes.push(`Wear on ${wristSide} wrist: ${wristReason}`);
 
-  // ── 7. Polarity is already balanced by the Sheng round-robin (step 4) ──
-  // No post-process swap needed — this preserves perfect Sheng adjacency.
-  const balanced = sequence;
+  // ── 7. Optimize Sheng flow ordering via anchor-based interleaving ──
+  // The anchor element determines which stone sits at Bead 1 (命門 Mingmen).
+  //
+  // Anchor selection rules:
+  //   drained   → usefulEls = [mother, drained_element]
+  //              anchor = drained_element (usefulEls[1])
+  //              Reason: the drained element IS the life gate to rebuild.
+  //              Mother (feeder) must NEVER be Bead 1 — it would put the
+  //              controller stone at the anchor position.
+  //   all other → anchor = usefulEls[0] (primary prescription element)
+  const useful = yongShen.usefulElements || [];
+  const anchorEl: ElementName = (() => {
+    if (yongShen.status === 'collapse_override' && yongShen.collapseMode === 'drained') {
+      // usefulEls[1] = the depleted element; usefulEls[0] = its mother (feeder)
+      return (useful[1] || useful[0] || shengElements[0] || 'Wood') as ElementName;
+    }
+    return (useful[0] || shengElements[0] || 'Wood') as ElementName;
+  })();
+  const tagged = sequence.map(b => ({ ...b, element: b.stone.element as ElementName }));
+  const resequenced = sequenceFromAnchor(tagged, anchorEl);
+  const balanced: BraceletBead[] = resequenced.map(({ element, ...rest }) => rest);
 
   // ── 8. Build visual layout data ──
   const visualBeads: VisualBead[] = balanced.map((bead, i) => ({
@@ -1903,9 +2302,218 @@ export function designBracelet(
 }
 
 // ============================================================================
+// designBraceletFromBRQe — Stone selection driven by MIFQ pipeline output
+// ============================================================================
+
+/**
+ * Design a bracelet using BRQe (capped bracelet correction vector) as input.
+ *
+ * Same stone selection, polarity balancing, Sheng sequencing, and anchor logic
+ * as designBracelet, but ratios come directly from BRQe values instead of
+ * Yong Shen heuristics.
+ *
+ * Only positive BRQe values become bracelet beads (elements that need boosting).
+ * Negative BRQe elements are excluded (already in excess).
+ * Yong Shen forbidden list is still respected.
+ */
+export function designBraceletFromBRQe(
+  brqe: Record<ElementName, number>,
+  yongShen: YongShenResult,
+  dayMasterStem: string,
+  totalBeads = 21,
+): BraceletDesign {
+  const ELS: ElementName[] = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
+  const dmPolarity = getDayMasterPolarity(dayMasterStem);
+  const notes: string[] = [];
+  const forbidden = new Set(yongShen.forbidden || []);
+
+  // ── 1. Derive ratios from BRQe (only positive = needs boosting) ──
+  const rawPositive: Record<ElementName, number> = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+  let positiveSum = 0;
+  for (const el of ELS) {
+    const v = brqe[el] || 0;
+    if (v > 0.001 && !forbidden.has(el)) {
+      rawPositive[el] = v;
+      positiveSum += v;
+    }
+  }
+
+  const ratios: Record<ElementName, number> = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+  if (positiveSum > 0) {
+    for (const el of ELS) {
+      ratios[el] = rawPositive[el] / positiveSum;
+    }
+    const activeNames = ELS.filter(el => ratios[el] > 0.001);
+    notes.push(`BRQe-driven ratios: ${activeNames.map(el => `${el} ${(ratios[el] * 100).toFixed(0)}%`).join(', ')}.`);
+  } else {
+    // All BRQe ≤ 0 or forbidden — gentle maintenance bracelet
+    ELS.forEach(el => { if (!forbidden.has(el)) ratios[el] = 0.2; });
+    const maintenanceSum = ELS.reduce((s, el) => s + ratios[el], 0);
+    if (maintenanceSum > 0) ELS.forEach(el => { ratios[el] /= maintenanceSum; });
+    notes.push('All BRQe ≤ 0: gentle all-element maintenance bracelet.');
+  }
+
+  // ── 2. Compute bead counts ──
+  const beadCounts: Record<ElementName, number> = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+  let assigned = 0;
+  const activeEls = ELS.filter(el => ratios[el] > 0.001);
+
+  activeEls.forEach(el => {
+    beadCounts[el] = Math.round(ratios[el] * totalBeads);
+    assigned += beadCounts[el];
+  });
+
+  // Fix rounding difference
+  const diff = totalBeads - assigned;
+  if (diff !== 0 && activeEls.length > 0) {
+    const topEl = [...activeEls].sort((a, b) => ratios[b] - ratios[a])[0];
+    beadCounts[topEl] += diff;
+  }
+
+  // ── 3. Select stones per element (polarity-balanced) ──
+  const stoneSelections: Record<ElementName, Stone[]> = { Wood: [], Fire: [], Earth: [], Metal: [], Water: [] };
+
+  for (const el of activeEls) {
+    if (forbidden.has(el)) continue;
+    const count = beadCounts[el];
+    if (count <= 0) continue;
+
+    const yangPool = STONE_DATABASE
+      .filter(s => s.element === el && s.polarity === 'Yang')
+      .sort((a, b) => b.baseQi - a.baseQi);
+    const yinPool = STONE_DATABASE
+      .filter(s => s.element === el && s.polarity === 'Yin')
+      .sort((a, b) => b.baseQi - a.baseQi);
+
+    let yangCount: number, yinCount: number;
+    if (dmPolarity === 'Yang') {
+      yinCount = yinPool.length > 0 ? Math.ceil(count / 2) : 0;
+      yangCount = yangPool.length > 0 ? count - yinCount : 0;
+    } else {
+      yangCount = yangPool.length > 0 ? Math.ceil(count / 2) : 0;
+      yinCount = yinPool.length > 0 ? count - yangCount : 0;
+    }
+    if (yangPool.length === 0) { yinCount = count; yangCount = 0; }
+    if (yinPool.length === 0) { yangCount = count; yinCount = 0; }
+
+    let yUsed = 0, nUsed = 0;
+    while (yUsed < yangCount || nUsed < yinCount) {
+      if (yUsed < yangCount) {
+        stoneSelections[el].push(yangPool[(yUsed * 7) % yangPool.length]);
+        yUsed++;
+      }
+      if (nUsed < yinCount) {
+        stoneSelections[el].push(yinPool[(nUsed * 5) % yinPool.length]);
+        nUsed++;
+      }
+    }
+  }
+
+  // ── 4. Sheng-order sequencing with polarity breathing ──
+  const shengElements = SHENG_ORDER.filter(el => beadCounts[el] > 0 && !forbidden.has(el));
+  const cursors: Record<string, number> = {};
+  shengElements.forEach(el => { cursors[el] = 0; });
+
+  const cluster: Stone[] = shengElements
+    .map(el => stoneSelections[el][0])
+    .filter(Boolean);
+
+  const uniqueStoneNames = new Set<string>();
+  const sequence: BraceletBead[] = [];
+  let pos = 0;
+  let cycle = 0;
+
+  while (pos < totalBeads) {
+    for (const el of shengElements) {
+      if (pos >= totalBeads) break;
+      const pool = stoneSelections[el];
+      if (pool.length === 0) continue;
+
+      const prevPolarity = sequence.length > 0 ? sequence[sequence.length - 1].stone.polarity : null;
+      let stone: Stone | null = null;
+      if (prevPolarity) {
+        for (let scan = 0; scan < pool.length; scan++) {
+          const candidate = pool[(cursors[el] + scan) % pool.length];
+          if (candidate.polarity !== prevPolarity) {
+            stone = candidate;
+            cursors[el] = (cursors[el] + scan + 1) % pool.length;
+            break;
+          }
+        }
+      }
+      if (!stone) {
+        stone = pool[cursors[el] % pool.length];
+        cursors[el] = (cursors[el] + 1) % pool.length;
+      }
+
+      uniqueStoneNames.add(stone.name);
+      sequence.push({ stone, position: pos, clusterIndex: cycle });
+      pos++;
+    }
+    cycle++;
+  }
+
+  notes.push(`Sheng cycle: ${shengElements.join(' → ')} — ${cycle} loops through ${uniqueStoneNames.size} unique stones.`);
+
+  // ── 5. Wrist side ──
+  const needsReceiving = yongShen.status === 'collapse_override' && yongShen.collapseMode === 'drained';
+  const wristSide: 'left' | 'right' = needsReceiving ? 'left' : 'left';
+  const wristReason = needsReceiving
+    ? 'Left wrist (receiving/Yin side): absorb external structural support for drained element.'
+    : 'Left wrist (receiving/Yin side): draw remedy Qi inward toward your center.';
+  notes.push(`Wear on ${wristSide} wrist: ${wristReason}`);
+
+  // ── 6. Anchor-based resequencing ──
+  const useful = yongShen.usefulElements || [];
+  const anchorEl: ElementName = (() => {
+    if (yongShen.status === 'collapse_override' && yongShen.collapseMode === 'drained') {
+      return (useful[1] || useful[0] || shengElements[0] || 'Wood') as ElementName;
+    }
+    // For BRQe-driven: anchor = element with highest BRQe (biggest need)
+    const topBrqe = shengElements.sort((a, b) => (brqe[b] || 0) - (brqe[a] || 0))[0];
+    return (topBrqe || useful[0] || shengElements[0] || 'Wood') as ElementName;
+  })();
+
+  const tagged = sequence.map(b => ({ ...b, element: b.stone.element as ElementName }));
+  const resequenced = sequenceFromAnchor(tagged, anchorEl);
+  const balanced: BraceletBead[] = resequenced.map(({ element, ...rest }) => rest);
+
+  // ── 7. Visual layout ──
+  const visualBeads: VisualBead[] = balanced.map((bead, i) => ({
+    id: `${bead.stone.name.replace(/\s+/g, '-')}-${i}`,
+    stone: bead.stone,
+    position: i,
+    angleDeg: (360 / totalBeads) * i,
+    color: bead.stone.color,
+    element: bead.stone.element,
+    polarity: bead.stone.polarity,
+    sizeMm: bead.stone.element === 'Earth' ? 8 : 6,
+    clusterIndex: bead.clusterIndex,
+  }));
+
+  // ── 8. Narrative ──
+  const narrative = generateRemedyNarrative(yongShen, cluster, ratios, notes);
+
+  return {
+    totalBeads,
+    ratios,
+    beadCounts,
+    cluster,
+    clusterCount: cycle,
+    sequence: balanced,
+    visualBeads,
+    narrative,
+    notes,
+    wristSide,
+    wristReason,
+  };
+}
+
+// ============================================================================
 // POLARITY BALANCER — Alternates Yin/Yang to prevent overstimulation
 // ============================================================================
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function balancePolaritySequence(beads: BraceletBead[]): BraceletBead[] {
   if (beads.length <= 1) return beads;
 
@@ -1964,7 +2572,7 @@ function generateRemedyNarrative(
   yongShen: YongShenResult,
   cluster: Stone[],
   ratios: Record<ElementName, number>,
-  notes: string[]
+  _notes: string[]
 ): string {
   const activeEls = (['Wood', 'Fire', 'Earth', 'Metal', 'Water'] as ElementName[])
     .filter(el => ratios[el] > 0);
@@ -2010,16 +2618,17 @@ function generateRemedyNarrative(
 // ============================================================================
 // QI PHYSICS LAYER — Bracelet influence on the Five-Element radar
 // ============================================================================
-// The bracelet is a modifier, not a rewrite. It has two channels:
-//   BRQ_A (reactive)  — closes 35% of the TFQ→MFFQ gap
-//   BRQ_B (proactive) — reinforces 10% of natal TFQ ("upgrade the car")
-// Hard-capped at ±15% of natal TFQ per element. No over-promising.
+// The bracelet moves MTFQ toward MIFQ (the ideal monthly target).
+//
+// BRQ = MIFQ − MTFQ  (the correction vector)
+//
+// The bracelet closes a fraction of the BRQ gap per element,
+// scaled by the bracelet's Qi budget and capped to prevent over-correction.
 // Month-type tuning: drained months get +25% leverage, overcrowded get −25%.
 
 export const QI_PHYSICS_CAPS = {
-  monthlyCorrectionPct: 0.35,   // BRQ_A: close 35% of TFQ–MFFQ gap
-  natalReinforcementPct: 0.10,  // BRQ_B: reinforce 10% of TFQ
-  totalElementCap: 0.15,        // hard ceiling: ±15% of TFQ
+  monthlyCorrectionPct: 0.35,   // close 35% of MIFQ–MTFQ gap per element
+  elementCapK: 0.50,            // per-element cap: k × |BRQ(e)| — big wounds get proportionally bigger corrections
 };
 
 export const BEAD_SIZE_FACTOR: Record<number, number> = {
@@ -2096,25 +2705,33 @@ export function detectMonthQiType(yongShen: YongShenResult): MonthQiType {
 }
 
 /**
- * Apply bracelet Qi influence to MFFQ.
- * Returns the corrected radar values (MFFQ + BRQ).
+ * Apply bracelet Qi influence to MTFQ, moving it toward MIFQ.
+ * Returns the corrected radar values (MTFQ + bracelet shift).
  *
- * Two channels:
- *   BRQ_A = correctionPct × (TFQ − MFFQ)      → reactive (fix the month)
- *   BRQ_B = reinforcementPct × TFQ             → proactive (strengthen baseline)
+ * BRQ = MIFQ − MTFQ  (the ideal correction vector)
  *
- * Scaled by the bracelet's Qi budget per element (normalized),
- * then hard-capped at ±totalElementCap × TFQ.
+ * The bracelet closes correctionPct of this gap per element,
+ * scaled by the bracelet's Qi budget, then hard-capped.
+ *
+ * @param mifq  - Ideal monthly target (from computeIFQ, normalized to MTFQ total)
+ * @param mffq  - MTFQ (actual monthly environment)
+ * @param braceletQi - Qi units the bracelet can deliver per element
+ * @param monthType - drained/overcrowded/normal tuning
+ * @param tfq   - Optional natal TFQ for backwards-compat display
  */
-export function applyBraceletToMFFQ(
-  tfq: Record<ElementName, number>,
+export function applyBraceletToTotalQi(
+  mifq: Record<ElementName, number> | null,
   mffq: Record<ElementName, number>,
   braceletQi: BraceletQiUnits,
   monthType: MonthQiType = 'normal',
+  tfq?: Record<ElementName, number>,
 ): RadarShiftResult {
   const ELS: ElementName[] = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
   const afterBracelet: Record<ElementName, number> = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
   const delta: Record<ElementName, number> = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+
+  // If no MIFQ provided, fall back to TFQ as target (legacy compat)
+  const target = mifq || tfq || mffq;
 
   // Month-type multiplier: drained = more leverage, overcrowded = less
   const monthMult = monthType === 'drained' ? 1.25 : monthType === 'overcrowded' ? 0.75 : 1.0;
@@ -2123,24 +2740,19 @@ export function applyBraceletToMFFQ(
   const maxQi = Math.max(...ELS.map(el => braceletQi.perElement[el]), 0.01);
 
   for (const el of ELS) {
-    const gap = (tfq[el] || 0) - (mffq[el] || 0);
-    const natalValue = tfq[el] || 0;
+    // BRQ = MIFQ - MTFQ (the correction vector)
+    const brq = (target[el] || 0) - (mffq[el] || 0);
 
-    // Channel A: reactive correction
-    const correction = QI_PHYSICS_CAPS.monthlyCorrectionPct * gap;
-
-    // Channel B: proactive reinforcement
-    const reinforcement = QI_PHYSICS_CAPS.natalReinforcementPct * natalValue;
-
-    // Raw influence (always additive — bracelet pushes toward natal + a bit beyond)
-    let rawDelta = (correction + reinforcement) * monthMult;
+    // Close correctionPct of the gap
+    let rawDelta = QI_PHYSICS_CAPS.monthlyCorrectionPct * brq * monthMult;
 
     // Scale by bracelet Qi budget for this element (0–1)
     const qiScale = braceletQi.perElement[el] / maxQi;
     rawDelta *= qiScale;
 
-    // Hard cap: ±15% of natal TFQ
-    const maxShift = QI_PHYSICS_CAPS.totalElementCap * Math.max(natalValue, 1);
+    // Per-element cap: k × |BRQ(e)| — based on the wound, not the attempt
+    // When correctionPct < k → no capping. When correctionPct > k → caps kick in.
+    const maxShift = QI_PHYSICS_CAPS.elementCapK * Math.abs(brq);
     rawDelta = Math.max(-maxShift, Math.min(maxShift, rawDelta));
 
     delta[el] = Math.round(rawDelta * 100) / 100;
@@ -2149,23 +2761,31 @@ export function applyBraceletToMFFQ(
 
   const totalShiftPct = Math.round(ELS.reduce((s, el) => s + Math.abs(delta[el]), 0) * 100) / 100;
 
-  return { tfq, mffq, afterBracelet, delta, totalShiftPct, monthType };
+  return { tfq: tfq || target, mffq, afterBracelet, delta, totalShiftPct, monthType };
 }
 
 /**
  * Full radar shift simulation — convenience wrapper.
  * Returns all three curves for the UI pentagon.
+ *
+ * @param mifq - MIFQ ideal target (new pipeline). If null, falls back to tfq.
+ * @param mffq - MTFQ actual monthly Qi
+ * @param bracelet - Bracelet design with stone sequence
+ * @param yongShen - Yong Shen result for month-type detection
+ * @param beadSizeMm - Bead size for Qi unit calculation
+ * @param tfq - Optional natal TFQ for display/fallback
  */
 export function simulateRadarShift(
-  tfq: Record<ElementName, number>,
+  mifq: Record<ElementName, number> | null,
   mffq: Record<ElementName, number>,
   bracelet: BraceletDesign,
   yongShen: YongShenResult,
   beadSizeMm = 8,
+  tfq?: Record<ElementName, number>,
 ): RadarShiftResult {
   const qiUnits = computeBraceletQiUnits(bracelet.sequence, yongShen, beadSizeMm);
   const monthType = detectMonthQiType(yongShen);
-  return applyBraceletToMFFQ(tfq, mffq, qiUnits, monthType);
+  return applyBraceletToTotalQi(mifq, mffq, qiUnits, monthType, tfq);
 }
 
 // ============================================================================
@@ -2197,16 +2817,28 @@ export function calculateStoneEffectiveness(
   yongShen: YongShenResult,
   dynamicPool: Record<ElementName, number>,
   dayMasterStem: string,
+  daYunStem?: string,
 ): StoneEffectivenessScore {
   const dmPolarity = getDayMasterPolarity(dayMasterStem);
+  // If the active decade (大運) has the SAME polarity as the Day Master, the field
+  // is doubling down on one polarity — making the need for balancing stones MORE urgent.
+  // We intensify the polarity bonus gap: balancing 20→22, matching 5→3.
+  const daYunPolarity = daYunStem ? getDayMasterPolarity(daYunStem) : null;
+  const sameDecadePolarity = daYunPolarity !== null && daYunPolarity === dmPolarity;
   const ELS: ElementName[] = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
   const total = ELS.reduce((s, el) => s + (dynamicPool[el] || 0), 0);
 
   // 1. Base score from stone's intrinsic effectiveness (0–30)
   const baseScore = Math.round(stone.baseQi * 30);
 
-  // 2. Polarity match (0–20)
-  const polarityBonus = stone.polarity === dmPolarity ? 20 : 5;
+  // 2. Polarity balance (0–20/22): balancing polarity (opposite of DM) scores highest.
+  // When the active decade (大運) has the SAME polarity as the DM, the imbalance is
+  // amplified — so the balancing bonus increases from 20→22 and the matching penalty
+  // increases from 5→3, widening the gap to steer prescriptions more firmly toward balance.
+  const polarityBonus = stone.polarity === getBalancingPolarity(dmPolarity)
+    ? (sameDecadePolarity ? 22 : 20)
+    : stone.polarity === 'Yin-Yang' ? 10
+    : (sameDecadePolarity ? 3 : 5);
 
   // 3. Element need — how much does the chart need this element? (0–30)
   const elPct = total > 0 ? ((dynamicPool[stone.element] || 0) / total) * 100 : 20;
@@ -2247,7 +2879,7 @@ export function calculateStoneEffectiveness(
   // Explanation
   const parts: string[] = [];
   if (forbiddenPenalty > 0) parts.push(`FORBIDDEN: ${yongShen.forbiddenReason || 'element is contraindicated'}`);
-  if (polarityBonus >= 20)  parts.push(`Polarity match (${dmPolarity})`);
+  if (polarityBonus >= 20)  parts.push(`Polarity balance — ${stone.polarity} balances ${dmPolarity} Day Master`);
   if (elementMatch >= 25)   parts.push(`Chart critically needs ${stone.element}`);
   else if (elementMatch >= 15) parts.push(`Chart needs ${stone.element}`);
   if (collapseBonus >= 20)  parts.push(`Aligned with collapse override prescription`);
@@ -2274,15 +2906,49 @@ export function scoreAllStones(
   yongShen: YongShenResult,
   dynamicPool: Record<ElementName, number>,
   dayMasterStem: string,
+  daYunStem?: string,
 ): StoneEffectivenessScore[] {
   return STONE_DATABASE
-    .map(stone => calculateStoneEffectiveness(stone, yongShen, dynamicPool, dayMasterStem))
+    .map(stone => calculateStoneEffectiveness(stone, yongShen, dynamicPool, dayMasterStem, daYunStem))
     .sort((a, b) => b.totalScore - a.totalScore);
 }
 
 // ============================================================================
 // BRACELET QUALITY SCORE — Overall bracelet design quality 0–100
 // ============================================================================
+
+export interface YongShenBeadEntry {
+  pos: number;          // 1-based position in sequence
+  name: string;
+  element: string;
+  polarity: string;
+  isUseful: boolean;
+  isForbidden: boolean;
+  isBridge: boolean;
+}
+
+export interface YongShenBreakdown {
+  usefulElements: string[];
+  forbiddenElements: string[];
+  totalBeads: number;
+  usefulBeadCount: number;
+  usefulBeadPct: number;       // 0–1
+  isBalancedChart: boolean;
+  perElement: Record<string, number>;  // element → bead count
+  sequence: YongShenBeadEntry[];       // ordered bead list for sequential display
+}
+
+export interface PolarityBreakdown {
+  yangCount: number;
+  yinCount: number;
+  yinYangCount: number;
+  effectiveYang: number;
+  effectiveYin: number;
+  polarityRatio: number;   // min/max — 1.0 = perfect balance
+  totalBeads: number;
+  dmPolarity: string;      // 'Yang' | 'Yin' — the Day Master
+  balancingPolarity: string; // what the bracelet should favour
+}
 
 export interface BraceletQualityReport {
   overall: number;          // 0–100
@@ -2293,39 +2959,335 @@ export interface BraceletQualityReport {
     shengCycleFlow: number;      // 0–20: stones follow generative cycle
     forbiddenCheck: number;      // 0–15: no forbidden elements present
     diversityScore: number;      // 0–15: variety of stones used
+    polarityDetails?: PolarityBreakdown;    // per-bead polarity audit
+    yongShenDetails?: YongShenBreakdown;    // per-bead Yong Shen audit
   };
   warnings: string[];
   strengths: string[];
 }
 
+// ============================================================================
+// SHENG CYCLE VALIDATOR — canonical closed-loop validator
+// ============================================================================
+
+export interface ShengValidationError {
+  index: number;
+  from: ElementName;
+  to: ElementName;
+  expected: ElementName;
+  isSameElement: boolean;
+}
+
+export interface ShengValidationResult {
+  valid: boolean;
+  errors: ShengValidationError[];
+  shengCount: number;         // number of Sheng (generative) transitions
+  conductorCount: number;     // number of same-element (conductor) transitions
+  breakCount: number;         // number of non-Sheng, non-conductor transitions
+  totalTransitions: number;
+  wrapClosed: boolean;        // does bead 21 → bead 1 close the loop?
+  anchorFed: boolean;         // does bead 1 → bead 2 feed the child?
+}
+
+/**
+ * Validate the Sheng cycle of a bracelet — the never-ending loop.
+ *
+ * The Sheng (生) cycle is not linear. It is circular, self-renewing,
+ * and eternal: Wood→Fire→Earth→Metal→Water→Wood.
+ *
+ * Three types of adjacent transitions:
+ *   - **Sheng**: current generates next (Wood→Fire) — energy flows
+ *   - **Conductor**: same element (Wood→Wood) — Qi passes freely
+ *   - **Break**: no generative relationship — Qi stagnates
+ *
+ * The wrap-around (last→first) is mandatory for the bracelet to breathe.
+ */
+export function validateShengCycle<T extends { element: ElementName }>(
+  beads: T[],
+): ShengValidationResult {
+  const errors: ShengValidationError[] = [];
+  let shengCount = 0;
+  let conductorCount = 0;
+
+  for (let i = 0; i < beads.length; i++) {
+    const curr = beads[i].element;
+    const next = beads[(i + 1) % beads.length].element;
+    const isSameElement = curr === next;
+
+    if (GENERATES[curr] === next) {
+      shengCount++;
+    } else if (isSameElement) {
+      conductorCount++;
+    } else {
+      errors.push({
+        index: i,
+        from: curr,
+        to: next,
+        expected: GENERATES[curr],
+        isSameElement,
+      });
+    }
+  }
+
+  const lastEl = beads[beads.length - 1]?.element;
+  const firstEl = beads[0]?.element;
+  const wrapClosed = beads.length > 1 && (GENERATES[lastEl] === firstEl || lastEl === firstEl);
+
+  const secondEl = beads.length > 1 ? beads[1].element : firstEl;
+  const anchorFed = GENERATES[firstEl] === secondEl || firstEl === secondEl;
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    shengCount,
+    conductorCount,
+    breakCount: errors.length,
+    totalTransitions: beads.length,
+    wrapClosed,
+    anchorFed,
+  };
+}
+
+// ============================================================================
+// BRIDGE BEAD — Qi-neutral 5mm repair for broken Sheng transitions
+// ============================================================================
+
+/**
+ * Visual + naming palette for bridge beads per element.
+ * Bridge beads are 5mm spacers — metaphysically present but Qi-neutral.
+ */
+export const BRIDGE_PALETTE: Record<ElementName, { stoneName: string; color: string }> = {
+  Metal: { stoneName: 'Silver Spacer',        color: '#C0C0C0' },
+  Water: { stoneName: 'Black Spinel Spacer',  color: '#1a1a2e' },
+  Wood:  { stoneName: 'Green Jade Spacer',    color: '#2F6F3A' },
+  Fire:  { stoneName: 'Garnet Spacer',        color: '#8B1A1A' },
+  Earth: { stoneName: 'Yellow Jade Spacer',   color: '#C9A24A' },
+};
+
+export interface BridgeBeadInfo {
+  element: ElementName;
+  size: 5;
+  qiUnit: 0;
+  isBridge: true;
+  stoneName: string;
+  color: string;
+}
+
+/**
+ * Compute ALL missing Sheng bridge beads between two element blocks.
+ *
+ * Walks the Sheng cycle from prevElement, collecting every intermediate
+ * element until nextElement is reached. Each missing element becomes one
+ * 5mm Qi-neutral bridge bead.
+ *
+ * adjacentElements — optional elements from the beads immediately flanking
+ * the break (bead before `from` and bead after `to`). If any of these already
+ * match an intermediate in the Sheng path, that slot is NOT a new bridge bead —
+ * the existing adjacent stone covers it, reducing the number of inserts needed.
+ *
+ * Examples (no adjacentElements):
+ *   Wood → Earth  → [Fire]                  (1 bead)
+ *   Wood → Metal  → [Fire, Earth]           (2 beads)
+ *   Wood → Water  → [Fire, Earth, Metal]    (3 beads)
+ *
+ * Examples (with adjacentElements = ['Earth']):
+ *   Wood → Metal  → [Fire]                  (1 bead — Earth is already adjacent)
+ *   Wood → Water  → [Fire, Metal]           (2 beads — Earth already adjacent)
+ *
+ * Returns [] if the transition is already valid (Sheng or same-element).
+ */
+export function getBridgeBeads(
+  prevElement: ElementName,
+  nextElement: ElementName,
+  adjacentElements: ElementName[] = [],
+): BridgeBeadInfo[] {
+  if (GENERATES[prevElement] === nextElement || prevElement === nextElement) return [];
+
+  // Build the full ordered path of missing intermediates
+  const fullPath: ElementName[] = [];
+  let current = prevElement;
+  for (let step = 0; step < 4; step++) {
+    current = GENERATES[current];
+    if (current === nextElement) break;
+    fullPath.push(current);
+  }
+
+  // Remove any intermediate already covered by an adjacent stone
+  const adjacentSet = new Set(adjacentElements.filter(Boolean));
+  const optimized = fullPath.filter(el => !adjacentSet.has(el));
+
+  return optimized.map(el => {
+    const palette = BRIDGE_PALETTE[el];
+    return {
+      element: el,
+      size: 5,
+      qiUnit: 0,
+      isBridge: true,
+      stoneName: palette?.stoneName ?? `${el} Spacer`,
+      color: palette?.color ?? '#888',
+    };
+  });
+}
+
+/** @deprecated Use getBridgeBeads — returns full multi-step bridge array */
+export function selectBridgeBead(
+  prevElement: ElementName,
+  nextElement: ElementName,
+): BridgeBeadInfo | null {
+  const bridges = getBridgeBeads(prevElement, nextElement);
+  return bridges.length > 0 ? bridges[0] : null;
+}
+
+export interface BridgeRepairSuggestion {
+  needsRepair: boolean;
+  breakIndex?: number;         // index of the bead BEFORE the break
+  from?: ElementName;
+  to?: ElementName;
+  bridges: BridgeBeadInfo[];   // bridge beads to INSERT (after adjacent optimisation)
+  reusedElements: ElementName[]; // intermediates already present in adjacent stones (not inserted)
+  fullPath: ElementName[];     // complete Sheng path from→to (before optimisation)
+  totalBreaks: number;
+  confidence: number;          // 0–1: 1.0 = single clean repair, lower for multi-bridge or multi-break
+}
+
+/**
+ * Analyze a bead sequence and return the optimised bridge beads needed.
+ *
+ * Uses the bead immediately BEFORE `from` (index-1) and immediately AFTER
+ * `to` (index+2) as "adjacent stones". If either already matches an
+ * intermediate in the missing Sheng path, that element is NOT inserted as
+ * a new bridge bead — the existing stone covers it for free.
+ *
+ * Handles gaps of 1, 2, or 3 missing Sheng steps.
+ * Confidence penalises large remaining gaps and multiple breaks.
+ *
+ *   1 new bead needed  → confidence 1.0
+ *   2 new beads needed → confidence 0.85
+ *   3 new beads needed → confidence 0.70
+ *   multiple breaks    → ×0.8 penalty on top
+ */
+export function getRepairSuggestion<T extends { element: ElementName }>(
+  beads: T[],
+): BridgeRepairSuggestion {
+  const validation = validateShengCycle(beads);
+
+  if (validation.breakCount === 0) {
+    return { needsRepair: false, bridges: [], reusedElements: [], fullPath: [], totalBreaks: 0, confidence: 1.0 };
+  }
+
+  const firstBreak = validation.errors[0];
+  const n = beads.length;
+
+  // Adjacent stones: bead just before `from`, and bead just after `to`
+  const prevAdjacentEl = beads[(firstBreak.index - 1 + n) % n]?.element;
+  const nextAdjacentEl = beads[(firstBreak.index + 2) % n]?.element;
+  const adjacentElements = [prevAdjacentEl, nextAdjacentEl].filter(Boolean) as ElementName[];
+
+  // Full unoptimised path (for display)
+  const fullPath = getBridgeBeads(firstBreak.from, firstBreak.to);
+
+  // Optimised path — adjacent stones that already cover an intermediate are reused
+  const bridges = getBridgeBeads(firstBreak.from, firstBreak.to, adjacentElements);
+
+  // Which intermediates were reused (present in fullPath but not in bridges)?
+  const bridgeSet = new Set(bridges.map(b => b.element));
+  const reusedElements = fullPath.map(b => b.element).filter(el => !bridgeSet.has(el));
+
+  // Size penalty on the REMAINING (new) bridges needed
+  const sizePenalty = 1 - (Math.max(bridges.length - 1, 0) * 0.15);
+  const multiBreakPenalty = validation.breakCount > 1 ? 0.8 : 1.0;
+  const confidence = bridges.length > 0 ? sizePenalty * multiBreakPenalty
+    : reusedElements.length > 0 ? 1.0 * multiBreakPenalty  // fully covered by adjacent
+    : 0;
+
+  return {
+    needsRepair: true,
+    breakIndex: firstBreak.index,
+    from: firstBreak.from,
+    to: firstBreak.to,
+    bridges,
+    reusedElements,
+    fullPath: fullPath.map(b => b.element),
+    totalBreaks: validation.breakCount,
+    confidence,
+  };
+}
+
+// ============================================================================
+// BRACELET QUALITY SCORING
+// ============================================================================
+
 /**
  * Score a bracelet design for quality and classical correctness.
+ * @param bridgeBeads - Optional bridge (spacer) beads to include in polarity balance only.
+ *   Bridge beads carry polarity but are Qi-neutral, so they influence polarity score but not
+ *   element alignment, forbidden check, or diversity.
  */
 export function scoreBracelet(
   design: BraceletDesign,
   yongShen: YongShenResult,
+  bridgeBeads?: { stone: { polarity: string } }[],
+  dayMasterStem?: string,
 ): BraceletQualityReport {
   const warnings: string[] = [];
   const strengths: string[] = [];
-  const ELS: ElementName[] = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
-
   // 1. Yong Shen alignment (0–30)
   // How well do the bracelet's element ratios match the Yong Shen prescription?
   let yongShenAlignment = 0;
   const usefulSet = new Set(yongShen.usefulElements);
-  const usefulBeadPct = design.sequence
-    .filter(b => usefulSet.has(b.stone.element))
-    .length / design.totalBeads;
+  const isBalancedChart = usefulSet.size === 0 && yongShen.forbidden.length === 0;
 
-  if (usefulBeadPct >= 0.8) { yongShenAlignment = 30; strengths.push('Excellent Yong Shen alignment'); }
-  else if (usefulBeadPct >= 0.6) { yongShenAlignment = 25; }
-  else if (usefulBeadPct >= 0.4) { yongShenAlignment = 18; }
-  else { yongShenAlignment = 10; warnings.push('Low Yong Shen alignment — bracelet may not address core imbalance'); }
+  // Per-element bead count (for the flap display)
+  const perElement: Record<string, number> = {};
+  for (const b of design.sequence) {
+    const el = b.stone.element;
+    perElement[el] = (perElement[el] || 0) + 1;
+  }
+  const usefulBeadCount = design.sequence.filter(b => usefulSet.has(b.stone.element)).length;
+  const usefulBeadPct = isBalancedChart ? 1 : usefulBeadCount / Math.max(design.totalBeads, 1);
+
+  if (isBalancedChart) {
+    yongShenAlignment = 28;
+    strengths.push('Balanced chart — all elements contribute harmoniously');
+  } else {
+    if (usefulBeadPct >= 0.8) { yongShenAlignment = 30; strengths.push('Excellent Yong Shen alignment'); }
+    else if (usefulBeadPct >= 0.6) { yongShenAlignment = 25; }
+    else if (usefulBeadPct >= 0.4) { yongShenAlignment = 18; }
+    else { yongShenAlignment = 10; warnings.push('Low Yong Shen alignment — bracelet may not address core imbalance'); }
+  }
+
+  const beadSequence = design.sequence.map((b, i) => ({
+    pos: i + 1,
+    name: b.stone?.name ?? b.stone?.element ?? '?',
+    element: b.stone?.element ?? '?',
+    polarity: b.stone?.polarity ?? '?',
+    isUseful: usefulSet.has(b.stone?.element ?? ''),
+    isForbidden: (yongShen.forbidden ?? []).includes(b.stone?.element ?? ''),
+    isBridge: !!(b as any).isBridge,
+  }));
+
+  const yongShenDetails: YongShenBreakdown = {
+    usefulElements: [...yongShen.usefulElements],
+    forbiddenElements: [...yongShen.forbidden],
+    totalBeads: design.totalBeads,
+    usefulBeadCount,
+    usefulBeadPct,
+    isBalancedChart,
+    perElement,
+    sequence: beadSequence,
+  };
 
   // 2. Polarity balance (0–20)
-  const yangCount = design.sequence.filter(b => b.stone.polarity === 'Yang').length;
-  const yinCount = design.sequence.filter(b => b.stone.polarity === 'Yin').length;
-  const polarityRatio = Math.min(yangCount, yinCount) / Math.max(yangCount, yinCount, 1);
+  // Include bridge beads for polarity (they carry polarity even though they're Qi-neutral).
+  // Count Yin-Yang stones as 0.5 Yang + 0.5 Yin — they're inherently balanced and
+  // should not penalise the score just because they don't fit a single-polarity bin.
+  const allForPolarity = [...design.sequence, ...(bridgeBeads || [])];
+  const yangCount    = allForPolarity.filter(b => b.stone.polarity === 'Yang').length;
+  const yinCount     = allForPolarity.filter(b => b.stone.polarity === 'Yin').length;
+  const yinYangCount = allForPolarity.filter(b => b.stone.polarity === 'Yin-Yang').length;
+  const effectiveYang = yangCount + yinYangCount * 0.5;
+  const effectiveYin  = yinCount  + yinYangCount * 0.5;
+  const polarityRatio = Math.min(effectiveYang, effectiveYin) / Math.max(effectiveYang, effectiveYin, 1);
 
   let polarityBalance: number;
   if (polarityRatio >= 0.8) { polarityBalance = 20; strengths.push('Well-balanced Yin/Yang — Qi breathes freely'); }
@@ -2335,25 +3297,30 @@ export function scoreBracelet(
   else { polarityBalance = 0; warnings.push('Extreme polarity imbalance — single-polarity bracelet causes energetic whiplash'); }
 
   // 3. Sheng cycle flow (0–20)
-  // Check adjacent beads: does each feed the next in generative cycle?
-  let shengHits = 0;
-  for (let i = 0; i < design.sequence.length - 1; i++) {
-    const curr = design.sequence[i].stone.element;
-    const next = design.sequence[i + 1].stone.element;
-    if (GENERATES[curr] === next) shengHits++;
-  }
-  // Also check wrap-around (last → first for circular bracelet)
-  if (design.sequence.length > 1) {
-    const last = design.sequence[design.sequence.length - 1].stone.element;
-    const first = design.sequence[0].stone.element;
-    if (GENERATES[last] === first) shengHits++;
-  }
-  const shengPct = shengHits / Math.max(design.sequence.length, 1);
+  // Uses the canonical Sheng Cycle Validator for closed-loop scoring.
+  // The Sheng cycle is a never-ending loop — both Sheng transitions AND
+  // same-element conductor runs count as valid Qi flow.
+  // Breaking the 21→1 wrap incurs a heavy penalty (bracelet cannot breathe).
+  const beadsForValidation = design.sequence.map(b => ({ element: b.stone.element as ElementName }));
+  const validation = validateShengCycle(beadsForValidation);
+  const totalTransitions = Math.max(validation.totalTransitions, 1);
+  // Sheng transitions + conductor runs = valid Qi flow
+  const validFlowPct = (validation.shengCount + validation.conductorCount) / totalTransitions;
   let shengCycleFlow: number;
-  if (shengPct >= 0.6) { shengCycleFlow = 20; strengths.push('Strong Sheng cycle flow — Qi circulates freely'); }
-  else if (shengPct >= 0.3) { shengCycleFlow = 14; }
-  else if (shengPct >= 0.1) { shengCycleFlow = 8; }
+  if (validFlowPct >= 0.6) { shengCycleFlow = 20; strengths.push('Strong Sheng cycle flow — Qi circulates freely'); }
+  else if (validFlowPct >= 0.3) { shengCycleFlow = 14; }
+  else if (validFlowPct >= 0.1) { shengCycleFlow = 8; }
   else { shengCycleFlow = 3; warnings.push('Weak Sheng cycle — consider reordering stones'); }
+  // Heavy penalty if the wrap-around (bead 21→1) is broken — the bracelet cannot breathe
+  if (!validation.wrapClosed) {
+    shengCycleFlow = Math.min(shengCycleFlow, Math.floor(shengCycleFlow * 0.25));
+    warnings.push(`Broken cycle — bead ${beadsForValidation.length} does not feed bead 1, Qi cannot return to Mingmen`);
+  }
+  // Penalty if anchor does not feed bead 2 — Qi cannot leave the origin
+  if (!validation.anchorFed) {
+    shengCycleFlow = Math.min(shengCycleFlow, Math.floor(shengCycleFlow * 0.5));
+    warnings.push('Anchor break — bead 1 does not feed bead 2, Qi stagnates at Mingmen');
+  }
 
   // 4. Forbidden check (0–15)
   const forbiddenSet = new Set(yongShen.forbidden);
@@ -2384,10 +3351,24 @@ export function scoreBracelet(
   else if (overall >= 20) grade = 'D';
   else                    grade = 'F';
 
+  const dmPol = dayMasterStem ? getDayMasterPolarity(dayMasterStem) : 'Yang';
+  const balancing = getBalancingPolarity(dmPol);
+  const polarityDetails: PolarityBreakdown = {
+    yangCount,
+    yinCount,
+    yinYangCount,
+    effectiveYang,
+    effectiveYin,
+    polarityRatio,
+    totalBeads: allForPolarity.length,
+    dmPolarity: dmPol,
+    balancingPolarity: balancing,
+  };
+
   return {
     overall,
     grade,
-    breakdown: { yongShenAlignment, polarityBalance, shengCycleFlow, forbiddenCheck, diversityScore },
+    breakdown: { yongShenAlignment, polarityBalance, shengCycleFlow, forbiddenCheck, diversityScore, polarityDetails, yongShenDetails },
     warnings,
     strengths,
   };
@@ -2418,13 +3399,19 @@ export function findSubstitutes(
   original: Stone,
   yongShen: YongShenResult,
   dayMasterStem: string,
-  maxResults = 5,
+  maxResults = 12,
+  daYunStem?: string,
 ): StoneSubstitution[] {
   const dmPolarity = getDayMasterPolarity(dayMasterStem);
+  const daYunPolarity = daYunStem ? getDayMasterPolarity(daYunStem) : null;
+  const sameDecadePolarity = daYunPolarity !== null && daYunPolarity === dmPolarity;
   const forbidden = new Set(yongShen.forbidden);
   const results: StoneSubstitution[] = [];
 
-  // Category 1: Same element, same polarity (excluding the original)
+  // Category 1: Same element, same polarity — always shown.
+  // The prescription deliberately placed this element here. "Forbidden" means
+  // don't add MORE of this element beyond the prescription; it does NOT mean
+  // the prescription's own beads must be replaced with a different element.
   const sameElSamePol = STONE_DATABASE.filter(s =>
     s.name !== original.name && s.element === original.element && s.polarity === original.polarity
   );
@@ -2438,12 +3425,15 @@ export function findSubstitutes(
     });
   }
 
-  // Category 2: Same element, different polarity
+  // Category 2: Same element, different polarity — always shown.
   const sameElDiffPol = STONE_DATABASE.filter(s =>
     s.name !== original.name && s.element === original.element && s.polarity !== original.polarity
   );
   for (const s of sameElDiffPol) {
-    const polPenalty = s.polarity === dmPolarity ? 0 : 10;
+    // Balancing polarity (opposite of DM) gets no penalty; DM-matching polarity is penalised
+    // Same-decade polarity amplifies the imbalance — penalise DM-matching substitutes more strongly
+    const polPenalty = s.polarity === getBalancingPolarity(dmPolarity) || s.polarity === 'Yin-Yang' ? 0
+      : sameDecadePolarity ? 12 : 10;
     const retention = Math.round((s.baseQi / original.baseQi) * 80) - polPenalty;
     results.push({
       original, replacement: s,
@@ -2453,17 +3443,18 @@ export function findSubstitutes(
     });
   }
 
-  // Category 3: Mother element (generative cycle fallback)
+  // Category 3: Mother element — indirect support, only if not forbidden.
   const motherEl = GENERATED_BY[original.element];
   if (motherEl && !forbidden.has(motherEl)) {
     const motherStones = STONE_DATABASE
       .filter(s => s.element === motherEl)
       .sort((a, b) => {
-        const aPol = a.polarity === dmPolarity ? 1 : 0;
-        const bPol = b.polarity === dmPolarity ? 1 : 0;
+        const balancing = getBalancingPolarity(dmPolarity);
+        const aPol = a.polarity === balancing || a.polarity === 'Yin-Yang' ? 1 : 0;
+        const bPol = b.polarity === balancing || b.polarity === 'Yin-Yang' ? 1 : 0;
         return bPol - aPol || b.baseQi - a.baseQi;
       });
-    for (const s of motherStones.slice(0, 2)) {
+    for (const s of motherStones.slice(0, 3)) {
       results.push({
         original, replacement: s,
         qualityRetention: Math.round(s.baseQi / original.baseQi * 60),
@@ -2473,9 +3464,10 @@ export function findSubstitutes(
     }
   }
 
-  // Filter out forbidden replacements, sort by retention, limit
+  // Same-element swaps are always valid regardless of forbidden status.
+  // Cross-element alternatives (mother element) must not be forbidden.
   return results
-    .filter(r => !forbidden.has(r.replacement.element))
+    .filter(r => r.replacement.element === original.element || !forbidden.has(r.replacement.element))
     .sort((a, b) => b.qualityRetention - a.qualityRetention)
     .slice(0, maxResults);
 }

@@ -207,6 +207,13 @@ export default function Dashboard() {
               <span>Tropical Seasons</span>
             </Link>
             <Link
+              to="/natal-wheel"
+              className="px-3 py-1.5 text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium flex items-center gap-1 bg-purple-500/10 rounded-lg border border-purple-500/30 hover:border-purple-500/50"
+            >
+              <span>🎂</span>
+              <span>Birthday Wheel</span>
+            </Link>
+            <Link
               to="/soul-garden"
               className="px-3 py-1.5 text-emerald-400 hover:text-emerald-300 transition-colors text-sm font-medium flex items-center gap-1 bg-emerald-500/10 rounded-lg border border-emerald-500/30 hover:border-emerald-500/50"
             >
@@ -265,6 +272,20 @@ export default function Dashboard() {
             >
               <span>🏥</span>
               <span>BaZi Health</span>
+            </Link>
+            <Link
+              to="/bazi-bracelet"
+              className="px-3 py-1.5 text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium flex items-center gap-1 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:border-amber-500/50"
+            >
+              <span>📊</span>
+              <span>BaZi Seasonality</span>
+            </Link>
+            <Link
+              to="/qi-bracelet"
+              className="px-3 py-1.5 text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium flex items-center gap-1 bg-purple-500/10 rounded-lg border border-purple-500/30 hover:border-purple-500/50"
+            >
+              <span>💎</span>
+              <span>Qi Bracelet</span>
             </Link>
           </div>
         </div>

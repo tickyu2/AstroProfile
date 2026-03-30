@@ -64,3 +64,5 @@ __pycache__/
 functions-python/venv/
 functions-python/__pycache__/
 functions-python/**/__pycache__/
+*storybook.log
+storybook-static

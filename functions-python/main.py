@@ -99,6 +99,20 @@ from routes.unified import (
 )
 
 # =============================================================================
+# BIRTH TIME TUNING LAB ENDPOINT (1)
+# =============================================================================
+from routes.tuning_lab import (
+    birth_time_tuning_lab,
+)
+
+# =============================================================================
+# BATCH CHART POSITIONS (Playback Animation)
+# =============================================================================
+from routes.batch_positions import (
+    batch_chart_positions,
+)
+
+# =============================================================================
 # ADMIN / HEALTH ENDPOINTS (3)
 # =============================================================================
 from routes.admin import (
@@ -106,3 +120,32 @@ from routes.admin import (
     init_neo4j_schema,
     neo4j_status,
 )
+
+
+# Universal Compatibility Engine endpoints
+from routes.matchmaking import (
+    compatibility_engine_status,
+    compatibility_upsert_profile,
+    compatibility_match_user,
+)
+
+
+# Match opt-in endpoints
+from routes.match_optin import (
+    match_opt_in,
+    match_opt_out,
+    match_run_now,
+)
+
+
+# Compatibility pair explain endpoint
+from routes.compat_explain import (
+    compatibility_explain_pair,
+)
+
+
+# Zone debug endpoint
+from routes.compat_zone_debug import (
+    compatibility_zone_debug_pair,
+)
+

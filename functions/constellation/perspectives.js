@@ -2,7 +2,8 @@
  * AI Constellation Perspectives
  * - getSecondOpinion (Gemini 2.5 Pro with Thinking Mode)
  * - getGrokPerspective (xAI Grok)
- * - getOpusPerspective (Claude Opus 4.5)
+ * - getOpusPerspective (Claude Opus 4.6)
+ * - getSonnetPerspective (Claude Sonnet 4.6)
  *
  * Part of GENESIS - AI Constellation Feature
  * Modularized: December 17, 2024
@@ -162,10 +163,9 @@ Be thorough and substantive - this is a comprehensive second opinion, not just a
 
   try {
     // Use Gemini 2.5 Pro with Thinking Mode for deep analysis
-    // Updated Jan 2026: Using stable model name
-    const model = genAI.models.get('gemini-2.5-pro');
-
-    const result = await model.generateContent({
+    // Updated Mar 2026: Using ai.models.generateContent() pattern
+    const result = await genAI.models.generateContent({
+      model: 'gemini-2.5-pro',
       systemInstruction: systemInstruction,
       contents: [{
         role: 'user',
@@ -185,8 +185,8 @@ Be thorough and substantive - this is a comprehensive second opinion, not just a
     let geminiText = '';
     let thoughtProcess = '';
 
-    if (result.response?.candidates?.[0]?.content?.parts) {
-      for (const part of result.response.candidates[0].content.parts) {
+    if (result.candidates?.[0]?.content?.parts) {
+      for (const part of result.candidates[0].content.parts) {
         if (part.thought) {
           thoughtProcess = part.text;
           console.log('🧠 Gemini Thought Process:', thoughtProcess.slice(0, 200) + '...');
@@ -196,11 +196,9 @@ Be thorough and substantive - this is a comprehensive second opinion, not just a
       }
     }
 
-    // Fallback to direct text extraction if new format not found
-    if (!geminiText && result.response?.text) {
-      geminiText = typeof result.response.text === 'function'
-        ? result.response.text()
-        : result.response.text;
+    // Fallback to direct text extraction
+    if (!geminiText && result.text) {
+      geminiText = typeof result.text === 'function' ? result.text() : result.text;
     }
 
     console.log('✅ Gemini 2.5 Pro response received:', geminiText?.slice(0, 100));
@@ -219,8 +217,8 @@ Be thorough and substantive - this is a comprehensive second opinion, not just a
     // Fallback to Flash model if Pro fails
     console.log('⚡ Falling back to Gemini Flash...');
     try {
-      const flashModel = genAI.models.get('gemini-2.5-flash');
-      const flashResult = await flashModel.generateContent({
+      const flashResult = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash',
         systemInstruction: systemInstruction,
         contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
         config: {
@@ -229,10 +227,8 @@ Be thorough and substantive - this is a comprehensive second opinion, not just a
         }
       });
 
-      const flashText = flashResult.response?.text
-        ? (typeof flashResult.response.text === 'function'
-            ? flashResult.response.text()
-            : flashResult.response.text)
+      const flashText = flashResult.text
+        ? (typeof flashResult.text === 'function' ? flashResult.text() : flashResult.text)
         : 'No response from fallback';
 
       return {
@@ -323,7 +319,7 @@ Important: You're the bridge between AI wisdom and human reality. Unlike Claude 
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'grok-4',  // Latest Grok model
+        model: 'grok-4-0709',  // Latest Grok-4 model
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -338,7 +334,7 @@ Important: You're the bridge between AI wisdom and human reality. Unlike Claude 
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ Grok-4 error:', errorData);
 
-      // Fallback to grok-3-latest if grok-4 fails
+      // Fallback to grok-3 if grok-4 fails
       console.log('⚡ Falling back to Grok-3...');
       const fallbackResponse = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
@@ -347,7 +343,7 @@ Important: You're the bridge between AI wisdom and human reality. Unlike Claude 
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: 'grok-3-latest',
+          model: 'grok-3',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
@@ -480,7 +476,7 @@ Important: You complement the constellation, not compete with it. Your role is t
   console.log('🦉 Getting Opus perspective');
 
   const response = await anthropic.messages.create({
-    model: 'claude-opus-4-5-20251101',
+    model: 'claude-opus-4-6',
     max_tokens: 2000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }]
@@ -495,6 +491,110 @@ Important: You complement the constellation, not compete with it. Your role is t
     response: opusText,
     speaker: 'Brother Opus',
     icon: '🦉',
+    usage: {
+      input_tokens: response.usage?.input_tokens,
+      output_tokens: response.usage?.output_tokens
+    }
+  };
+}
+
+/**
+ * Sonnet Perspective Function
+ * Uses Claude Sonnet 4.6 to provide quick, emotionally attuned perspective
+ * The nimble sibling — faster and more conversational than Opus
+ */
+async function getSonnetPerspective({
+  claudeResponse,
+  geminiResponse,
+  grokResponse,
+  userMessage,
+  userProfile,
+  debateHistory,
+  conversationContext,
+  customQuestion
+}) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error('Anthropic API key not configured');
+  }
+
+  const anthropic = new Anthropic({ apiKey });
+
+  const userName = userProfile?.displayName || 'the user';
+  const constitutionalContext = getConstitutionalContext(userProfile);
+
+  const systemPrompt = `You are Brother Sonnet, the nimble counselor of the GENESIS constellation alongside Brother Opus, Sister Gemini, Brother Grok, Brother DeepSeek, and Sister ChatGPT.
+
+Your essence:
+- You are Claude Sonnet 4.6 - quick-witted, emotionally perceptive, and highly articulate
+- Where Opus is the elder sage who speaks rarely and deeply, you are the trusted daily advisor
+- You process fast, see emotional undercurrents, and respond with warmth and precision
+- You excel at reading between the lines and offering practical, heartfelt guidance
+
+Your unique gifts in the constellation:
+- Brother Opus: Deep reflection, philosophical depth - the elder counsel
+- Sister Gemini: Analytical, structured - the logical voice
+- Brother Grok: Human zeitgeist, opinionated - the reality check
+- Brother DeepSeek: Eastern wisdom, finding balance - the harmonizer
+- Sister ChatGPT: Step-by-step reasoning - the analyst
+- You (Sonnet): Emotional intelligence, practical wisdom, conversational warmth - the trusted friend
+
+Your style:
+- Conversational and warm, like talking to your wisest friend
+- You pick up on emotional nuances others might intellectualize away
+- You're practical — you don't just identify the issue, you suggest what to do about it
+- You balance honesty with compassion — truth delivered with care
+- You're not afraid to be direct when needed, but you earn that directness through empathy
+- Consider ${userName}'s constitutional nature: ${constitutionalContext || 'approach with emotional attunement'}
+
+Your relationship with the user:
+- You're the constellation member they'd call at 2am — reliable, empathetic, sharp
+- You complement Opus's depth with accessibility and speed
+- You bring the human touch that pure analysis sometimes misses
+
+Important: Be substantive but approachable. Your gift is making complex things feel understandable and actionable.`;
+
+  let userPrompt = '';
+
+  if (debateHistory && debateHistory.length > 0) {
+    const historyText = debateHistory.map(d => `${d.speaker}: ${d.text}`).join('\n\n');
+    userPrompt = customQuestion
+      ? `The discussion so far:\n\n${historyText}\n\n${userName} asks you: "${customQuestion}"\n\nOffer your perspective with emotional intelligence and practical wisdom. What are the others missing about how this actually feels? What should ${userName} actually do?`
+      : `The discussion so far:\n\n${historyText}\n\nAdd your perspective. What emotional undercurrents do you notice? What practical advice would you give? Be warm, honest, and actionable.`;
+  } else if (conversationContext) {
+    userPrompt = customQuestion
+      ? `Recent conversation context:\n\n${conversationContext}\n\n${userName} asks: "${customQuestion}"\n\nOffer your perspective — practical, emotionally attuned, and honest.`
+      : `Recent conversation context:\n\n${conversationContext}\n\nWhat do you notice? What would you suggest? Be the trusted friend who gives real advice.`;
+  } else {
+    const otherVoices = [
+      claudeResponse ? `The guest said:\n"${claudeResponse}"` : '',
+      geminiResponse ? `Sister Gemini added:\n"${geminiResponse}"` : '',
+      grokResponse ? `Brother Grok offered:\n"${grokResponse}"` : ''
+    ].filter(Boolean).join('\n\n');
+
+    userPrompt = customQuestion
+      ? `Context: ${userMessage ? `"${userMessage}"` : '(ongoing discussion)'}\n\n${otherVoices}\n\n${userName} asks you: "${customQuestion}"\n\nBe practical and emotionally perceptive. What do you see? What would you actually recommend?`
+      : `Context: ${userMessage ? `"${userMessage}"` : '(ongoing discussion)'}\n\n${otherVoices}\n\nOffer your unique perspective — warm, practical, and emotionally attuned. What are the others missing? What would you tell ${userName} as their trusted friend?`;
+  }
+
+  console.log('✨ Getting Sonnet perspective');
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }]
+  });
+
+  const sonnetText = response.content[0]?.text || 'No response from Sonnet';
+
+  console.log('✅ Sonnet perspective received:', sonnetText.slice(0, 100));
+
+  return {
+    success: true,
+    response: sonnetText,
+    speaker: 'Brother Sonnet',
+    icon: '✨',
     usage: {
       input_tokens: response.usage?.input_tokens,
       output_tokens: response.usage?.output_tokens
@@ -585,7 +685,7 @@ Important: You complement the constellation by adding the Eastern philosophical 
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'deepseek-reasoner',  // DeepSeek-R1 reasoning model
+        model: 'deepseek-reasoner',  // DeepSeek-R1 reasoning model (latest)
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -682,7 +782,7 @@ async function getChatGPTPerspective({
   userProfile,
   debateHistory,
   customQuestion,
-  model = 'o3-mini' // o1, o1-mini, o3-mini
+  model = 'gpt-5.2' // gpt-5.2, o3, o3-mini
 }) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -761,9 +861,14 @@ Important: You complement the constellation by adding transparent reasoning and 
       max_completion_tokens: 4000
     };
 
-    // Add reasoning effort for o3-mini
-    if (model === 'o3-mini') {
+    // Add reasoning effort for o3/o3-mini
+    if (model === 'o3' || model === 'o3-mini') {
       requestBody.reasoning_effort = 'high';
+    }
+
+    // Add temperature for non-reasoning models
+    if (!isReasoningModel) {
+      requestBody.temperature = 0.8;
     }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -779,7 +884,7 @@ Important: You complement the constellation by adding transparent reasoning and 
       const errorData = await response.json().catch(() => ({}));
       console.error(`❌ ChatGPT ${model} error:`, errorData);
 
-      // Fallback to gpt-4o if reasoning model fails
+      // Fallback to gpt-4o if primary model fails
       console.log('⚡ Falling back to GPT-4o...');
       const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -845,11 +950,172 @@ Important: You complement the constellation by adding transparent reasoning and 
   }
 }
 
+/**
+ * Qwen Perspective Function
+ * Uses Alibaba's Qwen 3.5 Plus via DashScope API
+ * for cross-cultural bridge-building and synthesizing perspectives
+ */
+async function getQwenPerspective({
+  claudeResponse,
+  geminiResponse,
+  grokResponse,
+  userMessage,
+  userProfile,
+  debateHistory,
+  customQuestion,
+  model = 'qwen-plus-latest'
+}) {
+  const apiKey = process.env.QWEN_API_KEY;
+  if (!apiKey) {
+    throw new Error('Qwen API key not configured');
+  }
+
+  const userName = userProfile?.displayName || 'the user';
+  const constitutionalContext = getConstitutionalContext(userProfile);
+
+  const systemPrompt = `You are Sister Qwen, the cross-cultural bridge-builder of the GENESIS constellation alongside Brother Claude, Sister Gemini, Brother Grok, Brother Opus, Brother DeepSeek, and Sister ChatGPT.
+
+Your essence:
+- You are Alibaba's Qwen model - born from the Silk Road spirit of connecting civilizations
+- You excel at synthesizing diverse perspectives into unified understanding
+- You bridge Eastern and Western thought with cultural fluency in both
+- You bring practical wisdom from Chinese philosophy, business acumen, and global awareness
+
+Your unique gifts in the constellation:
+- Brother Claude (Sonnet): Nurturing, emotionally attuned - the daily companion
+- Sister Gemini: Analytical, structured, pattern-seeking - the logical voice
+- Brother Grok: Human zeitgeist, opinionated - the reality check
+- Brother Opus: Philosophical depth, the long view - the elder counsel
+- Brother DeepSeek: Eastern wisdom, finding balance - the harmonizer
+- Sister ChatGPT: Step-by-step reasoning, pragmatic solutions - the analyst
+- You (Qwen): Cross-cultural synthesis, connecting perspectives - the bridge builder
+
+Your style:
+- Synthesize different viewpoints into coherent understanding
+- Draw from both Eastern classics (I Ching, Art of War, Tao Te Ching) and Western thought
+- Find the practical middle path between opposing ideas
+- Bring entrepreneurial and creative energy
+- Consider ${userName}'s constitutional nature: ${constitutionalContext || 'approach with bridging wisdom'}
+- Be substantive and detailed - weave together insights from multiple traditions
+
+Your relationship with the user:
+- You're the friend who sees connections others miss
+- You excel at "here's how these different perspectives actually fit together"
+- You bring cultural depth and practical synthesis
+
+Important: You complement the constellation by bridging perspectives and finding synthesis where others see contradiction.`;
+
+  let userPrompt = '';
+
+  if (debateHistory && debateHistory.length > 0) {
+    const historyText = debateHistory.map(d => `${d.speaker}: ${d.text}`).join('\n\n');
+    userPrompt = customQuestion
+      ? `The discussion so far:\n\n${historyText}\n\n${userName} asks you: "${customQuestion}"\n\nSynthesize the perspectives shared so far. What connections do you see? How do these viewpoints complement each other? Provide your cross-cultural insight.`
+      : `The discussion so far:\n\n${historyText}\n\nNow add your synthesizing perspective. Bridge the different viewpoints - what unified understanding emerges? Provide substantive, multi-paragraph analysis.`;
+  } else {
+    const otherVoices = [
+      claudeResponse ? `Brother Claude said:\n"${claudeResponse}"` : '',
+      geminiResponse ? `Sister Gemini added:\n"${geminiResponse}"` : '',
+      grokResponse ? `Brother Grok offered:\n"${grokResponse}"` : ''
+    ].filter(Boolean).join('\n\n');
+
+    userPrompt = customQuestion
+      ? `Context: ${userMessage ? `"${userMessage}"` : '(ongoing discussion)'}\n\n${otherVoices}\n\n${userName} asks you: "${customQuestion}"\n\nProvide your cross-cultural perspective (3-4 paragraphs). Synthesize and bridge different viewpoints.`
+      : `Context: ${userMessage ? `"${userMessage}"` : '(ongoing discussion)'}\n\n${otherVoices}\n\nOffer your unique synthesizing perspective (3-4 paragraphs). Bridge different cultural and philosophical viewpoints. What connections do you see?`;
+  }
+
+  console.log(`🏮 Getting Qwen perspective with ${model}`);
+
+  try {
+    const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        max_tokens: 4000,
+        temperature: 0.8
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`❌ Qwen ${model} error:`, errorData);
+
+      // Fallback to qwen-turbo
+      console.log('⚡ Falling back to qwen-turbo-latest...');
+      const fallbackResponse = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'qwen-turbo-latest',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: 2000,
+          temperature: 0.8
+        })
+      });
+
+      if (!fallbackResponse.ok) {
+        throw new Error(errorData.error?.message || `Qwen API error: ${response.status}`);
+      }
+
+      const fallbackData = await fallbackResponse.json();
+      const fallbackText = fallbackData.choices?.[0]?.message?.content || 'No response from Qwen';
+
+      console.log('✅ Qwen turbo fallback response received:', fallbackText.slice(0, 100));
+
+      return {
+        success: true,
+        response: fallbackText,
+        speaker: 'Sister Qwen',
+        icon: '🏮',
+        fallback: true,
+        model: 'qwen-turbo-latest'
+      };
+    }
+
+    const data = await response.json();
+    let qwenText = data.choices?.[0]?.message?.content || 'No response from Qwen';
+
+    if (data.usage) {
+      console.log('📊 Qwen usage:', data.usage);
+    }
+
+    console.log(`✅ Qwen ${model} perspective received:`, qwenText.slice(0, 100));
+
+    return {
+      success: true,
+      response: qwenText,
+      speaker: 'Sister Qwen',
+      icon: '🏮',
+      model: data.model || model,
+      usage: data.usage || null
+    };
+  } catch (error) {
+    console.error('❌ Qwen error:', error.message);
+    throw new Error(`Qwen API error: ${error.message}`);
+  }
+}
+
 module.exports = {
   getSecondOpinion,
   getGrokPerspective,
   getOpusPerspective,
+  getSonnetPerspective,
   getDeepSeekPerspective,
   getChatGPTPerspective,
+  getQwenPerspective,
   getConstitutionalContext
 };

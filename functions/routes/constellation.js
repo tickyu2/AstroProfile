@@ -15,6 +15,7 @@ const {
   geminiKey,
   grokKey,
   deepseekKey,
+  qwenKey,
 } = require('./shared');
 
 // Constellation perspective functions (paths adjusted for routes/)
@@ -22,8 +23,10 @@ const {
   getSecondOpinion: getSecondOpinionFn,
   getGrokPerspective: getGrokPerspectiveFn,
   getOpusPerspective: getOpusPerspectiveFn,
+  getSonnetPerspective: getSonnetPerspectiveFn,
   getDeepSeekPerspective: getDeepSeekPerspectiveFn,
-  getChatGPTPerspective: getChatGPTPerspectiveFn
+  getChatGPTPerspective: getChatGPTPerspectiveFn,
+  getQwenPerspective: getQwenPerspectiveFn
 } = require('../constellation/perspectives');
 
 // Translation Service - "A Cathedral to house all souls"
@@ -127,6 +130,33 @@ exports.getOpusPerspective = onRequest({
 });
 
 /**
+ * Sonnet Perspective Function
+ * Uses Claude Sonnet 4.6 for quick, emotionally attuned perspective.
+ * Part of GENESIS - AI Constellation Feature
+ * Added: March 2026
+ */
+exports.getSonnetPerspective = onRequest({
+  cors: true,
+  invoker: 'public',
+  secrets: [anthropicKey],
+}, async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const result = await getSonnetPerspectiveFn(req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    logger.error('Sonnet Perspective Error:', error);
+    return res.status(500).json({
+      error: 'Failed to get Sonnet perspective',
+      details: error.message
+    });
+  }
+});
+
+/**
  * DeepSeek Perspective Function
  * Uses DeepSeek-R1 to provide Eastern philosophical wisdom and analytical precision.
  * Part of GENESIS - AI Constellation Feature
@@ -175,6 +205,33 @@ exports.getChatGPTPerspective = onRequest({
     logger.error('ChatGPT Perspective Error:', error);
     return res.status(500).json({
       error: 'Failed to get ChatGPT perspective',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * Qwen Perspective Function
+ * Uses Alibaba's Qwen 3.5 Plus for cross-cultural synthesis and bridge-building.
+ * Part of GENESIS - AI Constellation Feature
+ * Added: March 2026
+ */
+exports.getQwenPerspective = onRequest({
+  cors: true,
+  invoker: 'public',
+  secrets: [qwenKey],
+}, async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const result = await getQwenPerspectiveFn(req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    logger.error('Qwen Perspective Error:', error);
+    return res.status(500).json({
+      error: 'Failed to get Qwen perspective',
       details: error.message
     });
   }

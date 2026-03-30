@@ -18,6 +18,7 @@ const openaiKey = defineSecret('OPENAI_API_KEY');
 const geminiKey = defineSecret('GEMINI_API_KEY');
 const grokKey = defineSecret('GROK_API_KEY');
 const deepseekKey = defineSecret('DEEPSEEK_API_KEY');
+const qwenKey = defineSecret('QWEN_API_KEY');
 const stabilityKey = defineSecret('STABILITY_API_KEY');
 const leonardoKey = defineSecret('LEONARDO_API_KEY');
 const elevenLabsKey = defineSecret('ELEVENLABS_API_KEY');
@@ -41,6 +42,7 @@ module.exports = {
   geminiKey,
   grokKey,
   deepseekKey,
+  qwenKey,
   stabilityKey,
   leonardoKey,
   elevenLabsKey,

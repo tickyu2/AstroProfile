@@ -20,11 +20,16 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useProfiles } from '../contexts/ProfileContext'
+import NotesPanel from '../components/results/NotesPanel'
 import { getZoneForPlacement } from '../utils/zoneKnowledgeBuilder'
 import { calculateNatalChart } from '../services/pythonFunctionsService'
 import { getHistoricalTimezone } from '../services/timezoneService'
 import LocationPicker from '../components/common/LocationPicker'
 import { HouseLearningPanel } from '../components/zodiac/HouseLearningPanel'
+import TuningLabPanel from '../components/zodiac/TuningLabPanel'
+import ChartSortedView from '../components/zodiac/ChartSortedView'
+import PlaybackControls from '../components/zodiac/PlaybackControls'
+import ZoneChip, { ZoneTooltip as ZoneTooltipInline } from '../components/zodiac/ZoneChip'
 import { getDegreeTheory, findNotableDegrees } from '../data/degreeTheory'
 import { getSabianSymbol, findAllSabianSymbols } from '../data/sabianSymbols'
 import './TropicalSeasonsPage.css' // shared header styles (profile-selector, etc.)
@@ -326,7 +331,7 @@ function normalizeHouses(sovereign) {
 
 export default function NatalWheelPage() {
   const navigate = useNavigate()
-  const { profiles, loading, recalculateSovereignData } = useProfiles()
+  const { profiles, loading, recalculateSovereignData, updateProfile } = useProfiles()
   const [selectedId, setSelectedId] = useState(null) // null = no profile selected
   const [showAspects, setShowAspects] = useState(false)
   const [showRulers, setShowRulers] = useState(false)
@@ -335,6 +340,7 @@ export default function NatalWheelPage() {
   const [showSummary, setShowSummary] = useState(true)
   const [showAspectPanel, setShowAspectPanel] = useState(true)
   const [showHouseLearning, setShowHouseLearning] = useState(false)
+  const [showSortedView, setShowSortedView] = useState(false)
   const [showDegreeTheory, setShowDegreeTheory] = useState(false)
   const [showSabianSymbols, setShowSabianSymbols] = useState(false)
   const [selectedHouseForLearning, setSelectedHouseForLearning] = useState(0)
@@ -358,9 +364,21 @@ export default function NatalWheelPage() {
   const [labSovereign, setLabSovereign] = useState(null)
   const [labCalculating, setLabCalculating] = useState(false)
   const [labTimeMinutes, setLabTimeMinutes] = useState(720) // 12:00 = 720 minutes from midnight
+  const [playbackActive, setPlaybackActive] = useState(false)
+  const playbackActiveRef = useRef(false)
   const labTimerRef = useRef(null)
   const labMinutesRef = useRef(720) // mirrors labTimeMinutes for keyboard handler
   const labArrowRef = useRef({ interval: null, startTime: 0, direction: 0 })
+
+  // ── Soul Journal Floating Popup State ──────────────────
+  const [journalOpen, setJournalOpen] = useState(false)
+  const [journalNotes, setJournalNotes] = useState('')
+  const [journalRecentTags, setJournalRecentTags] = useState([])
+  const [journalSaving, setJournalSaving] = useState(false)
+  const [journalSaved, setJournalSaved] = useState(false)
+  const [journalPos, setJournalPos] = useState({ x: 80, y: 60 })
+  const journalDragRef = useRef(null)
+  const journalNotesRef = useRef(null)
 
   // Close dropdown on outside click (document-level mousedown + contains check)
   useEffect(() => {
@@ -442,6 +460,49 @@ export default function NatalWheelPage() {
   }, [dropdownHighlight, dropdownOpen])
 
   const profile = useMemo(() => profiles?.find(p => p.id === selectedId) || null, [profiles, selectedId])
+
+  // ── Soul Journal: sync notes when profile changes ──
+  const activeJournalProfile = journalOpen ? (labMode && labExploring && labProfileId ? profiles?.find(p => p.id === labProfileId) : profile) : null
+  const activeJournalId = activeJournalProfile?.id || null
+
+  useEffect(() => {
+    if (activeJournalProfile) {
+      setJournalNotes(activeJournalProfile.notes || '')
+      setJournalRecentTags(activeJournalProfile.recentCustomTags || [])
+    }
+  }, [activeJournalId, journalOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleJournalSave = useCallback(async () => {
+    const saveId = activeJournalId
+    if (!saveId) return
+    try {
+      setJournalSaving(true)
+      await updateProfile(saveId, { notes: journalNotes, recentCustomTags: journalRecentTags })
+      setJournalSaved(true)
+      setTimeout(() => setJournalSaved(false), 3000)
+    } catch (e) {
+      console.error('Journal save failed:', e)
+    } finally {
+      setJournalSaving(false)
+    }
+  }, [activeJournalId, journalNotes, journalRecentTags, updateProfile])
+
+  // ── Journal drag handler ──
+  const handleJournalDragStart = useCallback((e) => {
+    // Only drag from header area
+    const startX = e.clientX - journalPos.x
+    const startY = e.clientY - journalPos.y
+    const onMove = (ev) => {
+      setJournalPos({ x: Math.max(0, ev.clientX - startX), y: Math.max(0, ev.clientY - startY) })
+    }
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+    }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }, [journalPos])
+
   const profileSovereign = useMemo(() => {
     if (!profile) return null
     // Canonical path: profile.western (Python-First)
@@ -594,6 +655,9 @@ export default function NatalWheelPage() {
     labTimerRef.current = setTimeout(() => computeLabChart(minutes), 600)
   }, [computeLabChart])
 
+  // Raw time snap for playback — updates slider without triggering API debounce
+  const snapTimeRaw = useCallback((minutes) => { setLabTimeMinutes(minutes) }, [])
+
   // ── LAB Explore Handler ──
   const handleLabExplore = useCallback(async () => {
     const bd = labBirthData
@@ -606,8 +670,9 @@ export default function NatalWheelPage() {
   }, [labBirthData, computeLabChart])
 
   // ── LAB Arrow Key Momentum ──
-  // Keep ref in sync with state so keyboard handler reads fresh value
+  // Keep refs in sync with state so keyboard handler reads fresh values
   useEffect(() => { labMinutesRef.current = labTimeMinutes }, [labTimeMinutes])
+  useEffect(() => { playbackActiveRef.current = playbackActive }, [playbackActive])
 
   useEffect(() => {
     if (!labMode || !labExploring) return
@@ -631,6 +696,7 @@ export default function NatalWheelPage() {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
       // Don't hijack arrows inside input fields
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return
+      if (playbackActiveRef.current) return // suppress during playback animation
       if (e.repeat) return // ignore browser auto-repeat, we run our own interval
       e.preventDefault()
 
@@ -1387,13 +1453,24 @@ export default function NatalWheelPage() {
         {/* ── Chart Summary (left sidebar, educational — Khan Academy style) ── */}
         {hasSovereign && (
           <div style={{ flexShrink: 0, width: showSummary ? '360px' : 'auto', marginTop: '4px' }}>
-            <button
-              onClick={() => setShowSummary(!showSummary)}
-              className="text-[9px] font-bold text-white/50 tracking-wider bg-slate-900/90 backdrop-blur-sm rounded-lg border border-white/10 px-2.5 py-1.5 hover:text-white/70 transition-colors cursor-pointer"
-              style={{ width: showSummary ? '100%' : 'auto', textAlign: 'left' }}
-            >
-              {showSummary ? '▾' : '▸'} CHART SUMMARY
-            </button>
+            <div className="flex items-center gap-1.5" style={{ width: showSummary ? '100%' : 'auto' }}>
+              <button
+                onClick={() => setShowSummary(!showSummary)}
+                className="text-[9px] font-bold text-white/50 tracking-wider bg-slate-900/90 backdrop-blur-sm rounded-lg border border-white/10 px-2.5 py-1.5 hover:text-white/70 transition-colors cursor-pointer flex-1"
+                style={{ textAlign: 'left' }}
+              >
+                {showSummary ? '\u25BE' : '\u25B8'} CHART SUMMARY
+              </button>
+              {hasSovereign && (
+                <button
+                  onClick={() => setShowSortedView(true)}
+                  className="text-[9px] text-white/40 bg-slate-900/90 backdrop-blur-sm rounded-lg border border-white/10 px-2 py-1.5 hover:text-purple-300 hover:border-purple-500/30 transition-colors cursor-pointer"
+                  title="Sort placements by House or Significance"
+                >
+                  Sort
+                </button>
+              )}
+            </div>
             {showSummary && (
               <div className="mt-1 bg-slate-900/92 backdrop-blur-sm rounded-lg border border-white/10 p-2.5">
                 {/* Angles - most prominent section */}
@@ -1417,7 +1494,7 @@ export default function NatalWheelPage() {
                           <span className="flex-1" />
                           <span className="font-semibold text-white">{fmtDeg(a.degree)}</span>
                           <span className="text-white/90 ml-1">{a.sign}</span>
-                          {zone && <span className="text-amber-400 font-medium ml-1">Zone {zone.id}</span>}
+                          {zone && <ZoneChip zone={zone} sign={a.sign} className="font-medium ml-1" />}
                           <span className="text-purple-300 ml-1">- House {house}</span>
                           {showDegreeTheory && degreeTheoryByKey[`angle_${tag}`] && (() => { const n = degreeTheoryByKey[`angle_${tag}`].theory.notable; return (
                             <span className="ml-1 text-[7px] font-bold px-1 rounded" style={{ background: `${n.color}22`, color: n.color, border: `1px solid ${n.color}44` }}>{n.shortBadge}</span>
@@ -1452,7 +1529,7 @@ export default function NatalWheelPage() {
                           <span className="flex-1" />
                           <span className="text-white/90">{fmtDeg(deg)}</span>
                           <span className="text-white/80 ml-1">{p.sign}</span>
-                          {zone && <span className="text-amber-400 ml-1">Zone {zone.id}</span>}
+                          {zone && <ZoneChip zone={zone} sign={p.sign} className="ml-1" />}
                           {house && <span className="text-purple-300 ml-1">- House {house}</span>}
                           {showDegreeTheory && degreeTheoryByKey[key] && (() => { const n = degreeTheoryByKey[key].theory.notable; return (
                             <span className="ml-1 text-[7px] font-bold px-1 rounded" style={{ background: `${n.color}22`, color: n.color, border: `1px solid ${n.color}44` }}>{n.shortBadge}</span>
@@ -1485,7 +1562,7 @@ export default function NatalWheelPage() {
                           <span className="flex-1" />
                           <span className="text-white/90">{fmtDeg(deg)}</span>
                           <span className="text-white/80 ml-1">{p.sign}</span>
-                          {zone && <span className="text-amber-400 ml-1">Zone {zone.id}</span>}
+                          {zone && <ZoneChip zone={zone} sign={p.sign} className="ml-1" />}
                           {house && <span className="text-purple-300 ml-1">- House {house}</span>}
                           {showDegreeTheory && degreeTheoryByKey[key] && (() => { const n = degreeTheoryByKey[key].theory.notable; return (
                             <span className="ml-1 text-[7px] font-bold px-1 rounded" style={{ background: `${n.color}22`, color: n.color, border: `1px solid ${n.color}44` }}>{n.shortBadge}</span>
@@ -1499,7 +1576,9 @@ export default function NatalWheelPage() {
                 {showArabicParts && arabicParts.length > 0 && (
                   <div className="bg-orange-900/15 rounded-lg p-2 border border-orange-500/20">
                     <div className="text-[9px] font-bold text-amber-500 mb-1 tracking-widest uppercase">⊕ Arabic Parts</div>
-                    {arabicParts.map(part => (
+                    {arabicParts.map(part => {
+                      const partZone = part.sign ? getZoneForPlacement(part.sign, part.degree) : null
+                      return (
                       <div key={part.key} className="flex items-center text-[10px] leading-relaxed py-0.5">
                         <span style={{ fontSize: 13, color: part.color, width: 14 }}>
                           {part.symbol}
@@ -1510,10 +1589,11 @@ export default function NatalWheelPage() {
                         <span className="flex-1" />
                         <span className="text-white/90">{fmtDeg(part.degree)}</span>
                         <span className="text-white/80 ml-1">{part.sign}</span>
-                        {part.zone && <span className="text-amber-400 ml-1">Zone {part.zone}</span>}
+                        {partZone && <ZoneChip zone={partZone} sign={part.sign} className="ml-1" />}
                         {part.house && <span className="text-purple-300 ml-1">- House {part.house}</span>}
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
                 {/* Degree Theory (Stojanovic) */}
@@ -1613,7 +1693,10 @@ export default function NatalWheelPage() {
                   strokeWidth={0.6}
                   onMouseEnter={e => {
                     const zone = getZoneForPlacement(z.sign, z.startLon % 30 + 1)
-                    setTooltip({ x: e.clientX, y: e.clientY, text: `${z.sign} Zone ${z.zone}${zone ? ` — "${zone.name}"` : ''}` })
+                    setTooltip({ x: e.clientX, y: e.clientY, text: `${z.sign} Zone ${z.zone}${zone ? ` — "${zone.name}"` : ''}`, zone, sign: z.sign })
+                  }}
+                  onMouseMove={e => {
+                    setTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null)
                   }}
                   onMouseLeave={() => setTooltip(null)}
                   style={{ cursor: 'pointer' }}
@@ -1914,10 +1997,16 @@ export default function NatalWheelPage() {
 
           {/* ── Tooltip ── */}
           {tooltip && (
-            <div className="fixed z-50 pointer-events-none px-2 py-1 rounded bg-slate-800/95 border border-white/20 text-[10px] text-white/90 max-w-[260px] shadow-lg"
-              style={{ left: tooltip.x + 12, top: tooltip.y - 8 }}>
-              {tooltip.text}
-            </div>
+            tooltip.zone ? (
+              /* Rich zone popup — reuses ZoneTooltip from ZoneChip */
+              <ZoneTooltipInline zone={tooltip.zone} sign={tooltip.sign} mouseX={tooltip.x} mouseY={tooltip.y} />
+            ) : (
+              /* Plain text tooltip for planets/angles */
+              <div className="fixed z-50 pointer-events-none px-2 py-1 rounded bg-slate-800/95 border border-white/20 text-[10px] text-white/90 max-w-[260px] shadow-lg"
+                style={{ left: tooltip.x + 12, top: tooltip.y - 8 }}>
+                {tooltip.text}
+              </div>
+            )
           )}
 
           {/* ── Toggle Buttons (only when profile selected) ── */}
@@ -1955,9 +2044,9 @@ export default function NatalWheelPage() {
           )}
           {/* ── LAB Time Slider (only when LAB mode exploring) ── */}
           {labMode && labExploring && (
-            <div className="mt-4 mb-4 bg-slate-800/50 rounded-xl border border-purple-500/20 p-4">
+            <div className={`mt-4 mb-4 bg-slate-800/50 rounded-xl border border-purple-500/20 p-4${playbackActive ? ' opacity-50 pointer-events-none' : ''}`}>
               <div className="text-center mb-3">
-                <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Birth Time</div>
+                <div className="text-[10px] text-white/90 uppercase tracking-widest mb-1">Birth Time</div>
                 <div className="text-3xl font-bold text-amber-300 font-mono">{minutesToTime(labTimeMinutes)}</div>
                 {labCalculating && <div className="text-xs text-purple-400 animate-pulse mt-1">Recalculating chart...</div>}
               </div>
@@ -1975,26 +2064,50 @@ export default function NatalWheelPage() {
                     background: `linear-gradient(to right, #1e1b4b 0%, #7c3aed ${(labTimeMinutes / 1439 * 100)}%, #334155 ${(labTimeMinutes / 1439 * 100)}%, #334155 100%)`
                   }}
                 />
-                <div className="flex justify-between text-[9px] text-white/30 mt-1 px-1">
+                <div className="flex justify-between text-[9px] text-white/80 mt-1 px-1">
                   <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:59</span>
                 </div>
               </div>
               <div className="flex justify-center gap-2 mt-3">
                 <button onClick={() => handleLabTimeChange(Math.max(0, labTimeMinutes - 60))}
-                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/60 rounded hover:bg-slate-600 hover:text-white transition-colors">-1h</button>
+                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/80 rounded hover:bg-slate-600 hover:text-white transition-colors">-1h</button>
                 <button onClick={() => handleLabTimeChange(Math.max(0, labTimeMinutes - 15))}
-                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/60 rounded hover:bg-slate-600 hover:text-white transition-colors">-15m</button>
+                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/80 rounded hover:bg-slate-600 hover:text-white transition-colors">-15m</button>
                 <button onClick={() => handleLabTimeChange(Math.max(0, labTimeMinutes - 1))}
-                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/60 rounded hover:bg-slate-600 hover:text-white transition-colors">-1m</button>
+                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/80 rounded hover:bg-slate-600 hover:text-white transition-colors">-1m</button>
                 <button onClick={() => handleLabTimeChange(Math.min(1439, labTimeMinutes + 1))}
-                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/60 rounded hover:bg-slate-600 hover:text-white transition-colors">+1m</button>
+                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/80 rounded hover:bg-slate-600 hover:text-white transition-colors">+1m</button>
                 <button onClick={() => handleLabTimeChange(Math.min(1439, labTimeMinutes + 15))}
-                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/60 rounded hover:bg-slate-600 hover:text-white transition-colors">+15m</button>
+                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/80 rounded hover:bg-slate-600 hover:text-white transition-colors">+15m</button>
                 <button onClick={() => handleLabTimeChange(Math.min(1439, labTimeMinutes + 60))}
-                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/60 rounded hover:bg-slate-600 hover:text-white transition-colors">+1h</button>
+                  className="px-2 py-1 text-[10px] bg-slate-700 text-white/80 rounded hover:bg-slate-600 hover:text-white transition-colors">+1h</button>
               </div>
-              <div className="text-center mt-2 text-[9px] text-white/25">Arrow keys: tap = 1 min, hold = accelerates</div>
+              <div className="text-center mt-2 text-[9px] text-white/70">Arrow keys: tap = 1 min, hold = accelerates</div>
             </div>
+          )}
+          {/* ── Playback Controls (Cassette Tape) ── */}
+          {labMode && labExploring && (
+            <PlaybackControls
+              labBirthData={labBirthData}
+              timezone={labResolvedTz?.zoneName || 'UTC'}
+              labTimeMinutes={labTimeMinutes}
+              onSetSovereign={setLabSovereign}
+              onSnapTime={handleLabTimeChange}
+              onSnapTimeRaw={snapTimeRaw}
+              labCalculating={labCalculating}
+              disabled={!labBirthData.birthDate || labBirthData.latitude == null}
+              onPlaybackStateChange={(s) => setPlaybackActive(s === 'playing')}
+            />
+          )}
+          {/* ── Birth Time Tuning Lab ── */}
+          {labMode && labExploring && (
+            <TuningLabPanel
+              birthData={labBirthData}
+              timezone={labResolvedTz?.zoneName || 'UTC'}
+              currentLabMinutes={labTimeMinutes}
+              onSnapTime={handleLabTimeChange}
+              labCalculating={labCalculating}
+            />
           )}
           {/* ── House Debug Info ── */}
           {hasSovereign && (
@@ -2120,6 +2233,90 @@ export default function NatalWheelPage() {
           onClose={() => setShowHouseLearning(false)}
           chartData={sovereign}
         />
+      )}
+
+      {/* Chart Sorted View - Floating/Draggable */}
+      <ChartSortedView
+        open={showSortedView}
+        onClose={() => setShowSortedView(false)}
+        planets={pObj}
+        angles={angles}
+        arabicParts={arabicParts}
+        houseForLon={houseForLon}
+        getLon={getLon}
+        planetSym={PLANET_SYM}
+        planetName={PLANET_NAME}
+        asteroidKeys={ASTEROID_KEYS}
+        fmtDeg={fmtDeg}
+        getZone={getZoneForPlacement}
+        houseArcs={houseArcs}
+        signRuler={SIGN_RULER}
+      />
+
+      {/* ── Soul Journal Floating Button ── */}
+      {(profile || (labMode && labExploring && labProfileId)) && !journalOpen && (
+        <button
+          onClick={() => setJournalOpen(true)}
+          className="fixed z-40 flex items-center gap-1.5 px-3 py-2 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-medium hover:bg-amber-500/30 hover:border-amber-400/60 transition-all shadow-lg backdrop-blur-sm cursor-pointer"
+          style={{ top: 12, right: 160 }}
+          title="Open Soul Journal"
+        >
+          <span className="text-base">📝</span>
+          <span>Journal</span>
+        </button>
+      )}
+
+      {/* ── Soul Journal Floating Draggable Popup ── */}
+      {journalOpen && createPortal(
+        <div
+          ref={journalDragRef}
+          className="fixed z-50 flex flex-col bg-slate-900/98 backdrop-blur-xl rounded-2xl border border-amber-500/30 shadow-2xl"
+          style={{
+            left: journalPos.x,
+            top: journalPos.y,
+            width: 520,
+            maxHeight: 'calc(100vh - 80px)',
+            resize: 'both',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Drag handle / header */}
+          <div
+            onMouseDown={handleJournalDragStart}
+            className="flex items-center justify-between px-4 py-2.5 border-b border-amber-500/20 cursor-move select-none"
+            style={{ background: 'rgba(217, 119, 6, 0.08)' }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📝</span>
+              <span className="text-sm font-bold text-amber-300">Soul Journal</span>
+              <span className="text-[10px] text-white/40">
+                {activeJournalProfile?.firstName} {activeJournalProfile?.lastName}
+              </span>
+            </div>
+            <button
+              onClick={() => setJournalOpen(false)}
+              className="text-white/40 hover:text-white text-lg px-1 cursor-pointer"
+              title="Close"
+            >
+              ×
+            </button>
+          </div>
+          {/* NotesPanel content */}
+          <div className="overflow-y-auto flex-1" style={{ maxHeight: 'calc(100vh - 140px)' }}>
+            <NotesPanel
+              profile={activeJournalProfile}
+              notes={journalNotes}
+              setNotes={setJournalNotes}
+              recentCustomTags={journalRecentTags}
+              setRecentCustomTags={setJournalRecentTags}
+              notesSaving={journalSaving}
+              notesSaved={journalSaved}
+              handleSaveNotes={handleJournalSave}
+              notesRef={journalNotesRef}
+            />
+          </div>
+        </div>,
+        document.body
       )}
 
     </div>

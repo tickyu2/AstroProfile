@@ -36,6 +36,8 @@ const BaZiHealthPage = lazy(() => import('./pages/BaZiHealthPage'))
 const BaZiSeasonalityPage = lazy(() => import('./pages/BaZiSeasonalityPage'))
 const BaZiLearningPage = lazy(() => import('./pages/BaZiLearningPage'))
 const BaZiChatPage = lazy(() => import('./pages/BaZiChatPage'))
+const BaZiBraceletPage = lazy(() => import('./pages/BaZiBraceletPage'))
+const QiBraceletPage = lazy(() => import('./pages/QiBraceletPage'))
 const SoulGardenPage = lazy(() => import('./pages/SoulGardenPage'))
 const SanctuaryPage = lazy(() => import('./pages/SanctuaryPage'))
 const TranscriptTesterPage = lazy(() => import('./pages/TranscriptTesterPage'))
@@ -52,6 +54,8 @@ const BiographyJournalPage = lazy(() => import('./pages/BiographyJournalPage'))
 const WesternElementalAnalysisPage = lazy(() => import('./pages/WesternElementalAnalysisPage'))
 const CompatibilityMatchPage = lazy(() => import('./pages/CompatibilityMatchPage'))
 const UnifiedCompatibilityPage = lazy(() => import('./pages/UnifiedCompatibilityPage'))
+const CompatibilityEngineInspectorPage = lazy(() => import('./pages/CompatibilityEngineInspectorPage'))
+const BrowserWorkerPage = lazy(() => import('./pages/BrowserWorkerPage'))
 const DynamicPersonalityPage = lazy(() => import('./pages/DynamicPersonalityPage'))
 const LunaPersonalityTunerPage = lazy(() => import('./pages/LunaPersonalityTunerPage'))
 const MemoryExplorerPage = lazy(() => import('./pages/MemoryExplorerPage'))
@@ -115,6 +119,8 @@ function App() {
               <Route path="/compatibility" element={<CompatibilityPage />} />
               <Route path="/match" element={<CompatibilityMatchPage />} />
               <Route path="/unified-compatibility" element={<UnifiedCompatibilityPage />} />
+              <Route path="/compatibility-engine-inspector" element={<CompatibilityEngineInspectorPage />} />
+              <Route path="/browser-worker" element={<BrowserWorkerPage />} />
               <Route path="/data-manager" element={<DataManager />} />
               <Route path="/ai-soulpartner" element={<AISoulPartnerPage />} />
               <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
@@ -136,6 +142,8 @@ function App() {
               <Route path="/bazi-seasonality" element={<BaZiSeasonalityPage />} />
               <Route path="/bazi-learning" element={<BaZiLearningPage />} />
               <Route path="/bazi-chat" element={<BaZiChatPage />} />
+              <Route path="/bazi-bracelet" element={<BaZiBraceletPage />} />
+              <Route path="/qi-bracelet" element={<QiBraceletPage />} />
               <Route path="/soul-garden" element={<SoulGardenPage />} />
               <Route path="/sanctuary" element={<SanctuaryPage />} />
               <Route path="/transcript-tester" element={<TranscriptTesterPage />} />

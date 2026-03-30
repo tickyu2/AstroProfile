@@ -73,6 +73,7 @@ const ModularPillarCard = ({
   compact = false,
   showHiddenRoots = false,
   onClick,
+  onHeaderClick,    // Optional: callback when header label is clicked (for popup)
   metaOverride      // Optional: { weight: '25%', subtitle: '...' } to override PILLAR_META
 }) => {
   const theme = useBaziTheme();
@@ -116,7 +117,7 @@ const ModularPillarCard = ({
       fontSize: compact ? '0.65rem' : '0.75rem',
       textTransform: 'uppercase',
       letterSpacing: '0.1em',
-      color: theme.colors.muted,
+      color: '#facc15',
       fontWeight: 600,
       fontFamily: theme.typography.fontFamily
     },
@@ -260,17 +261,15 @@ const ModularPillarCard = ({
       gap: 2
     },
     rootBar: {
-      height: 6,
+      height: 16,
       background: theme.colors.border,
-      borderRadius: 3,
-      overflow: 'hidden'
+      borderRadius: 4,
+      overflow: 'hidden',
+      position: 'relative',
+      flex: 1,
     },
     rootPct: {
-      fontSize: '0.6rem',
-      color: theme.colors.text,
-      fontWeight: 600,
-      width: 28,
-      textAlign: 'right'
+      display: 'none'
     }
   };
 
@@ -283,8 +282,11 @@ const ModularPillarCard = ({
         return (
           <div style={styles.header}>
             <div style={styles.headerTop}>
-              <span style={styles.label}>
-                {key || label} Pillar{meta ? ` (${meta.weight})` : ''}
+              <span
+                style={{ ...styles.label, cursor: onHeaderClick ? 'pointer' : undefined }}
+                onClick={onHeaderClick ? (e) => { e.stopPropagation(); onHeaderClick(); } : undefined}
+              >
+                {key || label} Pillar{meta ? <span style={{ textTransform: 'none' }}> ({meta.weight})</span> : ''}
               </span>
               {isYou && <span style={styles.youBadge}>YOU</span>}
             </div>
@@ -295,35 +297,75 @@ const ModularPillarCard = ({
         );
       })()}
 
-      {/* Main Characters with English labels */}
-      <div style={styles.characters}>
-        <div style={styles.charWrapper}>
-          <span style={styles.fullLabel}>{STEM_ENGLISH[stemChar]?.full || stemChar}</span>
-          <span style={styles.pinyinLabel}>{STEM_ENGLISH[stemChar]?.pinyin || ''}</span>
-          <Stem value={stemChar} element={stemElement} large={!compact} />
-        </div>
-        <div style={styles.charWrapper}>
-          <span style={styles.fullLabel}>{BRANCH_ENGLISH[branchChar]?.full || branchChar}</span>
-          <span style={styles.pinyinLabel}>{BRANCH_ENGLISH[branchChar]?.pinyin || ''}</span>
-          <Branch value={branchChar} element={branchElement} large={!compact} />
-        </div>
-      </div>
-
-      {/* Element Badges */}
-      {stemElement && (
-        <div style={styles.elements}>
-          <ElementBadge element={stemElement} size={compact ? 'sm' : 'md'} />
-        </div>
-      )}
+      {/* Stem/Branch T-division matrix */}
+      {(() => {
+        const key = getPillarKey(label);
+        const pillarLabel = key || label;
+        const stemPinyin = STEM_ENGLISH[stemChar]?.pinyin || '';
+        const branchPinyin = BRANCH_ENGLISH[branchChar]?.pinyin || '';
+        return (
+          <div style={{ padding: compact ? '4px 6px' : '6px 8px' }}>
+            {/* Budget row — centered with equal-width halves */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr',
+              fontSize: compact ? '0.55rem' : '0.6rem', fontFamily: 'monospace',
+              color: theme.colors.muted, marginBottom: isYou ? 0 : 4, textAlign: 'center',
+            }}>
+              <span>{pillarLabel} Stem (S)=1pt</span>
+              <span>{pillarLabel} Branch (B)=10pts</span>
+            </div>
+            {/* Qi Energy weight row — Day pillar only */}
+            {isYou && (
+              <div style={{
+                display: 'grid', gridTemplateColumns: '1fr 1fr',
+                fontSize: compact ? '0.55rem' : '0.6rem', fontFamily: 'monospace',
+                color: '#facc15', marginBottom: 4, textAlign: 'center', fontWeight: 600,
+              }}>
+                <span>Qi Energy=35%</span>
+                <span>Qi Energy=15%</span>
+              </div>
+            )}
+            {/* Divider */}
+            <div style={{ borderBottom: `1px solid ${theme.colors.muted}40`, marginBottom: 6 }} />
+            {/* Character matrix — tight center grouping */}
+            <div style={{
+              display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+              gap: 0, position: 'relative',
+            }}>
+              {/* Day Master badge — positioned absolutely so it doesn't shift center */}
+              {isYou && (
+                <div style={{
+                  position: 'absolute', left: 4, top: '50%', transform: 'translateY(-50%)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  color: '#facc15', fontWeight: 700, fontSize: compact ? '0.6rem' : '0.7rem',
+                  lineHeight: 1.2, textAlign: 'center', fontFamily: theme.typography.fontFamily,
+                }}>
+                  <span>Day</span>
+                  <span>Master</span>
+                </div>
+              )}
+              {/* Stem column */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: compact ? 1 : 2, minWidth: 60 }}>
+                <span style={styles.fullLabel}>{STEM_ENGLISH[stemChar]?.full || stemChar}</span>
+                <span style={{ ...styles.pinyinLabel, fontSize: compact ? '0.65rem' : '0.75rem' }}>{stemPinyin}</span>
+                <Stem value={stemChar} element={stemElement} large={!compact} />
+              </div>
+              {/* Vertical divider */}
+              <div style={{ width: 1, alignSelf: 'stretch', background: `${theme.colors.muted}40`, margin: '0 6px' }} />
+              {/* Branch column */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: compact ? 1 : 2, minWidth: 60 }}>
+                <span style={styles.fullLabel}>{BRANCH_ENGLISH[branchChar]?.full || branchChar}</span>
+                <span style={{ ...styles.pinyinLabel, fontSize: compact ? '0.65rem' : '0.75rem' }}>{branchPinyin}</span>
+                <Branch value={branchChar} element={branchElement} large={!compact} />
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* GanZhi (if available) */}
       {pillar.ganZhi && (
         <div style={styles.ganZhi}>{pillar.ganZhi}</div>
-      )}
-
-      {/* Ages (if available) */}
-      {pillar.ages && (
-        <div style={styles.ages}>{pillar.ages}</div>
       )}
 
       {/* Hidden Roots (藏干) - The hidden stems within each branch */}
@@ -336,7 +378,7 @@ const ModularPillarCard = ({
           >
             <span style={styles.hiddenTitle}>
               <span>🔮</span>
-              <span>Hidden Depths (藏干)</span>
+              <span>{getPillarKey(label) || label} Branch Hidden Depths (藏干)</span>
             </span>
             <span style={styles.hiddenToggle}>
               {showHiddenExplanation ? '▲ Less' : '▼ More'}
@@ -364,18 +406,26 @@ const ModularPillarCard = ({
                   <span style={{...styles.rootStem, color: elementColor}}>{root.stem}</span>
                   <span style={styles.rootEnglish}>{stemInfo?.full || root.stem}</span>
                 </div>
-                <div style={styles.rootBarContainer}>
-                  <div style={styles.rootBar}>
-                    <div style={{
-                      width: `${root.pct}%`,
-                      height: '100%',
-                      background: `linear-gradient(90deg, ${elementColor} 0%, ${elementColor}cc 100%)`,
-                      borderRadius: 3,
-                      boxShadow: `0 0 4px ${elementColor}50`
-                    }} />
+                <div style={styles.rootBar}>
+                  <div style={{
+                    width: `${Math.max(root.pct, 20)}%`,
+                    height: '100%',
+                    background: `linear-gradient(90deg, ${elementColor} 0%, ${elementColor}cc 100%)`,
+                    borderRadius: 4,
+                    boxShadow: `0 0 4px ${elementColor}50`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    paddingLeft: 6,
+                  }}>
+                    <span style={{
+                      fontSize: '0.6rem',
+                      fontWeight: 700,
+                      color: '#fff',
+                      textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+                      whiteSpace: 'nowrap',
+                    }}>{root.pct}%</span>
                   </div>
                 </div>
-                <span style={{...styles.rootPct, color: elementColor}}>{root.pct}%</span>
               </div>
             );
           })}

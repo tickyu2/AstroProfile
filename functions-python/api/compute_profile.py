@@ -43,6 +43,7 @@ from .schemas import (
     UnifiedProfileSchema,
     UnifiedVectorSchema,
     PersonaSchema,
+    VenusConditionSchema,
 )
 
 
@@ -653,6 +654,33 @@ def compute_western(
             )
 
         # =================================================================
+        # VENUS CONDITION SUMMARY
+        # =================================================================
+        venus_condition = None
+        venus_schema_data = planets.get("venus")
+        if venus_schema_data:
+            try:
+                from western_engine.models import PlanetPosition as WEPlanetPosition
+                from western_engine.planetary_psychology import calculate_venus_condition
+
+                venus_pp = WEPlanetPosition(
+                    planet="Venus",
+                    longitude=venus_schema_data.longitude,
+                    sign=venus_schema_data.sign,
+                    degree_in_sign=venus_schema_data.degree,
+                    retrograde=venus_schema_data.isRetrograde,
+                    house=venus_schema_data.house,
+                )
+                # Get Sun longitude for combustion/cazimi detection
+                sun_schema_data = planets.get("sun")
+                sun_lng = sun_schema_data.longitude if sun_schema_data else None
+                # Pass raw aspect list so the function can filter Venus aspects
+                vc = calculate_venus_condition(venus_pp, chart.get("aspects", []), sun_longitude=sun_lng)
+                venus_condition = VenusConditionSchema(**vc)
+            except Exception as vc_err:
+                print(f"[compute_western] Venus condition warning: {vc_err}")
+
+        # =================================================================
         # BUILD FINAL SCHEMA
         # =================================================================
         return WesternChartSchema(
@@ -667,6 +695,7 @@ def compute_western(
             modalities=modalities,
             moonPhase=moon_phase,
             arabicParts=arabic_parts,
+            venusCondition=venus_condition,
             houseSystem=chart.get("houseSystem", "Placidus"),
             calculationMethod="Swiss Ephemeris",
             computedAt=datetime.now().isoformat()

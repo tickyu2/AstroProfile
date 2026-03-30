@@ -1,18 +1,20 @@
 /**
  * Qi Bracelet — Functional Element Strength Page
  *
- * Uses raw Qi points (NOT percentages) through a 9-step pipeline.
+ * Uses raw Qi points (NOT percentages) through a 4-pipeline MTFQ architecture.
  * Each step is transparent and expandable for full calculation visibility.
  *
  * Created: March 2026
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useProfiles } from '../contexts/ProfileContext';
 import { calculateBaZi } from '../utils/baziCalculator';
-import { computeQiYearMatrix } from '../utils/qiEngine';
-import { designBracelet, scoreBracelet, scoreAllStones, exportBraceletSchema, findSubstitutes, diagnoseCollapse, computeElementRatios, engineerBracelet } from '../data/stoneDatabase';
+import { computeQiYearMatrix, applyClashDamage, applyControlPressure } from '../utils/qiEngine';
+import { calculateDaYun } from '../utils/daYunEngine';
+import DaYunQiOverlay from '../components/qi/DaYunQiOverlay';
+import { designBracelet, designBraceletFromBRQe, scoreBracelet, scoreAllStones, exportBraceletSchema, findSubstitutes, diagnoseCollapse, computeElementRatios, engineerBracelet, computeBraceletQiUnits } from '../data/stoneDatabase';
 import { getSeasonalWeights, getSeasonInfo } from '../utils/baziSeasonality';
 import {
   BaziThemeProvider,
@@ -24,18 +26,22 @@ import CauseMapPanel from '../components/bazi/CauseMapPanel';
 import YearInsightsPanel from '../components/bazi/YearInsightsPanel';
 import MonthArchetypeBadge from '../components/bazi/MonthArchetypeBadge';
 import BraceletDashboard from '../components/bazi/BraceletDashboard';
+import QiVectorPlot3D from '../components/qi/QiVectorPlot3D';
 import { QiPipelineFlow } from '../components/qi/QiPipelineFlow';
 import { EducationLevelToggle } from '../components/qi/EducationLevelToggle';
-import { QiDebugger } from '../components/qi/QiDebugger';
+// QiDebugger removed — replaced by MIFQ Steps 4-7 pipeline
 import { BraceletEvolutionTimeline } from '../components/qi/BraceletEvolutionTimeline';
 import { QiPhysicsConsole } from '../components/qi/QiPhysicsConsole';
 import { CollapseModeSimulator } from '../components/qi/CollapseModeSimulator';
-import { BraceletDesigner } from '../components/qi/BraceletDesigner';
 import { QiStorybookMode } from '../components/qi/QiStorybookMode';
 import { QiTimeline } from '../components/qi/QiTimeline';
 import { CollapseModeHeatmap } from '../components/qi/CollapseModeHeatmap';
-import { BraceletAutoDesigner } from '../components/qi/BraceletAutoDesigner';
 import { QiPlayground } from '../components/qi/QiPlayground';
+import { PentagonRadar, QiBar } from '../components/qi/PentagonRadar';
+import { applyClashes, applyDirectionalClashes, computeThreePassClashes, applySheng, applyOvercrowding, applyControl, applyTransformations } from '../utils/qiTransforms';
+import { processNatalPipeline } from '../utils/natalPipeline';
+import { detectInteractions, getYearPillar, getMonthPillars } from '../utils/braceletEngine';
+import { computeIFQ } from '../utils/mifqEngine';
 
 // ============================================================================
 // CONSTANTS
@@ -161,7 +167,7 @@ function generatePipelineExportMd(profile, chart, qiMatrix, userTfq, selectedYea
     lines.push(`### ${snapshot.monthName} (${snapshot.season}) — ${snapshot.monthStem} ${snapshot.monthBranch} (${snapshot.branchAnimal})`);
     lines.push('');
 
-    // Walk through all 9 steps
+    // Walk through all 8 steps
     for (const step of snapshot.steps) {
       lines.push(`#### ${step.label}`);
       lines.push('');
@@ -209,10 +215,10 @@ function generatePipelineExportMd(profile, chart, qiMatrix, userTfq, selectedYea
     }
 
     // Final Qi comparison
-    lines.push('#### TFQ vs MFFQ Comparison');
+    lines.push('#### TFQ vs TotalQi Comparison');
     lines.push('');
     if (userTfq) {
-      lines.push('| Element | Your TFQ | Month MFFQ | Delta |');
+      lines.push('| Element | Your TFQ | Month TotalQi | Delta |');
       lines.push('|---------|---------|-----------|-------|');
       const fq = snapshot.functionalQi;
       ELEMENTS.forEach(el => {
@@ -838,7 +844,7 @@ const QI_WEIGHTING_MD = `# Qi Weighting — Why It Matters
 - **When?** — Qi changes with the seasons, years, and monthly cycles
 - **Where?** — Qi lives in each of the Four Pillars: Year, Month, Day, Hour
 - **Why?** — Understanding your Qi helps you know what to strengthen, avoid, and balance
-- **How?** — Through the 9-step pipeline: natal composition, polarity, seasonality, clashes, and control pressure
+- **How?** — Through 4 independent pipelines (Natal→NTFQ, DaYun, Year, Month) blended into TotalQi via MTFQ weights
 - **Emotion?** — Each element carries emotional energy: Wood = anger/growth, Fire = joy/anxiety, Earth = worry/stability, Metal = grief/precision, Water = fear/wisdom
 
 ## Qi Analysis vs. Elements Analysis
@@ -897,6 +903,174 @@ The Month Pillar represents your **environment and season**:
 ---
 
 *This layer does NOT care about stem/branch ratios. It only answers: "How much does this pillar matter?"*
+`;
+
+const GLOSSARY_MD = `# Glossary — Qi Pipeline Acronyms
+
+All acronyms used in the Qi Bracelet calculation, in pipeline order.
+
+---
+
+## Layer 1 — Per-Pillar Functional Qi
+
+| Acronym | Full Name | What It Is |
+|---|---|---|
+| **YFQ** | Year Functional Qi | Functional Qi from the Year pillar (weight: 10%) |
+| **MFQ** | Month Functional Qi | Functional Qi from the Month pillar (weight: 30%) |
+| **DM-FQ** | Day Master Functional Qi | Functional Qi from the Day Stem — your core identity (weight: 35%) |
+| **DB-FQ** | Day Branch Functional Qi | Functional Qi from the Day Branch (weight: 15%) |
+| **HFQ** | Hour Functional Qi | Functional Qi from the Hour pillar (weight: 10%) |
+
+## Layer 2 — Combined Natal Qi
+
+| Acronym | Full Name | What It Is |
+|---|---|---|
+| **TFQ** | Total Functional Qi | All four pillars combined with Qi weights. Your birth chart's permanent elemental fingerprint. |
+
+---
+
+## Monthly Pipeline — Steps 1–10
+
+### Step 1: Current Year + Month Qi
+
+| Acronym | Full Name | What It Is |
+|---|---|---|
+| **CYFQ** | Current Year Functional Qi | The current year's pillar Qi (10% of transit energy) |
+| **CMFQ** | Current Month Functional Qi | The current month's pillar Qi (30% of transit energy) |
+| **CYMFQ** | Combined Year + Month FQ | CYFQ + CMFQ — the total transit energy hitting you this month |
+
+### Step 2: Weighted Blend
+
+| Acronym | Full Name | What It Is |
+|---|---|---|
+| **ATFQ** | Adjusted TFQ | TFQ × 60% — your natal share of the monthly blend |
+| **ACYMFQ** | Adjusted CYMFQ | CYMFQ × 40% — the transit share of the monthly blend |
+| **MTFQ** | Monthly Total Functional Qi | ATFQ + ACYMFQ — the raw 60/40 mix before elemental interactions |
+
+### Steps 3–9: Elemental Interactions
+
+| Step | Chinese | Name | What Happens |
+|---|---|---|---|
+| 3 | — | Normalize | MTFQ becomes the starting pool |
+| 4 | 空亡 | Void | Empty branches lose influence |
+| 5 | 合化 | Combinations | Stem/branch combos may transform elements |
+| 6 | 克 | Clash | Three-pass controlling cycle — elements suppress each other |
+| 7 | 生 | Sheng | Generating cycle — parent feeds child |
+| 8 | 耗 | Damping | Universal 2% friction loss |
+| 9 | 化 | Transform | Extreme ratios trigger elemental alchemy |
+
+### Step 10: Final Output
+
+| Acronym | Full Name | What It Is |
+|---|---|---|
+| **TotalQi** | Month Final Functional Qi | The output after all interactions. This drives Yong Shen analysis and stone recommendations. |
+
+---
+
+## Key Relationship
+
+\`\`\`
+TFQ (birth)  ──× 60%──→  ATFQ  ─┐
+                                  ├─→ MTFQ ──→ [Clash → Sheng → Damp → Transform] ──→ TotalQi
+CYMFQ (transit) ─× 40%──→ ACYMFQ ─┘
+\`\`\`
+
+- **TFQ** = your car (never changes)
+- **CYMFQ** = the weather (changes every month)
+- **MTFQ** = your car in that weather (raw blend)
+- **TotalQi** = how the car actually performs (after elemental physics)
+`;
+
+// --- GLOSSARY v2: reflects new pipeline (no 60/40, DaYun as 11pts pillar) ---
+// The old GLOSSARY_MD above is kept for reference but overridden:
+const GLOSSARY_MD_V2 = `# Glossary — Qi Pipeline Acronyms
+
+All acronyms used in the Qi Bracelet calculation, in pipeline order.
+
+---
+
+## Layer 1 — Per-Pillar Functional Qi
+
+Each pillar = 11 pts (stem 1 pt + branch 10 pts).
+
+| Acronym | Full Name | What It Is |
+|---|---|---|
+| **YFQ** | Year Functional Qi | Functional Qi from the Year pillar (weight: 10%) |
+| **MFQ** | Month Functional Qi | Functional Qi from the Month pillar (weight: 30%) |
+| **DM-FQ** | Day Master Functional Qi | Functional Qi from the Day Stem (weight: 35%) |
+| **DB-FQ** | Day Branch Functional Qi | Functional Qi from the Day Branch (weight: 15%) |
+| **HFQ** | Hour Functional Qi | Functional Qi from the Hour pillar (weight: 10%) |
+
+## Layer 2 — Natal TFQ (goes through full pipeline)
+
+| Acronym | Full Name | What It Is |
+|---|---|---|
+| **TFQ** | Total Functional Qi | All four natal pillars combined with Qi weights. Your permanent elemental fingerprint. |
+| **NTFQ** | Normalized TFQ | TFQ after the full natal pipeline (see below). The processed natal Qi vector. |
+
+---
+
+## Natal Pipeline (violent, internal)
+
+Only natal Qi goes through these steps. This is the "body."
+
+| Step | Name | What Happens |
+|---|---|---|
+| 1 | Seasonality | Branch elements adjusted for birth season |
+| 2 | Polarity | Yin/Yang weighting |
+| 3 | Combinations (合化) | Stem/branch combos may transform elements |
+| 4 | Clashes (冲) | Controlling cycle — elements suppress each other |
+| 5 | Harms (害) | Harm interactions between branches |
+| 6 | Controls (克) | Three-pass controlling cycle |
+| 7 | Overcrowding | Dominant element penalties |
+| 8 | Collapse | Structural collapse detection |
+| 9 | Transform (化) | Extreme ratio alchemy |
+| 10 | Ten Gods | Relational analysis → Yong Shen |
+
+Output: **NTFQ** (Normalized Total Functional Qi)
+
+---
+
+## External Qi Layers (gentle, no violence)
+
+These are climate/weather — NOT anatomy.
+Pipeline: stem + branch + seasonality → normalize. That's it.
+
+| Layer | Points | What It Is |
+|---|---|---|
+| **Da Yun Qi** (大運) | 11 pts | Current decade luck pillar's elemental climate |
+| **Year Qi** | 11 pts | Current year pillar's elemental climate |
+| **Month Qi** | 11 pts | Current month pillar's elemental climate |
+
+No clashes, combinations, harms, controls, transforms, or overcrowding.
+
+---
+
+## Final Output — MTFQ (Monthly Total Functional Qi)
+
+\`\`\`
+MTFQ = 1.0 x NTFQ + 0.9 x DaYun + 0.5 x Year + 0.3 x Month
+\`\`\`
+
+| Layer | Weight | Why |
+|---|---|---|
+| **NTFQ** (natal) | 1.0 | Your body — the dominant force |
+| **Da Yun** | 0.9 | Decade tide — powerful, slow-changing |
+| **Year** | 0.5 | Annual climate — moderate influence |
+| **Month** | 0.3 | Monthly weather — immediate but lighter |
+
+**MTFQ** is the final Qi field — no further clashes or processing.
+It drives the bracelet design: anchor stone, controller, bead counts, Sheng cycle rotation, and forbidden elements.
+
+---
+
+## Key Metaphor
+
+- **NTFQ** = your car's engine (goes through full tuning)
+- **Da Yun** = the road you're on this decade
+- **Year Qi** = this year's weather
+- **Month Qi** = this month's micro-climate
+- **TotalQi** = how the car actually performs on that road, in that weather
 `;
 
 const ELEMENTS_COMPOSITION_MD = `# Elements Composition — Layer 1
@@ -1062,6 +1236,176 @@ This means:
 *Polarity is a subtle but important modifier. It reflects how your core identity (Day Master) shapes the expression of every element in your chart.*
 `;
 
+const DAY_MASTER_POLARITY_GUIDE_MD = `# 🌗 Day Master Polarity — The Complete Guide
+### How Yin & Yang shape your bracelet's stones, Qi, and design
+
+Your **Day Master (DM)** — the Heavenly Stem of your Day Pillar — carries a polarity:
+
+- **Yang (☀)** — active, outward, forceful
+- **Yin (☽)** — receptive, inward, adaptive
+
+This polarity is one of the deepest signatures in your BaZi chart.
+It influences how you interact with the world — and how the world interacts with you.
+
+But here's the key:
+
+> **Your bracelet does NOT match your polarity. It balances it.**
+
+This is the classical principle of **陰陽調和 — Yin–Yang Harmonization**.
+
+- Yang DM → Yin stones
+- Yin DM → Yang stones
+- Yin‑Yang stones (☯) are universally supportive
+
+This balancing polarity flows through **every stage** of the bracelet‑design engine.
+
+---
+
+## 🧭 1. Polarity Basics
+
+### Why Yin balances Yang, and Yang balances Yin
+
+In BaZi:
+
+- **Yang** is expansive, bright, forceful
+- **Yin** is soft, cooling, regulating
+
+If you are **Yang**, adding more Yang makes you rigid or overheated.
+If you are **Yin**, adding more Yin makes you stagnant or overly soft.
+
+So the remedy is always:
+
+> **Balance, not amplification.**
+
+Your bracelet uses stones whose polarity counterbalances your Day Master, creating stability and smooth Qi flow.
+
+---
+
+## 🔮 2. How Polarity Affects Stone Qi (QiUnit)
+
+Every stone has:
+
+- Base Qi (0–1)
+- Seasonal modifier (旺相休囚死)
+- Polarity fit
+
+Your polarity affects the **polarityFit** multiplier:
+
+| Stone Polarity | Effect on Yang DM | Effect on Yin DM |
+|---|---|---|
+| Balancing polarity | +25% Qi | +25% Qi |
+| Yin‑Yang (☯) | +10% Qi | +10% Qi |
+| Matching polarity | +5% Qi | +5% Qi |
+
+---
+
+## 🪬 3. Stone Selection (pickStones)
+
+### The engine always tries balancing polarity first
+
+**Pass 1:** Pick stones whose polarity balances your DM (or Yin–Yang stones).
+
+**Pass 2:** If none exist for that element, open to any polarity.
+
+This ensures the remedy is always gentle, stabilizing, and aligned with classical BaZi.
+
+---
+
+## 🧮 4. Stone Scoring (Quality Score System)
+
+### Polarity contributes up to 20 points
+
+Each stone is scored out of 100:
+
+- **+20** → balancing polarity
+- **+10** → Yin–Yang
+- **+5** → matching polarity
+
+This pushes balancing‑polarity stones to the top of the ranking.
+
+---
+
+## 🔁 5. Substitute Ranking (findSubstitutes)
+
+### When swapping stones, polarity still matters
+
+Within the same element:
+
+- Balancing polarity → no penalty
+- Yin–Yang → no penalty
+- Matching polarity → −10 penalty
+
+This ensures substitutes never accidentally flip the bracelet's polarity signature.
+
+---
+
+## 🔢 6. Bead Count Split
+
+### Odd numbers always favor the balancing polarity
+
+If the engine needs 3 Water beads:
+
+- **Yang DM** → 2 Yin Water + 1 Yang Water
+- **Yin DM** → 2 Yang Water + 1 Yin Water
+
+The extra bead always goes to the **balancing polarity**, not the matching one.
+
+---
+
+## ⚔️ 7. Controller Stone Logic (正克 — Proper Control)
+
+### Even control must follow Yin–Yang harmony
+
+When the month requires a controller element (e.g., Water controls Fire):
+
+> Controller stones must match your **balancing polarity**, not your DM polarity.
+
+This ensures the control is clean, gentle, and stable — not harsh or overwhelming.
+
+---
+
+## 🔄 8. Bracelet‑Level Polarity Score (0–20)
+
+### Your bracelet's Yin–Yang harmony, measured
+
+Each bead contributes:
+
+- **1.0** → balancing polarity
+- **0.6** → Yin–Yang
+- **0.3** → matching polarity
+
+The final score is scaled to **0–20**. A perfect score means every bead supports your Yin–Yang balance.
+
+---
+
+## 🌕 Summary — The Entire Polarity Pipeline
+
+\`\`\`
+Day Master Polarity (Yin/Yang)
+            ↓
+getBalancingPolarity()
+            ↓
+pickStones() — Pass 1 prefers balancing polarity
+            ↓
+QiUnit = baseQi × season × polarityFit
+            ↓
+scoreAllStones() — balancing polarity = +20 pts
+            ↓
+findSubstitutes() — matching polarity gets penalty
+            ↓
+beadSplit() — extra bead → balancing polarity
+            ↓
+controllerStones() — controller must match balancing polarity
+            ↓
+braceletPolarityScore() — 0–20
+\`\`\`
+
+> Everything flows from one principle:
+> **Your bracelet balances your Day Master, not amplifies it.**
+> Yin softens Yang. Yang activates Yin.
+> This is the heart of BaZi.
+`;
+
 const SEASONALITY_MATRIX_MD = `# Seasonality Matrix — Element Expressiveness
 
 ## Why Seasonality Matters
@@ -1172,137 +1516,10 @@ A clash fires when:
 **Pass C** = The weather hitting your car (hailstones denting your hood)
 `;
 
-const SHENG_EXPLANATION_MD = `# Sheng Cycle Nourishment (生) — The Generating Cycle
-
-Where the Controlling Cycle restrains, the **Generating Cycle (生)** nourishes. Each element naturally **feeds** another — the cycle of growth, support, and replenishment.
-
-## The Five Generating Relationships
-
-- **Water nourishes Wood** — rain feeds the forest
-- **Wood feeds Fire** — timber fuels the flame
-- **Fire creates Earth** — ash becomes soil
-- **Earth bears Metal** — mountains yield ore
-- **Metal enriches Water** — minerals enrich springs
-
-## When Does Nourishment Happen?
-
-- The **parent** element is stronger than its **child**
-- Both elements have positive Qi
-
-## How Nourishment Works
-
-| Step | Formula |
-|---|---|
-| Raw boost | Parent × 3% |
-| Cap | Child × 20% |
-| Actual boost | MIN(raw, cap) |
-| Parent effect | NOT reduced |
-
-The cap prevents runaway growth. The parent is never drained — nourishment is gentle, not sacrificial.
-
-## The Car Metaphor
-
-Sheng is the **tailwind** after the storm passes. The sun comes out, and the garden starts recovering. Your car gets smoother acceleration and easier movement.
-`;
-
-const DAMPING_EXPLANATION_MD = `# Universal Damping — Control Cycle Pressure (耗)
-
-Even without clashes or nourishment, every element experiences **friction** simply by existing in a dynamic system.
-
-## The Rule
-
-All elements undergo a small **2% reduction**:
-
-element = element × 0.98
-
-Every element. No exceptions. No conditions.
-
-## Why Does This Happen?
-
-- **Energetic friction** — no force operates without cost
-- **Environmental resistance** — the world pushes back on everything
-- **Maintenance cost** — maintaining elemental balance requires energy
-- **Natural entropy** — nothing stays at peak indefinitely
-
-## The Car Metaphor
-
-Even a perfectly tuned car on a smooth highway burns fuel. Even a healthy body at rest uses energy to breathe. Damping is the **baseline cost of being alive**.
-`;
-
-const TRANSFORMATION_EXPLANATION_MD = `# Transformation (化) — Elemental Transmutation
-
-Transformation is the **most dramatic** adjustment. It occurs when one element **overwhelms** another so completely that the weaker element **changes form**.
-
-## The Five Transformation Rules
-
-| Attacker | Victim | Product | Description |
-|---|---|---|---|
-| Fire | Metal | Water | Fire melts Metal into liquid |
-| Metal | Wood | Fire | Metal strikes Wood, creating sparks |
-| Water | Fire | Earth | Water drowns Fire, leaving sediment |
-| Wood | Earth | Metal | Wood uproots Earth, exposing ore |
-| Earth | Water | Wood | Earth absorbs Water, enabling growth |
-
-## When Does Transformation Trigger?
-
-Two conditions must **both** be met:
-
-1. **Attacker > 1.5 Qi points** (must be substantial)
-2. **Attacker / Victim > 3:1** (must be overwhelming)
-
-## What Happens?
-
-- **30%** of the victim transmutes into the child element
-- The victim shrinks; the child grows
-- The remaining 70% persists, weakened but present
-
-## The Car Metaphor
-
-Transformation is like **replacing a major car part** — a forced adaptation. Part of your system changes form to keep you going. This only happens in extreme months.
-`;
-
-const OVERCROWDING_EXPLANATION_MD = `# Overcrowding — Self-Generated Instability (溢)
-
-In classical BaZi, a chart with no clashes can still be deeply imbalanced. When one element dominates the landscape, it creates **self-generated instability** — the system buckles under its own weight.
-
-## When Does Overcrowding Trigger?
-
-Two conditions are checked (either triggers):
-- Element > **35%** of total Qi (absolute dominance)
-- Element > **2x** the five-element average (relative dominance)
-
-## What Happens?
-
-The excess energy softly bleeds into the element's **generating-cycle child**:
-- Bleed = 10% of the excess (amount above 2x average)
-- Capped at 0.50 pts maximum per element
-- The parent loses what the child gains
-
-This is NOT the dramatic 化 transformation. It is a gentle, natural overflow — like a river overflowing its banks into a tributary.
-
-## Why This Matters
-
-Overcrowding explains:
-- Why a chart with no clashes can still feel unbalanced
-- Why extreme strength in one element weakens the person (paradoxically)
-- How self-generated instability works in advanced Yong Shen selection
-- Why the generating cycle is both a gift and a pressure
-
-## The Car Metaphor
-
-Your engine is running too hot in one area. Rather than breaking down (化 transformation), the excess heat **bleeds into the next system** — the cooling system gets overworked, the electrical system heats up. It's manageable, but it's real.
-
-## Pipeline Position
-
-Overcrowding sits between Sheng and Damping:
-克 Clash → 生 Sheng → **溢 Overcrowding** → 耗 Damping → 化 Transform
-
-After nourishment has run (Sheng may amplify a dominant element further), overcrowding checks if anything has gotten too large. Then damping and transformation handle the rest.
-`;
 
 const PIPELINE_OVERVIEW_MD = `# Monthly Qi Adjustment Pipeline
 
-Your Month Final Functional Qi (MFFQ) is created through a sequence of elemental adjustments. Each step models a different kind of energetic interaction.
+Your Month Final Functional Qi (TotalQi) is created through a sequence of elemental adjustments. Each step models a different kind of energetic interaction.
 
 ## The Full Pipeline
 
@@ -1312,7 +1529,7 @@ Your Month Final Functional Qi (MFFQ) is created through a sequence of elemental
 | Step 7 | 生 Sheng | Generating cycle — parent feeds child |
 | Step 8 | 耗 Damping | Universal 2% friction |
 | Step 9 | 化 Transform | Extreme ratio alchemy — victim changes form |
-| Step 10 | — MFFQ | Final output → Yong Shen + Stone Rx |
+| Step 10 | — TotalQi | Final output → Yong Shen + Stone Rx |
 
 ## The Order Matters
 
@@ -1329,7 +1546,7 @@ Your Month Final Functional Qi (MFFQ) is created through a sequence of elemental
 - Sheng = **tailwinds and roses**
 - Damping = **tire wear and fuel burn**
 - Transformation = **major repairs**
-- MFFQ = your **driving conditions** for the month
+- TotalQi = your **driving conditions** for the month
 `;
 
 const BEGINNER_EXPLANATION_MD = `# Understanding Your Monthly Qi
@@ -1405,7 +1622,7 @@ Under extreme conditions (attacker > 1.5 pts AND ratio > 3:1):
 - 30% of victim transmutes into its productive-cycle child element
 - Fires last — only if extreme imbalance persists after all other adjustments
 
-## Step 10: MFFQ → Yong Shen → Stone Rx
+## Step 10: TotalQi → Yong Shen → Stone Rx
 
 The final output determines your weakest element (Yong Shen) and recommends balancing stones.
 
@@ -1463,203 +1680,7 @@ Season support: result element must match current month's season element. Earth 
 `;
 
 // ============================================================================
-// PENTAGON RADAR — lightweight SVG five-element radar with optional overlay
-// ============================================================================
-
-const RADAR_ANGLES = ELEMENTS.map((_, i) => (Math.PI / 2) - (2 * Math.PI * i) / 5); // start top, clockwise: Wood→Fire→Earth→Metal→Water
-const RADAR_ELEMENT_ICONS = { Wood: '🌿', Fire: '🔥', Earth: '⛰️', Metal: '⚙️', Water: '💧' };
-
-/**
- * Converts a Qi distribution to polygon points on a pentagon radar.
- * Values are normalized as percentages of total to make shapes comparable.
- */
-function qiToRadarPoints(qi, cx, cy, radius) {
-  const total = ELEMENTS.reduce((s, el) => s + (qi[el] || 0), 0);
-  if (total === 0) return RADAR_ANGLES.map(() => ({ x: cx, y: cy }));
-  return ELEMENTS.map((el, i) => {
-    const pct = (qi[el] || 0) / total;  // 0..1
-    const r = pct * radius * 4;  // scale so 25% ≈ radius (balanced = circle-ish)
-    const clampedR = Math.min(r, radius); // don't exceed bounds
-    return {
-      x: cx + clampedR * Math.cos(RADAR_ANGLES[i]),
-      y: cy - clampedR * Math.sin(RADAR_ANGLES[i]),
-    };
-  });
-}
-
-function pentagonGridPoints(cx, cy, radius, level) {
-  return ELEMENTS.map((_, i) => {
-    const r = radius * level;
-    return `${cx + r * Math.cos(RADAR_ANGLES[i])},${cy - r * Math.sin(RADAR_ANGLES[i])}`;
-  }).join(' ');
-}
-
-/**
- * PentagonRadar — inline SVG pentagon with optional before/after overlay.
- * @param {object} qi - primary Qi distribution { Wood, Fire, Earth, Metal, Water }
- * @param {object} [overlayQi] - secondary Qi to superimpose (dimmed)
- * @param {string} [label] - chart label
- * @param {string} [overlayLabel] - overlay label
- * @param {number} [size] - SVG size in px
- */
-function PentagonRadar({ qi, overlayQi, label = 'Current', overlayLabel = 'Natal', size = 180 }) {
-  const cx = size / 2;
-  const cy = size / 2;
-  const radius = size * 0.38;
-  const labelR = size * 0.46;
-
-  // Grid levels (20%, 40%, 60%, 80%, 100%)
-  const gridLevels = [0.2, 0.4, 0.6, 0.8, 1.0];
-
-  // Primary shape
-  const pts = qiToRadarPoints(qi, cx, cy, radius);
-  const ptsStr = pts.map(p => `${p.x},${p.y}`).join(' ');
-
-  // Overlay shape (dimmed)
-  const overlayPts = overlayQi ? qiToRadarPoints(overlayQi, cx, cy, radius) : null;
-  const overlayStr = overlayPts ? overlayPts.map(p => `${p.x},${p.y}`).join(' ') : '';
-
-  // Percentages for labels
-  const totalPrimary = ELEMENTS.reduce((s, el) => s + (qi[el] || 0), 0);
-
-  return (
-    <div className="flex flex-col items-center">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* Grid rings */}
-        {gridLevels.map((level, i) => (
-          <polygon
-            key={i}
-            points={pentagonGridPoints(cx, cy, radius, level)}
-            fill="none"
-            stroke={i === gridLevels.length - 1 ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.18)"}
-            strokeWidth={i === gridLevels.length - 1 ? 1.5 : 0.7}
-          />
-        ))}
-
-        {/* Axis lines */}
-        {ELEMENTS.map((_, i) => (
-          <line
-            key={i}
-            x1={cx}
-            y1={cy}
-            x2={cx + radius * Math.cos(RADAR_ANGLES[i])}
-            y2={cy - radius * Math.sin(RADAR_ANGLES[i])}
-            stroke="rgba(255,255,255,0.15)"
-            strokeWidth={0.7}
-          />
-        ))}
-
-        {/* Overlay shape (dimmed, behind primary) */}
-        {overlayStr && (
-          <>
-            <polygon
-              points={overlayStr}
-              fill="rgba(255,255,255,0.1)"
-              stroke="rgba(255,255,255,0.45)"
-              strokeWidth={1.5}
-              strokeDasharray="4 3"
-            />
-            {overlayPts.map((p, i) => (
-              <circle key={`od${i}`} cx={p.x} cy={p.y} r={3} fill="rgba(255,255,255,0.5)" />
-            ))}
-          </>
-        )}
-
-        {/* Primary shape */}
-        <polygon
-          points={ptsStr}
-          fill="rgba(251,191,36,0.25)"
-          stroke="#fbbf24"
-          strokeWidth={2.5}
-        />
-        {pts.map((p, i) => (
-          <circle key={`pd${i}`} cx={p.x} cy={p.y} r={3.5}
-            fill={ELEM_COLORS[ELEMENTS[i]]}
-            stroke="#000" strokeWidth={1}
-          />
-        ))}
-
-        {/* Element labels around the pentagon */}
-        {ELEMENTS.map((el, i) => {
-          const lx = cx + labelR * Math.cos(RADAR_ANGLES[i]);
-          const ly = cy - labelR * Math.sin(RADAR_ANGLES[i]);
-          const pct = totalPrimary > 0 ? ((qi[el] || 0) / totalPrimary * 100).toFixed(0) : '0';
-          return (
-            <text
-              key={el}
-              x={lx}
-              y={ly}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fill={ELEM_COLORS[el]}
-              fontSize={11}
-              fontFamily="monospace"
-              fontWeight="bold"
-            >
-              {RADAR_ELEMENT_ICONS[el]} {pct}%
-            </text>
-          );
-        })}
-      </svg>
-
-      {/* Legend */}
-      <div className="flex items-center gap-3 mt-1 text-[10px] font-mono">
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-1 bg-amber-400 rounded" />
-          <span className="text-amber-200 font-semibold">{label}</span>
-        </div>
-        {overlayQi && (
-          <div className="flex items-center gap-1">
-            <div className="w-4 h-0.5 border border-white/50 border-dashed rounded" />
-            <span className="text-gray-300">{overlayLabel}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ============================================================================
-// QI BAR — raw points bar (wider = more Qi, NOT capped at 100%)
-// ============================================================================
-
-function QiBar({ qi, maxPts, showPct }) {
-  const max = maxPts || Math.max(...ELEMENTS.map(k => qi[k]), 1);
-  const total = showPct ? ELEMENTS.reduce((s, el) => s + (qi[el] || 0), 0) : 0;
-  return (
-    <div className="space-y-1">
-      {ELEMENTS.map(el => {
-        const pct = Math.min((qi[el] / max) * 100, 100);
-        const val = qi[el];
-        const elPct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
-        return (
-          <div key={el} className="flex items-center gap-2 text-xs">
-            <span className="w-12 text-right font-mono" style={{ color: ELEM_COLORS[el] }}>
-              {el}
-            </span>
-            <div className="flex-1 h-5 bg-white/5 rounded overflow-hidden relative">
-              <div
-                className="h-full rounded transition-all"
-                style={{
-                  width: `${pct}%`,
-                  backgroundColor: ELEM_COLORS[el],
-                  opacity: 0.8,
-                  minWidth: val > 0 ? '3.2rem' : 0,
-                }}
-              />
-              <span className="absolute inset-0 flex items-center px-1.5 text-[10px] font-mono font-semibold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
-                {val > 0 ? `${val.toFixed(3)}` : ''}
-              </span>
-            </div>
-            {showPct && (
-              <span className="w-12 text-right text-[10px] font-mono font-semibold text-white">{elPct}%</span>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+// PentagonRadar and QiBar are imported from ../components/qi/PentagonRadar
 
 // ============================================================================
 // PILLAR WITH FLAP — per-pillar card + expandable baby-step calculation
@@ -2275,20 +2296,65 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
 function PillarWithFlap({ pillar, breakdown, label, isYou, expanded, onToggle, birthMonthBranch, dayMasterPolarity, dayMasterElement }) {
   if (!pillar || !breakdown) return null;
 
+  const [showPolarityGuide, setShowPolarityGuide] = React.useState(false);
+  const [showSummaryPopup, setShowSummaryPopup] = React.useState(false);
+
   const total = ELEMENTS.reduce((s, k) => s + breakdown.raw[k], 0);
-  const qiWeightLines = QI_WEIGHT_LABEL[label].split('\n');
+
+  // Build pillar summary markdown for popup
+  const qiPct = label === 'Day' ? 50 : label === 'Month' ? 30 : 10;
+  const summaryLines = [
+    `# ${label} Pillar Summary`,
+    '',
+    '| | |',
+    '|:---|---:|',
+    `| ${label} Qi Energy | **${qiPct} %** |`,
+    `| ${label} Stem (S) | **1 pts** |`,
+    `| ${label} Branch (B) | **10 pts** |`,
+    `| **${label} Pillar Total** | **11 pts** |`,
+  ];
+  if (isYou) {
+    summaryLines.push('', '---', '',
+      '| | |',
+      '|:---|---:|',
+      '| Day Master Qi | **35 %** |',
+      '| Day Branch Qi | **15 %** |',
+    );
+  }
+  const summaryMd = summaryLines.join('\n');
 
   return (
     <div className="flex flex-col h-full">
-      {/* Pillar Card — Qi weights in header */}
+      {/* Polarity Guide floating window — Day Pillar only */}
+      {isYou && showPolarityGuide && (
+        <FloatingMdWindow
+          content={DAY_MASTER_POLARITY_GUIDE_MD}
+          title="🌗 Day Master Polarity — Complete Guide"
+          onClose={() => setShowPolarityGuide(false)}
+          width={660}
+        />
+      )}
+
+      {/* Pillar Summary popup — triggered by clicking yellow header */}
+      {showSummaryPopup && (
+        <FloatingMdWindow
+          content={summaryMd}
+          title={`${label} Pillar — Qi Budget`}
+          onClose={() => setShowSummaryPopup(false)}
+          width={380}
+        />
+      )}
+
+      {/* Pillar Card — Qi weights in header, header click opens summary popup */}
       <ModularPillarCard
         label={label}
         pillar={pillar}
         isYou={isYou}
         compact
         showHiddenRoots
+        onHeaderClick={() => setShowSummaryPopup(v => !v)}
         metaOverride={{
-          weight: label === 'Day' ? 'Qi=50%' : `Qi=${label === 'Month' ? '30' : '10'}%`,
+          weight: label === 'Day' ? 'Qi Energy=50%' : `Qi Energy=${label === 'Month' ? '30' : '10'}%`,
           subtitle: label === 'Day'
             ? 'Day Master 35% + Day Branch 15%'
             : label === 'Month'
@@ -2299,22 +2365,15 @@ function PillarWithFlap({ pillar, breakdown, label, isYou, expanded, onToggle, b
         }}
       />
 
-      {/* Structured summary strip: Raw / Stem / Branch / Qi weight */}
-      <div className="mt-1 px-3 py-2 rounded-lg bg-slate-800/80 border border-white/10 font-mono text-[11px] leading-snug space-y-0.5">
-        <div className="text-gray-300">
-          <span className="text-white font-semibold">{label.toUpperCase()} PILLAR</span> Raw = <span className="text-white">{total.toFixed(3)} pts</span>
-        </div>
-        <div className="text-gray-500">
-          {label.toUpperCase()} Stem (S) = <span className="text-gray-300">1 pts</span>
-        </div>
-        <div className="text-gray-500">
-          {label.toUpperCase()} Branch (B) = <span className="text-gray-300">10 pts</span>
-        </div>
-        <div className="border-t border-white/10 my-1" />
-        {qiWeightLines.map((line, i) => (
-          <div key={i} className="text-amber-400/80 text-[10px]">{line}</div>
-        ))}
-      </div>
+      {/* Day Master Polarity Guide button — Day Pillar only */}
+      {isYou && (
+        <button
+          onClick={() => setShowPolarityGuide(v => !v)}
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 mt-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-400/30 transition-colors text-xs font-medium text-amber-300"
+        >
+          🌗 Day Master Polarity Guide
+        </button>
+      )}
 
       {/* Toggle button — mt-auto pushes to bottom so all pillars align */}
       <button
@@ -2326,7 +2385,7 @@ function PillarWithFlap({ pillar, breakdown, label, isYou, expanded, onToggle, b
         </span>
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-gray-400">
-            {total.toFixed(3)} pts
+            11 pts
           </span>
           <span className="text-gray-500 text-xs">{expanded ? '▾' : '▸'}</span>
         </div>
@@ -2337,24 +2396,32 @@ function PillarWithFlap({ pillar, breakdown, label, isYou, expanded, onToggle, b
         <div className="mt-1 p-3 rounded-lg bg-slate-900/80 border border-white/10 space-y-3 max-h-[32rem] overflow-y-auto">
           <BabyStepCalc breakdown={breakdown} label={label} birthMonthBranch={birthMonthBranch} dayMasterPolarity={dayMasterPolarity} dayMasterElement={dayMasterElement} />
 
-          {/* Visual Qi bar summaries */}
-          <Sep />
-          <div className="text-xs font-semibold text-gray-300 mb-1">Raw Element Distribution</div>
-          <QiBar qi={breakdown.raw} />
-          <div className="text-xs font-semibold text-gray-300 mb-1 mt-2">Season-Adjusted Distribution</div>
-          <QiBar qi={breakdown.seasoned} />
-          {breakdown.polarityAdjusted && (
-            <>
-              <div className="text-xs font-semibold text-gray-300 mb-1 mt-2">Polarity + Season Adjusted Distribution</div>
-              <QiBar qi={breakdown.polarityAdjusted} />
-            </>
-          )}
-          {breakdown.qiWeighted && (
-            <>
-              <div className="text-xs font-semibold text-amber-300 mb-1 mt-2">Functional Qi (Qi-Weighted)</div>
-              <QiBar qi={breakdown.qiWeighted} />
-            </>
-          )}
+          {/* Visual Qi bar summaries — shared maxPts so bars are proportional across all stages */}
+          {(() => {
+            const allDists = [breakdown.raw, breakdown.seasoned, breakdown.polarityAdjusted, breakdown.qiWeighted].filter(Boolean);
+            const sharedMax = Math.max(...allDists.flatMap(d => ELEMENTS.map(el => d[el] || 0)), 1);
+            return (
+              <>
+                <Sep />
+                <div className="text-xs font-semibold text-gray-300 mb-1">Raw Element Distribution</div>
+                <QiBar qi={breakdown.raw} maxPts={sharedMax} />
+                <div className="text-xs font-semibold text-gray-300 mb-1 mt-2">Season-Adjusted Distribution</div>
+                <QiBar qi={breakdown.seasoned} maxPts={sharedMax} />
+                {breakdown.polarityAdjusted && (
+                  <>
+                    <div className="text-xs font-semibold text-gray-300 mb-1 mt-2">Polarity + Season Adjusted Distribution</div>
+                    <QiBar qi={breakdown.polarityAdjusted} maxPts={sharedMax} />
+                  </>
+                )}
+                {breakdown.qiWeighted && (
+                  <>
+                    <div className="text-xs font-semibold text-amber-300 mb-1 mt-2">Functional Qi (Qi-Weighted)</div>
+                    <QiBar qi={breakdown.qiWeighted} maxPts={sharedMax} />
+                  </>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
     </div>
@@ -2522,6 +2589,10 @@ function IncomingBabyStepCalc({ breakdown, label, currentMonthBranch, dayMasterP
   const seasonInfo = currentMonthBranch ? getSeasonInfo(currentMonthBranch) : null;
   const sw = currentMonthBranch ? getSeasonalWeights(currentMonthBranch) : null;
 
+  // Shared max across all distribution stages so bars are proportional
+  const _allDists = [raw, seasoned, polarityAdjusted, qiWeighted].filter(Boolean);
+  const _sharedMax = Math.max(..._allDists.flatMap(d => ELEMENTS.map(el => d[el] || 0)), 1);
+
   const pMults = dayMasterPolarity === 'Yang'
     ? { Wood: 1.15, Fire: 1.05, Earth: 1.00, Metal: 1.00, Water: 1.10 }
     : dayMasterPolarity === 'Yin'
@@ -2670,7 +2741,7 @@ function IncomingBabyStepCalc({ breakdown, label, currentMonthBranch, dayMasterP
 
       {/* QiBar: raw */}
       <div className="mt-2" />
-      <QiBar qi={raw} />
+      <QiBar qi={raw} maxPts={_sharedMax} />
 
       {/* === C. Seasonality Adjustment === */}
       {sw && seasonInfo && (
@@ -2745,7 +2816,7 @@ function IncomingBabyStepCalc({ breakdown, label, currentMonthBranch, dayMasterP
           })}
 
           <div className="mt-2" />
-          <QiBar qi={seasoned} />
+          <QiBar qi={seasoned} maxPts={_sharedMax} />
         </>
       )}
 
@@ -2824,7 +2895,7 @@ function IncomingBabyStepCalc({ breakdown, label, currentMonthBranch, dayMasterP
           })}
 
           <div className="mt-2" />
-          <QiBar qi={polarityAdjusted} />
+          <QiBar qi={polarityAdjusted} maxPts={_sharedMax} />
         </>
       )}
 
@@ -2857,7 +2928,7 @@ function IncomingBabyStepCalc({ breakdown, label, currentMonthBranch, dayMasterP
 
           <div className="mt-2" />
           <div className="text-xs font-semibold text-amber-300 mb-1">Functional Qi (Qi-Weighted)</div>
-          <QiBar qi={qiWeighted} />
+          <QiBar qi={qiWeighted} maxPts={_sharedMax} />
         </>
       )}
     </div>
@@ -2893,7 +2964,7 @@ function IncomingPillarWithFlap({ breakdown, label, expanded, onToggle, currentM
         compact
         showHiddenRoots
         metaOverride={{
-          weight: label === 'Year' ? 'Qi=10%' : 'Qi=30%',
+          weight: label === 'Year' ? 'Qi Energy=10%' : 'Qi Energy=30%',
           subtitle: label === 'Year' ? 'Current Year Qi influence' : 'Current Month Qi influence',
         }}
       />
@@ -2931,19 +3002,281 @@ function IncomingPillarWithFlap({ breakdown, label, expanded, onToggle, currentM
 }
 
 // ============================================================================
-// COMBINED YEAR+MONTH FUNCTIONAL QI (CYMFQ) — Step 1 in monthly analysis
+// EXTERNAL PILLAR PANEL — Standalone Current Year / Current Month panel
+// Same format as DaYun: pillar card + baby-step calculation + Qi output bars.
+// Pipeline: stem 1pt + branch 10pt → own seasonality → own polarity → raw QiVector
 // ============================================================================
 
-function CombinedYMFQPanel({ yearFq, monthFq, year, monthName, userTfq }) {
+function ExternalPillarPanel({ breakdown, label, pillarQi, steps }) {
+  const [calcOpen, setCalcOpen] = useState(false);
+
+  if (!breakdown) return null;
+
+  const { raw, seasoned, polarityAdjusted, stemChar, stemElement: sEl, stemFullEnglish, branchChar, branchAnimal, hiddenStems } = breakdown;
+
+  const hiddenRoots = (hiddenStems || []).map(hs => ({
+    stem: hs.char,
+    pct: hs.pct,
+  }));
+
+  const qiTotal = pillarQi ? ELEMENTS.reduce((s, el) => s + (pillarQi[el] || 0), 0) : 0;
+  const maxQi = pillarQi ? Math.max(...ELEMENTS.map(el => pillarQi[el] || 0), 0.01) : 1;
+
+  // Shared bar max across all stages
+  const allDists = [raw, seasoned, polarityAdjusted, pillarQi].filter(Boolean);
+  const barMax = Math.max(...allDists.flatMap(d => ELEMENTS.map(el => d[el] || 0)), 0.01);
+
+  // Seasonality multipliers: seasoned / raw (infer from data)
+  const seasonMults = {};
+  ELEMENTS.forEach(el => {
+    seasonMults[el] = (raw?.[el] || 0) > 0 ? (seasoned?.[el] || 0) / raw[el] : (seasoned?.[el] || 0) > 0 ? 1.0 : 0;
+  });
+
+  // Polarity multipliers: polarityAdjusted / seasoned
+  const polMults = {};
+  ELEMENTS.forEach(el => {
+    polMults[el] = (seasoned?.[el] || 0) > 0 ? (polarityAdjusted?.[el] || 0) / seasoned[el] : (polarityAdjusted?.[el] || 0) > 0 ? 1.0 : 0;
+  });
+
+  // Stem polarity from stemFullEnglish (e.g. "Yang Fire" → "Yang")
+  const stemPol = stemFullEnglish?.split(' ')[0] || '';
+
+  // Mini bar renderer
+  const MiniBar = ({ qi }) => (
+    <div className="space-y-0.5 mt-1">
+      {ELEMENTS.map(el => {
+        const v = qi?.[el] || 0;
+        return (
+          <div key={el} className="flex items-center gap-1.5 text-[10px]">
+            <span className="w-10 text-right font-mono" style={{ color: ELEM_COLORS[el] }}>{el}</span>
+            <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
+              {v > 0 && <div className="h-full rounded" style={{ width: `${Math.max((v / barMax) * 100, 1)}%`, backgroundColor: ELEM_COLORS[el], opacity: 0.6 }} />}
+            </div>
+            <span className="w-12 text-right font-mono text-gray-400">{v.toFixed(3)}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-2 bg-white/5 border-b border-white/10 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-white">{label} Pillar</span>
+          <span className="text-[10px] text-gray-500 font-mono">
+            {stemChar}{branchChar} — {stemFullEnglish} {branchAnimal}
+          </span>
+        </div>
+        <span className="text-xs font-mono text-gray-400">
+          {qiTotal.toFixed(2)} pts this month
+        </span>
+      </div>
+
+      <div className="p-4 space-y-3">
+        {/* Pillar Card — min-height keeps "show calculation" aligned across the 3-month grid */}
+        <div className="max-w-[280px] min-h-[260px]">
+          <ModularPillarCard
+            label={label}
+            pillar={{
+              stem: stemChar,
+              branch: branchChar,
+              element: sEl,
+              hiddenRoots,
+            }}
+            compact
+            showHiddenRoots
+            metaOverride={{
+              weight: `External Climate`,
+              subtitle: `DaYun-style pipeline — own season + own polarity`,
+            }}
+          />
+        </div>
+
+        {/* Pipeline label */}
+        <div className="text-[10px] text-gray-500">
+          Stem(1pt) + Branch(10pt) → <span className="text-amber-400">Seasonality</span> → <span className="text-amber-400">Polarity</span> → {label} Qi (raw pts)
+        </div>
+        <div className="text-[10px] text-gray-600">
+          External climate — no clashes, combinations, or transformations.
+        </div>
+
+        {/* === Detailed Calculation — Da Yun style === */}
+        <button
+          onClick={() => setCalcOpen(!calcOpen)}
+          className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-left"
+        >
+          <span className="text-xs font-medium text-gray-300">
+            {calcOpen ? '▾' : '▸'} show calculation
+          </span>
+          <span className="text-xs font-mono text-gray-400">{qiTotal.toFixed(3)} pts</span>
+        </button>
+
+        {calcOpen && (
+          <div className="rounded-lg bg-slate-950/60 border border-slate-700/30 p-3 text-xs font-mono space-y-3">
+            {/* A. Stem */}
+            <div>
+              <div className="text-slate-400 font-semibold">A. {label} Stem</div>
+              <div className="text-slate-500 mt-0.5">
+                Stem {stemChar} (<span style={{ color: ELEM_COLORS[sEl] }}>{stemFullEnglish}</span>)
+                = <span className="text-white">1 pt</span> → {sEl}
+              </div>
+            </div>
+
+            {/* B. Branch Hidden Stems */}
+            <div>
+              <div className="text-slate-400 font-semibold">B. {label} Branch Hidden Stems</div>
+              <div className="text-slate-500 mt-0.5 mb-1">
+                {branchChar} {branchAnimal} = <span className="text-white">10 pts</span> distributed:
+              </div>
+              {(hiddenStems || []).map((hs, i) => {
+                const pts = 10 * (hs.pct / 100);
+                return (
+                  <div key={i} className="text-slate-500">
+                    <span style={{ color: ELEM_COLORS[hs.element] }}>{hs.char || hs.stem} {hs.fullEnglish || hs.element}</span>
+                    {' '}{hs.pct}% → <span className="text-white">{pts.toFixed(3)} pts</span> → {hs.element}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Raw total */}
+            {raw && (
+              <div>
+                <div className="text-slate-400 font-semibold">Raw {label} Qi (Stem + Branch)</div>
+                <MiniBar qi={raw} />
+              </div>
+            )}
+
+            {/* C. Seasonality */}
+            {seasoned && (
+              <div>
+                <div className="text-slate-400 font-semibold">C. Seasonality ({label} branch {branchChar} {branchAnimal})</div>
+                <div className="rounded border border-slate-700/30 overflow-hidden mt-1 mb-1">
+                  <table className="w-full text-[10px]">
+                    <thead>
+                      <tr className="bg-slate-800/50">
+                        <th className="px-2 py-0.5 text-left text-slate-500">Element</th>
+                        <th className="px-2 py-0.5 text-right text-slate-500">Raw</th>
+                        <th className="px-2 py-0.5 text-center text-slate-500">×</th>
+                        <th className="px-2 py-0.5 text-right text-slate-500">Seasoned</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ELEMENTS.map(el => (
+                        <tr key={el} className="border-t border-slate-700/20">
+                          <td className="px-2 py-0.5" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                          <td className="px-2 py-0.5 text-right text-slate-400">{(raw[el] || 0).toFixed(3)}</td>
+                          <td className="px-2 py-0.5 text-center text-slate-500">{seasonMults[el].toFixed(1)}</td>
+                          <td className="px-2 py-0.5 text-right text-white font-semibold">{(seasoned[el] || 0).toFixed(3)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <MiniBar qi={seasoned} />
+              </div>
+            )}
+
+            {/* D. Polarity */}
+            {polarityAdjusted && (
+              <div>
+                <div className="text-slate-400 font-semibold">D. Polarity ({stemPol} stem {stemChar})</div>
+                <div className="rounded border border-slate-700/30 overflow-hidden mt-1 mb-1">
+                  <table className="w-full text-[10px]">
+                    <thead>
+                      <tr className="bg-slate-800/50">
+                        <th className="px-2 py-0.5 text-left text-slate-500">Element</th>
+                        <th className="px-2 py-0.5 text-right text-slate-500">Seasoned</th>
+                        <th className="px-2 py-0.5 text-center text-slate-500">×</th>
+                        <th className="px-2 py-0.5 text-right text-slate-500">Polarized</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ELEMENTS.map(el => (
+                        <tr key={el} className="border-t border-slate-700/20">
+                          <td className="px-2 py-0.5" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                          <td className="px-2 py-0.5 text-right text-slate-400">{(seasoned[el] || 0).toFixed(3)}</td>
+                          <td className="px-2 py-0.5 text-center text-slate-500">{polMults[el].toFixed(2)}</td>
+                          <td className="px-2 py-0.5 text-right text-white font-semibold">{(polarityAdjusted[el] || 0).toFixed(3)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <MiniBar qi={polarityAdjusted} />
+              </div>
+            )}
+
+            {/* Final = Polarity output */}
+            <div>
+              <div className="text-amber-300 font-semibold">{label} Qi = Polarity output (raw pts, same as natal pillars)</div>
+              <div className="text-slate-500 mt-0.5 text-[9px]">
+                No normalization step — {label} Qi uses raw points just like other pillars.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Qi Output Bars — always visible */}
+        {pillarQi && (
+          <div className="space-y-1.5">
+            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+              {label.toUpperCase()} QI — FINAL OUTPUT
+            </div>
+            {ELEMENTS.map(el => {
+              const v = pillarQi[el] || 0;
+              const pct = maxQi > 0 ? (v / maxQi) * 100 : 0;
+              return (
+                <div key={el} className="flex items-center gap-2 text-[11px]">
+                  <span className="w-12 font-mono" style={{ color: ELEM_COLORS[el] }}>{el}</span>
+                  <div className="flex-1 h-4 bg-white/5 rounded overflow-hidden">
+                    {v > 0 && (
+                      <div
+                        className="h-full rounded"
+                        style={{
+                          width: `${Math.max(pct, 2)}%`,
+                          backgroundColor: ELEM_COLORS[el],
+                          opacity: 0.7,
+                        }}
+                      />
+                    )}
+                  </div>
+                  <span className="w-16 text-right font-mono text-gray-300">{v.toFixed(2)} pts</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// STEP 1: QI SUMMARY — Natal TFQ, Current Year Qi, Current Month Qi
+// ============================================================================
+
+function CombinedYMFQPanel({ yearFq, monthFq, year, monthName, natalTfq, daYunQi }) {
   const [open, setOpen] = useState(false);
 
-  // Combine Year FQ + Month FQ
-  const cymfq = {};
-  let totalCym = 0;
+  const natalQi = natalTfq;  // Engine's natalForMtfq (single source of truth)
+  const totalTfq = ELEMENTS.reduce((s, el) => s + (natalQi?.[el] || 0), 0);
+  const totalDaYun = daYunQi ? ELEMENTS.reduce((s, el) => s + (daYunQi[el] || 0), 0) : 0;
+  const totalYear = ELEMENTS.reduce((s, el) => s + (yearFq[el] || 0), 0);
+  const totalMonth = ELEMENTS.reduce((s, el) => s + (monthFq[el] || 0), 0);
+
+  // Compute MTFQ per element
+  const mtfq = {};
+  const W_N = 1.0, W_D = 0.9, W_Y = 0.5, W_M = 0.3;
   ELEMENTS.forEach(el => {
-    cymfq[el] = (yearFq[el] || 0) + (monthFq[el] || 0);
-    totalCym += cymfq[el];
+    mtfq[el] = W_N * (natalQi?.[el] || 0)
+             + W_D * (daYunQi?.[el] || 0)
+             + W_Y * (yearFq[el] || 0)
+             + W_M * (monthFq[el] || 0);
   });
+  const totalMtfq = ELEMENTS.reduce((s, el) => s + mtfq[el], 0);
 
   return (
     <div className="border border-white/10 rounded-lg overflow-hidden">
@@ -2952,91 +3285,87 @@ function CombinedYMFQPanel({ yearFq, monthFq, year, monthName, userTfq }) {
         className="w-full flex items-center justify-between px-4 py-2 bg-white/5 hover:bg-white/10 transition-colors text-left"
       >
         <span className="text-sm font-medium text-gray-200">
-          Step 1: Combined Year + Month Functional Qi (CYMFQ)
+          Step 1: Qi Inputs Summary — 4-Layer MTFQ
         </span>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-gray-400">{totalCym.toFixed(3)} pts</span>
-          <span className="text-gray-500">{open ? '▾' : '▸'}</span>
-        </div>
+        <span className="text-gray-500">{open ? '▾' : '▸'}</span>
       </button>
 
       {open && (
         <div className="px-4 py-3 space-y-3">
-          {/* Context */}
-          <div className="text-xs text-gray-500 font-mono">
-            Year: <span className="text-white">{year}</span> &nbsp;|&nbsp; Month: <span className="text-white">{monthName}</span>
-          </div>
           <div className="text-xs text-gray-500">
-            Combine Current Year Functional Qi (10%) and Current Month Functional Qi (30%) to determine their influence on natal Functional Qi.
+            The four Qi sources that blend into your monthly TotalQi. Each layer has already been through
+            its own pipeline (seasonality, polarity). Weights reflect metaphysical time-scale influence.
           </div>
 
-          {/* Header row */}
+          {/* Formula display */}
+          <div className="rounded border border-white/10 bg-black/30 px-3 py-2 text-[10px] font-mono text-gray-300">
+            MTFQ = <span className="text-amber-300">1.0</span> × NTFQ
+            + <span className="text-pink-300">0.9</span> × DaYunQi
+            + <span className="text-purple-300">0.5</span> × YearQi
+            + <span className="text-cyan-300">0.3</span> × MonthQi
+          </div>
+
+          {/* Input layers table */}
           <div className="rounded border border-white/10 overflow-hidden">
             <table className="w-full text-[10px] font-mono">
               <thead>
                 <tr className="bg-white/5">
-                  <th className="px-2 py-1 text-left text-gray-400">Element</th>
-                  <th className="px-2 py-1 text-right text-gray-400">Year Qi<br /><span className="text-[9px]">(CYFQ) 10%</span></th>
-                  <th className="px-2 py-1 text-center text-gray-500">+</th>
-                  <th className="px-2 py-1 text-right text-gray-400">Month Qi<br /><span className="text-[9px]">(CMFQ) 30%</span></th>
-                  <th className="px-2 py-1 text-center text-gray-500">=</th>
-                  <th className="px-2 py-1 text-right text-white">CYMFQ</th>
+                  <th className="px-2 py-1.5 text-left text-gray-400">Element</th>
+                  <th className="px-2 py-1.5 text-right text-amber-300">NTFQ<br /><span className="text-[9px] text-gray-500">×1.0 (body)</span></th>
+                  {daYunQi && <th className="px-2 py-1.5 text-right text-pink-300">Da Yun<br /><span className="text-[9px] text-gray-500">×0.9 (decade)</span></th>}
+                  <th className="px-2 py-1.5 text-right text-purple-300">Year Qi<br /><span className="text-[9px] text-gray-500">×0.5 ({year})</span></th>
+                  <th className="px-2 py-1.5 text-right text-cyan-300">Month Qi<br /><span className="text-[9px] text-gray-500">×0.3 ({monthName})</span></th>
+                  <th className="px-2 py-1.5 text-right text-green-300">MTFQ<br /><span className="text-[9px] text-gray-500">Weighted</span></th>
                 </tr>
               </thead>
               <tbody>
                 {ELEMENTS.map(el => (
                   <tr key={el} className="border-t border-white/5 hover:bg-white/5">
-                    <td className="px-2 py-1">
+                    <td className="px-2 py-1.5">
                       <ElSpan el={el}>{el}</ElSpan>
                     </td>
-                    <td className="px-2 py-1 text-right text-gray-300">{(yearFq[el] || 0).toFixed(3)}</td>
-                    <td className="px-2 py-1 text-center text-gray-500">+</td>
-                    <td className="px-2 py-1 text-right text-gray-300">{(monthFq[el] || 0).toFixed(3)}</td>
-                    <td className="px-2 py-1 text-center text-gray-500">=</td>
-                    <td className="px-2 py-1 text-right text-white font-semibold">{cymfq[el].toFixed(3)}</td>
+                    <td className="px-2 py-1.5 text-right text-amber-300">{(natalQi?.[el] || 0).toFixed(3)}</td>
+                    {daYunQi && <td className="px-2 py-1.5 text-right text-pink-300">{(daYunQi[el] || 0).toFixed(3)}</td>}
+                    <td className="px-2 py-1.5 text-right text-purple-300">{(yearFq[el] || 0).toFixed(3)}</td>
+                    <td className="px-2 py-1.5 text-right text-cyan-300">{(monthFq[el] || 0).toFixed(3)}</td>
+                    <td className="px-2 py-1.5 text-right text-green-300 font-semibold">{mtfq[el].toFixed(3)}</td>
                   </tr>
                 ))}
                 <tr className="border-t border-white/20 bg-white/5">
-                  <td className="px-2 py-1 text-gray-400 font-semibold">Total</td>
-                  <td className="px-2 py-1 text-right text-gray-400">
-                    {ELEMENTS.reduce((s, el) => s + (yearFq[el] || 0), 0).toFixed(3)}
-                  </td>
-                  <td className="px-2 py-1 text-center text-gray-500">+</td>
-                  <td className="px-2 py-1 text-right text-gray-400">
-                    {ELEMENTS.reduce((s, el) => s + (monthFq[el] || 0), 0).toFixed(3)}
-                  </td>
-                  <td className="px-2 py-1 text-center text-gray-500">=</td>
-                  <td className="px-2 py-1 text-right text-white font-bold">{totalCym.toFixed(3)}</td>
+                  <td className="px-2 py-1.5 text-gray-400 font-semibold">Total</td>
+                  <td className="px-2 py-1.5 text-right text-amber-300 font-semibold">{totalTfq.toFixed(3)}</td>
+                  {daYunQi && <td className="px-2 py-1.5 text-right text-pink-300 font-semibold">{totalDaYun.toFixed(3)}</td>}
+                  <td className="px-2 py-1.5 text-right text-purple-300 font-semibold">{totalYear.toFixed(3)}</td>
+                  <td className="px-2 py-1.5 text-right text-cyan-300 font-semibold">{totalMonth.toFixed(3)}</td>
+                  <td className="px-2 py-1.5 text-right text-green-300 font-semibold">{totalMtfq.toFixed(3)}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Formula breakdown */}
-          <div className="text-[10px] font-mono text-gray-400 space-y-0.5">
-            {ELEMENTS.map(el => (
-              <div key={el}>
-                <ElSpan el={el}>{el}</ElSpan>
-                <span className="text-gray-500"> (CYMFQ)</span>
-                {' = '}
-                <ElSpan el={el}>{el}</ElSpan>
-                <span className="text-gray-500"> (CYFQ)</span>
-                {' + '}
-                <ElSpan el={el}>{el}</ElSpan>
-                <span className="text-gray-500"> (CMFQ)</span>
-                {' = '}
-                <span className="text-gray-400">{(yearFq[el] || 0).toFixed(3)}</span>
-                {' + '}
-                <span className="text-gray-400">{(monthFq[el] || 0).toFixed(3)}</span>
-                {' = '}
-                <span className="text-white font-semibold">{cymfq[el].toFixed(3)}</span>
-              </div>
-            ))}
+          {/* Baby-step per-element breakdown */}
+          <div className="rounded border border-white/10 bg-black/20 px-3 py-2 space-y-1">
+            <div className="text-[9px] text-gray-400 font-semibold mb-1">Per-Element Baby-Step Calculation</div>
+            {ELEMENTS.map(el => {
+              const n = natalQi?.[el] || 0;
+              const d = daYunQi?.[el] || 0;
+              const y = yearFq[el] || 0;
+              const mo = monthFq[el] || 0;
+              const parts = [`1.0×${n.toFixed(3)}`];
+              if (daYunQi) parts.push(`0.9×${d.toFixed(3)}`);
+              parts.push(`0.5×${y.toFixed(3)}`);
+              parts.push(`0.3×${mo.toFixed(3)}`);
+              return (
+                <div key={el} className="text-[9px] font-mono text-gray-400">
+                  <ElSpan el={el}>{el.padEnd(5, '\u00A0')}</ElSpan>
+                  {': '}
+                  {parts.join(' + ')}
+                  {' = '}
+                  <span className="text-green-300 font-semibold">{mtfq[el].toFixed(3)}</span>
+                </div>
+              );
+            })}
           </div>
-
-          {/* QiBar */}
-          <div className="text-xs font-semibold text-amber-300 mb-1">Combined Year + Month Functional Qi</div>
-          <QiBar qi={cymfq} />
         </div>
       )}
     </div>
@@ -3458,245 +3787,9 @@ function BeforeAfterBars({ before, after, label = '' }) {
 // ============================================================================
 
 // Controlling cycle: Metal→Wood, Water→Fire, Fire→Metal, Wood→Earth, Earth→Water
-const CLASH_PAIRS = [
-  { attacker: 'Metal', victim: 'Wood',  label: 'Metal chops Wood' },
-  { attacker: 'Water', victim: 'Fire',  label: 'Water quenches Fire' },
-  { attacker: 'Fire',  victim: 'Metal', label: 'Fire melts Metal' },
-  { attacker: 'Wood',  victim: 'Earth', label: 'Wood penetrates Earth' },
-  { attacker: 'Earth', victim: 'Water', label: 'Earth dams Water' },
-];
-
-/**
- * Structured clash event — "who did what to whom"
- * @typedef {Object} ClashEvent
- */
-
-// Single-pass clash: internal tensions within one Qi pool
-// Returns structured events with attacker/victim metadata
-function applyClashes(qi, source = 'internal') {
-  const result = { ...qi };
-  const details = [];
-  const events = [];
-
-  CLASH_PAIRS.forEach(({ attacker, victim, label }) => {
-    const aVal = result[attacker];
-    const vVal = result[victim];
-    if (aVal > vVal && aVal > 0) {
-      const drain = aVal * 0.10;
-      const cost  = aVal * 0.02;
-      const newVic = Math.max(0, vVal - drain);
-      const newAtk = Math.max(0, aVal - cost);
-
-      events.push({
-        source,
-        attacker,
-        victim,
-        attackerBefore: aVal,
-        victimBefore: vVal,
-        attackerAfter: newAtk,
-        victimAfter: newVic,
-        victimDelta: newVic - vVal,
-        attackerDelta: newAtk - aVal,
-        label,
-        narrative: `${source === 'natal' ? 'Natal' : 'Transit'} ${attacker} (${aVal.toFixed(3)}) attacked ${source === 'natal' ? 'natal' : 'transit'} ${victim} (${vVal.toFixed(3)}): ${victim} −${drain.toFixed(3)}, ${attacker} −${cost.toFixed(3)}`,
-      });
-
-      result[victim]   = newVic;
-      result[attacker] = newAtk;
-      details.push(`${label}: ${victim} −${drain.toFixed(3)}, ${attacker} −${cost.toFixed(3)}`);
-    }
-  });
-
-  return { result, details, events };
-}
-
-// Directional clash: transit (attacker source) presses natal (victim target)
-// Transit element attacks the natal element it controls — one-directional
-function applyDirectionalClashes(natal, transit) {
-  const result = { ...natal };
-  const details = [];
-  const events = [];
-
-  CLASH_PAIRS.forEach(({ attacker, victim, label }) => {
-    const transitAtk = transit[attacker] || 0;
-    const natalVic = result[victim] || 0;
-    if (transitAtk > natalVic && transitAtk > 0) {
-      const drain = transitAtk * 0.10;
-      const newVic = Math.max(0, natalVic - drain);
-
-      events.push({
-        source: 'transit→natal',
-        attacker,
-        victim,
-        attackerBefore: transitAtk,
-        victimBefore: natalVic,
-        attackerAfter: transitAtk, // transit NOT reduced
-        victimAfter: newVic,
-        victimDelta: newVic - natalVic,
-        attackerDelta: 0,
-        label,
-        narrative: `Transit ${attacker} (${transitAtk.toFixed(3)}) pressed natal ${victim} (${natalVic.toFixed(3)}): ${victim} −${drain.toFixed(3)} (transit unchanged)`,
-      });
-
-      result[victim] = newVic;
-      details.push(`${label}: transit ${attacker} (${transitAtk.toFixed(3)}) → natal ${victim} −${drain.toFixed(3)}`);
-    }
-  });
-
-  return { result, details, events };
-}
-
-// Three-pass clash system: natal internal, transit internal, transit→natal directional
-function computeThreePassClashes(atfq, acymfq) {
-  // Pass A: Natal-on-Natal internal tensions
-  const passA = applyClashes(atfq, 'natal');
-
-  // Pass B: Transit-on-Transit internal clashes (Year vs Month fighting)
-  const passB = applyClashes(acymfq, 'transit');
-
-  // Pass C: Transit → Natal directional pressure (weather hitting the car)
-  // Apply to natal AFTER its own internal clashes, using transit AFTER its own internal clashes
-  const passC = applyDirectionalClashes(passA.result, passB.result);
-
-  // Recombine: modified natal + modified transit = post-clash NTFQ
-  const combined = {};
-  ELEMENTS.forEach(el => {
-    combined[el] = (passC.result[el] || 0) + (passB.result[el] || 0);
-  });
-
-  // Collect all events across all three passes
-  const allEvents = [
-    ...passA.events,
-    ...passB.events,
-    ...passC.events,
-  ];
-
-  return { passA, passB, passC, combined, allEvents };
-}
-
-// Sheng (生) cycle: gentle nourishment — parent feeds child
-const SHENG_PAIRS = [
-  { parent: 'Wood',  child: 'Fire',  label: 'Wood feeds Fire' },
-  { parent: 'Fire',  child: 'Earth', label: 'Fire creates Earth' },
-  { parent: 'Earth', child: 'Metal', label: 'Earth bears Metal' },
-  { parent: 'Metal', child: 'Water', label: 'Metal enriches Water' },
-  { parent: 'Water', child: 'Wood',  label: 'Water nourishes Wood' },
-];
-
-const SHENG_RATE = 0.03;           // 3% of parent value
-const SHENG_MAX_BOOST_RATIO = 0.20; // child can gain at most +20% of its own value
-
-function applySheng(qi) {
-  const result = { ...qi };
-  const details = [];
-
-  SHENG_PAIRS.forEach(({ parent, child, label }) => {
-    const parentVal = qi[parent];  // use original values, not mutated
-    const childVal = qi[child];
-
-    if (parentVal > childVal && parentVal > 0) {
-      const rawBoost = parentVal * SHENG_RATE;
-      const maxBoost = childVal * SHENG_MAX_BOOST_RATIO;
-      const boost = Math.min(rawBoost, maxBoost > 0 ? maxBoost : rawBoost);
-      result[child] = childVal + boost;
-      details.push(`${label}: ${child} +${boost.toFixed(3)} (${parent} ${parentVal.toFixed(3)} × ${(SHENG_RATE * 100).toFixed(0)}%)`);
-    }
-  });
-
-  return { result, details };
-}
-
-// ============================================================================
-// OVERCROWDING — Soft bleed-off when one element dominates
-// ============================================================================
-
-// Thresholds — professional BaZi grade
-const OVERCROWDING_SHARE_THRESHOLD = 0.35;  // element > 35% of total
-const OVERCROWDING_RATIO_THRESHOLD = 2.0;   // element > 2× average
-const OVERCROWDING_BLEED_RATE = 0.10;       // 10% of excess bleeds to child
-const OVERCROWDING_MAX_BLEED = 0.50;        // cap at 0.50 pts per element
-
-// Sheng child map for bleed target
-const SHENG_CHILD = { Wood: 'Fire', Fire: 'Earth', Earth: 'Metal', Metal: 'Water', Water: 'Wood' };
-
-function applyOvercrowding(qi) {
-  const result = { ...qi };
-  const details = [];
-  const total = ELEMENTS.reduce((s, el) => s + (qi[el] || 0), 0);
-  const avg = total / 5;
-
-  ELEMENTS.forEach(el => {
-    const val = qi[el] || 0;
-    if (total <= 0 || val <= 0) return;
-
-    const share = val / total;
-    const ratio = avg > 0 ? val / avg : 0;
-
-    if (share > OVERCROWDING_SHARE_THRESHOLD || ratio > OVERCROWDING_RATIO_THRESHOLD) {
-      const excess = val - (avg * OVERCROWDING_RATIO_THRESHOLD);
-      if (excess <= 0) return;
-
-      const rawBleed = excess * OVERCROWDING_BLEED_RATE;
-      const bleed = Math.min(rawBleed, OVERCROWDING_MAX_BLEED);
-      const child = SHENG_CHILD[el];
-
-      result[el] = val - bleed;
-      result[child] = (result[child] || 0) + bleed;
-
-      details.push({
-        element: el,
-        child,
-        share: (share * 100).toFixed(1),
-        ratio: ratio.toFixed(2),
-        bleed: bleed.toFixed(3),
-        label: `${el} overcrowded (${(share * 100).toFixed(1)}% of total, ${ratio.toFixed(1)}× avg) → ${bleed.toFixed(3)} pts softly redirected to ${child}`,
-      });
-    }
-  });
-
-  return { result, details };
-}
-
-// Control cycle: gentle 2% universal damping
-function applyControl(qi) {
-  const result = {};
-  const details = [];
-  ELEMENTS.forEach(el => {
-    result[el] = qi[el] * 0.98;
-    if (qi[el] > 0) {
-      details.push(`${el}: ${qi[el].toFixed(3)} × 0.98 = ${result[el].toFixed(3)}`);
-    }
-  });
-  return { result, details };
-}
-
-// Transformation: when one element overwhelms another (ratio > 3, absolute > 1.5)
-// the victim transforms into its child element on the productive cycle
-const TRANSFORM_RULES = [
-  { attacker: 'Fire',  victim: 'Metal', product: 'Water', label: 'Fire melts Metal → Water' },
-  { attacker: 'Metal', victim: 'Wood',  product: 'Fire',  label: 'Metal chops Wood → Fire' },
-  { attacker: 'Water', victim: 'Fire',  product: 'Earth', label: 'Water drowns Fire → Earth' },
-  { attacker: 'Wood',  victim: 'Earth', product: 'Metal', label: 'Wood uproots Earth → Metal' },
-  { attacker: 'Earth', victim: 'Water', product: 'Wood',  label: 'Earth absorbs Water → Wood' },
-];
-
-function applyTransformations(qi) {
-  const result = { ...qi };
-  const details = [];
-
-  TRANSFORM_RULES.forEach(({ attacker, victim, product, label }) => {
-    const aVal = result[attacker];
-    const vVal = result[victim];
-    if (aVal > 1.5 && vVal > 0 && aVal / vVal > 3) {
-      const melt = vVal * 0.30;
-      result[victim]  = Math.max(0, vVal - melt);
-      result[product] = (result[product] || 0) + melt;
-      details.push(`${label}: ${victim} −${melt.toFixed(3)} → ${product} +${melt.toFixed(3)}`);
-    }
-  });
-
-  return { result, details };
-}
+// applyClashes, applyDirectionalClashes, computeThreePassClashes,
+// applySheng, applyOvercrowding, applyControl, applyTransformations
+// are imported from ../utils/qiTransforms
 
 // ============================================================================
 // STEP 5a: VOID PANEL (空亡)
@@ -4109,502 +4202,6 @@ function ClashAdjustmentPanel({ atfq, acymfq }) {
   );
 }
 
-// ============================================================================
-// EVENT TIMELINE — unified narratable log of all pipeline events
-// ============================================================================
-
-const EVENT_TYPE_META = {
-  'void':           { icon: '🕳️', color: 'text-purple-300', label: 'Void' },
-  'stem-combo':     { icon: '合',  color: 'text-amber-300',  label: 'Stem Combination' },
-  'liu-he':         { icon: '六',  color: 'text-cyan-300',   label: 'Branch Six Combo' },
-  'san-he':         { icon: '三',  color: 'text-emerald-300',label: 'Three Harmony' },
-  'san-hui':        { icon: '会',  color: 'text-rose-300',   label: 'Three Meetings' },
-  'clash-natal':    { icon: '🔵', color: 'text-blue-300',   label: 'Natal Clash' },
-  'clash-transit':  { icon: '🟠', color: 'text-orange-300', label: 'Transit Clash' },
-  'clash-directed': { icon: '🔴', color: 'text-red-300',    label: 'Transit→Natal' },
-  'sheng':          { icon: '生',  color: 'text-green-300',  label: 'Nourishment' },
-  'overcrowding':   { icon: '溢',  color: 'text-lime-300',   label: 'Overcrowding' },
-  'transform':      { icon: '化',  color: 'text-yellow-300', label: 'Transformation' },
-  'collapse':       { icon: '💥', color: 'text-red-400',    label: 'Collapse' },
-};
-
-function EventTimeline({ comboResult, clashResult, shengDetails, overcrowdingDetails, transformDetails, collapseQi }) {
-  const [open, setOpen] = useState(false);
-
-  // Build unified event list
-  const timeline = [];
-
-  // Void events
-  if (comboResult?.voidEvents?.length > 0) {
-    for (const ev of comboResult.voidEvents) {
-      timeline.push({
-        type: 'void',
-        narrative: `${ev.pillarLabel} ${ev.branch} (${ev.animal}) is void — ${ev.element} −${ev.qiReduction.toFixed(3)} Qi`,
-      });
-    }
-  }
-
-  // Combination events
-  if (comboResult?.events?.length > 0) {
-    for (const ev of comboResult.events) {
-      timeline.push({
-        type: ev.type,
-        narrative: ev.voidBlocked
-          ? `${ev.label} — blocked by void`
-          : ev.transformed
-            ? `${ev.label} — ${ev.detail}`
-            : `${ev.label} — bond only, no transform`,
-      });
-    }
-  }
-
-  // Clash events (from allEvents)
-  if (clashResult?.allEvents?.length > 0) {
-    for (const ev of clashResult.allEvents) {
-      const typeKey = ev.source === 'natal' ? 'clash-natal' : ev.source === 'transit' ? 'clash-transit' : 'clash-directed';
-      timeline.push({
-        type: typeKey,
-        narrative: ev.narrative,
-      });
-    }
-  }
-
-  // Sheng events
-  if (shengDetails?.length > 0) {
-    for (const d of shengDetails) {
-      timeline.push({ type: 'sheng', narrative: typeof d === 'string' ? d : d.label || String(d) });
-    }
-  }
-
-  // Overcrowding events
-  if (overcrowdingDetails?.length > 0) {
-    for (const d of overcrowdingDetails) {
-      timeline.push({ type: 'overcrowding', narrative: typeof d === 'string' ? d : d.label || String(d) });
-    }
-  }
-
-  // Transform events
-  if (transformDetails?.length > 0) {
-    for (const d of transformDetails) {
-      timeline.push({ type: 'transform', narrative: typeof d === 'string' ? d : d.label || String(d) });
-    }
-  }
-
-  // Structural collapse detection
-  if (collapseQi) {
-    const collapse = analyzeStructuralCollapse(collapseQi);
-    if (collapse.mode !== 'none') {
-      const meta = COLLAPSE_META[collapse.mode];
-      timeline.push({
-        type: 'collapse',
-        narrative: `${meta?.name || collapse.mode}: ${collapse.primary ? collapse.primary + ' at ' + (collapse.primaryShare * 100).toFixed(1) + '%' : ''} — ${meta?.description || ''}`,
-      });
-    }
-  }
-
-  if (timeline.length === 0) return null;
-
-  return (
-    <div className="border border-white/10 rounded-lg overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-2 bg-white/5 hover:bg-white/10 transition-colors text-left"
-      >
-        <span className="text-sm font-medium text-gray-200">
-          Event Timeline — What Happened This Month
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-gray-400">{timeline.length} events</span>
-          <span className="text-gray-500">{open ? '▾' : '▸'}</span>
-        </div>
-      </button>
-
-      {open && (
-        <div className="px-4 py-3 space-y-1 max-h-[28rem] overflow-y-auto">
-          <div className="text-xs text-gray-500 mb-2">
-            Complete narrative of every Qi interaction this month — who did what to whom.
-          </div>
-          {timeline.map((ev, i) => {
-            const meta = EVENT_TYPE_META[ev.type] || { icon: '?', color: 'text-gray-400', label: ev.type };
-            return (
-              <div key={i} className="flex items-start gap-2 text-[10px] font-mono py-1 border-b border-white/5 last:border-0">
-                <span className={`${meta.color} font-bold shrink-0 w-6 text-center`}>{meta.icon}</span>
-                <span className={`${meta.color} shrink-0 w-24`}>{meta.label}</span>
-                <span className="text-gray-300 flex-1">{ev.narrative}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
-// STEP 7: SHENG CYCLE NOURISHMENT (生)
-// ============================================================================
-
-function ShengNourishmentPanel({ postClashQi }) {
-  const [open, setOpen] = useState(false);
-  const [showExplain, setShowExplain] = useState(false);
-
-  if (!postClashQi) return null;
-
-  const { result: afterSheng, details } = applySheng(postClashQi);
-  const totalAfter = ELEMENTS.reduce((s, el) => s + (afterSheng[el] || 0), 0);
-
-  return (
-    <div className="border border-white/10 rounded-lg overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-2 bg-white/5 hover:bg-white/10 transition-colors text-left"
-      >
-        <span className="text-sm font-medium text-gray-200">
-          Step 7: Sheng Cycle Nourishment — Generating Cycle (生)
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-gray-400">{totalAfter.toFixed(3)} pts</span>
-          <span className="text-gray-500">{open ? '▾' : '▸'}</span>
-        </div>
-      </button>
-
-      {open && (
-        <div className="px-4 py-3 space-y-3">
-          <div className="text-xs text-gray-500">
-            After destructive clashes settle, the productive cycle gently nourishes:
-            a strong parent feeds its child element. Rate: {(SHENG_RATE * 100).toFixed(0)}% of parent,
-            capped at {(SHENG_MAX_BOOST_RATIO * 100).toFixed(0)}% of child's current value.
-            Parent is NOT drained — this is gentle nourishment, not exhaustion.
-            <button onClick={() => setShowExplain(!showExplain)} className="ml-2 text-green-400 hover:text-green-300 underline text-xs">
-              {showExplain ? 'Hide explanation' : 'Learn more'}
-            </button>
-          </div>
-          {showExplain && (
-            <div className="rounded-lg bg-slate-900/80 border border-green-500/20 p-3 text-xs text-gray-300 leading-relaxed whitespace-pre-wrap font-mono max-h-[300px] overflow-y-auto">
-              {SHENG_EXPLANATION_MD}
-            </div>
-          )}
-
-          {/* Sheng cycle reference */}
-          <div className="text-[10px] font-mono text-gray-500 bg-white/5 rounded p-2 space-y-0.5">
-            <div><ElSpan el="Wood">Wood</ElSpan> → feeds → <ElSpan el="Fire">Fire</ElSpan></div>
-            <div><ElSpan el="Fire">Fire</ElSpan> → creates → <ElSpan el="Earth">Earth</ElSpan></div>
-            <div><ElSpan el="Earth">Earth</ElSpan> → bears → <ElSpan el="Metal">Metal</ElSpan></div>
-            <div><ElSpan el="Metal">Metal</ElSpan> → enriches → <ElSpan el="Water">Water</ElSpan></div>
-            <div><ElSpan el="Water">Water</ElSpan> → nourishes → <ElSpan el="Wood">Wood</ElSpan></div>
-          </div>
-
-          {/* Nourishment details */}
-          {details.length > 0 ? (
-            <div className="text-[10px] font-mono text-gray-400 space-y-0.5 bg-white/5 rounded p-2">
-              {details.map((d, i) => <div key={i}>🌱 {d}</div>)}
-            </div>
-          ) : (
-            <div className="text-[10px] text-gray-500 italic">No nourishment active — no parent is stronger than its child.</div>
-          )}
-
-          {/* Before / After */}
-          <div className="text-xs font-semibold text-gray-300 mb-1">Before → After Sheng Nourishment</div>
-          <BeforeAfterBars before={postClashQi} after={afterSheng} />
-
-          {/* After QiBar */}
-          <div className="text-xs font-semibold text-green-300 mb-1 mt-2">Post-Sheng Qi</div>
-          <QiBar qi={afterSheng} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
-// STEP 7.5: OVERCROWDING — SOFT BLEED-OFF (溢)
-// ============================================================================
-
-function OvercrowdingPanel({ postShengQi }) {
-  const [open, setOpen] = useState(false);
-  const [showExplain, setShowExplain] = useState(false);
-
-  if (!postShengQi) return null;
-
-  const { result: afterOvercrowding, details } = applyOvercrowding(postShengQi);
-  const totalAfter = ELEMENTS.reduce((s, el) => s + (afterOvercrowding[el] || 0), 0);
-  const total = ELEMENTS.reduce((s, el) => s + (postShengQi[el] || 0), 0);
-
-  return (
-    <div className="border border-white/10 rounded-lg overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-2 bg-white/5 hover:bg-white/10 transition-colors text-left"
-      >
-        <span className="text-sm font-medium text-gray-200">
-          Step 7.5: Overcrowding — Soft Bleed-Off (溢)
-          {details.length > 0 && <span className="ml-2 text-xs text-orange-400">({details.length} overcrowded)</span>}
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-gray-400">{totalAfter.toFixed(3)} pts</span>
-          <span className="text-gray-500">{open ? '▾' : '▸'}</span>
-        </div>
-      </button>
-
-      {open && (
-        <div className="px-4 py-3 space-y-3">
-          <div className="text-xs text-gray-500">
-            When one element exceeds 35% of total Qi or 2× the average, excess energy
-            softly bleeds into its generating-cycle child (10% of excess, capped at 0.50 pts).
-            This models self-generated instability — dominance that overflows.
-            <button onClick={() => setShowExplain(!showExplain)} className="ml-2 text-orange-400 hover:text-orange-300 underline text-xs">
-              {showExplain ? 'Hide explanation' : 'Learn more'}
-            </button>
-          </div>
-
-          {showExplain && (
-            <div className="rounded-lg bg-slate-900/80 border border-orange-500/20 p-3 text-xs text-gray-300 leading-relaxed whitespace-pre-wrap font-mono max-h-[300px] overflow-y-auto">
-              {OVERCROWDING_EXPLANATION_MD}
-            </div>
-          )}
-
-          {/* Thresholds reference */}
-          <div className="text-[10px] font-mono text-gray-500 bg-white/5 rounded p-2 space-y-0.5">
-            <div>Share threshold: &gt;{(OVERCROWDING_SHARE_THRESHOLD * 100).toFixed(0)}% of total</div>
-            <div>Ratio threshold: &gt;{OVERCROWDING_RATIO_THRESHOLD.toFixed(1)}× average</div>
-            <div>Bleed rate: {(OVERCROWDING_BLEED_RATE * 100).toFixed(0)}% of excess → child</div>
-            <div>Max bleed: {OVERCROWDING_MAX_BLEED.toFixed(2)} pts per element</div>
-          </div>
-
-          {/* Element status table */}
-          <div className="rounded border border-white/10 overflow-hidden">
-            <table className="w-full text-[10px] font-mono">
-              <thead>
-                <tr className="bg-white/5">
-                  <th className="px-2 py-1 text-left text-gray-400">Element</th>
-                  <th className="px-2 py-1 text-right text-gray-400">Qi</th>
-                  <th className="px-2 py-1 text-right text-gray-400">Share</th>
-                  <th className="px-2 py-1 text-right text-gray-400">× Avg</th>
-                  <th className="px-2 py-1 text-center text-gray-400">Overcrowded?</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ELEMENTS.map(el => {
-                  const val = postShengQi[el] || 0;
-                  const avg = total / 5;
-                  const share = total > 0 ? val / total : 0;
-                  const ratio = avg > 0 ? val / avg : 0;
-                  const isOver = share > OVERCROWDING_SHARE_THRESHOLD || ratio > OVERCROWDING_RATIO_THRESHOLD;
-                  return (
-                    <tr key={el} className={`border-t border-white/5 ${isOver ? 'bg-orange-500/10' : ''}`}>
-                      <td className="px-2 py-1"><ElSpan el={el}>{el}</ElSpan></td>
-                      <td className="px-2 py-1 text-right text-gray-300">{val.toFixed(3)}</td>
-                      <td className="px-2 py-1 text-right text-gray-400">{(share * 100).toFixed(1)}%</td>
-                      <td className="px-2 py-1 text-right text-gray-400">{ratio.toFixed(2)}×</td>
-                      <td className="px-2 py-1 text-center">{isOver ? <span className="text-orange-400 font-bold">YES</span> : <span className="text-gray-600">—</span>}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Bleed events */}
-          {details.length > 0 ? (
-            <div className="text-[10px] font-mono text-gray-400 space-y-0.5 bg-white/5 rounded p-2">
-              {details.map((d, i) => (
-                <div key={i}>
-                  🌊 <ElSpan el={d.element}>{d.element}</ElSpan>
-                  {' → '}
-                  <span className="text-orange-300">−{d.bleed}</span>
-                  {' → '}
-                  <ElSpan el={d.child}>{d.child}</ElSpan>
-                  {' '}
-                  <span className="text-green-300">+{d.bleed}</span>
-                  <span className="text-gray-600 ml-2">({d.share}% share, {d.ratio}× avg)</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-[10px] text-gray-500 italic">No overcrowding detected — all elements within balanced thresholds.</div>
-          )}
-
-          {/* Before / After */}
-          <div className="text-xs font-semibold text-gray-300 mb-1">Before → After Overcrowding</div>
-          <BeforeAfterBars before={postShengQi} after={afterOvercrowding} />
-
-          <div className="text-xs font-semibold text-orange-300 mb-1 mt-2">Post-Overcrowding Qi</div>
-          <QiBar qi={afterOvercrowding} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
-// STEP 8: CONTROL CYCLE PRESSURE
-// ============================================================================
-
-function ControlCyclePressurePanel({ postClashQi }) {
-  const [open, setOpen] = useState(false);
-  const [showExplain, setShowExplain] = useState(false);
-
-  if (!postClashQi) return null;
-
-  const { result: afterControl, details } = applyControl(postClashQi);
-  const totalAfter = ELEMENTS.reduce((s, el) => s + (afterControl[el] || 0), 0);
-
-  return (
-    <div className="border border-white/10 rounded-lg overflow-hidden" data-step="control" data-qi={JSON.stringify(afterControl)}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-2 bg-white/5 hover:bg-white/10 transition-colors text-left"
-      >
-        <span className="text-sm font-medium text-gray-200">
-          Step 8: Control Cycle Pressure — Universal Damping (2%)
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-gray-400">{totalAfter.toFixed(3)} pts</span>
-          <span className="text-gray-500">{open ? '▾' : '▸'}</span>
-        </div>
-      </button>
-
-      {open && (
-        <div className="px-4 py-3 space-y-3">
-          <div className="text-xs text-gray-500">
-            All elements experience a gentle 2% loss from the natural friction of the control cycle.
-            This models the universal cost of maintaining elemental balance — no element exists in isolation.
-            <button onClick={() => setShowExplain(!showExplain)} className="ml-2 text-purple-400 hover:text-purple-300 underline text-xs">
-              {showExplain ? 'Hide explanation' : 'Learn more'}
-            </button>
-          </div>
-          {showExplain && (
-            <div className="rounded-lg bg-slate-900/80 border border-purple-500/20 p-3 text-xs text-gray-300 leading-relaxed whitespace-pre-wrap font-mono max-h-[300px] overflow-y-auto">
-              {DAMPING_EXPLANATION_MD}
-            </div>
-          )}
-
-          {/* Calculation */}
-          <div className="text-[10px] font-mono text-gray-400 space-y-0.5 bg-white/5 rounded p-2">
-            {details.map((d, i) => <div key={i}>{d}</div>)}
-          </div>
-
-          {/* Before / After */}
-          <div className="text-xs font-semibold text-gray-300 mb-1">Before → After Control Damping</div>
-          <BeforeAfterBars before={postClashQi} after={afterControl} />
-
-          {/* After QiBar */}
-          <div className="text-xs font-semibold text-purple-300 mb-1 mt-2">Post-Control Qi</div>
-          <QiBar qi={afterControl} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
-// STEP 9: TRANSFORMATION (HYBRID RULE)
-// ============================================================================
-
-function TransformationPanel({ postControlQi }) {
-  const [open, setOpen] = useState(false);
-  const [showExplain, setShowExplain] = useState(false);
-
-  if (!postControlQi) return null;
-
-  const { result: afterTransform, details } = applyTransformations(postControlQi);
-  const totalAfter = ELEMENTS.reduce((s, el) => s + (afterTransform[el] || 0), 0);
-
-  return (
-    <div className="border border-white/10 rounded-lg overflow-hidden" data-step="transform" data-qi={JSON.stringify(afterTransform)}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-2 bg-white/5 hover:bg-white/10 transition-colors text-left"
-      >
-        <span className="text-sm font-medium text-gray-200">
-          Step 9: Transformation — Elemental Transmutation (化)
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-gray-400">{totalAfter.toFixed(3)} pts</span>
-          <span className="text-gray-500">{open ? '▾' : '▸'}</span>
-        </div>
-      </button>
-
-      {open && (
-        <div className="px-4 py-3 space-y-3">
-          <div className="text-xs text-gray-500">
-            When an element overwhelms another (ratio &gt; 3:1 and attacker &gt; 1.5 pts),
-            30% of the victim transforms into its productive-cycle child.
-            This models extreme elemental pressure causing transmutation.
-            <button onClick={() => setShowExplain(!showExplain)} className="ml-2 text-amber-400 hover:text-amber-300 underline text-xs">
-              {showExplain ? 'Hide explanation' : 'Learn more'}
-            </button>
-          </div>
-          {showExplain && (
-            <div className="rounded-lg bg-slate-900/80 border border-amber-500/20 p-3 text-xs text-gray-300 leading-relaxed whitespace-pre-wrap font-mono max-h-[300px] overflow-y-auto">
-              {TRANSFORMATION_EXPLANATION_MD}
-            </div>
-          )}
-
-          {/* Transform details */}
-          {details.length > 0 ? (
-            <div className="text-[10px] font-mono text-gray-400 space-y-0.5 bg-white/5 rounded p-2">
-              {details.map((d, i) => <div key={i}>🔄 {d}</div>)}
-            </div>
-          ) : (
-            <div className="text-[10px] text-gray-500 italic">No transformations triggered — no element pair exceeds the 3:1 ratio threshold.</div>
-          )}
-
-          {/* Transformation rule table */}
-          <div className="rounded border border-white/10 overflow-hidden">
-            <table className="w-full text-[10px] font-mono">
-              <thead>
-                <tr className="bg-white/5">
-                  <th className="px-2 py-1 text-left text-gray-400">Rule</th>
-                  <th className="px-2 py-1 text-right text-gray-400">Attacker</th>
-                  <th className="px-2 py-1 text-right text-gray-400">Victim</th>
-                  <th className="px-2 py-1 text-right text-gray-400">Ratio</th>
-                  <th className="px-2 py-1 text-center text-gray-400">Triggered?</th>
-                </tr>
-              </thead>
-              <tbody>
-                {TRANSFORM_RULES.map((rule, i) => {
-                  const aVal = postControlQi[rule.attacker] || 0;
-                  const vVal = postControlQi[rule.victim] || 0;
-                  const ratio = vVal > 0 ? aVal / vVal : 0;
-                  const triggered = aVal > 1.5 && vVal > 0 && ratio > 3;
-                  return (
-                    <tr key={i} className={`border-t border-white/5 ${triggered ? 'bg-amber-500/10' : ''}`}>
-                      <td className="px-2 py-1 text-gray-300">{rule.label}</td>
-                      <td className="px-2 py-1 text-right">
-                        <ElSpan el={rule.attacker}>{aVal.toFixed(3)}</ElSpan>
-                      </td>
-                      <td className="px-2 py-1 text-right">
-                        <ElSpan el={rule.victim}>{vVal.toFixed(3)}</ElSpan>
-                      </td>
-                      <td className="px-2 py-1 text-right text-gray-400">
-                        {vVal > 0 ? ratio.toFixed(1) + ':1' : '∞'}
-                      </td>
-                      <td className="px-2 py-1 text-center">
-                        {triggered
-                          ? <span className="text-amber-400 font-bold">YES</span>
-                          : <span className="text-gray-600">no</span>
-                        }
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Before / After */}
-          <div className="text-xs font-semibold text-gray-300 mb-1">Before → After Transformation</div>
-          <BeforeAfterBars before={postControlQi} after={afterTransform} />
-
-          {/* After QiBar */}
-          <div className="text-xs font-semibold text-amber-300 mb-1 mt-2">Post-Transformation Qi</div>
-          <QiBar qi={afterTransform} />
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ============================================================================
 // STRUCTURAL COLLAPSE ANALYSIS — Post-pipeline diagnostic
@@ -4745,237 +4342,191 @@ function analyzeStructuralCollapse(qi) {
   return { mode: 'none', notes: ['Balanced — no structural collapse.'], snapshot: { ...qi } };
 }
 
-// ── UI Panel ──
 
-const COLLAPSE_EXPLANATION_MD = `## Structural Collapse (格局)
 
-After the full pipeline runs, the engine checks whether the resulting Qi landscape
-has collapsed into a recognizable extreme structural pattern.
+// ============================================================================
+// MTFQ BLEND DASHBOARD — visual breakdown of the 4-layer weighted Qi blend
+// MTFQ = 1.0×NTFQ + 0.9×DaYunQi + 0.5×YearQi + 0.3×MonthQi
+//
+// Only natal TFQ goes through the full survival pipeline
+// (Combinations → Clashes → Harms → Punishments → Control → Overcrowding →
+//  Collapse → Transformations → Structure → Ten Gods → Yong Shen) to become NTFQ.
+// DaYun, Year, Month Qi go through their own simpler pipeline
+// (Stem+Branch → Seasonality → Polarity) and are used as-is.
+// ============================================================================
 
-### Why This Matters
+function MTFQBlendDashboard({ natalTfq, daYunQi, yearQi, monthQi, monthName, year }) {
+  const [showMtfqMd, setShowMtfqMd] = useState(false);
+  // natalTfq = engine's natalForMtfq (NTFQ if available, else raw polarityQi)
+  const natalQi = natalTfq;
+  const natalLabel = 'NTFQ (post-pipeline)';
 
-In classical BaZi, extreme charts require DIFFERENT reading strategies:
+  const layers = [
+    { key: 'ntfq',  label: natalLabel,          weight: 1.0, qi: natalQi,      color: '#fbbf24', tag: 'body' },
+    { key: 'dayun', label: 'Da Yun Qi',          weight: 0.9, qi: daYunQi || {}, color: '#ec4899', tag: 'decade' },
+    { key: 'year',  label: `Year Qi (${year})`,   weight: 0.5, qi: yearQi,        color: '#a78bfa', tag: 'year' },
+    { key: 'month', label: `Month Qi (${monthName})`, weight: 0.3, qi: monthQi, color: '#22d3ee', tag: 'month' },
+  ];
 
-- **Follow the Strong (從旺格)**: When one element dominates overwhelmingly,
-  you support it instead of fighting it. Trying to "balance" a dominant chart
-  can make things worse.
+  // Compute MTFQ per element
+  const mtfq = {};
+  ELEMENTS.forEach(el => {
+    mtfq[el] = layers.reduce((s, l) => s + l.weight * (l.qi[el] || 0), 0);
+  });
+  const totalMtfq = ELEMENTS.reduce((s, el) => s + mtfq[el], 0);
 
-- **Two Gods (兩神成象)**: When two elements dominate, the chart oscillates
-  between them. Balance between the two poles is the key.
+  // Max value across all layers for consistent bar scaling
+  const allVals = layers.flatMap(l => ELEMENTS.map(el => l.qi[el] || 0));
+  const layerMax = Math.max(...allVals, 0.01);
 
-- **Drained (虛弱)**: A nearly absent element is an urgent priority.
-  Stones and remedies should target this element specifically.
-
-- **Inverted (反局)**: Extreme ratio between strongest and weakest.
-  Not full collapse but structural stress requiring attention.
-
-### Thresholds
-
-| Pattern | Condition |
-|---------|-----------|
-| Single Dominant | > 55% share AND > 20% gap to second |
-| Bi-Polar | Top two > 80% combined |
-| Drained | Bottom element < 5% |
-| Inverted | Top / bottom ratio > 3× |
-
-### Professional Note
-
-Structural collapse detection changes the Yong Shen strategy:
-- Normal chart: strengthen the weakest element
-- Collapsed chart: work WITH the dominant structure, not against it
-
-This is the difference between amateur and professional BaZi.`;
-
-function StructuralCollapsePanel({ finalQi }) {
-  const [open, setOpen] = useState(false);
-  const [showExplain, setShowExplain] = useState(false);
-
-  if (!finalQi) return null;
-
-  const collapse = analyzeStructuralCollapse(finalQi);
-  const meta = COLLAPSE_META[collapse.mode];
-  const isCollapsed = collapse.mode !== 'none';
+  // Max for MTFQ bars
+  const mtfqMax = Math.max(...ELEMENTS.map(el => mtfq[el]), 0.01);
 
   return (
-    <div className={`border rounded-lg overflow-hidden ${isCollapsed ? (meta?.border || 'border-white/10') : 'border-white/10'} ${isCollapsed ? (meta?.bg || '') : ''}`}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-2 bg-white/5 hover:bg-white/10 transition-colors text-left"
-      >
-        <span className={`text-sm font-medium ${isCollapsed ? (meta?.color || 'text-gray-200') : 'text-gray-200'}`}>
-          {isCollapsed ? `${meta?.icon || ''} Structural Collapse: ${meta?.name || collapse.mode}` : 'Structure: Balanced'}
-        </span>
-        <span className="text-gray-500">{open ? '▾' : '▸'}</span>
-      </button>
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-2.5 bg-white/5 border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold text-white">Month Total Functional Qi (MTFQ)</div>
+          <button onClick={() => setShowMtfqMd(prev => !prev)} className="text-[9px] font-mono text-amber-400/70 hover:text-amber-300 transition-colors px-1.5 py-0.5 rounded border border-amber-700/30 hover:border-amber-500/50 bg-amber-900/20">MD</button>
+        </div>
+        <div className="text-[10px] text-gray-300 font-mono mt-0.5">
+          MTFQ = <span className="text-amber-300">1.0</span>×NTFQ + <span className="text-pink-300">0.9</span>×DaYun + <span className="text-purple-300">0.5</span>×Year + <span className="text-cyan-300">0.3</span>×Month
+        </div>
+        <div className="text-[9px] text-gray-400 mt-0.5">
+          Only natal TFQ goes through the survival pipeline (Combinations → Clashes → Harms → ... → Yong Shen) to become NTFQ. External layers (DaYun, Year, Month) use their own Seasonality → Polarity pipeline.
+        </div>
+      </div>
 
-      {open && (
-        <div className="px-4 py-3 space-y-3">
-          {isCollapsed ? (
-            <>
-              <div className={`text-xs ${meta?.color || 'text-gray-300'}`}>
-                {meta?.description}
+      <div className="p-4 space-y-4">
+        {/* ── A. Four Input Layers — double bars (raw + weighted) ── */}
+        {layers.map(layer => {
+          const layerTotal = ELEMENTS.reduce((s, el) => s + (layer.qi[el] || 0), 0);
+          const weightedTotal = layerTotal * layer.weight;
+          return (
+            <div key={layer.key}>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: layer.color }} />
+                  <span className="text-[11px] font-semibold" style={{ color: layer.color }}>{layer.label}</span>
+                  <span className="text-[9px] text-gray-500">×{layer.weight}</span>
+                </div>
+                <div className="text-[10px] font-mono text-gray-400">
+                  {layerTotal.toFixed(3)} → <span className="text-white font-semibold">{weightedTotal.toFixed(3)}</span>
+                </div>
               </div>
-              <div className="text-xs text-gray-400 italic">
-                {meta?.implication}
-              </div>
-
-              {/* Collapse details */}
-              <div className="rounded border border-white/10 p-2 space-y-1 bg-black/20">
-                {collapse.notes.map((note, i) => (
-                  <div key={i} className="text-[10px] font-mono text-gray-300">{note}</div>
-                ))}
-              </div>
-
-              {/* Element shares bar */}
-              <div className="space-y-1">
-                <div className="text-[10px] font-semibold text-gray-400">Element Distribution</div>
+              <div className="space-y-0.5">
                 {ELEMENTS.map(el => {
-                  const total = ELEMENTS.reduce((s, e) => s + (finalQi[e] || 0), 0);
-                  const share = total > 0 ? ((finalQi[el] || 0) / total) * 100 : 0;
-                  const isPrimary = el === collapse.primary;
-                  const isSecondary = el === collapse.secondary;
+                  const raw = layer.qi[el] || 0;
+                  const weighted = raw * layer.weight;
                   return (
-                    <div key={el} className="flex items-center gap-2">
-                      <span className={`text-[9px] w-12 text-right ${isPrimary ? 'font-bold text-white' : isSecondary ? 'font-semibold text-gray-300' : 'text-gray-500'}`}>
-                        {el}
-                      </span>
-                      <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
-                        <div
-                          className="h-full rounded"
-                          style={{
-                            width: `${Math.max(share, share > 0 ? 1 : 0)}%`,
-                            backgroundColor: ELEM_COLORS[el],
-                            opacity: isPrimary ? 0.9 : isSecondary ? 0.7 : 0.35,
-                          }}
-                        />
+                    <div key={el} className="flex items-center gap-1.5 text-[10px]">
+                      <span className="w-10 text-right font-mono" style={{ color: ELEM_COLORS[el] }}>{el}</span>
+                      <div className="flex-1 h-3.5 bg-white/5 rounded overflow-hidden relative">
+                        {/* Raw bar (faint) */}
+                        <div className="absolute inset-y-0 left-0 rounded" style={{
+                          width: `${(raw / layerMax) * 100}%`,
+                          backgroundColor: ELEM_COLORS[el],
+                          opacity: 0.2,
+                        }} />
+                        {/* Weighted bar (bright) */}
+                        <div className="absolute inset-y-0 left-0 rounded" style={{
+                          width: `${(weighted / layerMax) * 100}%`,
+                          backgroundColor: ELEM_COLORS[el],
+                          opacity: 0.75,
+                        }} />
+                        {/* Labels */}
+                        <div className="absolute inset-0 flex items-center justify-between px-1 text-[8px] font-mono">
+                          <span className="text-white/40">{raw > 0 ? raw.toFixed(3) : ''}</span>
+                          <span className="text-white/80 font-semibold">{weighted > 0 ? weighted.toFixed(3) : ''}</span>
+                        </div>
                       </div>
-                      <span className={`text-[9px] font-mono w-14 text-right ${isPrimary ? 'text-white font-bold' : 'text-gray-500'}`}>
-                        {share.toFixed(1)}%
-                      </span>
                     </div>
                   );
                 })}
               </div>
-            </>
-          ) : (
-            <div className="text-xs text-gray-500 italic">
-              No structural collapse detected. Element distribution is within normal bounds.
             </div>
-          )}
+          );
+        })}
 
-          {/* Learn more toggle */}
-          <button
-            onClick={() => setShowExplain(!showExplain)}
-            className="text-[10px] text-blue-400 hover:text-blue-300 underline"
-          >
-            {showExplain ? 'Hide explanation' : 'Learn more about Structural Collapse (格局)'}
-          </button>
-          {showExplain && (
-            <div className="text-[10px] text-gray-400 font-mono whitespace-pre-wrap bg-black/30 rounded p-3 max-h-60 overflow-y-auto">
-              {COLLAPSE_EXPLANATION_MD}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
-// STEP 10: FINAL FUNCTIONAL QI (MFFQ)
-// ============================================================================
-
-function FinalFunctionalQiPanel({ atfq, acymfq }) {
-  const [open, setOpen] = useState(false);
-
-  if (!atfq || !acymfq) return null;
-
-  // Run full pipeline: 3-Pass Clash → Sheng → Overcrowding → Control → Transform
-  const { combined: postClash } = computeThreePassClashes(atfq, acymfq);
-  const { result: postSheng } = applySheng(postClash);
-  const { result: postOvercrowding } = applyOvercrowding(postSheng);
-  const { result: postControl } = applyControl(postOvercrowding);
-  const { result: finalQi } = applyTransformations(postControl);
-
-  const ntfq = {};
-  ELEMENTS.forEach(el => { ntfq[el] = (atfq[el] || 0) + (acymfq[el] || 0); });
-  const totalBefore = ELEMENTS.reduce((s, el) => s + (ntfq[el] || 0), 0);
-  const totalAfter = ELEMENTS.reduce((s, el) => s + (finalQi[el] || 0), 0);
-
-  return (
-    <div className="border border-amber-500/30 rounded-lg overflow-hidden bg-amber-500/5">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-2 bg-amber-500/10 hover:bg-amber-500/15 transition-colors text-left"
-      >
-        <span className="text-sm font-semibold text-amber-200">
-          Step 10: Month Final Functional Qi (MFFQ) — Post-Pipeline
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-amber-300">{totalAfter.toFixed(3)} pts</span>
-          <span className="text-amber-400">{open ? '▾' : '▸'}</span>
-        </div>
-      </button>
-
-      {open && (
-        <div className="px-4 py-3 space-y-3">
-          <div className="text-xs text-gray-400">
-            Full pipeline: NTFQ → Void/Combos → Clashes → Sheng → Overcrowding → Damping → Transformation = Final Qi.
-            This is the true functional Qi for this month after all elemental interactions.
+        {/* ── B. Per-Element Calculation Table ── */}
+        <div className="rounded border border-white/10 overflow-hidden">
+          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-3 py-1.5 bg-white/5">
+            Per-Element MTFQ Calculation
           </div>
-
-          {/* Summary table */}
-          <div className="rounded border border-white/10 overflow-hidden">
-            <table className="w-full text-[10px] font-mono">
-              <thead>
-                <tr className="bg-white/5">
-                  <th className="px-2 py-1 text-left text-gray-400">Element</th>
-                  <th className="px-2 py-1 text-right text-gray-400">NTFQ (in)</th>
-                  <th className="px-2 py-1 text-center text-gray-500">→</th>
-                  <th className="px-2 py-1 text-right text-amber-300">Final Qi</th>
-                  <th className="px-2 py-1 text-right text-gray-400">%</th>
-                  <th className="px-2 py-1 text-right text-gray-400">Change</th>
+          <table className="w-full text-[10px] font-mono">
+            <thead>
+              <tr className="bg-white/5 text-gray-500">
+                <th className="px-2 py-1 text-left">Element</th>
+                <th className="px-2 py-1 text-right text-amber-300">×1.0 NTFQ</th>
+                <th className="px-2 py-1 text-right text-pink-300">×0.9 DaYun</th>
+                <th className="px-2 py-1 text-right text-purple-300">×0.5 Year</th>
+                <th className="px-2 py-1 text-right text-cyan-300">×0.3 Month</th>
+                <th className="px-2 py-1 text-right text-green-300">= MTFQ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ELEMENTS.map(el => (
+                <tr key={el} className="border-t border-white/5 hover:bg-white/5">
+                  <td className="px-2 py-1" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                  <td className="px-2 py-1 text-right text-amber-300/70">{(1.0 * (natalQi[el] || 0)).toFixed(3)}</td>
+                  <td className="px-2 py-1 text-right text-pink-300/70">{(0.9 * (daYunQi?.[el] || 0)).toFixed(3)}</td>
+                  <td className="px-2 py-1 text-right text-purple-300/70">{(0.5 * (yearQi[el] || 0)).toFixed(3)}</td>
+                  <td className="px-2 py-1 text-right text-cyan-300/70">{(0.3 * (monthQi[el] || 0)).toFixed(3)}</td>
+                  <td className="px-2 py-1 text-right text-green-300 font-semibold">{mtfq[el].toFixed(3)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {ELEMENTS.map(el => {
-                  const before = ntfq[el] || 0;
-                  const after = finalQi[el] || 0;
-                  const pct = totalAfter > 0 ? (after / totalAfter) * 100 : 0;
-                  const diff = after - before;
-                  return (
-                    <tr key={el} className="border-t border-white/5 hover:bg-white/5">
-                      <td className="px-2 py-1.5"><ElSpan el={el}>{el}</ElSpan></td>
-                      <td className="px-2 py-1.5 text-right text-gray-400">{before.toFixed(3)}</td>
-                      <td className="px-2 py-1.5 text-center text-gray-600">→</td>
-                      <td className="px-2 py-1.5 text-right text-amber-200 font-semibold">{after.toFixed(3)}</td>
-                      <td className="px-2 py-1.5 text-right" style={{ color: ELEM_COLORS[el] }}>{pct.toFixed(1)}%</td>
-                      <td className={`px-2 py-1.5 text-right font-semibold ${diff > 0.0005 ? 'text-green-400' : diff < -0.0005 ? 'text-red-400' : 'text-gray-500'}`}>
-                        {diff > 0 ? '+' : ''}{diff.toFixed(3)}
-                      </td>
-                    </tr>
-                  );
-                })}
-                <tr className="border-t border-white/20 bg-white/5">
-                  <td className="px-2 py-1.5 text-gray-400 font-semibold">Total</td>
-                  <td className="px-2 py-1.5 text-right text-gray-400">{totalBefore.toFixed(3)}</td>
-                  <td className="px-2 py-1.5 text-center text-gray-600">→</td>
-                  <td className="px-2 py-1.5 text-right text-amber-200 font-bold">{totalAfter.toFixed(3)}</td>
-                  <td className="px-2 py-1.5 text-right text-white">100%</td>
-                  <td className="px-2 py-1.5 text-right text-gray-500">{(totalAfter - totalBefore).toFixed(3)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Full pipeline before/after */}
-          <div className="text-xs font-semibold text-gray-300 mb-1">NTFQ (Start) → Final Qi (End)</div>
-          <BeforeAfterBars before={ntfq} after={finalQi} />
-
-          {/* Final QiBar */}
-          <div className="text-xs font-semibold text-amber-300 mb-1 mt-2">Month Final Functional Qi (MFFQ)</div>
-          <QiBar qi={finalQi} showPct />
+              ))}
+              <tr className="border-t border-white/20 bg-white/5">
+                <td className="px-2 py-1 text-gray-400 font-semibold">Total</td>
+                <td className="px-2 py-1 text-right text-amber-300 font-semibold">{(ELEMENTS.reduce((s, el) => s + (natalQi[el] || 0), 0)).toFixed(3)}</td>
+                <td className="px-2 py-1 text-right text-pink-300 font-semibold">{(0.9 * ELEMENTS.reduce((s, el) => s + (daYunQi?.[el] || 0), 0)).toFixed(3)}</td>
+                <td className="px-2 py-1 text-right text-purple-300 font-semibold">{(0.5 * ELEMENTS.reduce((s, el) => s + (yearQi[el] || 0), 0)).toFixed(3)}</td>
+                <td className="px-2 py-1 text-right text-cyan-300 font-semibold">{(0.3 * ELEMENTS.reduce((s, el) => s + (monthQi[el] || 0), 0)).toFixed(3)}</td>
+                <td className="px-2 py-1 text-right text-green-300 font-bold">{totalMtfq.toFixed(3)}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+
+        {/* ── C. MTFQ Result — Bar Chart ── */}
+        <div>
+          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">MTFQ — Element Distribution</div>
+          <div className="space-y-1">
+            {ELEMENTS.map(el => {
+              const v = mtfq[el];
+              const pct = totalMtfq > 0 ? (v / totalMtfq * 100) : 0;
+              return (
+                <div key={el} className="flex items-center gap-2 text-[11px]">
+                  <span className="w-12 font-mono" style={{ color: ELEM_COLORS[el] }}>{el}</span>
+                  <div className="flex-1 h-5 bg-white/5 rounded overflow-hidden relative">
+                    <div className="h-full rounded" style={{
+                      width: `${(v / mtfqMax) * 100}%`,
+                      backgroundColor: ELEM_COLORS[el],
+                      opacity: 0.75,
+                    }} />
+                    <div className="absolute inset-0 flex items-center justify-between px-2 text-[9px] font-mono">
+                      <span className="text-white/80 font-semibold">{v.toFixed(2)}</span>
+                      <span className="text-white/50">{pct.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── D. MTFQ Spider Graph ── */}
+        <div className="flex justify-center pt-2">
+          <PentagonRadar qi={mtfq} label="MTFQ" size={240} />
+        </div>
+      </div>
+      {showMtfqMd && (
+        <FloatingMdWindow
+          content={MTFQ_FORMULA_MD}
+          title="MTFQ — Formula & Classical BaZi"
+          onClose={() => setShowMtfqMd(false)}
+          width={680}
+        />
       )}
     </div>
   );
@@ -4985,7 +4536,7 @@ function FinalFunctionalQiPanel({ atfq, acymfq }) {
 // MONTH CARD — one month in the seasonal grid
 // ============================================================================
 
-function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterElement, year, userTfq, chart, qiMatrix }) {
+function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterElement, year, userTfq, chart, qiMatrix, profileBirthDate, profileBirthTime, profileGender }) {
   const fqi = snapshot.functionalQi;
   const total = ELEMENTS.reduce((s, k) => s + fqi[k], 0);
   const hasClash = snapshot.interactions.length > 0;
@@ -4998,48 +4549,37 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
   const yearBd = snapshot.yearPillarBreakdown;
   const monthBd = snapshot.monthPillarBreakdown;
 
-  // Compute NTFQ (post-pipeline final Qi) for the radar overview
-  const finalQiForRadar = useMemo(() => {
-    if (!userTfq || !yearBd?.qiWeighted || !monthBd?.qiWeighted) return null;
-    const cymfq = {};
-    ELEMENTS.forEach(el => { cymfq[el] = (yearBd.qiWeighted[el] || 0) + (monthBd.qiWeighted[el] || 0); });
-    const atfq = {};
-    const acymfq = {};
-    ELEMENTS.forEach(el => {
-      atfq[el] = (userTfq[el] || 0) * 0.60;
-      acymfq[el] = (cymfq[el] || 0) * 0.40;
-    });
-    // Build NTFQ for combination engine
-    const ntfq = {};
-    ELEMENTS.forEach(el => { ntfq[el] = (atfq[el] || 0) + (acymfq[el] || 0); });
-    // Run combination engine (Void + Combos) before clashes
-    let postComboNtfq = ntfq;
-    if (chart?.pillars && qiMatrix?.yearPillar) {
-      const comboCtx = buildCombinationContext(
-        chart.pillars,
-        { stem: qiMatrix.yearPillar.stem, branch: qiMatrix.yearPillar.branch },
-        { stem: snapshot.monthStem, branch: snapshot.monthBranch },
-        snapshot.monthBranch
+  // Compute NTFQ — natal TFQ after the full survival pipeline
+  // Only natal Qi goes through Combinations → Clashes → Harms → ... → Yong Shen
+  const ntfq = useMemo(() => {
+    if (!userTfq || !chart?.pillars || !qiMatrix?.yearPillar) return null;
+    try {
+      const result = processNatalPipeline(
+        userTfq,
+        {
+          chartPillars: chart.pillars,
+          yearPillar: { stem: qiMatrix.yearPillar.stem, branch: qiMatrix.yearPillar.branch },
+          monthPillar: { stem: snapshot.monthStem, branch: snapshot.monthBranch },
+          currentMonthBranch: snapshot.monthBranch,
+          dayMasterElement: qiMatrix.dayMasterElement || '',
+          dayMasterPolarity: qiMatrix.dayMasterPolarity || '',
+          natalBranches: {
+            year: chart.pillars[0]?.branch?.char || '',
+            month: chart.pillars[1]?.branch?.char || '',
+            day: chart.pillars[2]?.branch?.char || '',
+            hour: chart.pillars[3]?.branch?.char || '',
+          },
+          yearBranch: qiMatrix.yearPillar.branch,
+          monthBranch: snapshot.monthBranch,
+        },
+        { applyCombinationEngine, buildCombinationContext, detectInteractions, applyClashDamage, applyControlPressure, applyOvercrowding, applyTransformations, analyzeStructuralCollapse }
       );
-      const comboResult = applyCombinationEngine(ntfq, comboCtx);
-      postComboNtfq = comboResult.postQi;
-    }
-    // Split back for 3-pass clash (preserve 60/40 ratio)
-    const totalNtfq = ELEMENTS.reduce((s, el) => s + (ntfq[el] || 0), 0);
-    const postAtfq = {};
-    const postAcymfq = {};
-    ELEMENTS.forEach(el => {
-      const ratio = totalNtfq > 0 ? (atfq[el] || 0) / totalNtfq : 0.5;
-      postAtfq[el] = (postComboNtfq[el] || 0) * ratio;
-      postAcymfq[el] = (postComboNtfq[el] || 0) * (1 - ratio);
-    });
-    const { combined: postClash } = computeThreePassClashes(postAtfq, postAcymfq);
-    const { result: postSheng } = applySheng(postClash);
-    const { result: postOvercrowding } = applyOvercrowding(postSheng);
-    const { result: postControl } = applyControl(postOvercrowding);
-    const { result: finalQi } = applyTransformations(postControl);
-    return finalQi;
-  }, [userTfq, yearBd, monthBd, chart, qiMatrix, snapshot]);
+      return result?.outputQi || null;
+    } catch { return null; }
+  }, [userTfq, chart, qiMatrix, snapshot]);
+
+  // MTFQ — use the engine's single source of truth
+  const finalQiForRadar = snapshot.functionalQi;
 
   return (
     <div className={`rounded-lg border ${hasClash ? 'border-red-500/50' : 'border-white/10'} bg-white/5 overflow-hidden`}>
@@ -5065,20 +4605,20 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
           <div className="flex items-center justify-center gap-2">
             <PentagonRadar
               qi={userTfq}
-              label="Your TFQ"
+              label="Natal TFQ"
               size={140}
             />
             <div className="flex flex-col items-center gap-0.5">
-              <span className="text-[10px] text-gray-500 font-mono">→</span>
-              <span className="text-[9px] text-gray-600 font-mono">{snapshot.monthName}</span>
-              <span className="text-[9px] text-gray-600 font-mono">effect</span>
-              <span className="text-[10px] text-gray-500 font-mono">→</span>
+              <span className="text-[10px] text-white/40 font-mono">→</span>
+              <span className="text-[9px] text-white/55 font-mono">{snapshot.monthName}</span>
+              <span className="text-[9px] text-white/55 font-mono">effect</span>
+              <span className="text-[10px] text-white/40 font-mono">→</span>
             </div>
             <PentagonRadar
               qi={finalQiForRadar}
               overlayQi={userTfq}
-              label="This Month"
-              overlayLabel="Your TFQ"
+              label="Month MTFQ"
+              overlayLabel="Natal TFQ"
               size={140}
             />
           </div>
@@ -5087,32 +4627,27 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
         )}
       </div>
 
-      {/* Expanded: Year + Month Pillar cards (same format as natal), then 9-step pipeline */}
+      {/* Expanded: DaYun + Year + Month pillars, then Qi Physics Console + Calculations */}
       {expanded && (
         <div className="px-3 pb-3 space-y-2 border-t border-white/10 pt-3">
           <div className="text-xs text-gray-500 mb-2">
             {snapshot.monthStem}{snapshot.monthBranch} — {snapshot.branchAnimal} ({snapshot.season})
           </div>
 
-          {/* ═══ TFQ vs MFFQ comparison double bar chart ═══ */}
+          {/* ═══ TFQ vs TotalQi comparison double bar chart ═══ */}
           {userTfq && finalQiForRadar && (() => {
-            const tfqTotal = ELEMENTS.reduce((s, el) => s + (userTfq[el] || 0), 0);
-            const mffqTotal = ELEMENTS.reduce((s, el) => s + (finalQiForRadar[el] || 0), 0);
-            const maxPct = Math.max(
-              ...ELEMENTS.map(el => Math.max(
-                tfqTotal > 0 ? (userTfq[el] || 0) / tfqTotal * 100 : 0,
-                mffqTotal > 0 ? (finalQiForRadar[el] || 0) / mffqTotal * 100 : 0
-              )),
-              1
+            const maxVal = Math.max(
+              ...ELEMENTS.map(el => Math.max(userTfq[el] || 0, finalQiForRadar[el] || 0)),
+              0.01
             );
             return (
               <div className="rounded-lg border border-white/10 bg-white/5 p-3 mb-3">
-                <div className="text-xs font-semibold text-gray-300 mb-2">Your TFQ vs {snapshot.monthName} MFFQ — Element Distribution</div>
+                <div className="text-xs font-semibold text-gray-300 mb-2">Natal TFQ vs {snapshot.monthName} MTFQ</div>
                 <div className="space-y-2">
                   {ELEMENTS.map(el => {
-                    const tfqPct = tfqTotal > 0 ? (userTfq[el] || 0) / tfqTotal * 100 : 0;
-                    const mffqPct = mffqTotal > 0 ? (finalQiForRadar[el] || 0) / mffqTotal * 100 : 0;
-                    const diff = mffqPct - tfqPct;
+                    const tfqVal = userTfq[el] || 0;
+                    const mtfqVal = finalQiForRadar[el] || 0;
+                    const diff = tfqVal > 0 ? ((mtfqVal - tfqVal) / tfqVal * 100) : (mtfqVal > 0 ? 100 : 0);
                     return (
                       <div key={el} className="space-y-0.5">
                         <div className="flex items-center justify-between text-[10px] font-mono">
@@ -5126,26 +4661,26 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
                           <span className="text-[9px] text-gray-400 w-10 text-right">TFQ</span>
                           <div className="flex-1 h-3.5 bg-white/5 rounded overflow-hidden relative">
                             <div className="h-full rounded" style={{
-                              width: `${(tfqPct / maxPct) * 100}%`,
+                              width: `${(tfqVal / maxVal) * 100}%`,
                               backgroundColor: ELEM_COLORS[el],
                               opacity: 0.35,
                             }} />
                             <span className="absolute inset-0 flex items-center px-1.5 text-[9px] font-mono text-gray-400 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
-                              {tfqPct > 0 ? tfqPct.toFixed(1) + '%' : ''}
+                              {tfqVal > 0 ? tfqVal.toFixed(2) : ''}
                             </span>
                           </div>
                         </div>
-                        {/* MFFQ bar */}
+                        {/* MTFQ bar */}
                         <div className="flex items-center gap-1">
-                          <span className="text-[9px] text-white w-10 text-right font-semibold">MFFQ</span>
+                          <span className="text-[9px] text-white w-10 text-right font-semibold">MTFQ</span>
                           <div className="flex-1 h-3.5 bg-white/5 rounded overflow-hidden relative">
                             <div className="h-full rounded" style={{
-                              width: `${(mffqPct / maxPct) * 100}%`,
+                              width: `${(mtfqVal / maxVal) * 100}%`,
                               backgroundColor: ELEM_COLORS[el],
                               opacity: 0.85,
                             }} />
                             <span className="absolute inset-0 flex items-center px-1.5 text-[9px] font-mono text-white font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
-                              {mffqPct > 0 ? mffqPct.toFixed(1) + '%' : ''}
+                              {mtfqVal > 0 ? mtfqVal.toFixed(2) : ''}
                             </span>
                           </div>
                         </div>
@@ -5157,11 +4692,11 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
                 <div className="flex items-center gap-4 mt-2 text-[9px] font-mono">
                   <div className="flex items-center gap-1">
                     <div className="w-3 h-2 bg-white/20 rounded" />
-                    <span className="text-gray-400">Your Natal TFQ</span>
+                    <span className="text-gray-400">Natal TFQ</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="w-3 h-2 bg-amber-400/80 rounded" />
-                    <span className="text-white">Month Final Functional Qi</span>
+                    <span className="text-white">Month MTFQ</span>
                   </div>
                 </div>
               </div>
@@ -5180,6 +4715,7 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
               return designBracelet(snapshot.yongShen, chart.pillars[2].stem.char).ratios;
             })()}
             collapseMode={snapshot.yongShen?.collapseMode}
+            daYunPillar={snapshot.daYunPillar}
           />
 
           {/* ═══ BRACELET DASHBOARD — full width at top ═══ */}
@@ -5198,6 +4734,40 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
                 mffq: m.functionalQi,
               }));
 
+            // Compute MIFQ for bracelet target
+            let braceletMifqQi = null;
+            try {
+              const mtfqTotal = ELEMENTS.reduce((s, el) => s + (snapshot.functionalQi[el] || 0), 0);
+              if (mtfqTotal > 0 && snapshot.yongShen) {
+                const ys = snapshot.yongShen;
+                const sw = getSeasonalWeights(snapshot.monthBranch);
+                const GENERATES_MAP = { Wood: 'Fire', Fire: 'Earth', Earth: 'Metal', Metal: 'Water', Water: 'Wood' };
+                const ysAdj = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+                if (ys.usefulElements?.length > 0) {
+                  ysAdj[ys.usefulElements[0]] += 6;
+                  if (ys.usefulElements.length > 1) ysAdj[ys.usefulElements[1]] += 4;
+                  const child = GENERATES_MAP[ys.usefulElements[0]];
+                  if (child && ysAdj[child] === 0) ysAdj[child] += 2;
+                }
+                if (ys.forbidden) ys.forbidden.forEach(el => { ysAdj[el] -= 6; });
+                if (ys.threat && !ys.forbidden?.includes(ys.threat)) ysAdj[ys.threat] -= 4;
+
+                const SEASONAL_WEIGHT_TO_ADJ = { 1.0: 4, 0.8: 2, 0.6: 1, 0.4: -2, 0.2: -4 };
+                const sAdj = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+                if (sw) {
+                  ELEMENTS.forEach(el => {
+                    const weight = sw[el.toLowerCase()] ?? 0.6;
+                    const snapped = [1.0, 0.8, 0.6, 0.4, 0.2].reduce((a, b) => Math.abs(b - weight) < Math.abs(a - weight) ? b : a);
+                    sAdj[el] = SEASONAL_WEIGHT_TO_ADJ[snapped] ?? 0;
+                  });
+                }
+
+                const mifqResult = computeIFQ({ mtfqTotalQi: mtfqTotal, yongShenAdjustment: ysAdj, seasonalAdjustment: sAdj });
+                braceletMifqQi = {};
+                ELEMENTS.forEach(el => { braceletMifqQi[el] = mifqResult.elements[el].normalizedQi; });
+              }
+            } catch { /* fallback: no MIFQ */ }
+
             return (
               <div className="mb-3">
                 <button
@@ -5209,99 +4779,116 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
                 </button>
                 {braceletOpen && (
                   <>
-                    {/* ═══ BRACELET DASHBOARD — merged old qualitative + new engineered ring ═══ */}
+                    {/* ═══ BRACELET DASHBOARD — BRQe-driven ratios → engineered sequence ═══ */}
                     {(() => {
                       let engineered = null;
                       let collapseRpt = null;
+                      let brqeBracelet = monthBracelet; // fallback to old designBracelet
                       try {
                         const pool = snapshot.postClash || snapshot.functionalQi || {};
-                        const ratios = computeElementRatios(pool);
-                        collapseRpt = diagnoseCollapse(ratios);
+                        const elRatios = computeElementRatios(pool);
+                        collapseRpt = diagnoseCollapse(elRatios);
                         const branchAnimal = snapshot.branchAnimal || 'Tiger';
+
+                        // Compute BRQe ratios from MIFQ pipeline when available
+                        let brqeRatios = null;
+                        if (braceletMifqQi && snapshot.functionalQi && snapshot.yongShen && dmChar) {
+                          // BRQe = MIFQ - MTFQ, capped at 50% of |BRQ| (default kCap)
+                          const brqeValues = {};
+                          ELEMENTS.forEach(el => {
+                            const brq = (braceletMifqQi[el] || 0) - (snapshot.functionalQi[el] || 0);
+                            const cap = Math.abs(brq) * 0.50;
+                            const brqEff = brq * 0.35; // default effectiveness
+                            brqeValues[el] = Math.max(-cap, Math.min(cap, brqEff));
+                          });
+
+                          // Use BRQe for both the bracelet design and engineered sequence
+                          brqeBracelet = designBraceletFromBRQe(brqeValues, snapshot.yongShen, dmChar);
+                          brqeRatios = brqeBracelet.ratios;
+                        }
+
                         engineered = engineerBracelet({
                           collapse: collapseRpt,
                           month: branchAnimal,
                           totalBeads: 21,
                           beadSize: 10,
+                          daYunQi: snapshot.daYunQi || null,
+                          dayMasterStem: dmChar || null,
+                          overrideRatios: brqeRatios,
                         });
                       } catch { /* fallback to old ring */ }
 
                       return (
                         <BraceletDashboard
-                          bracelet={monthBracelet}
+                          bracelet={brqeBracelet}
                           yongShen={snapshot.yongShen}
                           dayMasterStem={dmChar}
                           dynamicPool={snapshot.functionalQi}
                           userTfq={userTfq}
+                          mifqQi={braceletMifqQi}
                           monthLabel={snapshot.monthName}
+                          monthBranchAnimal={snapshot.branchAnimal}
                           prevBracelet={prevBracelet}
                           prevYongShen={prevSnapshot?.yongShen}
                           prevLabel={prevSnapshot?.monthName}
                           allMonthBracelets={allMonthBracelets}
                           engineeredBracelet={engineered}
                           collapseReport={collapseRpt}
+                          daYunStem={snapshot.daYunPillar?.stem}
+                          daYunQi={snapshot.daYunQi}
                         />
                       );
                     })()}
 
-                    {/* ═══ BRACELET AUTO-DESIGNER — optimal sequence ═══ */}
-                    <div className="mt-3">
-                      <BraceletAutoDesigner
-                        yongShen={snapshot.yongShen}
-                        dayMasterStem={dmChar}
-                      />
-                    </div>
-
-                    {/* ═══ BRACELET DESIGNER — drag-and-drop bead ring ═══ */}
-                    <div className="mt-3">
-                      <BraceletDesigner
-                        initialSlots={(() => {
-                          // Pre-populate from the designed bracelet
-                          const seq = monthBracelet.sequence || [];
-                          const slots = Array.from({ length: 21 }, (_, i) => ({
-                            element: seq[i]?.element || null,
-                          }));
-                          return slots;
-                        })()}
-                      />
-                    </div>
                   </>
                 )}
               </div>
             );
           })()}
 
-          {/* ═══ QI DEBUGGER — per-element breakdown ═══ */}
-          {userTfq && (
-            <QiDebugger
-              tfq={userTfq}
-              mffq={snapshot.functionalQi}
-              braceletQiUnits={(() => {
-                if (!snapshot.yongShen || !chart?.pillars?.[2]?.stem?.char) return null;
-                const br = designBracelet(snapshot.yongShen, chart.pillars[2].stem.char);
-                const brq = {};
-                ELEMENTS.forEach(el => { brq[el] = (br.ratios[el] || 0) * 0.5; });
-                return brq;
-              })()}
-              collapseInfo={snapshot.collapseInfo ? {
-                isCollapse: snapshot.collapseInfo.isCollapse ?? (snapshot.yongShen?.status === 'collapse_override'),
-                mode: snapshot.collapseInfo.mode || snapshot.yongShen?.collapseMode,
-                dominant: snapshot.collapseInfo.dominant,
-              } : snapshot.yongShen ? {
-                isCollapse: snapshot.yongShen.status === 'collapse_override',
-                mode: snapshot.yongShen.collapseMode,
-              } : null}
-              yongShen={snapshot.yongShen}
+          {/* ═══ DA YUN — 10-Year Luck Pillar ═══ */}
+          {profileBirthDate && (
+            <DaYunQiOverlay
+              chart={chart}
+              birthDate={profileBirthDate}
+              birthTime={profileBirthTime}
+              gender={profileGender}
+              selectedYear={year}
+              currentMonthBranch={snapshot.monthBranch}
+              dayMasterElement={qiMatrix?.dayMasterElement}
+              collapseMode={snapshot.collapseInfo?.mode}
             />
           )}
 
-          {/* ═══ QI PHYSICS CONSOLE — live pipeline logs ═══ */}
-          {snapshot.steps && (
-            <QiPhysicsConsole
-              steps={snapshot.steps}
-              interactions={snapshot.interactions}
-              collapseInfo={snapshot.collapseInfo}
-              yongShen={snapshot.yongShen}
+          {/* ═══ CURRENT YEAR PILLAR — DaYun-style external pipeline ═══ */}
+          {yearBd && (
+            <ExternalPillarPanel
+              breakdown={yearBd}
+              label="Current Year"
+              pillarQi={snapshot.yearQi}
+              steps={snapshot.steps?.find(s => s.label?.includes('Step 3: Year'))}
+            />
+          )}
+
+          {/* ═══ CURRENT MONTH PILLAR — DaYun-style external pipeline ═══ */}
+          {monthBd && (
+            <ExternalPillarPanel
+              breakdown={monthBd}
+              label="Current Month"
+              pillarQi={snapshot.monthQi}
+              steps={snapshot.steps?.find(s => s.label?.includes('Step 4: Month'))}
+            />
+          )}
+
+          {/* ═══ MTFQ BLEND DASHBOARD — replaces Qi Physics Console ═══ */}
+          {snapshot.natalTfq && snapshot.yearQi && snapshot.monthQi && (
+            <MTFQBlendDashboard
+              natalTfq={snapshot.natalTfq}
+              daYunQi={snapshot.daYunQi}
+              yearQi={snapshot.yearQi}
+              monthQi={snapshot.monthQi}
+              monthName={snapshot.monthName}
+              year={year}
             />
           )}
 
@@ -5340,80 +4927,46 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
                   </div>
                 )}
 
-                {/* ═══ STEP 1: Combined Year + Month Functional Qi (CYMFQ) ═══ */}
-                {yearBd?.qiWeighted && monthBd?.qiWeighted && (
+                {/* ═══ STEP 1: 4-Layer MTFQ Inputs ═══ */}
+                {snapshot.yearQi && snapshot.monthQi && (
                   <>
-                    <CombinedYMFQPanel yearFq={yearBd.qiWeighted} monthFq={monthBd.qiWeighted} year={year} monthName={snapshot.monthName} userTfq={userTfq} />
+                    <CombinedYMFQPanel yearFq={snapshot.yearQi} monthFq={snapshot.monthQi} year={year} monthName={snapshot.monthName} natalTfq={snapshot.natalTfq} daYunQi={snapshot.daYunQi} />
 
-                    {/* ═══ STEPS 2–10: Influence → Normalize → 3-Pass Clash → Sheng → Control → Transform → Final ═══ */}
-                    {userTfq && (() => {
-                      const cymfq = {};
-                      ELEMENTS.forEach(el => { cymfq[el] = (yearBd.qiWeighted[el] || 0) + (monthBd.qiWeighted[el] || 0); });
+                    {/* ═══ NATAL PIPELINE: TFQ → Combinations → Clashes → ... → NTFQ ═══ */}
+                    {userTfq && chart?.pillars && qiMatrix?.yearPillar && (() => {
+                      const natalBranches = {
+                        year: chart.pillars[0]?.branch?.char || '',
+                        month: chart.pillars[1]?.branch?.char || '',
+                        day: chart.pillars[2]?.branch?.char || '',
+                        hour: chart.pillars[3]?.branch?.char || '',
+                      };
 
-                      const atfq = {};
-                      const acymfq = {};
-                      ELEMENTS.forEach(el => {
-                        atfq[el] = (userTfq[el] || 0) * 0.60;
-                        acymfq[el] = (cymfq[el] || 0) * 0.40;
-                      });
-
-                      const ntfq = {};
-                      ELEMENTS.forEach(el => { ntfq[el] = (atfq[el] || 0) + (acymfq[el] || 0); });
-
-                      let comboResult = null;
-                      let postComboNtfq = ntfq;
-                      if (chart?.pillars && qiMatrix?.yearPillar) {
-                        const comboCtx = buildCombinationContext(
-                          chart.pillars,
-                          { stem: qiMatrix.yearPillar.stem, branch: qiMatrix.yearPillar.branch },
-                          { stem: snapshot.monthStem, branch: snapshot.monthBranch },
-                          snapshot.monthBranch
-                        );
-                        comboResult = applyCombinationEngine(ntfq, comboCtx);
-                        postComboNtfq = comboResult.postQi;
-                      }
-
-                      const totalNtfq = ELEMENTS.reduce((s, el) => s + (ntfq[el] || 0), 0);
-                      const postAtfq = {};
-                      const postAcymfq = {};
-                      ELEMENTS.forEach(el => {
-                        const ratio = totalNtfq > 0 ? (atfq[el] || 0) / totalNtfq : 0.5;
-                        postAtfq[el] = (postComboNtfq[el] || 0) * ratio;
-                        postAcymfq[el] = (postComboNtfq[el] || 0) * (1 - ratio);
-                      });
-
-                      const clashResult = computeThreePassClashes(postAtfq, postAcymfq);
-                      const { combined: postClash } = clashResult;
-                      const shengResult = applySheng(postClash);
-                      const { result: postSheng } = shengResult;
-                      const overcrowdingResult = applyOvercrowding(postSheng);
-                      const { result: postOvercrowding } = overcrowdingResult;
-                      const { result: postControl } = applyControl(postOvercrowding);
-                      const transformResult = applyTransformations(postControl);
-
-                      return (
-                        <>
-                          <InfluencePanel cymfq={cymfq} userTfq={userTfq} />
-                          <NormalizedQiPanel cymfq={cymfq} userTfq={userTfq} />
-                          <VoidPanel voidResult={comboResult} />
-                          <CombinationPanel comboResult={comboResult} />
-                          <ClashAdjustmentPanel atfq={postAtfq} acymfq={postAcymfq} />
-                          <ShengNourishmentPanel postClashQi={postClash} />
-                          <OvercrowdingPanel postShengQi={postSheng} />
-                          <ControlCyclePressurePanel postClashQi={postOvercrowding} />
-                          <TransformationPanel postControlQi={postControl} />
-                          <StructuralCollapsePanel finalQi={transformResult.result} />
-                          <FinalFunctionalQiPanel atfq={postAtfq} acymfq={postAcymfq} />
-                          <EventTimeline
-                            comboResult={comboResult}
-                            clashResult={clashResult}
-                            shengDetails={shengResult.details}
-                            overcrowdingDetails={overcrowdingResult.details}
-                            transformDetails={transformResult.details}
-                            collapseQi={transformResult.result}
-                          />
-                        </>
+                      const pipelineResult = processNatalPipeline(
+                        userTfq,
+                        {
+                          chartPillars: chart.pillars,
+                          yearPillar: { stem: qiMatrix.yearPillar.stem, branch: qiMatrix.yearPillar.branch },
+                          monthPillar: { stem: snapshot.monthStem, branch: snapshot.monthBranch },
+                          currentMonthBranch: snapshot.monthBranch,
+                          dayMasterElement: qiMatrix.dayMasterElement || '',
+                          dayMasterPolarity: qiMatrix.dayMasterPolarity || '',
+                          natalBranches,
+                          yearBranch: qiMatrix.yearPillar.branch,
+                          monthBranch: snapshot.monthBranch,
+                        },
+                        {
+                          applyCombinationEngine,
+                          buildCombinationContext,
+                          detectInteractions,
+                          applyClashDamage,
+                          applyControlPressure,
+                          applyOvercrowding,
+                          applyTransformations,
+                          analyzeStructuralCollapse,
+                        }
                       );
+
+                      return <NatalPipelinePanel pipelineResult={pipelineResult} />;
                     })()}
                   </>
                 )}
@@ -5457,6 +5010,72 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
               <CauseMapPanel causeMap={snapshot.causeMap} monthName={snapshot.monthName} season={snapshot.season} yongShen={snapshot.yongShen} />
             </div>
           )}
+
+          {/* ═══ MIFQ — Monthly Ideal Functional Qi ═══ */}
+          {snapshot.yongShen && snapshot.functionalQi && (() => {
+            const mtfqTotal = ELEMENTS.reduce((s, el) => s + (snapshot.functionalQi[el] || 0), 0);
+            if (mtfqTotal <= 0) return null;
+
+            const ys = snapshot.yongShen;
+            const sw = getSeasonalWeights(snapshot.monthBranch);
+            if (!sw) return null;
+
+            // Compute YongShen adjustments (percentage offsets from 20% baseline)
+            // Sheng cycle: Wood→Fire→Earth→Metal→Water→Wood
+            const GENERATES = { Wood: 'Fire', Fire: 'Earth', Earth: 'Metal', Metal: 'Water', Water: 'Wood' };
+            const yongShenAdj = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+            const ysNotes = [];
+            if (ys.usefulElements?.length > 0) {
+              const primary = ys.usefulElements[0];
+              yongShenAdj[primary] += 6;
+              ysNotes.push(`${primary} +6% (primary useful — Yong Shen)`);
+              if (ys.usefulElements.length > 1) {
+                const secondary = ys.usefulElements[1];
+                yongShenAdj[secondary] += 4;
+                ysNotes.push(`${secondary} +4% (secondary useful)`);
+              }
+              // Child of useful (Sheng flow) — helps the useful element
+              const child = GENERATES[primary];
+              if (child && yongShenAdj[child] === 0) {
+                yongShenAdj[child] += 2;
+                ysNotes.push(`${child} +2% (child of useful — Sheng flow)`);
+              }
+            }
+            if (ys.forbidden) {
+              ys.forbidden.forEach(el => {
+                yongShenAdj[el] -= 6;
+                ysNotes.push(`${el} -6% (forbidden)`);
+              });
+            }
+            if (ys.threat && !ys.forbidden?.includes(ys.threat)) {
+              yongShenAdj[ys.threat] -= 4;
+              ysNotes.push(`${ys.threat} -4% (threat)`);
+            }
+
+            // Compute Seasonal adjustments: align ideal with seasonal strength
+            // 旺(1.0)→+4%, 相(0.8)→+2%, 休(0.6)→+1%, 囚(0.4)→–2%, 死(0.2)→–4%
+            const SEASONAL_WEIGHT_TO_ADJ = { 1.0: 4, 0.8: 2, 0.6: 1, 0.4: -2, 0.2: -4 };
+            const seasonalAdj = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+            const sNotes = [];
+            ELEMENTS.forEach(el => {
+              const weight = sw[el.toLowerCase()] ?? 0.6;
+              // Snap to nearest classical weight for lookup, fallback to linear
+              const snapped = [1.0, 0.8, 0.6, 0.4, 0.2].reduce((a, b) => Math.abs(b - weight) < Math.abs(a - weight) ? b : a);
+              const adj = SEASONAL_WEIGHT_TO_ADJ[snapped] ?? 0;
+              seasonalAdj[el] = adj;
+              if (adj !== 0) sNotes.push(`${el} ${adj > 0 ? '+' : ''}${adj}% (seasonal weight ${weight.toFixed(1)})`);
+            });
+
+            const mifqResult = computeIFQ({
+              mtfqTotalQi: mtfqTotal,
+              yongShenAdjustment: yongShenAdj,
+              seasonalAdjustment: seasonalAdj,
+            });
+            const mifqQi = {};
+            ELEMENTS.forEach(el => { mifqQi[el] = mifqResult.elements[el].normalizedQi; });
+            const dmStemChar = chart?.pillars?.[2]?.stem?.char || null;
+            return <MIFQPanel mifqResult={mifqResult} mtfq={snapshot.functionalQi} mifqQi={mifqQi} monthName={snapshot.monthName} season={snapshot.season} ysNotes={ysNotes} sNotes={sNotes} userTfq={userTfq} ntfq={ntfq} yongShen={ys} dayMasterStem={dmStemChar} />;
+          })()}
         </div>
       )}
     </div>
@@ -5464,17 +5083,2298 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
 }
 
 // ============================================================================
+// MIFQ PANEL — Monthly Ideal Functional Qi
+// ============================================================================
+
+function MIFQPanel({ mifqResult, mtfq, mifqQi, monthName, season, ysNotes, sNotes, userTfq, ntfq, yongShen, dayMasterStem }) {
+  const [open, setOpen] = useState(false);
+  const [showYongShenAdjMd, setShowYongShenAdjMd] = useState(false);
+  const [showSeasonalAdjMd, setShowSeasonalAdjMd] = useState(false);
+  const [effectiveness, setEffectiveness] = useState(0.35);
+  const [kCap, setKCap] = useState(0.50);
+  const [tolerance, setTolerance] = useState(0.00);  // f: 0–0.25, how far below natal TFQ floors can dip
+  const [showRemedyMd, setShowRemedyMd] = useState(false);
+  const [showBrqPipelineMd, setShowBrqPipelineMd] = useState(false);
+
+  // Compute BRQe (Step 6 capped output) — used for bracelet design + qiScale
+  const brqeValues = useMemo(() => {
+    const brqe = {};
+    ELEMENTS.forEach(el => {
+      const brq = (mifqQi[el] || 0) - (mtfq[el] || 0);
+      const cap = Math.abs(brq) * kCap;
+      const brqEff = brq * effectiveness;
+      brqe[el] = Math.max(-cap, Math.min(cap, brqEff));
+    });
+    return brqe;
+  }, [mifqQi, mtfq, effectiveness, kCap]);
+
+  // BRQe-driven bracelet design
+  const bracelet = useMemo(() => {
+    if (!dayMasterStem || !yongShen) return null;
+    try {
+      return designBraceletFromBRQe(brqeValues, yongShen, dayMasterStem);
+    } catch { return null; }
+  }, [brqeValues, yongShen, dayMasterStem]);
+
+  // Per-element Qi scale from actual bracelet stones
+  // Floor of 0.3 for elements without direct stones (indirect benefit via producing cycle)
+  const qiScale = useMemo(() => {
+    if (!bracelet?.sequence || !yongShen) return null;
+    try {
+      const units = computeBraceletQiUnits(bracelet.sequence, yongShen, 8);
+      const maxQi = Math.max(...ELEMENTS.map(el => units.perElement[el]), 0.01);
+      const scale = {};
+      ELEMENTS.forEach(el => {
+        const raw = units.perElement[el] / maxQi;        // 0–1
+        scale[el] = 0.3 + 0.7 * raw;                    // 0.3–1.0
+      });
+      return scale;
+    } catch { return null; }
+  }, [bracelet, yongShen]);
+
+  const mtfqTotal = ELEMENTS.reduce((s, el) => s + (mtfq[el] || 0), 0);
+
+  return (
+    <div className="mt-3 rounded-xl border border-teal-700/50 bg-teal-900/10 overflow-hidden">
+      {/* Header — always visible */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-white/5 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-teal-300">Monthly Ideal Functional Qi (MIFQ)</span>
+          <span className="text-[9px] text-gray-500 font-mono">Target shape for {monthName}</span>
+        </div>
+        <span className="text-gray-500">{open ? '▾' : '▸'}</span>
+      </button>
+
+      {/* Spider graph — always visible: MTFQ vs MIFQ */}
+      <div className="px-4 pb-3">
+        <div className="flex items-center justify-center gap-3">
+          <PentagonRadar qi={mtfq} label="MTFQ" size={150} />
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-[10px] text-white/40 font-mono">vs</span>
+            <span className="text-[9px] text-teal-400/70 font-mono">ideal</span>
+          </div>
+          <PentagonRadar qi={mifqQi} overlayQi={mtfq} label="MIFQ" overlayLabel="MTFQ" size={150} primaryColor="#2dd4bf" primaryFill="rgba(45,212,191,0.2)" />
+        </div>
+        {/* Legend */}
+        <div className="flex items-center justify-center gap-4 mt-1 text-[9px] font-mono">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-1.5 bg-amber-400/60 rounded" />
+            <span className="text-gray-400">MTFQ (actual)</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-1.5 bg-teal-400/80 rounded" />
+            <span className="text-teal-300">MIFQ (ideal)</span>
+          </div>
+        </div>
+
+        {/* Quick comparison bars — amber (MTFQ) vs teal (MIFQ) matching spider graph */}
+        <div className="mt-2 space-y-1">
+          {ELEMENTS.map(el => {
+            const actual = mtfq[el] || 0;
+            const ideal = mifqQi[el] || 0;
+            const diff = ideal - actual;
+            const maxVal = Math.max(...ELEMENTS.map(e => Math.max(mtfq[e] || 0, mifqQi[e] || 0)), 0.01);
+            const actualPct = (actual / maxVal) * 100;
+            const idealPct = (ideal / maxVal) * 100;
+            const diffColor = diff > 0.05 ? 'text-green-400' : diff < -0.05 ? 'text-red-400' : 'text-gray-500';
+            return (
+              <div key={el} className="flex items-center gap-1.5 text-[10px]">
+                <span className="w-10 text-right font-mono" style={{ color: ELEM_COLORS[el] }}>{el}</span>
+                <div className="flex-1 h-5 bg-white/5 rounded overflow-hidden relative">
+                  {/* MTFQ bar (amber/yellow) */}
+                  <div className="absolute left-0 top-0 h-1/2 rounded-tl" style={{
+                    width: `${actualPct}%`,
+                    backgroundColor: '#f59e0b',
+                    opacity: 0.7,
+                  }} />
+                  {/* MIFQ bar (teal) */}
+                  <div className="absolute left-0 bottom-0 h-1/2 rounded-bl" style={{
+                    width: `${idealPct}%`,
+                    backgroundColor: '#2dd4bf',
+                    opacity: 0.7,
+                  }} />
+                  <div className="absolute inset-0 flex items-center justify-between px-1 text-[8px] font-mono">
+                    <span className="text-amber-300/80">{actual.toFixed(2)}</span>
+                    <span className="text-teal-300 font-semibold">{ideal.toFixed(2)}</span>
+                  </div>
+                </div>
+                <span className={`w-12 text-right text-[9px] font-mono ${diffColor}`}>
+                  {diff > 0 ? '+' : ''}{diff.toFixed(2)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Expanded: Baby-step calculation breakdown */}
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-white/10 pt-3">
+
+          {/* Step 0: What is MIFQ + Formula + Balanced Qi */}
+          <div className="rounded border border-teal-700/30 bg-teal-900/20 p-3 space-y-3">
+            <div className="text-[11px] font-semibold text-teal-300">Step 0: Understanding MIFQ</div>
+
+            <div className="text-[10px] text-gray-300 leading-relaxed space-y-1.5">
+              <div><span className="text-teal-300 font-semibold">MIFQ</span> (Monthly Ideal Functional Qi) is the <span className="text-white font-medium">ideal elemental climate</span> for this person <span className="italic">this month</span>.</div>
+              <div>It is <span className="text-white">not</span> natal (TFQ), not environmental (MTFQ). It is the <span className="text-teal-300">target shape</span> the bracelet and health module should move the person toward.</div>
+            </div>
+
+            {/* The Formula */}
+            <div className="rounded bg-black/30 border border-white/10 px-3 py-2">
+              <div className="text-[10px] font-semibold text-gray-300 mb-1.5">The Formula</div>
+              <div className="text-[11px] font-mono text-teal-300">
+                MIFQ = BalancedQi + YongShenAdjustment + SeasonalAdjustment
+              </div>
+              <div className="text-[9px] font-mono text-gray-400 mt-0.5">
+                then normalize to match MTFQ total points
+              </div>
+            </div>
+
+            {/* Term definitions */}
+            <div className="space-y-2.5 text-[10px]">
+              <div className="flex gap-2">
+                <span className="text-gray-300 font-mono w-32 shrink-0">BalancedQi</span>
+                <span className="text-gray-300">Neutral starting point — each element at <span className="text-white">20%</span>, total <span className="text-white">100%</span>. No bias, no personality. A blank canvas.</span>
+              </div>
+              <div>
+                <div className="flex gap-2">
+                  <span className="text-amber-300 font-mono w-32 shrink-0">+ YongShenAdj</span>
+                  <span className="text-gray-300">Personal % correction — purely natal logic. Same every month. A <span className="text-white">shape</span>, not a magnitude.</span>
+                </div>
+                <div className="ml-[8.5rem] mt-1 text-[9px] space-y-0.5">
+                  <div className="text-green-400">+6% Primary Useful (Yong Shen) — her main medicine</div>
+                  <div className="text-green-400">+4% Secondary Useful — supporting medicine</div>
+                  <div className="text-green-400/80">+2% Child of Useful (Sheng flow) — helps the useful element</div>
+                  <div className="text-red-400">−4% Threat Element (dominant Ke) — overpowers her</div>
+                  <div className="text-red-400">−6% Forbidden Element — damages Day Master</div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-cyan-300 font-mono w-32 shrink-0">+ SeasonalAdj</span>
+                <span className="text-gray-300">Monthly % correction that <span className="text-white">aligns</span> with the season's natural strength (旺相休囚死). Elements strong in season get boosted, weak elements get reduced. Changes every month.</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-teal-300 font-mono w-32 shrink-0">→ Normalize</span>
+                <span className="text-gray-300">Scale raw % so MIFQ total Qi = MTFQ total Qi. The ideal must be achievable within the available Qi budget.</span>
+              </div>
+            </div>
+
+            {/* Balanced Qi table */}
+            <div className="rounded bg-black/20 border border-white/10 overflow-hidden">
+              <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider px-3 py-1 bg-white/5">
+                Starting Point — Balanced Qi Model
+              </div>
+              <table className="w-full text-[10px] font-mono">
+                <tbody>
+                  {ELEMENTS.map(el => (
+                    <tr key={el} className="border-t border-white/5">
+                      <td className="px-3 py-1" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                      <td className="px-3 py-1 text-right text-gray-300">(Balanced Qi)</td>
+                      <td className="px-3 py-1 text-right text-white font-semibold">20%</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t border-white/20 bg-white/5">
+                    <td className="px-3 py-1 text-gray-300 font-semibold">Total</td>
+                    <td className="px-3 py-1"></td>
+                    <td className="px-3 py-1 text-right text-white font-bold">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Step 1: YongShen Adjustment notes */}
+          <div className="rounded border border-white/10 bg-black/20 p-2">
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-[10px] font-semibold text-amber-300">Step 1: Yong Shen Adjustment (personal)</div>
+              <button
+                onClick={() => setShowYongShenAdjMd(prev => !prev)}
+                className="text-[9px] font-mono text-amber-400/70 hover:text-amber-300 transition-colors px-1.5 py-0.5 rounded border border-amber-700/30 hover:border-amber-500/50 bg-amber-900/20"
+              >MD</button>
+            </div>
+            <div className="space-y-0.5">
+              {ysNotes.map((note, i) => (
+                <div key={i} className="text-[9px] font-mono text-gray-300">{note}</div>
+              ))}
+              {ysNotes.length === 0 && <div className="text-[9px] font-mono text-gray-500">No adjustments (balanced chart).</div>}
+            </div>
+          </div>
+
+          {/* Step 2: Seasonal Adjustment notes */}
+          <div className="rounded border border-white/10 bg-black/20 p-2">
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-[10px] font-semibold text-cyan-300">Step 2: Seasonal Adjustment ({monthName})</div>
+              <button
+                onClick={() => setShowSeasonalAdjMd(prev => !prev)}
+                className="text-[9px] font-mono text-cyan-400/70 hover:text-cyan-300 transition-colors px-1.5 py-0.5 rounded border border-cyan-700/30 hover:border-cyan-500/50 bg-cyan-900/20"
+              >MD</button>
+            </div>
+            <div className="space-y-0.5">
+              {sNotes.map((note, i) => (
+                <div key={i} className="text-[9px] font-mono text-gray-300">{note}</div>
+              ))}
+              {sNotes.length === 0 && <div className="text-[9px] font-mono text-gray-600">No seasonal adjustments.</div>}
+            </div>
+          </div>
+
+          {/* Step 3: Baby-step table */}
+          <div className="rounded border border-white/10 overflow-hidden">
+            <div className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider px-3 py-1.5 bg-white/5">
+              Per-Element MIFQ Calculation
+            </div>
+            <table className="w-full text-[10px] font-mono">
+              <thead>
+                <tr className="bg-white/5 text-gray-400">
+                  <th className="px-1.5 py-1 text-left">Element</th>
+                  <th className="px-1.5 py-1 text-right">Base</th>
+                  <th className="px-1.5 py-1 text-right text-amber-300">+YS</th>
+                  <th className="px-1.5 py-1 text-right">After</th>
+                  <th className="px-1.5 py-1 text-right text-cyan-300">+Season</th>
+                  <th className="px-1.5 py-1 text-right">Raw %</th>
+                  <th className="px-1.5 py-1 text-right text-teal-300">MIFQ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ELEMENTS.map(el => {
+                  const s = mifqResult.elements[el];
+                  return (
+                    <tr key={el} className="border-t border-white/5 hover:bg-white/5">
+                      <td className="px-1.5 py-1" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                      <td className="px-1.5 py-1 text-right text-gray-300">{s.base}%</td>
+                      <td className="px-1.5 py-1 text-right text-amber-300">{s.yongShenAdj > 0 ? '+' : ''}{s.yongShenAdj}%</td>
+                      <td className="px-1.5 py-1 text-right text-gray-200">{s.afterYongShen}%</td>
+                      <td className="px-1.5 py-1 text-right text-cyan-300">{s.seasonalAdj > 0 ? '+' : ''}{s.seasonalAdj}%</td>
+                      <td className="px-1.5 py-1 text-right text-white">{s.rawPercent.toFixed(1)}%</td>
+                      <td className="px-1.5 py-1 text-right text-teal-300 font-semibold">{s.normalizedQi.toFixed(3)}</td>
+                    </tr>
+                  );
+                })}
+                <tr className="border-t border-white/20 bg-white/5">
+                  <td className="px-1.5 py-1 text-gray-300 font-semibold">Total</td>
+                  <td className="px-1.5 py-1 text-right text-gray-300">100%</td>
+                  <td className="px-1.5 py-1 text-right text-amber-300/60">—</td>
+                  <td className="px-1.5 py-1 text-right text-gray-400">—</td>
+                  <td className="px-1.5 py-1 text-right text-cyan-300/60">—</td>
+                  <td className="px-1.5 py-1 text-right text-white font-semibold">{mifqResult.totalRawPercent.toFixed(1)}%</td>
+                  <td className="px-1.5 py-1 text-right text-teal-300 font-bold">{mifqResult.totalNormalizedQi.toFixed(3)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Step 3: Normalization */}
+          <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+            <div className="text-[10px] font-semibold text-teal-300 mb-1">Step 3: Normalization</div>
+            <div className="text-[9px] font-mono text-gray-300 space-y-0.5">
+              <div>MTFQ total = <span className="text-white">{mtfqTotal.toFixed(3)}</span> pts</div>
+              <div>Raw IFQ total = <span className="text-white">{mifqResult.totalRawPercent.toFixed(1)}%</span></div>
+              <div>Scale = {mtfqTotal.toFixed(3)} / {mifqResult.totalRawPercent.toFixed(1)} = <span className="text-white">{mifqResult.scale.toFixed(6)}</span></div>
+            </div>
+
+            {/* Per-element normalization breakdown */}
+            <div className="rounded border border-white/10 overflow-hidden">
+              <table className="w-full text-[9px] font-mono">
+                <thead>
+                  <tr className="bg-white/5 text-gray-400">
+                    <th className="px-1 py-0.5 text-left">El</th>
+                    <th className="px-1 py-0.5 text-right">Raw %</th>
+                    <th className="px-0.5 py-0.5 text-center text-gray-500">x</th>
+                    <th className="px-1 py-0.5 text-right">Scale</th>
+                    <th className="px-0.5 py-0.5 text-center text-gray-500">=</th>
+                    <th className="px-1 py-0.5 text-right text-teal-300">MIFQ Qi</th>
+                    <th className="px-1 py-0.5 text-right">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ELEMENTS.map(el => {
+                    const s = mifqResult.elements[el];
+                    const pct = mifqResult.totalNormalizedQi > 0 ? (s.normalizedQi / mifqResult.totalNormalizedQi) * 100 : 0;
+                    return (
+                      <tr key={el} className="border-t border-white/5">
+                        <td className="px-1 py-0.5" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                        <td className="px-1 py-0.5 text-right text-white">{s.rawPercent.toFixed(1)}%</td>
+                        <td className="px-0.5 py-0.5 text-center text-gray-400">x</td>
+                        <td className="px-1 py-0.5 text-right text-gray-300">{mifqResult.scale.toFixed(4)}</td>
+                        <td className="px-0.5 py-0.5 text-center text-gray-400">=</td>
+                        <td className="px-1 py-0.5 text-right text-teal-300 font-semibold">{s.normalizedQi.toFixed(3)}</td>
+                        <td className="px-1 py-0.5 text-right text-gray-300">{pct.toFixed(1)}%</td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="border-t border-white/20 bg-white/5">
+                    <td className="px-1 py-0.5 text-gray-400 font-semibold">Total</td>
+                    <td className="px-1 py-0.5 text-right text-white font-semibold">{mifqResult.totalRawPercent.toFixed(1)}%</td>
+                    <td className="px-0.5 py-0.5"></td>
+                    <td className="px-1 py-0.5"></td>
+                    <td className="px-0.5 py-0.5"></td>
+                    <td className="px-1 py-0.5 text-right text-teal-300 font-bold">{mifqResult.totalNormalizedQi.toFixed(3)}</td>
+                    <td className="px-1 py-0.5 text-right text-white font-bold">100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="text-[9px] font-mono text-teal-400">MIFQ total = {mifqResult.totalNormalizedQi.toFixed(3)} pts = MTFQ total ✓</div>
+
+            {/* Side-by-side spider graphs: MIFQ vs MTFQ */}
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <PentagonRadar qi={mifqQi} label="MIFQ (ideal)" size={130} primaryColor="#2dd4bf" primaryFill="rgba(45,212,191,0.2)" />
+              <div className="flex flex-col items-center">
+                <span className="text-[9px] text-white/40 font-mono">vs</span>
+              </div>
+              <PentagonRadar qi={mtfq} label="MTFQ (actual)" size={130} />
+            </div>
+          </div>
+
+          {/* Step 4: BRQ — Bracelet Qi */}
+          <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+            <div className="text-[10px] font-semibold text-rose-300 mb-1">Step 4: Bracelet Qi (BRQ) — Correction Vector</div>
+            <div className="text-[9px] font-mono text-gray-300">
+              BRQ = MIFQ - MTFQ — the Qi the bracelet must inject to move you toward your ideal.
+            </div>
+
+            <div className="rounded border border-white/10 overflow-hidden">
+              <table className="w-full text-[10px] font-mono">
+                <thead>
+                  <tr className="bg-white/5 text-gray-400">
+                    <th className="px-2 py-1 text-left">Element</th>
+                    <th className="px-2 py-1 text-right text-teal-300">MIFQ</th>
+                    <th className="px-1 py-1 text-center text-gray-500 w-4">-</th>
+                    <th className="px-2 py-1 text-right text-amber-300">MTFQ</th>
+                    <th className="px-1 py-1 text-center text-gray-500 w-4">=</th>
+                    <th className="px-2 py-1 text-right text-rose-300">BRQ</th>
+                    <th className="px-1.5 py-1 text-center w-12"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ELEMENTS.map(el => {
+                    const mifqVal = mifqQi[el] || 0;
+                    const mtfqVal = mtfq[el] || 0;
+                    const brq = mifqVal - mtfqVal;
+                    return (
+                      <tr key={el} className="border-t border-white/5">
+                        <td className="px-2 py-1" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                        <td className="px-2 py-1 text-right text-teal-300">{mifqVal.toFixed(3)}</td>
+                        <td className="px-1 py-1 text-center text-gray-500">-</td>
+                        <td className="px-2 py-1 text-right text-amber-300">{mtfqVal.toFixed(3)}</td>
+                        <td className="px-1 py-1 text-center text-gray-500">=</td>
+                        <td className={`px-2 py-1 text-right font-semibold ${brq > 0.005 ? 'text-green-400' : brq < -0.005 ? 'text-red-400' : 'text-gray-500'}`}>
+                          {brq > 0 ? '+' : ''}{brq.toFixed(3)}
+                        </td>
+                        <td className="px-1.5 py-1 text-center text-[9px]">
+                          {brq > 0.005 ? <span className="text-green-400">boost</span> : brq < -0.005 ? <span className="text-red-400">reduce</span> : <span className="text-gray-500">—</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {(() => {
+                    const brqTotal = ELEMENTS.reduce((s, el) => s + ((mifqQi[el] || 0) - (mtfq[el] || 0)), 0);
+                    return (
+                      <tr className="border-t border-white/20 bg-white/5">
+                        <td className="px-2 py-1 text-gray-300 font-semibold">Net</td>
+                        <td className="px-2 py-1 text-right text-teal-300 font-semibold">{mifqResult.totalNormalizedQi.toFixed(3)}</td>
+                        <td className="px-1 py-1"></td>
+                        <td className="px-2 py-1 text-right text-amber-300 font-semibold">{mtfqTotal.toFixed(3)}</td>
+                        <td className="px-1 py-1"></td>
+                        <td className="px-2 py-1 text-right text-gray-300 font-semibold">{brqTotal > 0 ? '+' : ''}{brqTotal.toFixed(3)}</td>
+                        <td className="px-1.5 py-1 text-center text-[9px] text-gray-400">zero-sum</td>
+                      </tr>
+                    );
+                  })()}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="text-[9px] font-mono text-gray-300">
+              <span className="text-green-400">boost</span> = bracelet adds this element &nbsp; <span className="text-red-400">reduce</span> = bracelet avoids this element
+            </div>
+          </div>
+
+          {/* Steps 4.5 + 4.6: Remedy Engine (0.75/0.25 interaction matrix) */}
+          {(() => {
+            // ── Interaction matrix: adding element X reduces targets by these coefficients ──
+            // Control (克) = 0.75, Drain (泄) = 0.25
+            // Adding X: controls (克) its target at 0.75, drains (泄) its mother at 0.25
+            // Drain = child exhausts parent: X is child of mother, adding X drains mother
+            // 生 cycle: Water→Wood→Fire→Earth→Metal→Water (mother→child)
+            const INTERACTION = {
+              Wood:  { Earth: 0.75, Water: 0.25 },   // Wood 克 Earth, Wood drains Water (Water→Wood)
+              Fire:  { Metal: 0.75, Wood:  0.25 },   // Fire 克 Metal, Fire drains Wood (Wood→Fire)
+              Earth: { Water: 0.75, Fire:  0.25 },   // Earth 克 Water, Earth drains Fire (Fire→Earth)
+              Metal: { Wood:  0.75, Earth: 0.25 },   // Metal 克 Wood, Metal drains Earth (Earth→Metal)
+              Water: { Fire:  0.75, Metal: 0.25 },   // Water 克 Fire, Water drains Metal (Metal→Water)
+            };
+
+            const forbidden = new Set(yongShen?.forbidden || []);
+            if (yongShen?.threat) forbidden.add(yongShen.threat);
+            // Also treat excessive elements (negative BRQ) as forbidden remedies
+            // — never add more of an element that's already in excess
+            ELEMENTS.forEach(el => {
+              const brq = (mifqQi[el] || 0) - (mtfq[el] || 0);
+              if (brq < -0.005) forbidden.add(el);
+            });
+
+            // Floors: based on TFQ percentage of current total Qi
+            // e.g., Fire = 11% of TFQ → floor = 11% × (1−f) × MTFQ total
+            const tfqTotal = userTfq ? ELEMENTS.reduce((s, el) => s + (userTfq[el] || 0), 0) : 0;
+            const natalPct = {};  // natal percentage per element
+            ELEMENTS.forEach(el => {
+              natalPct[el] = tfqTotal > 0 ? (userTfq?.[el] || 0) / tfqTotal : 0.2;
+            });
+            const natalFloor = {};
+            ELEMENTS.forEach(el => {
+              natalFloor[el] = natalPct[el] * (1 - tolerance) * mtfqTotal;
+            });
+
+            // Running state: current Qi starts at MTFQ
+            const current = {};
+            ELEMENTS.forEach(el => { current[el] = mtfq[el] || 0; });
+
+            // Detect all excessive elements (negative BRQ), sort largest first
+            const excessive = ELEMENTS
+              .map(el => ({ el, brq: (mifqQi[el] || 0) - (mtfq[el] || 0) }))
+              .filter(r => r.brq < -0.005)
+              .sort((a, b) => a.brq - b.brq);  // most negative first
+
+            // Track remedy additions per element
+            const remedyAdded = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+
+            // Process each excess element sequentially
+            const steps = excessive.map(({ el: target, brq: origBrq }, idx) => {
+              // Snapshot BEFORE this round
+              const before = {};
+              ELEMENTS.forEach(e => { before[e] = current[e]; });
+
+              // Re-check excess using UPDATED current state (prior remedies may have changed it)
+              const currentExcess = current[target] - (mifqQi[target] || 0);
+              // If no longer excessive after prior remedies, skip
+              if (currentExcess <= 0.005) {
+                const newBrq = (mifqQi[target] || 0) - current[target];
+                const snapshot = {};
+                ELEMENTS.forEach(e => { snapshot[e] = current[e]; });
+                return {
+                  target, excess: Math.abs(origBrq), remaining: 0,
+                  effects: [], order: idx + 1, noRemedy: false,
+                  resolved: true, newBrq, before, snapshot, delta: {}, stepRemedyUnits: {},
+                };
+              }
+              const excess = currentExcess;
+
+              // Find all remedy elements that reduce this target, excluding forbidden
+              const remedies = ELEMENTS
+                .filter(r => INTERACTION[r]?.[target] && !forbidden.has(r))
+                .map(r => ({ remedy: r, coeff: INTERACTION[r][target] }))
+                .sort((a, b) => b.coeff - a.coeff);  // strongest first (controller before drainer)
+
+              const effects = [];  // track each remedy applied
+              let remaining = excess;
+
+              for (const { remedy, coeff } of remedies) {
+                if (remaining <= 0.001) break;
+
+                // How much remedy needed to fix remaining excess via this coefficient
+                const needed = remaining / coeff;
+
+                // Floor check: adding this remedy reduces ALL its targets
+                // Find max we can add before ANY target hits its floor
+                let maxAllowed = Infinity;
+                let floorEl = null;
+                for (const [affected, affCoeff] of Object.entries(INTERACTION[remedy])) {
+                  if (affCoeff <= 0) continue;
+                  const curVal = current[affected];
+                  const floor = natalFloor[affected] || 0;
+                  if (curVal <= floor) { maxAllowed = 0; floorEl = affected; break; }
+                  const allowed = (curVal - floor) / affCoeff;
+                  if (allowed < maxAllowed) { maxAllowed = allowed; floorEl = affected; }
+                }
+                maxAllowed = Math.max(0, maxAllowed);
+
+                const use = Math.min(needed, maxAllowed);
+                if (use <= 0.001) {
+                  effects.push({ remedy, coeff, units: 0, reductions: {}, floorHit: floorEl, capped: true });
+                  continue;
+                }
+
+                // Apply: update current Qi for all affected elements
+                const reductions = {};
+                for (const [affected, affCoeff] of Object.entries(INTERACTION[remedy])) {
+                  const reduction = use * affCoeff;
+                  current[affected] -= reduction;
+                  // Enforce floor
+                  const floor = natalFloor[affected] || 0;
+                  if (current[affected] < floor) current[affected] = floor;
+                  reductions[affected] = reduction;
+                }
+
+                // The remedy element itself is added to the system
+                current[remedy] += use;
+                remedyAdded[remedy] += use;
+                remaining -= use * coeff;
+
+                effects.push({
+                  remedy, coeff, units: use,
+                  reductions,
+                  floorHit: use < needed - 0.001 ? floorEl : null,
+                  capped: use < needed - 0.001,
+                });
+              }
+
+              // Snapshot current Qi after this step + compute deltas
+              const snapshot = {};
+              const delta = {};
+              ELEMENTS.forEach(e => {
+                snapshot[e] = current[e];
+                delta[e] = current[e] - before[e];
+              });
+
+              // Total remedy units added this step
+              const stepRemedyUnits = {};
+              effects.forEach(eff => {
+                if (eff.units > 0.001) {
+                  stepRemedyUnits[eff.remedy] = (stepRemedyUnits[eff.remedy] || 0) + eff.units;
+                }
+              });
+
+              return {
+                target, excess, remaining: Math.max(0, remaining),
+                effects, order: idx + 1,
+                noRemedy: remedies.length === 0,
+                before, snapshot, delta, stepRemedyUnits,
+              };
+            });
+
+            // Compute total reductions per element (sum of all reductions applied to it)
+            const totalReduced = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+            steps.forEach(s => {
+              s.effects.forEach(eff => {
+                Object.entries(eff.reductions).forEach(([el, amt]) => { totalReduced[el] += amt; });
+              });
+            });
+
+            return (
+              <>
+                {/* Step 4.5: Remedy Conversion */}
+                <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="text-[10px] font-semibold text-pink-300">Step 4.5: Remedy Conversion — Control & Drain Engine</div>
+                    <button onClick={() => setShowRemedyMd(prev => !prev)} className="text-[9px] font-mono text-pink-400/70 hover:text-pink-300 transition-colors px-1.5 py-0.5 rounded border border-pink-700/30 hover:border-pink-500/50 bg-pink-900/20">MD</button>
+                  </div>
+                  <div className="text-[9px] text-gray-300">
+                    Excess elements processed <span className="text-white">largest wound first</span>.
+                    Adding a remedy reduces targets: <span className="text-orange-300">克 Control = 0.75</span> per unit, <span className="text-sky-300">泄 Drain = 0.25</span> per unit.
+                    Floors enforced — no element drops below natal TFQ × (1 − f).
+                  </div>
+
+                  {/* Tolerance slider (f) */}
+                  <div className="rounded border border-white/10 bg-white/5 p-2 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-mono text-pink-300 w-24 shrink-0">f (tolerance) {(tolerance * 100).toFixed(0)}%</span>
+                      <input
+                        type="range"
+                        min={0} max={25} step={1}
+                        value={tolerance * 100}
+                        onChange={e => setTolerance(Number(e.target.value) / 100)}
+                        className="flex-1 h-1.5 rounded-full appearance-none bg-gray-700 accent-pink-500"
+                      />
+                      <button
+                        onClick={() => setTolerance(0)}
+                        className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${tolerance === 0 ? 'text-gray-500 border-gray-700 cursor-default' : 'text-pink-400 border-pink-700/50 hover:border-pink-500/50 hover:text-pink-300 bg-pink-900/20'}`}
+                        disabled={tolerance === 0}
+                      >0%</button>
+                    </div>
+                    <div className="text-[8px] text-gray-400 font-mono">
+                      {tolerance === 0 ? 'Conservative — strict natal TFQ floor protection' :
+                       tolerance <= 0.10 ? 'Moderate — allows mild dip below natal for better correction' :
+                       tolerance <= 0.20 ? 'Flexible — willing to bend natal for stronger Metal reduction' :
+                       'Aggressive — max correction, natal floors relaxed 25%'}
+                    </div>
+                    {userTfq && (
+                      <div className="flex gap-1 flex-wrap text-[8px] font-mono">
+                        {ELEMENTS.map(el => {
+                          const pct = natalPct[el] * 100;
+                          const floorPct = pct * (1 - tolerance);
+                          const floorQi = natalFloor[el];
+                          return (
+                            <span key={el} className="px-1 py-0.5 rounded bg-black/30 border border-white/5">
+                              <span style={{ color: ELEM_COLORS[el] }}>{el}</span>
+                              <span className="text-gray-400"> {pct.toFixed(0)}%</span>
+                              {tolerance > 0 && <span className="text-pink-300">→{floorPct.toFixed(0)}%</span>}
+                              <span className="text-gray-500"> ({floorQi.toFixed(2)})</span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {excessive.length === 0 ? (
+                    <div className="text-[9px] text-gray-400 italic">No elements need reduction this month.</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {steps.map(s => (
+                        <div key={s.target} className="rounded border border-white/10 bg-white/5 p-2 space-y-1.5">
+                          {/* Header */}
+                          <div className="flex items-center gap-2 text-[10px]">
+                            <span className="text-gray-300 font-mono">#{s.order}</span>
+                            <span className="font-semibold" style={{ color: ELEM_COLORS[s.target] }}>{s.target}</span>
+                            <span className="text-red-400 font-mono">excess {s.excess.toFixed(3)}</span>
+                          </div>
+
+                          {s.resolved ? (
+                            <div className="text-[9px] font-mono pl-2 space-y-0.5">
+                              <div className="text-green-400">Already resolved by prior remedy — no longer excessive.</div>
+                              <div className="text-gray-300">New BRQ: <span className={s.newBrq > 0.005 ? 'text-green-400' : 'text-gray-400'}>{s.newBrq > 0 ? '+' : ''}{s.newBrq.toFixed(3)}</span> {s.newBrq > 0.005 ? '(now needs boosting)' : ''}</div>
+                            </div>
+                          ) : s.noRemedy ? (
+                            <div className="text-[9px] text-red-400 font-mono pl-2">All remedy elements are forbidden — no correction possible.</div>
+                          ) : (
+                            /* Before / Add / After breakdown table */
+                            <div className="space-y-1.5">
+                              {/* Remedy summary line */}
+                              <div className="text-[9px] font-mono text-gray-300 pl-1">
+                                {Object.entries(s.stepRemedyUnits).map(([rem, units]) => (
+                                  <span key={rem} className="mr-3">
+                                    Add <span style={{ color: ELEM_COLORS[rem] }}>{rem}</span>
+                                    <span className="text-green-400 ml-1">+{units.toFixed(3)}</span> units
+                                    {s.effects.find(e => e.capped && e.remedy === rem) && (
+                                      <span className="text-amber-400 ml-1">
+                                        (floor: <span style={{ color: ELEM_COLORS[s.effects.find(e => e.capped && e.remedy === rem)?.floorHit] }}>{s.effects.find(e => e.capped && e.remedy === rem)?.floorHit}</span>)
+                                      </span>
+                                    )}
+                                  </span>
+                                ))}
+                              </div>
+
+                              {/* Before / Effect / After table */}
+                              <div className="rounded border border-white/10 overflow-hidden">
+                                <table className="w-full text-[9px] font-mono">
+                                  <thead>
+                                    <tr className="bg-white/5 text-gray-400">
+                                      <th className="px-1 py-0.5 text-left"></th>
+                                      {ELEMENTS.map(el => (
+                                        <th key={el} className="px-1 py-0.5 text-right" style={{ color: ELEM_COLORS[el] }}>{el}</th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {/* Before row */}
+                                    <tr className="border-t border-white/5">
+                                      <td className="px-1 py-0.5 text-gray-400">Before</td>
+                                      {ELEMENTS.map(el => (
+                                        <td key={el} className="px-1 py-0.5 text-right text-gray-300">{s.before[el].toFixed(3)}</td>
+                                      ))}
+                                    </tr>
+                                    {/* Effect row — show per-element delta with coefficients */}
+                                    <tr className="border-t border-white/5 bg-white/5">
+                                      <td className="px-1 py-0.5 text-gray-400">Effect</td>
+                                      {ELEMENTS.map(el => {
+                                        const d = s.delta[el];
+                                        // Determine what role this element plays
+                                        let label = '';
+                                        if (s.stepRemedyUnits[el]) label = '100%';
+                                        else {
+                                          for (const eff of s.effects) {
+                                            if (eff.units > 0.001 && INTERACTION[eff.remedy]?.[el]) {
+                                              label = INTERACTION[eff.remedy][el] === 0.75 ? '克75%' : '泄25%';
+                                              break;
+                                            }
+                                          }
+                                        }
+                                        return (
+                                          <td key={el} className="px-1 py-0.5 text-right">
+                                            {Math.abs(d) > 0.001 ? (
+                                              <div>
+                                                <span className={d > 0 ? 'text-green-400' : 'text-red-400'}>
+                                                  {d > 0 ? '+' : ''}{d.toFixed(3)}
+                                                </span>
+                                                {label && <div className="text-[7px] text-gray-500">{label}</div>}
+                                              </div>
+                                            ) : (
+                                              <span className="text-gray-600">—</span>
+                                            )}
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                    {/* After row */}
+                                    <tr className="border-t border-white/10">
+                                      <td className="px-1 py-0.5 text-white font-semibold">After</td>
+                                      {ELEMENTS.map(el => {
+                                        const val = s.snapshot[el];
+                                        const ideal = mifqQi[el] || 0;
+                                        const floor = natalFloor[el] || 0;
+                                        const atFloorNow = Math.abs(val - floor) < 0.05;
+                                        return (
+                                          <td key={el} className={`px-1 py-0.5 text-right font-semibold ${atFloorNow ? 'text-violet-400' : val > ideal + 0.05 ? 'text-red-400' : 'text-emerald-300'}`}>
+                                            {val.toFixed(3)}
+                                            {atFloorNow && <div className="text-[7px] text-violet-400">FLOOR</div>}
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Summary */}
+                          <div className="text-[9px] font-mono pl-1 pt-0.5 border-t border-white/5 flex items-center gap-3">
+                            {s.resolved ? (
+                              <span className="text-green-400">Resolved by prior round</span>
+                            ) : s.remaining <= 0.001 ? (
+                              <span className="text-green-400">Fully resolved</span>
+                            ) : (
+                              <>
+                                <span className="text-green-400">Reduced: −{(s.excess - s.remaining).toFixed(3)}</span>
+                                <span className="text-amber-400">Remaining: {s.remaining.toFixed(3)}</span>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Qi snapshot: 3 bars per element — Before / After / TFQ floor */}
+                          {s.snapshot && (() => {
+                            const maxVal = Math.max(...ELEMENTS.map(el => Math.max(
+                              s.before[el] || 0, s.snapshot[el], natalFloor[el] || 0, userTfq?.[el] || 0
+                            )), 0.01);
+                            const afterTotal = ELEMENTS.reduce((sum, el) => sum + s.snapshot[el], 0) || 1;
+                            return (
+                              <div className="mt-1 pt-1 border-t border-white/10">
+                                <div className="text-[8px] text-gray-400 mb-1">Qi after round #{s.order}:</div>
+                                <div className="space-y-3">
+                                  {ELEMENTS.map(el => {
+                                    const bef = s.before[el] || 0;
+                                    const aft = s.snapshot[el];
+                                    const floorVal = natalFloor[el] || 0;
+                                    const ideal = mifqQi[el] || 0;
+                                    const atFloorNow = Math.abs(aft - floorVal) < 0.05;
+                                    const befW = (bef / maxVal) * 100;
+                                    const aftW = (aft / maxVal) * 100;
+                                    const floorW = (floorVal / maxVal) * 100;
+                                    const aftPct = (aft / afterTotal) * 100;
+                                    const floorPct = natalPct[el] * (1 - tolerance) * 100;
+                                    return (
+                                      <div key={el} className="flex items-center gap-1.5 text-[9px]">
+                                        <span className="w-10 text-right font-mono shrink-0" style={{ color: ELEM_COLORS[el] }}>{el}</span>
+                                        <div className="flex-1 space-y-0.5">
+                                          {/* Before bar */}
+                                          <div className="h-3 bg-white/5 rounded overflow-hidden relative">
+                                            <div className="absolute inset-y-0 left-0 rounded" style={{ width: `${befW}%`, backgroundColor: '#f59e0b', opacity: 0.6 }} />
+                                            <span className="absolute inset-0 flex items-center px-1.5 text-[8px] font-mono text-amber-300/80">{bef.toFixed(2)}</span>
+                                          </div>
+                                          {/* After bar */}
+                                          <div className="h-4 bg-white/5 rounded overflow-hidden relative">
+                                            <div className="absolute inset-y-0 left-0 rounded" style={{
+                                              width: `${aftW}%`,
+                                              backgroundColor: atFloorNow ? '#8b5cf6' : aft > ideal + 0.05 ? '#ef4444' : '#34d399',
+                                              opacity: 0.8,
+                                            }} />
+                                            {/* Floor marker line */}
+                                            <div className="absolute top-0 bottom-0 w-0.5 bg-pink-400/90 z-10" style={{ left: `${floorW}%` }} />
+                                            <span className="absolute inset-0 flex items-center justify-between px-1.5 text-[8px] font-mono">
+                                              <span className="text-white/90">{aft.toFixed(2)} ({aftPct.toFixed(0)}%)</span>
+                                              {atFloorNow && <span className="text-pink-300 font-semibold">FLOOR</span>}
+                                            </span>
+                                          </div>
+                                          {/* TFQ floor bar */}
+                                          <div className="h-2.5 bg-white/5 rounded overflow-hidden relative">
+                                            <div className="absolute inset-y-0 left-0 rounded" style={{ width: `${floorW}%`, backgroundColor: '#8b5cf6', opacity: 0.4 }} />
+                                            <span className="absolute inset-0 flex items-center px-1.5 text-[7px] font-mono text-violet-300/70">TFQ {floorPct.toFixed(0)}% ({floorVal.toFixed(2)})</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {/* Legend */}
+                                <div className="flex items-center gap-3 mt-1 text-[7px] font-mono text-gray-400">
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-2.5 h-1.5 bg-amber-400/60 rounded" />
+                                    <span>Before</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-2.5 h-2 bg-emerald-400/80 rounded" />
+                                    <span>After</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-2.5 h-1 bg-violet-500/40 rounded" />
+                                    <span>TFQ floor</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-0.5 h-2.5 bg-pink-400" />
+                                    <span>Floor line</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="text-[9px] font-mono text-gray-300 space-y-0.5">
+                    <div><span className="text-orange-300">克 Control (0.75)</span> — 1 unit remedy reduces target by 0.75</div>
+                    <div><span className="text-sky-300">泄 Drain (0.25)</span> — 1 unit remedy reduces target by 0.25</div>
+                    <div><span className="text-red-400">✗</span> forbidden &nbsp; <span className="text-amber-400">floor</span> = natal TFQ prevents further reduction</div>
+                  </div>
+                </div>
+
+                {/* Step 4.6: Qi After Remedy — updated state */}
+                <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+                  <div className="text-[10px] font-semibold text-pink-200 mb-1">Step 4.6: Qi After Remedy</div>
+                  <div className="text-[9px] text-gray-300">
+                    MTFQ updated by remedy additions (Step 4.5). Shows what the bracelet actually targets.
+                  </div>
+
+                  <div className="rounded border border-white/10 overflow-hidden">
+                    <table className="w-full text-[9px] font-mono">
+                      <thead>
+                        <tr className="bg-white/5 text-gray-400">
+                          <th className="px-1 py-0.5 text-left">El</th>
+                          <th className="px-1 py-0.5 text-right text-amber-300">MTFQ</th>
+                          <th className="px-1 py-0.5 text-right text-green-300">+remedy</th>
+                          <th className="px-1 py-0.5 text-right text-red-300">−reduced</th>
+                          <th className="px-0.5 py-0.5 text-center text-gray-500">=</th>
+                          <th className="px-1 py-0.5 text-right text-pink-200">After</th>
+                          <th className="px-1 py-0.5 text-right text-teal-300/80">MIFQ</th>
+                          <th className="px-1 py-0.5 text-right">Gap</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ELEMENTS.map(el => {
+                          const mtfqVal = mtfq[el] || 0;
+                          const added = remedyAdded[el];
+                          const removed = totalReduced[el];
+                          const afterVal = current[el];
+                          const mifqVal = mifqQi[el] || 0;
+                          const gap = mifqVal - afterVal;
+                          const changed = added > 0.001 || removed > 0.001;
+                          return (
+                            <tr key={el} className="border-t border-white/5">
+                              <td className="px-1 py-0.5" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                              <td className="px-1 py-0.5 text-right text-amber-300">{mtfqVal.toFixed(3)}</td>
+                              <td className="px-1 py-0.5 text-right">
+                                {added > 0.001 ? <span className="text-green-400">+{added.toFixed(3)}</span> : <span className="text-gray-500">—</span>}
+                              </td>
+                              <td className="px-1 py-0.5 text-right">
+                                {removed > 0.001 ? <span className="text-red-400">−{removed.toFixed(3)}</span> : <span className="text-gray-500">—</span>}
+                              </td>
+                              <td className="px-0.5 py-0.5 text-center text-gray-500">=</td>
+                              <td className="px-1 py-0.5 text-right font-semibold text-pink-200">{afterVal.toFixed(3)}</td>
+                              <td className="px-1 py-0.5 text-right text-teal-300/80">{mifqVal.toFixed(3)}</td>
+                              <td className={`px-1 py-0.5 text-right ${Math.abs(gap) < 0.01 ? 'text-green-400' : gap > 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                                {Math.abs(gap) < 0.01 ? '~0' : (gap > 0 ? '+' : '') + gap.toFixed(3)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+
+          {/* Steps 5-12: BRQ Pipeline */}
+          {(() => {
+            // Per-element BRQ and caps used by all steps
+            const brqPerEl = {};
+            ELEMENTS.forEach(el => { brqPerEl[el] = (mifqQi[el] || 0) - (mtfq[el] || 0); });
+            // Cap based on raw BRQ (the wound), not BRQ_eff (the attempt)
+            // s = effectiveness (how hard bracelet tries), k = safety limit (max fraction of wound allowed)
+            // When s < k → no capping. When s > k → capping kicks in.
+            const capPerEl = {};
+            ELEMENTS.forEach(el => { capPerEl[el] = Math.abs(brqPerEl[el]) * kCap; });
+            const capFor = (el) => capPerEl[el];
+            const clamp = (v, c) => Math.max(-c, Math.min(c, v));
+
+            return (
+              <>
+                <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-semibold text-violet-300">Step 5: Effectiveness Slider → BRQ_eff</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-violet-300">{(effectiveness * 100).toFixed(0)}%</span>
+                      <button onClick={() => setShowBrqPipelineMd(prev => !prev)} className="text-[9px] font-mono text-violet-400/70 hover:text-violet-300 transition-colors px-1.5 py-0.5 rounded border border-violet-700/30 hover:border-violet-500/50 bg-violet-900/20">MD</button>
+                    </div>
+                  </div>
+                  <div className="text-[9px] text-gray-300">
+                    How much of the ideal correction (BRQ) the bracelet can realistically deliver. Default 35%.
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-mono text-violet-300 w-20 shrink-0">s (eff) {(effectiveness * 100).toFixed(0)}%</span>
+                    <input
+                      type="range"
+                      min={10} max={50} step={1}
+                      value={effectiveness * 100}
+                      onChange={e => setEffectiveness(Number(e.target.value) / 100)}
+                      className="flex-1 h-1.5 rounded-full appearance-none bg-gray-700 accent-violet-500"
+                    />
+                    <button
+                      onClick={() => setEffectiveness(0.35)}
+                      className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${effectiveness === 0.35 ? 'text-gray-500 border-gray-700 cursor-default' : 'text-violet-400 border-violet-700/50 hover:border-violet-500/50 hover:text-violet-300 bg-violet-900/20'}`}
+                      disabled={effectiveness === 0.35}
+                    >35%</button>
+                  </div>
+
+                  <div className="rounded border border-white/10 overflow-hidden">
+                    <table className="w-full text-[10px] font-mono">
+                      <thead>
+                        <tr className="bg-white/5 text-gray-400">
+                          <th className="px-2 py-1 text-left">Element</th>
+                          <th className="px-2 py-1 text-right text-rose-300">BRQ</th>
+                          <th className="px-1 py-1 text-center text-gray-500">x</th>
+                          <th className="px-2 py-1 text-right text-violet-300">{(effectiveness * 100).toFixed(0)}%</th>
+                          <th className="px-1 py-1 text-center text-gray-500">=</th>
+                          <th className="px-2 py-1 text-right text-violet-300">BRQ_eff</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ELEMENTS.map(el => {
+                          const brq = (mifqQi[el] || 0) - (mtfq[el] || 0);
+                          const brqEff = brq * effectiveness;
+                          return (
+                            <tr key={el} className="border-t border-white/5">
+                              <td className="px-2 py-1" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                              <td className={`px-2 py-1 text-right ${brq > 0.005 ? 'text-green-400' : brq < -0.005 ? 'text-red-400' : 'text-gray-500'}`}>{brq > 0 ? '+' : ''}{brq.toFixed(3)}</td>
+                              <td className="px-1 py-1 text-center text-gray-400">x</td>
+                              <td className="px-2 py-1 text-right text-gray-300">{(effectiveness * 100).toFixed(0)}%</td>
+                              <td className="px-1 py-1 text-center text-gray-400">=</td>
+                              <td className={`px-2 py-1 text-right font-semibold ${brqEff > 0.005 ? 'text-green-400' : brqEff < -0.005 ? 'text-red-400' : 'text-gray-500'}`}>{brqEff > 0 ? '+' : ''}{brqEff.toFixed(3)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Step 5.5: Safety Limit k — per-element cap */}
+                <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-semibold text-lime-300">Step 5.5: Safety Limit (k) — Per-Element Cap</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-lime-300">{(kCap * 100).toFixed(0)}%</span>
+                      <button onClick={() => setShowBrqPipelineMd(prev => !prev)} className="text-[9px] font-mono text-lime-400/70 hover:text-lime-300 transition-colors px-1.5 py-0.5 rounded border border-lime-700/30 hover:border-lime-500/50 bg-lime-900/20">MD</button>
+                    </div>
+                  </div>
+                  <div className="text-[9px] text-gray-300">
+                    Cap = k x |BRQ| (the wound). When effectiveness (s) &lt; k → no capping. When s &gt; k → capping limits the correction.
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-mono text-lime-300 w-20 shrink-0">k (cap) {(kCap * 100).toFixed(0)}%</span>
+                    <input
+                      type="range"
+                      min={25} max={75} step={1}
+                      value={kCap * 100}
+                      onChange={e => setKCap(Number(e.target.value) / 100)}
+                      className="flex-1 h-1.5 rounded-full appearance-none bg-gray-700 accent-lime-500"
+                    />
+                    <button
+                      onClick={() => setKCap(0.50)}
+                      className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${kCap === 0.50 ? 'text-gray-500 border-gray-700 cursor-default' : 'text-lime-400 border-lime-700/50 hover:border-lime-500/50 hover:text-lime-300 bg-lime-900/20'}`}
+                      disabled={kCap === 0.50}
+                    >50%</button>
+                  </div>
+
+                  <div className="rounded border border-white/10 overflow-hidden">
+                    <table className="w-full text-[10px] font-mono">
+                      <thead>
+                        <tr className="bg-white/5 text-gray-400">
+                          <th className="px-1.5 py-1 text-left">Element</th>
+                          <th className="px-1.5 py-1 text-right text-rose-300">|BRQ|</th>
+                          <th className="px-1 py-1 text-center text-gray-500">x</th>
+                          <th className="px-1.5 py-1 text-right text-lime-300">{(kCap * 100).toFixed(0)}%</th>
+                          <th className="px-1 py-1 text-center text-gray-500">=</th>
+                          <th className="px-1.5 py-1 text-right text-lime-300">Cap</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ELEMENTS.map(el => (
+                          <tr key={el} className="border-t border-white/5">
+                            <td className="px-1.5 py-1" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                            <td className="px-1.5 py-1 text-right text-gray-300">{Math.abs(brqPerEl[el]).toFixed(3)}</td>
+                            <td className="px-1 py-1 text-center text-gray-400">x</td>
+                            <td className="px-1.5 py-1 text-right text-gray-300">{(kCap * 100).toFixed(0)}%</td>
+                            <td className="px-1 py-1 text-center text-gray-400">=</td>
+                            <td className="px-1.5 py-1 text-right text-lime-300 font-semibold">±{capFor(el).toFixed(3)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Step 6: Apply Per-Element Cap → BRQₑ */}
+                <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-semibold text-orange-300">Step 6: Apply Cap → BRQₑ (final bracelet output)</div>
+                    <button onClick={() => setShowBrqPipelineMd(prev => !prev)} className="text-[9px] font-mono text-orange-400/70 hover:text-orange-300 transition-colors px-1.5 py-0.5 rounded border border-orange-700/30 hover:border-orange-500/50 bg-orange-900/20">MD</button>
+                  </div>
+                  <div className="text-[9px] text-gray-300">
+                    Each element's BRQ_eff is clamped to its own cap (k x |BRQ|). No global cap — big wounds get proportionally bigger corrections.
+                  </div>
+
+                  <div className="rounded border border-white/10 overflow-hidden">
+                    <table className="w-full text-[10px] font-mono">
+                      <thead>
+                        <tr className="bg-white/5 text-gray-400">
+                          <th className="px-1.5 py-1 text-left">Element</th>
+                          <th className="px-1.5 py-1 text-right text-violet-300">BRQ_eff</th>
+                          <th className="px-1.5 py-1 text-right text-lime-300">Cap</th>
+                          <th className="px-1.5 py-1 text-right text-orange-300">BRQₑ</th>
+                          <th className="px-1.5 py-1 text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ELEMENTS.map(el => {
+                          const qs = qiScale ? qiScale[el] : 1;
+                          const brqEff = brqPerEl[el] * effectiveness * qs;
+                          const elCap = capFor(el);
+                          const clamped = clamp(brqEff, elCap);
+                          const wasCapped = Math.abs(brqEff) > elCap + 0.0005;
+                          return (
+                            <tr key={el} className="border-t border-white/5">
+                              <td className="px-1.5 py-1" style={{ color: ELEM_COLORS[el] }}>{el}</td>
+                              <td className={`px-1.5 py-1 text-right ${brqEff > 0.005 ? 'text-green-400' : brqEff < -0.005 ? 'text-red-400' : 'text-gray-500'}`}>{brqEff > 0 ? '+' : ''}{brqEff.toFixed(3)}</td>
+                              <td className="px-1.5 py-1 text-right text-gray-300">±{elCap.toFixed(3)}</td>
+                              <td className={`px-1.5 py-1 text-right font-semibold ${clamped > 0.005 ? 'text-green-400' : clamped < -0.005 ? 'text-red-400' : 'text-gray-500'}`}>{clamped > 0 ? '+' : ''}{clamped.toFixed(3)}</td>
+                              <td className="px-1.5 py-1 text-center text-[9px]">
+                                {wasCapped ? <span className="text-orange-400">capped</span> : <span className="text-gray-500">—</span>}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Step 7: MTFQ_after = MTFQ + BRQₑ */}
+                <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+                  <div className="text-[10px] font-semibold text-emerald-300">Step 7: MTFQ After Bracelet</div>
+                  <div className="text-[9px] text-gray-300">
+                    MTFQ_after = MTFQ + BRQₑ — the predicted Qi climate after wearing the bracelet.
+                  </div>
+
+                  <div className="rounded border border-white/10 overflow-hidden">
+                    <table className="w-full text-[10px] font-mono">
+                      <thead>
+                        <tr className="bg-white/5 text-gray-400">
+                          <th className="px-2 py-1 text-left">Element</th>
+                          <th className="px-2 py-1 text-right text-amber-300">MTFQ</th>
+                          <th className="px-1 py-1 text-center text-gray-500">+</th>
+                          <th className="px-2 py-1 text-right text-orange-300">BRQₑ</th>
+                          <th className="px-1 py-1 text-center text-gray-500">=</th>
+                          <th className="px-2 py-1 text-right text-emerald-300">After</th>
+                          <th className="px-2 py-1 text-right text-teal-300/80">MIFQ</th>
+                          <th className="px-2 py-1 text-right text-gray-300">Gap</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(() => {
+                          let totalAfter = 0;
+                          const rows = ELEMENTS.map(el => {
+                            const brq = (mifqQi[el] || 0) - (mtfq[el] || 0);
+                            const qs = qiScale ? qiScale[el] : 1;
+                            const brqEff = brq * effectiveness * qs;
+                            const clamped = clamp(brqEff, capFor(el));
+                            const after = (mtfq[el] || 0) + clamped;
+                            const mifqVal = mifqQi[el] || 0;
+                            const gap = mifqVal - after;
+                            totalAfter += after;
+                            return { el, mtfqVal: mtfq[el] || 0, clamped, after, mifqVal, gap };
+                          });
+                          const totalMifq = ELEMENTS.reduce((s, el) => s + (mifqQi[el] || 0), 0);
+                          return (
+                            <>
+                              {rows.map(r => (
+                                <tr key={r.el} className="border-t border-white/5">
+                                  <td className="px-2 py-1" style={{ color: ELEM_COLORS[r.el] }}>{r.el}</td>
+                                  <td className="px-2 py-1 text-right text-amber-300">{r.mtfqVal.toFixed(3)}</td>
+                                  <td className="px-1 py-1 text-center text-gray-400">+</td>
+                                  <td className={`px-2 py-1 text-right ${r.clamped > 0.005 ? 'text-green-400' : r.clamped < -0.005 ? 'text-red-400' : 'text-gray-500'}`}>{r.clamped > 0 ? '+' : ''}{r.clamped.toFixed(3)}</td>
+                                  <td className="px-1 py-1 text-center text-gray-400">=</td>
+                                  <td className="px-2 py-1 text-right text-emerald-300 font-semibold">{r.after.toFixed(3)}</td>
+                                  <td className="px-2 py-1 text-right text-teal-300/80">{r.mifqVal.toFixed(3)}</td>
+                                  <td className={`px-2 py-1 text-right text-[9px] ${Math.abs(r.gap) < 0.01 ? 'text-gray-600' : r.gap > 0 ? 'text-yellow-500' : 'text-yellow-500'}`}>{Math.abs(r.gap) < 0.01 ? '~0' : (r.gap > 0 ? '+' : '') + r.gap.toFixed(3)}</td>
+                                </tr>
+                              ))}
+                              <tr className="border-t border-white/20 bg-white/5">
+                                <td className="px-2 py-1 text-gray-300 font-semibold">Total</td>
+                                <td className="px-2 py-1 text-right text-amber-300 font-semibold">{mtfqTotal.toFixed(3)}</td>
+                                <td className="px-2 py-1"></td>
+                                <td className="px-2 py-1"></td>
+                                <td className="px-2 py-1"></td>
+                                <td className="px-2 py-1 text-right text-emerald-300 font-bold">{totalAfter.toFixed(3)}</td>
+                                <td className="px-2 py-1 text-right text-teal-300/60 font-semibold">{totalMifq.toFixed(3)}</td>
+                                <td className="px-2 py-1"></td>
+                              </tr>
+                            </>
+                          );
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="text-[9px] font-mono text-emerald-400">
+                    Bracelet closes {(effectiveness * 100).toFixed(0)}% of the gap between MTFQ and MIFQ (per-element cap at k={(kCap * 100).toFixed(0)}% of |BRQ|).
+                  </div>
+                </div>
+
+                {/* Step 8: Residual Gap + Effectiveness */}
+                {(() => {
+                  // Compute per-element data
+                  const rows = ELEMENTS.map(el => {
+                    const brqIdeal = (mifqQi[el] || 0) - (mtfq[el] || 0);
+                    const qs = qiScale ? qiScale[el] : 1;
+                    const brqEff = brqIdeal * effectiveness * qs;
+                    const clamped = clamp(brqEff, capFor(el));
+                    const after = (mtfq[el] || 0) + clamped;
+                    const mifqVal = mifqQi[el] || 0;
+                    const residual = mifqVal - after;
+                    const closed = brqIdeal !== 0 ? (1 - Math.abs(residual) / Math.abs(brqIdeal)) * 100 : 100;
+                    return { el, brqIdeal, clamped, after, mifqVal, residual, closed: Math.max(0, Math.min(100, closed)) };
+                  });
+
+                  // Overall effectiveness
+                  const totalBrqMag = rows.reduce((s, r) => s + Math.abs(r.brqIdeal), 0);
+                  const totalResidualMag = rows.reduce((s, r) => s + Math.abs(r.residual), 0);
+                  const overallEff = totalBrqMag > 0 ? (1 - totalResidualMag / totalBrqMag) * 100 : 100;
+
+                  return (
+                    <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px] font-semibold text-sky-300">Step 8: Residual Gap + Effectiveness</div>
+                        <span className={`text-[10px] font-mono font-semibold ${overallEff >= 80 ? 'text-green-400' : overallEff >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                          {overallEff.toFixed(1)}% effective
+                        </span>
+                      </div>
+                      <div className="text-[9px] text-gray-300">
+                        How much of the ideal correction was achieved. Residual = MIFQ - MTFQ_after (what's still unreached).
+                      </div>
+
+                      {/* Overall effectiveness bar */}
+                      <div className="w-full h-2.5 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${overallEff >= 80 ? 'bg-green-500' : overallEff >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                          style={{ width: `${Math.max(overallEff, 2)}%` }}
+                        />
+                      </div>
+
+                      <div className="rounded border border-white/10 overflow-hidden">
+                        <table className="w-full text-[9px] font-mono">
+                          <thead>
+                            <tr className="bg-white/5 text-gray-400">
+                              <th className="px-1 py-1 text-left">El</th>
+                              <th className="px-1 py-1 text-right text-rose-300">BRQ</th>
+                              <th className="px-1 py-1 text-right text-orange-300">BRQₑ</th>
+                              <th className="px-1 py-1 text-right text-emerald-300">After</th>
+                              <th className="px-1 py-1 text-right text-teal-300/80">MIFQ</th>
+                              <th className="px-1 py-1 text-right text-sky-300">Gap</th>
+                              <th className="px-1 py-1 text-right">Closed</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rows.map(r => (
+                              <tr key={r.el} className="border-t border-white/5">
+                                <td className="px-1 py-0.5" style={{ color: ELEM_COLORS[r.el] }}>{r.el}</td>
+                                <td className={`px-1 py-0.5 text-right ${r.brqIdeal > 0.005 ? 'text-green-400' : r.brqIdeal < -0.005 ? 'text-red-400' : 'text-gray-500'}`}>{r.brqIdeal > 0 ? '+' : ''}{r.brqIdeal.toFixed(3)}</td>
+                                <td className={`px-1 py-0.5 text-right ${r.clamped > 0.005 ? 'text-green-400' : r.clamped < -0.005 ? 'text-red-400' : 'text-gray-500'}`}>{r.clamped > 0 ? '+' : ''}{r.clamped.toFixed(3)}</td>
+                                <td className="px-1 py-0.5 text-right text-emerald-300">{r.after.toFixed(3)}</td>
+                                <td className="px-1 py-0.5 text-right text-teal-300/80">{r.mifqVal.toFixed(3)}</td>
+                                <td className={`px-1 py-0.5 text-right ${Math.abs(r.residual) < 0.01 ? 'text-green-400' : 'text-sky-300'}`}>
+                                  {Math.abs(r.residual) < 0.01 ? '~0' : (r.residual > 0 ? '+' : '') + r.residual.toFixed(3)}
+                                </td>
+                                <td className="px-1 py-0.5 text-right">
+                                  <span className={`${r.closed >= 80 ? 'text-green-400' : r.closed >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                                    {r.closed.toFixed(0)}%
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                            <tr className="border-t border-white/20 bg-white/5">
+                              <td className="px-1 py-0.5 text-gray-300 font-semibold">Overall</td>
+                              <td className="px-1 py-0.5"></td>
+                              <td className="px-1 py-0.5"></td>
+                              <td className="px-1 py-0.5"></td>
+                              <td className="px-1 py-0.5"></td>
+                              <td className="px-1 py-0.5"></td>
+                              <td className={`px-1 py-0.5 text-right font-bold ${overallEff >= 80 ? 'text-green-400' : overallEff >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                                {overallEff.toFixed(1)}%
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Steps 9-11: Effectiveness Score + Spider Graphs */}
+                {(() => {
+                  // Recompute all vectors for the spider section
+                  const spiderRows = ELEMENTS.map(el => {
+                    const brqIdeal = (mifqQi[el] || 0) - (mtfq[el] || 0);
+                    const qs = qiScale ? qiScale[el] : 1;
+                    const brqEff = brqIdeal * effectiveness * qs;
+                    const clamped = clamp(brqEff, capFor(el));
+                    const after = (mtfq[el] || 0) + clamped;
+                    const mifqVal = mifqQi[el] || 0;
+                    const residual = mifqVal - after;
+                    const elEff = Math.abs(brqIdeal) > 0.001 ? Math.max(0, Math.min(1, 1 - Math.abs(residual) / Math.abs(brqIdeal))) : 1;
+                    return { el, brqIdeal, clamped, after, mifqVal, residual, elEff };
+                  });
+
+                  const mtfqAfterQi = {};
+                  spiderRows.forEach(r => { mtfqAfterQi[r.el] = r.after; });
+
+                  // Per-element effectiveness bars
+                  const brqMag = Math.sqrt(spiderRows.reduce((s, r) => s + r.brqIdeal ** 2, 0));
+                  const resMag = Math.sqrt(spiderRows.reduce((s, r) => s + r.residual ** 2, 0));
+                  const globalEff = brqMag > 0.001 ? Math.max(0, 1 - resMag / brqMag) : 1;
+
+                  return (
+                    <>
+                      {/* Step 9: Per-element effectiveness bars */}
+                      <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="text-[10px] font-semibold text-sky-300">Step 9: Effectiveness Score</div>
+                          <span className={`text-[11px] font-mono font-bold ${globalEff >= 0.8 ? 'text-green-400' : globalEff >= 0.5 ? 'text-amber-400' : 'text-red-400'}`}>
+                            {(globalEff * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="text-[9px] text-gray-300">
+                          Per-element: how much of each element's ideal correction was achieved by the bracelet.
+                        </div>
+                        <div className="space-y-1.5">
+                          {spiderRows.map(r => (
+                            <div key={r.el} className="flex items-center gap-2 text-[10px]">
+                              <span className="w-10 text-right font-mono" style={{ color: ELEM_COLORS[r.el] }}>{r.el}</span>
+                              <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700/50">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-500 ${r.elEff >= 0.8 ? 'bg-green-500' : r.elEff >= 0.5 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                  style={{ width: `${Math.max(r.elEff * 100, 2)}%` }}
+                                />
+                              </div>
+                              <span className={`w-10 text-right font-mono ${r.elEff >= 0.8 ? 'text-green-400' : r.elEff >= 0.5 ? 'text-amber-400' : 'text-red-400'}`}>
+                                {(r.elEff * 100).toFixed(0)}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Steps 10-11: Spider Graphs — MTFQ vs After vs MIFQ */}
+                      <div className="rounded border border-white/10 bg-black/20 p-2 space-y-2">
+                        <div className="text-[10px] font-semibold text-indigo-300">Step 10-11: Bracelet Shift — Spider Graph</div>
+                        <div className="text-[9px] text-gray-300">
+                          Three layers: MTFQ (before) → MTFQ After Bracelet → MIFQ (target). The bracelet moves the amber shape toward the teal target.
+                        </div>
+                        <div className="flex items-center justify-center -mx-2">
+                          <PentagonRadar qi={mtfq} overlayQi={mifqQi} label="MTFQ (before)" overlayLabel="MIFQ (target)" size={135} />
+                          <div className="flex flex-col items-center -mx-2 mt-6">
+                            <span className="text-[9px] text-white/50 font-mono">→</span>
+                            <span className="text-[8px] text-emerald-300 font-mono font-semibold">bracelet</span>
+                            <span className="text-[9px] text-white/50 font-mono">→</span>
+                          </div>
+                          <PentagonRadar qi={mtfqAfterQi} overlayQi={mifqQi} label="After Bracelet" overlayLabel="MIFQ (target)" size={135} primaryColor="#34d399" primaryFill="rgba(52,211,153,0.2)" />
+                        </div>
+                        {/* Legend */}
+                        <div className="flex items-center justify-center gap-4 mt-1 text-[9px] font-mono">
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-1.5 bg-amber-400/60 rounded" />
+                            <span className="text-gray-400">MTFQ (before)</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-1.5 bg-emerald-400/80 rounded" />
+                            <span className="text-emerald-300">After Bracelet</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-0.5 border border-white/50 border-dashed rounded" />
+                            <span className="text-gray-400">MIFQ (target)</span>
+                          </div>
+                        </div>
+
+                        {/* Linked s & k sliders */}
+                        <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                          {/* s (Effectiveness) slider */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] font-mono text-violet-300 w-20 shrink-0">s (eff) {(effectiveness * 100).toFixed(0)}%</span>
+                            <input
+                              type="range"
+                              min={10} max={50} step={1}
+                              value={effectiveness * 100}
+                              onChange={e => setEffectiveness(Number(e.target.value) / 100)}
+                              className="flex-1 h-1.5 rounded-full appearance-none bg-gray-700 accent-violet-500"
+                            />
+                            <button
+                              onClick={() => setEffectiveness(0.35)}
+                              className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${effectiveness === 0.35 ? 'text-gray-500 border-gray-700 cursor-default' : 'text-violet-400 border-violet-700/50 hover:border-violet-500/50 hover:text-violet-300 bg-violet-900/20'}`}
+                              disabled={effectiveness === 0.35}
+                            >35%</button>
+                          </div>
+                          {/* k (Safety Cap) slider */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] font-mono text-lime-300 w-20 shrink-0">k (cap) {(kCap * 100).toFixed(0)}%</span>
+                            <input
+                              type="range"
+                              min={25} max={75} step={1}
+                              value={kCap * 100}
+                              onChange={e => setKCap(Number(e.target.value) / 100)}
+                              className="flex-1 h-1.5 rounded-full appearance-none bg-gray-700 accent-lime-500"
+                            />
+                            <button
+                              onClick={() => setKCap(0.50)}
+                              className={`text-[8px] font-mono px-1.5 py-0.5 rounded border transition-colors ${kCap === 0.50 ? 'text-gray-500 border-gray-700 cursor-default' : 'text-lime-400 border-lime-700/50 hover:border-lime-500/50 hover:text-lime-300 bg-lime-900/20'}`}
+                              disabled={kCap === 0.50}
+                            >50%</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Step 12: Per-Element Qi Journey — horizontal bar comparison */}
+                      <div className="rounded border border-white/10 bg-black/20 p-2 space-y-3">
+                        <div className="text-[10px] font-semibold text-indigo-300">Step 12: Per-Element Qi Journey</div>
+                        <div className="text-[9px] text-gray-300">
+                          Full pipeline view per element: TFQ → NTFQ → MTFQ → MIFQ → BRQₑ → After Bracelet. Bars show Qi units, right column shows % distance from MIFQ (ideal).
+                        </div>
+
+                        {(() => {
+                          // Find max across all values for consistent bar scaling
+                          const allVals = ELEMENTS.flatMap(el => {
+                            const vals = [
+                              mtfq[el] || 0,
+                              mifqQi[el] || 0,
+                              mtfqAfterQi[el] || 0,
+                            ];
+                            if (userTfq) vals.push(userTfq[el] || 0);
+                            if (ntfq) vals.push(ntfq[el] || 0);
+                            return vals;
+                          });
+                          const maxVal = Math.max(...allVals, 0.01);
+
+                          const layers = [
+                            { key: 'TFQ', color: '#6366f1', label: 'TFQ (natal)', getData: (el) => userTfq?.[el] || 0 },
+                            ...(ntfq ? [{ key: 'NTFQ', color: '#8b5cf6', label: 'NTFQ (post-pipeline)', getData: (el) => ntfq[el] || 0 }] : []),
+                            { key: 'MTFQ', color: '#f59e0b', label: 'MTFQ (this month)', getData: (el) => mtfq[el] || 0 },
+                            { key: 'MIFQ', color: '#2dd4bf', label: 'MIFQ (ideal)', getData: (el) => mifqQi[el] || 0 },
+                            { key: 'After', color: '#34d399', label: 'After Bracelet', getData: (el) => mtfqAfterQi[el] || 0 },
+                          ].filter(l => l.key !== 'TFQ' || userTfq);
+
+                          return (
+                            <div className="space-y-4">
+                              {ELEMENTS.map(el => {
+                                const mifqVal = mifqQi[el] || 0;
+                                return (
+                                  <div key={el}>
+                                    <div className="text-[10px] font-semibold mb-1" style={{ color: ELEM_COLORS[el] }}>{el}</div>
+                                    <div className="space-y-0.5">
+                                      {layers.map(layer => {
+                                        const val = layer.getData(el);
+                                        const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
+                                        const diffFromMifq = mifqVal > 0 ? ((val - mifqVal) / mifqVal) * 100 : 0;
+                                        return (
+                                          <div key={layer.key} className="flex items-center gap-1 text-[9px]">
+                                            <span className="w-12 text-right text-gray-400 shrink-0">{layer.key}</span>
+                                            <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden relative">
+                                              <div className="h-full rounded" style={{ width: `${Math.max(pct, 1)}%`, backgroundColor: layer.color, opacity: 0.7 }} />
+                                              <span className="absolute inset-0 flex items-center px-1 text-[8px] font-mono text-white/80 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+                                                {val > 0.001 ? val.toFixed(3) : '0'}
+                                              </span>
+                                            </div>
+                                            <span className={`w-12 text-right font-mono shrink-0 ${
+                                              layer.key === 'MIFQ' ? 'text-gray-500' :
+                                              Math.abs(diffFromMifq) < 1 ? 'text-green-400' :
+                                              diffFromMifq > 0 ? 'text-amber-400' : 'text-red-400'
+                                            }`}>
+                                              {layer.key === 'MIFQ' ? '—' : (diffFromMifq > 0 ? '+' : '') + diffFromMifq.toFixed(0) + '%'}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+
+                              {/* Legend */}
+                              <div className="flex flex-wrap gap-3 text-[8px] font-mono pt-1 border-t border-white/10">
+                                {layers.map(l => (
+                                  <div key={l.key} className="flex items-center gap-1">
+                                    <div className="w-2.5 h-2 rounded" style={{ backgroundColor: l.color, opacity: 0.7 }} />
+                                    <span className="text-gray-400">{l.label}</span>
+                                  </div>
+                                ))}
+                                <span className="text-gray-500 ml-auto">% = distance from MIFQ</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </>
+                  );
+                })()}
+              </>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Yong Shen Adjustment MD popup */}
+      {showYongShenAdjMd && (
+        <FloatingMdWindow
+          content={YONG_SHEN_ADJUSTMENT_MD}
+          title="Yong Shen Adjustment — Personal Correction"
+          onClose={() => setShowYongShenAdjMd(false)}
+        />
+      )}
+
+      {/* Seasonal Adjustment MD popup */}
+      {showSeasonalAdjMd && (
+        <FloatingMdWindow
+          content={SEASONAL_ADJUSTMENT_TABLE_MD}
+          title="Seasonal Adjustment — 12-Month Table"
+          onClose={() => setShowSeasonalAdjMd(false)}
+        />
+      )}
+      {showRemedyMd && (
+        <FloatingMdWindow
+          content={REMEDY_ENGINE_MD}
+          title="Step 4.5 — Remedy Conversion Engine"
+          onClose={() => setShowRemedyMd(false)}
+          width={660}
+        />
+      )}
+      {showBrqPipelineMd && (
+        <FloatingMdWindow
+          content={BRQ_PIPELINE_MD}
+          title="BRQ Pipeline — Steps 5, 5.5 & 6"
+          onClose={() => setShowBrqPipelineMd(false)}
+          width={620}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// YONG SHEN ADJUSTMENT MD — Personal correction rules
+// ============================================================================
+
+const YONG_SHEN_ADJUSTMENT_MD = `## Yong Shen Adjustment — Personal Correction
+
+The Yong Shen (用神) adjustment is a **purely natal, personal correction** applied to the 20% balanced baseline. It is the same every month — it reflects your chart's permanent elemental needs.
+
+### What is Yong Shen?
+
+Yong Shen literally means "Useful God" — the element your Day Master needs most to achieve balance. It is determined by analyzing:
+
+- **Day Master strength** (strong vs weak)
+- **Element distribution** across all four pillars
+- **Seasonal context** of your birth month
+- **Structural patterns** (collapse, dominance, etc.)
+
+### Adjustment Rules
+
+| Role | Adjustment | Why |
+|------|-----------|-----|
+| **Primary Useful** (Yong Shen) | **+6%** | Your main medicine — the element that balances your chart |
+| **Secondary Useful** | **+4%** | Supporting medicine — reinforces the primary |
+| **Child of Useful** (Sheng flow) | **+2%** | The element generated by your primary useful — keeps the cycle flowing |
+| **Threat Element** (dominant Ke) | **-4%** | The element that overpowers your Day Master |
+| **Forbidden Element** | **-6%** | The element that directly damages your Day Master |
+
+### How It Works
+
+Starting from the neutral 20% baseline per element:
+
+1. Identify the Yong Shen from natal chart analysis
+2. Apply positive adjustments to useful elements
+3. Apply negative adjustments to threatening elements
+4. The result is your **personal ideal shape** — before seasonal correction
+
+### Key Principle
+
+> The Yong Shen adjustment is **small and centered**. It nudges the 20% baseline by a few percentage points, not dramatic swings. The goal is a gentle personal bias, not a radical reshaping.
+
+### Sheng Cycle Reference
+
+The "Child of Useful" follows the Generating Cycle (生):
+
+- Wood feeds Fire
+- Fire creates Earth
+- Earth bears Metal
+- Metal enriches Water
+- Water nourishes Wood
+
+If your primary useful is Metal, then Water (+2%) is the child of useful — it keeps the productive cycle flowing downstream from your medicine.
+`;
+
+// ============================================================================
+// SEASONAL ADJUSTMENT MD — Full 12-month percentage table
+// ============================================================================
+
+const SEASONAL_ADJUSTMENT_TABLE_MD = `## Seasonal Adjustment — Element Expressiveness
+
+In BaZi, the **season you were born in** dramatically changes how strongly each element expresses itself. An element that is "present" in your chart may be nearly dormant if it's out of season, or at full power if in season.
+
+This is the **Five Phases of Seasonal Strength** (旺相休囚死):
+
+| Level | Multiplier | Adjustment | Meaning |
+|-------|-----------|------------|---------|
+| 旺 Prosperous | ×1.0 | **+4%** | Element at peak power — fully expressed |
+| 相 Phase | ×0.8 | **+2%** | Strong — generated by dominant element |
+| 休 Resting | ×0.6 | **+1%** | Moderate — supportive role |
+| 囚 Imprisoned | ×0.4 | **−2%** | Weakened — constrained by season |
+| 死 Dead | ×0.2 | **−4%** | At its weakest — nearly dormant |
+
+### The Full 12-Month Seasonal Adjustment Table
+
+| Month | Branch | Season | Wood | Fire | Earth | Metal | Water |
+|-------|--------|--------|------|------|-------|-------|-------|
+| Feb | 寅 Tiger | Spring | **+4%** | +2% | −2% | −4% | +1% |
+| Mar | 卯 Rabbit | Spring | **+4%** | +2% | −2% | −4% | +1% |
+| Apr | 辰 Dragon | Late Spring | +2% | −2% | **+4%** | −4% | +1% |
+| May | 巳 Snake | Summer | +1% | **+4%** | +2% | −4% | −2% |
+| Jun | 午 Horse | Summer | +1% | **+4%** | +2% | −2% | −4% |
+| Jul | 未 Goat | Late Summer | −2% | +2% | **+4%** | +1% | −4% |
+| Aug | 申 Monkey | Early Autumn | −4% | +1% | +2% | **+4%** | −2% |
+| Sep | 酉 Rooster | Autumn | −4% | −2% | +1% | **+4%** | +2% |
+| Oct | 戌 Dog | Late Autumn | −2% | −4% | **+4%** | +2% | +1% |
+| Nov | 亥 Pig | Winter | +2% | −4% | −2% | +1% | **+4%** |
+| Dec | 子 Rat | Deep Winter | +1% | −4% | −2% | +2% | **+4%** |
+| Jan | 丑 Ox | Late Winter | −2% | −4% | **+4%** | +1% | +2% |
+
+**Bold** marks the dominant element (旺 Prosperous, +4%) for each month.
+
+Earth pivot months (辰未戌丑) always have Earth as dominant — these are the classical 四季土 transition months where Earth reasserts itself between seasons.
+
+Each row sums to **+1%** — a slight net positive that reflects seasonal Qi vitality.
+`;
+
+// ============================================================================
+// BRQ PIPELINE MD — Steps 5, 5.5, 6 explanation
+// ============================================================================
+
+const REMEDY_ENGINE_MD = `## Step 4.5 — Remedy Conversion Engine
+
+### The Problem
+A bracelet **cannot remove** Qi — it can only **add** stones that carry elemental Qi.
+When Step 4 shows a negative BRQ (e.g., Metal −5.131), the bracelet cannot simply extract Metal.
+Instead, it must add other elements that **control** or **drain** the excess.
+
+---
+
+### Wu Xing Interaction Matrix
+
+Each remedy element reduces targets via two mechanisms:
+
+| Remedy Added | 克 Control (0.75) | 泄 Drain (0.25) |
+|---|---|---|
+| **Wood** | Earth −0.75 | Water −0.25 |
+| **Fire** | Metal −0.75 | Wood −0.25 |
+| **Earth** | Water −0.75 | Fire −0.25 |
+| **Metal** | Wood −0.75 | Earth −0.25 |
+| **Water** | Fire −0.75 | Metal −0.25 |
+
+- **克 Control (0.75)**: Strong — the element *overcomes* the target (Fire melts Metal)
+- **泄 Drain (0.25)**: Gentle — the target *exhausts itself* producing the remedy (Metal produces Water, draining Metal)
+
+Adding 1 unit of a remedy simultaneously reduces **both** its targets.
+
+---
+
+### Processing Order
+
+1. **Detect** all excessive elements (negative BRQ from Step 4)
+2. **Sort** by severity — largest wound first
+3. **For each** excess element:
+   - Find all remedy elements that affect it (control + drain)
+   - Exclude **forbidden** remedies:
+     - Yong Shen forbidden / threat elements
+     - Elements that are themselves excessive (negative BRQ)
+   - Apply strongest remedy first (controller before drainer)
+   - **Cap** by floor constraints — stop before any element drops below its floor
+4. **Re-check** remaining excess elements — prior remedies may have already resolved them
+
+---
+
+### Floor Protection
+
+Each element has a floor = the minimum Qi it must maintain:
+
+\`\`\`
+floor(e) = natal_TFQ(e) × (1 − f)
+\`\`\`
+
+Where **f** is the **tolerance slider** (0% → 25%):
+
+| f | Label | Effect |
+|---|---|---|
+| **0%** | Conservative | Strict natal TFQ floor — no element dips below its birth signature |
+| **10%** | Moderate | Allows mild 10% dip for better correction |
+| **20%** | Flexible | Willing to bend natal floors for stronger excess reduction |
+| **25%** | Aggressive | Maximum correction — natal floors relaxed by 25% |
+
+The floor prevents the remedy from *creating* a new imbalance while fixing the original one.
+
+---
+
+### Cross-Element Effects
+
+**Critical insight**: Adding a remedy affects **multiple** elements simultaneously.
+
+Example — adding Water to drain Metal:
+- Water **controls** Fire (−0.75 per unit) ← this is a *side effect*
+- Water **drains** Metal (−0.25 per unit) ← this is the *intended* effect
+
+So if Fire is already near its floor, the engine **must stop** adding Water even if Metal still has excess.
+This is why the floor check examines *all* targets of the remedy, not just the intended one.
+
+---
+
+### What "Resolved by Prior Round" Means
+
+When Metal is processed first and Water is added, that Water also reduces Fire (克 0.75).
+If this reduction drops Fire below its original excess level, Fire becomes a *deficit* instead.
+Step #2 will then show: **"Already resolved — New BRQ: +X.XXX (now needs boosting)"**
+
+This means the Fire excess was *over-corrected* as a side effect of the Metal remedy.
+The new positive BRQ for Fire will flow into Steps 5–12 as a boost target.
+
+---
+
+### Step 4.6 — Qi After Remedy
+
+Shows the updated MTFQ state after all remedy conversions:
+- **+remedy**: Qi units added (e.g., Water stones)
+- **−reduced**: Qi reduced by control/drain effects
+- **After**: New effective MTFQ
+- **Gap**: Distance to MIFQ (ideal) — feeds into Step 5
+
+---
+
+### Summary
+
+| Concept | Value |
+|---|---|
+| Control coefficient (克) | 0.75 |
+| Drain coefficient (泄) | 0.25 |
+| Floor formula | natal × (1 − f) |
+| Tolerance range (f) | 0% → 25% |
+| Processing order | Largest excess first |
+| Forbidden sources | Yong Shen + excess elements |
+| Cross-effects | All targets checked against floors |
+`;
+
+const BRQ_PIPELINE_MD = `## BRQ Pipeline — Effectiveness, Safety Limit & Capping
+
+Steps 5, 5.5, and 6 work together as a **two-slider control system** that determines how much correction the bracelet actually delivers.
+
+---
+
+### Step 5: Effectiveness Slider (s)
+
+**What it controls:** How much of the ideal correction (BRQ) the bracelet *attempts*.
+
+\`\`\`
+BRQ_eff(e) = BRQ(e) x s
+\`\`\`
+
+| Slider | Meaning |
+|--------|---------|
+| 10% | Conservative — bracelet barely tries |
+| 35% (default) | Moderate — standard bracelet influence |
+| 50% | Aggressive — bracelet pushes hard |
+
+**Think of it as:** The bracelet's *ambition*. Higher = more aggressive correction attempt.
+
+---
+
+### Step 5.5: Safety Limit (k)
+
+**What it controls:** The maximum fraction of each element's wound the bracelet is *allowed* to close.
+
+\`\`\`
+cap(e) = k x |BRQ(e)|
+\`\`\`
+
+The cap is based on the **raw wound** (BRQ), not the attempt (BRQ_eff). This is what makes the two sliders interact:
+
+| Slider | Meaning |
+|--------|---------|
+| 25% | Strict — bracelet can close at most 25% of each wound |
+| 50% (default) | Moderate — up to half the wound |
+| 75% | Permissive — bracelet has wide latitude |
+
+**Think of it as:** The bracelet's *safety limit*. Higher = more correction allowed.
+
+---
+
+### Step 6: Apply Cap → BRQₑ
+
+\`\`\`
+BRQₑ(e) = clamp(BRQ_eff(e), -cap(e), +cap(e))
+\`\`\`
+
+This is where the two sliders meet:
+
+- If **s < k** → BRQ_eff is within the cap → **no capping** (bracelet delivers its full attempt)
+- If **s > k** → BRQ_eff exceeds the cap → **capping kicks in** (correction is limited)
+- If **s = k** → borderline, just touching the cap
+
+---
+
+### How the Two Sliders Interact
+
+| s (effectiveness) | k (safety) | Capped? | Why |
+|---|---|---|---|
+| 10% | 25% | No | 10 < 25 — attempt within safety |
+| 35% | 50% | No | 35 < 50 — default settings, no capping |
+| 45% | 30% | **Yes** | 45 > 30 — attempt exceeds safety |
+| 50% | 25% | **Yes** | 50 > 25 — aggressive attempt, strict safety |
+| 50% | 75% | No | 50 < 75 — permissive safety allows it |
+
+### Key Insight
+
+> **s** controls how hard the bracelet *tries*.
+> **k** controls how much it's *allowed* to achieve.
+> Together they create a proportional, per-element correction that feels alive.
+
+### Per-Element Caps
+
+Unlike a global flat cap, each element gets its own cap proportional to its wound:
+
+- **Big wound** (e.g., Metal -6.6) → big cap (e.g., ±3.3 at k=50%)
+- **Small wound** (e.g., Earth +1.8) → small cap (e.g., ±0.9 at k=50%)
+
+This ensures the bracelet respects each element's scale — no more "everything capped at the same number."
+
+### The Full Chain Per Element
+
+\`\`\`
+BRQ(e)  →  x s  →  BRQ_eff(e)  →  clamp(±cap)  →  BRQₑ(e)
+(wound)    (try)    (attempt)      (safety)        (final)
+\`\`\`
+`;
+
+// ============================================================================
+// MTFQ FORMULA MD — Background, Classical BaZi Relation
+// ============================================================================
+
+const MTFQ_FORMULA_MD = `## MTFQ — Monthly Total Functional Qi
+
+### The Formula
+
+\`\`\`
+MTFQ = 1.0 × NTFQ + 0.9 × DaYun + 0.5 × Year + 0.3 × Month
+\`\`\`
+
+This is a **linear combination** — a relative weighting formula, not a percentage distribution.
+
+---
+
+### What the Coefficients Mean
+
+The coefficients are **relative influence weights**:
+
+| Layer | Weight | Role |
+|:------|:------:|:-----|
+| Natal (NTFQ) | 1.0 | Strongest — your constitutional structure |
+| Da Yun (10-yr) | 0.9 | Almost as strong — the decade's climate |
+| Year | 0.5 | Moderate — the annual weather |
+| Month | 0.3 | Lightest — the monthly weather |
+
+They tell the engine:
+
+- Natal Qi has the strongest influence
+- Da Yun is almost as strong (it shapes the entire decade)
+- Year is moderate
+- Month is lighter
+
+They do **not** mean "Da Yun = 0.9 / 2.7 = 33%." The formula is not a normalized percentage model — it is a weighted additive blend.
+
+---
+
+### Normalized Weights (for comparison only)
+
+If you normalize the weights (sum = 2.7):
+
+| Layer | Weight | Normalized |
+|:------|:------:|:----------:|
+| Natal (NTFQ) | 1.0 | 37.0% |
+| Da Yun | 0.9 | 33.3% |
+| Year | 0.5 | 18.5% |
+| Month | 0.3 | 11.1% |
+
+---
+
+### Classical BaZi Influence Hierarchy
+
+Classical BaZi texts never express influence as percentages, but every major lineage agrees on the implicit hierarchy:
+
+| Layer | Classical Influence | Why |
+|:------|:-------------------:|:----|
+| Natal Chart (命局) | 100% baseline | Defines Day Master, structure, capacity |
+| Da Yun (大運) | 30–40% | Climate of the decade — lasts 10 years |
+| Annual Luck (流年) | 25–30% | Yearly weather — shapes opportunities |
+| Monthly Luck (流月) | 15–20% | Monthly weather — short-term shifts |
+| Daily/Hourly | 5–10% | Triggers, not structure |
+
+The classical principle:
+
+> **"大運為主，流年為輔"**
+> *Da Yun is primary, Annual Luck is secondary.*
+
+Da Yun is the strongest external influence because:
+
+- It lasts 10 years
+- It shapes the entire decade's opportunities
+- It determines whether annual luck is supportive or destructive
+- It sets the "direction" of the decade (官, 財, 印, 食傷, 比劫)
+- It can flip the entire chart structure (e.g., into 從格 Cong Ge)
+
+---
+
+### Why the MTFQ Formula Matches Classical BaZi
+
+The normalized MTFQ weights:
+
+- Da Yun = 33.3% → classical says 30–40% ✓
+- Year = 18.5% → classical says 25–30% (slightly lower)
+- Month = 11.1% → classical says 15–20% (slightly lower)
+
+The MTFQ formula is essentially a **computational mirror** of classical BaZi weighting.
+
+---
+
+### Why the Formula Works
+
+Because it reflects the physics of influence:
+
+- **Duration**: 10 years > 1 year > 1 month
+- **Impact**: Da Yun > Year > Month
+- **Stability**: Natal > everything
+
+The formula captures:
+
+- Natal TFQ **anchors** the structure
+- Da Yun **tilts** the decade
+- Year **tilts** the annual weather
+- Month **tilts** the monthly weather
+
+Each layer adds its Qi contribution weighted by how much it should influence the final blend. The result — MTFQ — is the **total Qi field** for a given month, combining all four temporal layers.
+
+---
+
+### What MTFQ Is Not
+
+- MTFQ is **not** natal Qi (that is TFQ)
+- MTFQ is **not** environmental Qi (that is Year + Month alone)
+- MTFQ is **not** ideal Qi (that is MIFQ)
+- MTFQ is the **actual Qi climate** — what you are living in right now
+
+It is the starting point for everything downstream:
+BRQ, BRQe, and the bracelet prescription.
+
+---
+
+### Input Layers Explained
+
+**NTFQ (Natal Total Functional Qi)**
+Your natal TFQ after the survival pipeline: Combinations → Clashes → Harms → Punishments → Control Cycle → Sheng Cycle → Overcrowding → Transformations → Yong Shen. This is your processed constitutional Qi.
+
+**Da Yun Qi**
+The 10-year luck pillar's Qi contribution, processed through its own Seasonality → Polarity pipeline. Stem = 1 pt, Branch = 10 pts (with hidden stems distributed by classical percentages).
+
+**Year Qi**
+The annual pillar's Qi contribution, same pipeline as Da Yun.
+
+**Month Qi**
+The monthly pillar's Qi contribution, same pipeline as Da Yun.
+
+Only natal TFQ goes through the full survival pipeline. External layers use a simpler Seasonality → Polarity pipeline because they represent **environmental influence**, not **constitutional structure**.
+
+---
+
+### Classical BaZi Weighting Model
+
+How classical lineages implicitly weight influences:
+
+\`\`\`
+            ┌──────────────────────────┐
+            │      Natal Chart         │
+            │   (100% structural base) │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │        Da Yun            │
+            │   (~30–40% influence)    │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │        Annual            │
+            │   (~25–30% influence)    │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │        Monthly           │
+            │   (~15–20% influence)    │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │     Daily / Hourly       │
+            │     (~5–10% triggers)    │
+            └──────────────────────────┘
+\`\`\`
+
+---
+
+### Your Engine's Weighting Model (Actual Formula)
+
+\`\`\`
+MTFQ = 1.0 × NTFQ + 0.9 × DaYun + 0.5 × Year + 0.3 × Month
+
+            ┌──────────────────────────┐
+            │      Natal TFQ           │
+            │        weight 1.0        │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │       Da Yun Qi          │
+            │        weight 0.9        │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │        Year Qi           │
+            │        weight 0.5        │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │       Month Qi           │
+            │        weight 0.3        │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │          MTFQ            │
+            │  (Monthly Total Func Qi) │
+            └──────────────────────────┘
+\`\`\`
+
+This is a weighted sum, not a percentage model.
+
+---
+
+### Normalized Percentage Model
+
+Sum of weights: 1.0 + 0.9 + 0.5 + 0.3 = **2.7**
+
+\`\`\`
+         NORMALIZED WEIGHTING MODEL
+         (Your Engine → Classical BaZi)
+
+            ┌──────────────────────────┐
+            │      Natal TFQ           │
+            │        37.0%             │
+            │  (classical: baseline)   │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │        Da Yun            │
+            │        33.3%             │
+            │  (classical: 30–40%)     │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │         Year             │
+            │        18.5%             │
+            │  (classical: 25–30%)     │
+            └──────────────┬───────────┘
+                           │
+                           ▼
+            ┌──────────────────────────┐
+            │         Month            │
+            │        11.1%             │
+            │  (classical: 15–20%)     │
+            └──────────────────────────┘
+\`\`\`
+
+The engine's normalized weights match the classical BaZi hierarchy almost perfectly — Da Yun at 33.3% sits squarely in the classical 30–40% range.
+
+---
+
+### 3D Qi Vector Model — How Da Yun Tilts the Year
+
+Each month is a point in 3D Qi space:
+
+- **X-axis** → Natal TFQ (structural baseline — never changes)
+- **Y-axis** → Da Yun Qi (10-year climate — tilts the decade)
+- **Z-axis** → Annual + Monthly Qi (short-term weather)
+
+\`\`\`
+Q_month = (1.0 × NTFQ)x + (0.9 × DaYun)y + (0.5 × Year + 0.3 × Month)z
+\`\`\`
+
+**Natal TFQ** is the floor plane — the base terrain of the person's life. It defines Day Master strength, rooting, season, hidden stems, and chart structure.
+
+**Da Yun** is the tilt vector. A Water-heavy Da Yun (e.g., 戊子 Yang Earth Rat) creates a massive Y-axis vector pointing toward Water, tilting the entire Qi space for the decade.
+
+**Annual + Monthly Qi** is the vertical displacement. A Water month on top of a Water Da Yun creates a Z-axis spike rising sharply in the Water direction.
+
+\`\`\`
+                Z (Month/Year)
+                ↑
+                |
+                |      * ← May Qi vector
+                |     /
+                |    /
+                |   /    (Water spike + Water tilt
+                |  /      = diagonal into Water quadrant)
+                | /
+                |/
+────────────────+────────────────→ X (Natal)
+               /
+              /
+             / ← Da Yun tilt
+            /
+           ↓
+          Y (Da Yun)
+\`\`\`
+
+Da Yun tilts the entire Qi space toward its dominant element, and the monthly Qi adds a vertical spike on top of that tilt — producing extreme MTFQ shapes when they align.
+
+---
+
+### 4D Qi Vector Model — Adding Polarity
+
+The 4th axis adds **directional spin** to the Qi vector:
+
+- **X-axis** → Natal TFQ (structure)
+- **Y-axis** → Da Yun Qi (decade climate)
+- **Z-axis** → Year + Month Qi (weather)
+- **W-axis** → Polarity (Yin/Yang orientation)
+
+\`\`\`
+Q_4D = (NTFQ, DaYun, YearMonth, Polarity)
+\`\`\`
+
+Polarity is not magnitude — it is **directional spin**:
+
+| Polarity | Effect | Bracelet Response |
+|:---------|:-------|:------------------|
+| Yang | Pushes Qi outward — expansion, projection | Right wrist (出氣 Release) |
+| Yin | Pulls Qi inward — contraction, absorption | Left wrist (吸氣 Receive) |
+
+Polarity modifies how Qi interacts with:
+
+- Season (seasonal expressiveness)
+- Da Yun (decade amplification)
+- Month (monthly weather)
+- Day Master (strength/weakness)
+- Collapse patterns (expand vs contract)
+- Remedy direction (absorb vs release)
+
+In the engine, polarity affects:
+
+- QiUnit calculation per stone
+- BRQe correction vector
+- Controller stone eligibility
+- Wrist assignment (吸氣 vs 出氣)
+- Bead sequencing (Yin/Yang alternation)
+
+---
+
+### How the 4D Vector Produces the Bracelet
+
+\`\`\`
+  X (Natal)     → defines terrain + Day Master
+        │
+        ▼
+  Y (Da Yun)    → tilts the decade
+        │
+        ▼
+  Z (Year+Month) → spikes the weather
+        │
+        ▼
+  W (Polarity)   → determines spin direction
+        │
+        ▼
+  ┌────────────────────────────┐
+  │   4D Qi Vector             │
+  │   = MTFQ shape + polarity  │
+  └─────────────┬──────────────┘
+                │
+                ▼
+  ┌────────────────────────────┐
+  │   Collapse Detection       │
+  │   + Yong Shen Analysis     │
+  └─────────────┬──────────────┘
+                │
+                ▼
+  ┌────────────────────────────┐
+  │   MIFQ (Ideal Target)     │
+  └─────────────┬──────────────┘
+                │
+                ▼
+  ┌────────────────────────────┐
+  │   BRQe (Correction Vector) │
+  └─────────────┬──────────────┘
+                │
+                ▼
+  ┌────────────────────────────┐
+  │   Bracelet Prescription    │
+  │   stones + sequence + wrist│
+  └────────────────────────────┘
+\`\`\`
+
+> **In one sentence:** Natal defines the terrain, Da Yun tilts the decade, the month spikes the weather, and polarity determines whether the Qi expands or collapses — together forming a 4D vector that dictates the exact remedy.
+`;
+
+
+
+// ============================================================================
+// QI PIPELINE FLOW MD — TFQ → NTFQ → MTFQ → IFQ → BRQ
+// ============================================================================
+
+const QI_PIPELINE_FLOW_MD = `## Qi Pipeline — From Soul to Bracelet
+
+The complete flow of Qi transformation, from your natal constitution to the bracelet on your wrist.
+
+---
+
+### 1. TFQ — Total Functional Qi (Soul)
+
+Your constitutional Qi — the pure, unmodified elemental distribution from your Four Pillars.
+
+> Represents **who you ARE**.
+
+---
+
+### 2. NTFQ — Natal Total Functional Qi (Internal Physics)
+
+TFQ after all internal interactions:
+
+| Stage | Chinese | What Happens |
+|-------|---------|-------------|
+| Combinations | 合 | Stems and branches bond, may transform |
+| Clashes | 冲 | Controlling cycle — elements suppress each other |
+| Harms | 害 | Harm interactions between branches |
+| Punishments | 刑 | Self-punishment and mutual punishment |
+| Control Cycle | 克 | Universal friction between all elements |
+| Overcrowding | 溢 | Dominant elements overflow into children |
+| Collapse | 崩 | Structural pattern detection |
+| Transformations | 化 | Extreme pressure causes transmutation |
+| Structure | 格局 | Classical BaZi structure classification |
+| Ten Gods | 十神 | Relational roles between elements |
+| Yong Shen | 用神 | The Useful God — your medicine element |
+
+> Reveals your **TRUE natal operating system**.
+
+---
+
+### 3. MTFQ — Monthly Total Functional Qi (Environment)
+
+The external Qi climate of THIS specific month:
+
+\`\`\`
+MTFQ = 1.0 x NTFQ + 0.9 x DaYun + 0.5 x Year + 0.3 x Month
+\`\`\`
+
+Each external layer (DaYun, Year, Month) goes through its own pipeline:
+Stem + Branch → Seasonality → Polarity → Layer Qi
+
+> Represents the **battlefield you walk through** this month.
+
+---
+
+### 4. IFQ — Ideal Functional Qi (Target State)
+
+The optimal Qi shape for this person this month:
+
+\`\`\`
+IFQ = BalancedQi (20%) + YongShenAdj + SeasonalAdj → Normalize to MTFQ total
+\`\`\`
+
+| Component | What it does |
+|-----------|-------------|
+| BalancedQi | Neutral 20/20/20/20/20 baseline |
+| YongShenAdj | Personal correction (+6% primary, +4% secondary, -6% forbidden, -4% threat) |
+| SeasonalAdj | Monthly correction aligned with seasonal strength (旺相休囚死) |
+| Normalize | Scale so IFQ total = MTFQ total (same Qi budget) |
+
+> The **destination** — who you should be this month.
+
+---
+
+### 5. BRQ — Bracelet Qi Output (Correction)
+
+The correction vector that moves you from where you are to where you should be:
+
+\`\`\`
+BRQ = IFQ - MTFQ
+\`\`\`
+
+| BRQ Value | Meaning | Bracelet Action |
+|-----------|---------|----------------|
+| Positive (+) | Element deficit | **Boost** — add stones of this element |
+| Negative (-) | Element excess | **Reduce** — avoid stones of this element |
+| Near zero | Already balanced | No correction needed |
+
+> The **vehicle** — how the bracelet gets you there.
+
+---
+
+### Relationship Summary
+
+| Qi State | Meaning | Role |
+|----------|---------|------|
+| **TFQ** | Soul baseline | Who you are |
+| **NTFQ** | Natal after internal physics | How the soul behaves |
+| **MTFQ** | Monthly environment | The world you walk through |
+| **IFQ** | Ideal monthly target | Who you should be this month |
+| **BRQ** | Bracelet Qi | The correction needed to reach IFQ |
+
+---
+
+**TFQ** is who you are → **NTFQ** is how you behave → **MTFQ** is the month you're in → **IFQ** is who you should be this month → **BRQ** is how the bracelet gets you there.
+`;
+
+// ============================================================================
 // SEASONAL ROW — group of 3 months
 // ============================================================================
 
-function SeasonRow({ season, months, expandedMonths, setExpandedMonths, dayMasterPolarity, dayMasterElement, year, userTfq, chart, qiMatrix }) {
+function SeasonRow({ season, months, expandedMonths, setExpandedMonths, dayMasterPolarity, dayMasterElement, year, userTfq, chart, qiMatrix, profileBirthDate, profileBirthTime, profileGender, profileName, age }) {
   if (!months || months.length === 0) return null;
 
   return (
     <section className={`rounded-xl border p-4 ${SEASON_BG[season] || 'border-white/10 bg-white/5'}`}>
-      <h3 className="text-lg font-bold text-white mb-3">
-        {SEASON_EMOJI[season] || ''} {season}
-      </h3>
+      <div className="flex items-baseline justify-between mb-3">
+        <h3 className="text-lg font-bold text-white">
+          {SEASON_EMOJI[season] || ''} {season}
+        </h3>
+        {profileName && (
+          <span className="text-xs text-gray-400 font-mono">
+            {profileName}, Year: {year}, {age} years old
+          </span>
+        )}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {months.map(m => (
           <MonthCard
@@ -5491,6 +7391,9 @@ function SeasonRow({ season, months, expandedMonths, setExpandedMonths, dayMaste
             userTfq={userTfq}
             chart={chart}
             qiMatrix={qiMatrix}
+            profileBirthDate={profileBirthDate}
+            profileBirthTime={profileBirthTime}
+            profileGender={profileGender}
           />
         ))}
       </div>
@@ -5516,7 +7419,7 @@ const PIPELINE_NODES = [
   { id: 'overcrowd', label: 'Overcrowding (溢)',        sub: '10% bleed-off',  x: 140, y: 540, w: 160, h: 36, fill: '#2f3f0f', stroke: '#84cc16' },
   { id: 'damping',   label: 'Damping (耗)',             sub: 'All × 0.98',    x: 140, y: 600, w: 160, h: 36, fill: '#1f1f1f', stroke: '#6b7280' },
   { id: 'transform', label: 'Transform (化)',           sub: '30% transmute',  x: 140, y: 660, w: 160, h: 36, fill: '#3f2f0f', stroke: '#eab308' },
-  { id: 'mffq',      label: 'MFFQ Output',             sub: 'Final Qi',       x: 140, y: 730, w: 160, h: 40, fill: '#0f2f1f', stroke: '#10b981' },
+  { id: 'mtfq',      label: 'TotalQi Output',             sub: 'MTFQ',           x: 140, y: 730, w: 160, h: 40, fill: '#0f2f1f', stroke: '#10b981' },
 ];
 
 const PIPELINE_EDGES = [
@@ -5534,7 +7437,7 @@ const PIPELINE_EDGES = [
   { from: 'sheng', to: 'overcrowd' },
   { from: 'overcrowd', to: 'damping' },
   { from: 'damping', to: 'transform' },
-  { from: 'transform', to: 'mffq' },
+  { from: 'transform', to: 'mtfq' },
 ];
 
 function PipelineDiagram() {
@@ -5639,6 +7542,568 @@ function QiEducationPanel() {
 }
 
 // ============================================================================
+// YEAR STORY MONTH DETAIL — renders inside YearInsightsPanel narrative tab
+// Reuses IncomingPillarWithFlap + CombinedYMFQPanel so the UI is identical
+// to the main Monthly Qi Analysis section.
+// ============================================================================
+
+// ============================================================================
+// NATAL PIPELINE PANEL — Qi Survival Timeline
+// ============================================================================
+
+function NatalPipelinePanel({ pipelineResult }) {
+  const [openStages, setOpenStages] = useState({});
+  const [showMetaphysical, setShowMetaphysical] = useState({});
+
+  if (!pipelineResult || !pipelineResult.stages) return null;
+
+  const { stages, inputQi, outputQi } = pipelineResult;
+
+  const toggleStage = (key) => {
+    setOpenStages(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleMeta = (key) => {
+    setShowMetaphysical(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Compute max value across all stages for consistent bar scaling
+  const allVals = stages.flatMap(s =>
+    ELEMENTS.map(el => Math.max(s.beforeQi[el] || 0, s.afterQi[el] || 0))
+  );
+  const maxVal = Math.max(...allVals, 0.001);
+
+  // Did anything change?
+  const hasDelta = (delta) => ELEMENTS.some(el => Math.abs(delta[el] || 0) > 0.0005);
+
+  return (
+    <div className="border border-white/10 rounded-lg overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-2 bg-white/5">
+        <h3 className="text-sm font-semibold text-amber-200">
+          Natal Qi Pipeline — TFQ Survival Timeline
+        </h3>
+        <p className="text-[10px] text-gray-500 mt-0.5">
+          Each stage transforms your natal Qi. Only natal Qi goes through this violence.
+        </p>
+      </div>
+
+      {/* Input bar — vertical */}
+      <div className="px-4 py-2 border-t border-white/10 bg-white/[0.02]">
+        <div className="text-[10px] font-mono text-gray-500 mb-1.5">Input: TFQ (post-Season, post-Polarity)</div>
+        <div className="space-y-1">
+          {ELEMENTS.map(el => {
+            const val = inputQi[el] || 0;
+            return (
+              <div key={el} className="flex items-center gap-2">
+                <span className="w-12 text-[10px] font-mono text-right" style={{ color: ELEM_COLORS[el] }}>{el}</span>
+                <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${(val / maxVal) * 100}%`, backgroundColor: ELEM_COLORS[el], opacity: 0.6 }}
+                  />
+                </div>
+                <span className="w-12 text-[10px] font-mono text-right text-gray-400">{val.toFixed(3)}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Stages */}
+      {stages.map((stage, idx) => {
+        const isOpen = openStages[stage.key];
+        const isMeta = showMetaphysical[stage.key];
+        const changed = hasDelta(stage.delta);
+
+        return (
+          <div key={stage.key} className="border-t border-white/10">
+            {/* Stage header — clickable */}
+            <button
+              onClick={() => toggleStage(stage.key)}
+              className="w-full flex items-center justify-between px-4 py-2 bg-white/[0.02] hover:bg-white/[0.05] transition-colors text-left"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-gray-600 w-4">{idx + 1}</span>
+                <span className="text-sm font-medium text-gray-200">
+                  {stage.label}
+                </span>
+                <span className="text-xs text-gray-500">{stage.chinese}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                {changed ? (
+                  <span className="text-[10px] font-mono text-amber-400">
+                    {ELEMENTS.filter(el => Math.abs(stage.delta[el]) > 0.0005)
+                      .map(el => {
+                        const d = stage.delta[el];
+                        return `${el[0]}${d > 0 ? '+' : ''}${d.toFixed(2)}`;
+                      }).join(' ')}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-gray-600">no change</span>
+                )}
+                <span className="text-gray-500">{isOpen ? '\u25BE' : '\u25B8'}</span>
+              </div>
+            </button>
+
+            {/* Expanded content */}
+            {isOpen && (
+              <div className="px-4 py-3 space-y-3 bg-white/[0.01]">
+                {/* Description */}
+                <div className="text-xs text-gray-400">{stage.description}</div>
+
+                {/* Before / After bar chart comparison */}
+                <div className="rounded border border-white/10 overflow-hidden">
+                  <table className="w-full text-[10px] font-mono">
+                    <thead>
+                      <tr className="bg-white/5">
+                        <th className="px-2 py-1 text-left text-gray-400 w-16">Element</th>
+                        <th className="px-2 py-1 text-right text-gray-400">Before</th>
+                        <th className="px-2 py-1 text-center text-gray-400" style={{width: '40%'}}>Change</th>
+                        <th className="px-2 py-1 text-right text-gray-400">After</th>
+                        <th className="px-2 py-1 text-right text-gray-400">Delta</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ELEMENTS.map(el => {
+                        const before = stage.beforeQi[el] || 0;
+                        const after = stage.afterQi[el] || 0;
+                        const delta = stage.delta[el] || 0;
+                        const bPct = (before / maxVal) * 100;
+                        const aPct = (after / maxVal) * 100;
+                        const color = ELEM_COLORS[el];
+
+                        return (
+                          <tr key={el} className="border-t border-white/5">
+                            <td className="px-2 py-1.5">
+                              <ElSpan el={el}>{el}</ElSpan>
+                            </td>
+                            <td className="px-2 py-1.5 text-right text-gray-400">{before.toFixed(3)}</td>
+                            <td className="px-2 py-1.5">
+                              {/* Dual bar: before (dim) and after (bright) */}
+                              <div className="relative h-3">
+                                <div
+                                  className="absolute top-0 left-0 h-1.5 rounded-full"
+                                  style={{ width: `${bPct}%`, backgroundColor: color, opacity: 0.25 }}
+                                />
+                                <div
+                                  className="absolute bottom-0 left-0 h-1.5 rounded-full"
+                                  style={{ width: `${aPct}%`, backgroundColor: color, opacity: 0.8 }}
+                                />
+                              </div>
+                            </td>
+                            <td className="px-2 py-1.5 text-right text-white">{after.toFixed(3)}</td>
+                            <td className={`px-2 py-1.5 text-right font-semibold ${
+                              delta > 0.0005 ? 'text-green-400' :
+                              delta < -0.0005 ? 'text-red-400' :
+                              'text-gray-600'
+                            }`}>
+                              {delta > 0.0005 ? '+' : ''}{delta.toFixed(3)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Step details */}
+                {stage.details && stage.details.length > 0 && (
+                  <div className="text-[10px] font-mono text-gray-400 space-y-0.5">
+                    {stage.details.map((d, i) => (
+                      <div key={i}>{d}</div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Metaphysical toggle */}
+                <button
+                  onClick={() => toggleMeta(stage.key)}
+                  className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
+                >
+                  {isMeta ? '\u25BE Why this stage exists' : '\u25B8 Why this stage exists'}
+                </button>
+
+                {isMeta && stage.metaphysical && (
+                  <div className="rounded bg-white/[0.03] border border-white/5 px-3 py-2 text-[10px] space-y-1">
+                    <div><span className="text-gray-500">What:</span> <span className="text-gray-300">{stage.metaphysical.what}</span></div>
+                    <div><span className="text-gray-500">Why:</span> <span className="text-gray-300">{stage.metaphysical.why}</span></div>
+                    <div><span className="text-gray-500">When:</span> <span className="text-gray-300">{stage.metaphysical.when}</span></div>
+                    <div><span className="text-gray-500">Where:</span> <span className="text-gray-300">{stage.metaphysical.where}</span></div>
+                    <div><span className="text-gray-500">Who:</span> <span className="text-gray-300">{stage.metaphysical.who}</span></div>
+                    <div><span className="text-gray-500">How:</span> <span className="text-gray-300">{stage.metaphysical.how}</span></div>
+                    <div className="pt-1 border-t border-white/5">
+                      <span className="text-amber-400/80 italic">"{stage.metaphysical.emotion}"</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Output bar — vertical with TFQ comparison */}
+      <div className="px-4 py-2 border-t border-white/20 bg-emerald-900/10">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="text-[10px] font-mono text-emerald-400">Output: NTFQ (Normalized Total Functional Qi)</div>
+          <div className="flex items-center gap-2 text-[9px] text-gray-500">
+            <span className="inline-block w-3 h-1.5 rounded-full bg-white/20" /> TFQ
+            <span className="inline-block w-3 h-1.5 rounded-full bg-emerald-400" /> NTFQ
+          </div>
+        </div>
+        <div className="space-y-2">
+          {ELEMENTS.map(el => {
+            const tfqVal = inputQi[el] || 0;
+            const ntfqVal = outputQi[el] || 0;
+            const delta = ntfqVal - tfqVal;
+            const pctChange = tfqVal > 0.0001 ? ((delta / tfqVal) * 100) : 0;
+            const color = ELEM_COLORS[el];
+            const isUp = delta > 0.0005;
+            const isDown = delta < -0.0005;
+            const deltaColor = isUp ? 'text-green-400' : isDown ? 'text-red-400' : 'text-gray-600';
+            const deltaBg = isUp ? 'bg-green-400/10 border-green-400/20' : isDown ? 'bg-red-400/10 border-red-400/20' : 'bg-white/5 border-white/10';
+            return (
+              <div key={el} className="flex items-center gap-2">
+                <span className="w-12 text-[10px] font-mono font-semibold text-right" style={{ color }}>{el}</span>
+                <div className="flex-1 space-y-0.5">
+                  {/* TFQ bar — element colored, dimmed */}
+                  <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${(tfqVal / maxVal) * 100}%`, backgroundColor: color, opacity: 0.25 }}
+                    />
+                  </div>
+                  {/* NTFQ bar — element colored, full */}
+                  <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${(ntfqVal / maxVal) * 100}%`, backgroundColor: color }}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-mono text-white font-semibold">{ntfqVal.toFixed(3)}</span>
+                  <span className={`text-[9px] font-mono px-1 py-0.5 rounded border ${deltaBg} ${deltaColor}`}>
+                    {isUp ? '+' : ''}{delta.toFixed(3)}
+                  </span>
+                  <span className={`text-[9px] font-mono px-1 py-0.5 rounded border ${deltaBg} ${deltaColor}`}>
+                    {isUp ? '+' : ''}{pctChange.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* TFQ vs NTFQ side-by-side spider graphs */}
+        <div className="flex items-center justify-center gap-3 pt-3">
+          <PentagonRadar qi={inputQi} label="TFQ" size={160} />
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-[10px] text-white/40 font-mono">→</span>
+            <span className="text-[9px] text-white/55 font-mono">Natal</span>
+            <span className="text-[9px] text-white/55 font-mono">Pipeline</span>
+            <span className="text-[10px] text-white/40 font-mono">→</span>
+          </div>
+          <PentagonRadar qi={outputQi} overlayQi={inputQi} label="NTFQ" size={160} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// STEP 2: MONTHLY TOTAL FUNCTIONAL QI — 60% TFQ + 40% CYMFQ (RETIRED)
+// ============================================================================
+
+function MTFQPanel({ userTfq, cymfq, monthName }) {
+  const [open, setOpen] = useState(false);
+
+  if (!userTfq || !cymfq) return null;
+
+  const mtfq = {};
+  let totalMtfq = 0;
+  const totalTfq = ELEMENTS.reduce((s, el) => s + (userTfq[el] || 0), 0);
+  const totalCymfq = ELEMENTS.reduce((s, el) => s + (cymfq[el] || 0), 0);
+
+  ELEMENTS.forEach(el => {
+    mtfq[el] = (userTfq[el] || 0) * 0.60 + (cymfq[el] || 0) * 0.40;
+    totalMtfq += mtfq[el];
+  });
+
+  return (
+    <div className="border border-white/10 rounded-lg overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-2 bg-white/5 hover:bg-white/10 transition-colors text-left"
+      >
+        <span className="text-sm font-medium text-gray-200">
+          Step 2: Monthly Total Functional Qi (MTFQ)
+        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-mono text-gray-400">{totalMtfq.toFixed(3)} pts</span>
+          <span className="text-gray-500">{open ? '▾' : '▸'}</span>
+        </div>
+      </button>
+
+      {open && (
+        <div className="px-4 py-3 space-y-3">
+          {/* Side-by-side recap: TFQ vs CYMFQ — shared max across all 10 bars */}
+          {(() => {
+            const sharedMax = Math.max(
+              ...ELEMENTS.map(el => userTfq[el] || 0),
+              ...ELEMENTS.map(el => cymfq[el] || 0),
+              0.001
+            );
+            return (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-amber-500/20 bg-amber-900/10 p-2.5">
+                  <div className="text-[10px] font-semibold text-amber-300 mb-2">Natal Total Functional Qi (TFQ)</div>
+                  <div className="space-y-1">
+                    {ELEMENTS.map(el => {
+                      const val = userTfq[el] || 0;
+                      const pct = totalTfq > 0 ? ((val / totalTfq) * 100).toFixed(1) : '0.0';
+                      return (
+                        <div key={el} className="flex items-center gap-1.5 text-[9px]">
+                          <span className="w-8 text-right font-mono" style={{ color: ELEM_COLORS[el] }}>{el[0]}</span>
+                          <div className="flex-1 h-4 bg-white/5 rounded overflow-hidden relative">
+                            <div className="h-full rounded" style={{ width: `${Math.max((val / sharedMax) * 100, val > 0 ? 1 : 0)}%`, backgroundColor: ELEM_COLORS[el], opacity: 0.7 }} />
+                            <span className="absolute inset-0 flex items-center px-1 text-[8px] font-mono text-white font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+                              {val > 0 ? val.toFixed(3) : ''}
+                            </span>
+                          </div>
+                          <span className="w-10 text-right font-mono text-gray-500">{pct}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="text-[9px] font-mono text-amber-400/60 mt-1.5 text-right">Total: {totalTfq.toFixed(3)}</div>
+                </div>
+                <div className="rounded-lg border border-cyan-500/20 bg-cyan-900/10 p-2.5">
+                  <div className="text-[10px] font-semibold text-cyan-300 mb-2">Current Year &amp; Month Functional Qi (CYMFQ)</div>
+                  <div className="space-y-1">
+                    {ELEMENTS.map(el => {
+                      const val = cymfq[el] || 0;
+                      const pct = totalCymfq > 0 ? ((val / totalCymfq) * 100).toFixed(1) : '0.0';
+                      return (
+                        <div key={el} className="flex items-center gap-1.5 text-[9px]">
+                          <span className="w-8 text-right font-mono" style={{ color: ELEM_COLORS[el] }}>{el[0]}</span>
+                          <div className="flex-1 h-4 bg-white/5 rounded overflow-hidden relative">
+                            <div className="h-full rounded" style={{ width: `${Math.max((val / sharedMax) * 100, val > 0 ? 1 : 0)}%`, backgroundColor: ELEM_COLORS[el], opacity: 0.7 }} />
+                            <span className="absolute inset-0 flex items-center px-1 text-[8px] font-mono text-white font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+                              {val > 0 ? val.toFixed(3) : ''}
+                            </span>
+                          </div>
+                          <span className="w-10 text-right font-mono text-gray-500">{pct}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="text-[9px] font-mono text-cyan-400/60 mt-1.5 text-right">Total: {totalCymfq.toFixed(3)}</div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Car / Weather analogy */}
+          <div className="p-3 rounded-lg bg-indigo-900/20 border border-indigo-500/20 space-y-2">
+            <div className="text-xs text-indigo-300 font-semibold">Why 60% / 40%?</div>
+            <div className="text-[11px] text-gray-300 leading-relaxed space-y-1">
+              <div>
+                <span className="text-amber-300 font-semibold">Natal TFQ (60%)</span> = Your car — the constitutional engine you were born with. This never changes. It defines <em>who you are</em>.
+              </div>
+              <div>
+                <span className="text-cyan-300 font-semibold">CYMFQ (40%)</span> = The weather — the current year and month energy that reshapes how your engine performs. This changes every month.
+              </div>
+              <div className="text-gray-400 mt-1">
+                Your identity is the dominant force (60%), but external Qi is significant enough (40%) to shift the balance, create collapses, or open new strengths. This ratio models how BaZi practitioners weigh natal vs transit influence.
+              </div>
+            </div>
+          </div>
+
+          {/* Formula */}
+          <div className="text-xs font-mono text-amber-300 font-semibold">
+            MTFQ = 60% × TFQ + 40% × CYMFQ
+          </div>
+
+          {/* Context */}
+          <div className="flex gap-4 text-[10px] font-mono text-gray-500">
+            <span>TFQ Total: <span className="text-white">{totalTfq.toFixed(3)}</span></span>
+            <span>CYMFQ Total: <span className="text-white">{totalCymfq.toFixed(3)}</span></span>
+            <span>MTFQ Total: <span className="text-amber-300">{totalMtfq.toFixed(3)}</span></span>
+          </div>
+
+          {/* Table — full progression so user can trace every number */}
+          <div className="rounded border border-white/10 overflow-hidden overflow-x-auto">
+            <table className="w-full text-[10px] font-mono">
+              <thead>
+                {/* Two-row header: group labels on top, column labels below */}
+                <tr className="border-b border-white/10">
+                  <th rowSpan={2} className="px-2 py-1 text-left text-gray-400 align-bottom bg-white/5">Element</th>
+                  <th colSpan={8} className="px-0 py-1.5 text-center text-amber-300/90 text-[9px] border-r border-white/15 bg-amber-400/[0.06]">Step A: Compute Weighted Inputs</th>
+                  <th colSpan={5} className="px-0 py-1.5 text-center text-emerald-300/90 text-[9px] bg-emerald-400/[0.06]">Step B: Combine</th>
+                </tr>
+                <tr>
+                  <th className="px-1 py-1 text-right text-amber-300 bg-amber-400/[0.06]">TFQ</th>
+                  <th className="px-0 py-1 text-center text-gray-400 bg-amber-400/[0.06]" style={{width:'1.5rem'}}>×60%</th>
+                  <th className="px-0 py-1 text-center text-gray-400 bg-amber-400/[0.06]" style={{width:'0.8rem'}}>=</th>
+                  <th className="px-1 py-1 text-right text-amber-300 font-semibold bg-amber-400/[0.06]">ATFQ</th>
+                  <th className="px-1 py-1 text-right text-cyan-300 bg-amber-400/[0.06]">CYMFQ</th>
+                  <th className="px-0 py-1 text-center text-gray-400 bg-amber-400/[0.06]" style={{width:'1.5rem'}}>×40%</th>
+                  <th className="px-0 py-1 text-center text-gray-400 bg-amber-400/[0.06]" style={{width:'0.8rem'}}>=</th>
+                  <th className="px-1 py-1 text-right text-cyan-300 font-semibold border-r border-white/15 bg-amber-400/[0.06]">ACYMFQ</th>
+                  <th className="px-1 py-1 text-right text-amber-300 bg-emerald-400/[0.06]">ATFQ</th>
+                  <th className="px-0 py-1 text-center text-gray-400 bg-emerald-400/[0.06]" style={{width:'0.8rem'}}>+</th>
+                  <th className="px-1 py-1 text-right text-cyan-300 bg-emerald-400/[0.06]">ACYMFQ</th>
+                  <th className="px-0 py-1 text-center text-gray-400 bg-emerald-400/[0.06]" style={{width:'0.8rem'}}>=</th>
+                  <th className="px-1 py-1 text-right text-white font-semibold bg-emerald-400/[0.06]">MTFQ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ELEMENTS.map(el => {
+                  const tfqVal = userTfq[el] || 0;
+                  const cymVal = cymfq[el] || 0;
+                  const tfq60 = tfqVal * 0.60;
+                  const cym40 = cymVal * 0.40;
+                  const pct = totalMtfq > 0 ? (mtfq[el] / totalMtfq) * 100 : 0;
+                  return (
+                    <tr key={el} className="border-t border-white/5 hover:bg-white/5">
+                      <td className="px-2 py-1.5">
+                        <ElSpan el={el}>{el}</ElSpan>
+                      </td>
+                      {/* Step A — TFQ side */}
+                      <td className="px-1 py-1.5 text-right text-amber-300 bg-amber-400/[0.03]">{tfqVal.toFixed(3)}</td>
+                      <td className="px-0 py-1.5 text-center text-gray-400 bg-amber-400/[0.03]">×60%</td>
+                      <td className="px-0 py-1.5 text-center text-gray-400 bg-amber-400/[0.03]">=</td>
+                      <td className="px-1 py-1.5 text-right text-amber-300 font-semibold bg-amber-400/[0.03]">{tfq60.toFixed(3)}</td>
+                      {/* Step A — CYMFQ side */}
+                      <td className="px-1 py-1.5 text-right text-cyan-300 bg-amber-400/[0.03]">{cymVal.toFixed(3)}</td>
+                      <td className="px-0 py-1.5 text-center text-gray-400 bg-amber-400/[0.03]">×40%</td>
+                      <td className="px-0 py-1.5 text-center text-gray-400 bg-amber-400/[0.03]">=</td>
+                      <td className="px-1 py-1.5 text-right text-cyan-300 font-semibold border-r border-white/15 bg-amber-400/[0.03]">{cym40.toFixed(3)}</td>
+                      {/* Step B — combine */}
+                      <td className="px-1 py-1.5 text-right text-amber-300 bg-emerald-400/[0.03]">{tfq60.toFixed(3)}</td>
+                      <td className="px-0 py-1.5 text-center text-gray-400 bg-emerald-400/[0.03]">+</td>
+                      <td className="px-1 py-1.5 text-right text-cyan-300 bg-emerald-400/[0.03]">{cym40.toFixed(3)}</td>
+                      <td className="px-0 py-1.5 text-center text-gray-400 bg-emerald-400/[0.03]">=</td>
+                      <td className="px-1 py-1.5 text-right text-white font-semibold bg-emerald-400/[0.03]">
+                        {mtfq[el].toFixed(3)}
+                        <span className="ml-1" style={{ color: ELEM_COLORS[el] }}>{pct.toFixed(1)}%</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+                <tr className="border-t border-white/20">
+                  <td className="px-2 py-1.5 text-gray-400 font-semibold bg-white/5">Total</td>
+                  <td className="px-1 py-1.5 text-right text-amber-300 bg-amber-400/[0.06]">{totalTfq.toFixed(3)}</td>
+                  <td className="px-0 py-1.5 text-center text-gray-400 bg-amber-400/[0.06]">×60%</td>
+                  <td className="px-0 py-1.5 text-center text-gray-400 bg-amber-400/[0.06]">=</td>
+                  <td className="px-1 py-1.5 text-right text-amber-300 font-semibold bg-amber-400/[0.06]">{(totalTfq * 0.60).toFixed(3)}</td>
+                  <td className="px-1 py-1.5 text-right text-cyan-300 bg-amber-400/[0.06]">{totalCymfq.toFixed(3)}</td>
+                  <td className="px-0 py-1.5 text-center text-gray-400 bg-amber-400/[0.06]">×40%</td>
+                  <td className="px-0 py-1.5 text-center text-gray-400 bg-amber-400/[0.06]">=</td>
+                  <td className="px-1 py-1.5 text-right text-cyan-300 font-semibold border-r border-white/15 bg-amber-400/[0.06]">{(totalCymfq * 0.40).toFixed(3)}</td>
+                  <td className="px-1 py-1.5 text-right text-amber-300 bg-emerald-400/[0.06]">{(totalTfq * 0.60).toFixed(3)}</td>
+                  <td className="px-0 py-1.5 text-center text-gray-400 bg-emerald-400/[0.06]">+</td>
+                  <td className="px-1 py-1.5 text-right text-cyan-300 bg-emerald-400/[0.06]">{(totalCymfq * 0.40).toFixed(3)}</td>
+                  <td className="px-0 py-1.5 text-center text-gray-400 bg-emerald-400/[0.06]">=</td>
+                  <td className="px-1 py-1.5 text-right text-white font-bold bg-emerald-400/[0.06]">
+                    {totalMtfq.toFixed(3)}
+                    <span className="ml-1 text-white">100%</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Per-element formula breakdown */}
+          <div className="text-[10px] font-mono text-gray-400 space-y-0.5">
+            {ELEMENTS.map(el => {
+              const tfqVal = userTfq[el] || 0;
+              const cymVal = cymfq[el] || 0;
+              return (
+                <div key={el}>
+                  <ElSpan el={el}>{el}</ElSpan>
+                  <span className="text-gray-500"> (MTFQ)</span>
+                  {' = '}
+                  <span className="text-amber-300/80">{tfqVal.toFixed(3)}</span>
+                  <span className="text-gray-500"> × 60%</span>
+                  {' + '}
+                  <span className="text-cyan-300/80">{cymVal.toFixed(3)}</span>
+                  <span className="text-gray-500"> × 40%</span>
+                  {' = '}
+                  <span className="text-amber-300/80">{(tfqVal * 0.60).toFixed(3)}</span>
+                  {' + '}
+                  <span className="text-cyan-300/80">{(cymVal * 0.40).toFixed(3)}</span>
+                  {' = '}
+                  <span className="text-white font-semibold">{mtfq[el].toFixed(3)}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* QiBar */}
+          <div className="text-xs font-semibold text-amber-300 mb-1 mt-2">Monthly Total Functional Qi (MTFQ)</div>
+          <QiBar qi={mtfq} showPct />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function YearStoryMonthDetail({ snapshot, qiMatrix }) {
+  const [expandedYear, setExpandedYear] = useState(false);
+  const [expandedMonth, setExpandedMonth] = useState(false);
+
+  const dayMasterPolarity = qiMatrix?.dayMasterPolarity;
+  const dayMasterElement = qiMatrix?.dayMasterElement;
+
+  // Year FQ and Month FQ — use engine's single source of truth
+  const yearFq = snapshot.yearQi;
+  const monthFq = snapshot.monthQi;
+
+  return (
+    <div className="space-y-3">
+      {/* Year + Month Pillar Cards — same IncomingPillarWithFlap used in Monthly Qi Analysis */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <IncomingPillarWithFlap
+          breakdown={snapshot.yearPillarBreakdown}
+          label="Year"
+          expanded={expandedYear}
+          onToggle={() => setExpandedYear(v => !v)}
+          currentMonthBranch={snapshot.monthBranch}
+          dayMasterPolarity={dayMasterPolarity}
+          dayMasterElement={dayMasterElement}
+        />
+        <IncomingPillarWithFlap
+          breakdown={snapshot.monthPillarBreakdown}
+          label="Month"
+          expanded={expandedMonth}
+          onToggle={() => setExpandedMonth(v => !v)}
+          currentMonthBranch={snapshot.monthBranch}
+          dayMasterPolarity={dayMasterPolarity}
+          dayMasterElement={dayMasterElement}
+        />
+      </div>
+
+      {/* Combined Year + Month FQ */}
+      {yearFq && monthFq && (
+        <CombinedYMFQPanel
+          yearFq={yearFq}
+          monthFq={monthFq}
+          year={qiMatrix.year}
+          monthName={snapshot.monthName}
+          natalTfq={snapshot.natalTfq}
+          daYunQi={snapshot.daYunQi}
+        />
+      )}
+
+      {/* Step 2 removed — no more 60/40 MTFQ blend. TFQ goes through pipeline directly. */}
+    </div>
+  );
+}
+
+// ============================================================================
 // MAIN PAGE
 // ============================================================================
 
@@ -5653,6 +8118,57 @@ export default function QiBraceletPage() {
   const [showSeasonalityPopup, setShowSeasonalityPopup] = useState(false);
   const [showPolarityPopup, setShowPolarityPopup] = useState(false);
   const [showFunctionalQiPopup, setShowFunctionalQiPopup] = useState(false);
+  const [showGlossaryPopup, setShowGlossaryPopup] = useState(false);
+  const [showQiPipelinePopup, setShowQiPipelinePopup] = useState(false);
+  const [showFloatingSelector, setShowFloatingSelector] = useState(false);
+  const [stemMdViewer, setStemMdViewer] = useState(null);  // { char, pol, el, content }
+  const [stemMdStore, setStemMdStore] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('stemMdStore') || '{}'); } catch { return {}; }
+  });
+
+  // Show floating selector when scrolled past 300px
+  useEffect(() => {
+    const onScroll = () => setShowFloatingSelector(window.scrollY > 300);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Stem MD import/export helpers
+  const saveStemMd = (char, content) => {
+    const updated = { ...stemMdStore, [char]: content };
+    setStemMdStore(updated);
+    localStorage.setItem('stemMdStore', JSON.stringify(updated));
+  };
+
+  const importStemMd = (char) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.md,.txt';
+    input.onchange = (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const content = ev.target.result;
+        saveStemMd(char, content);
+        // If viewer is open for this stem, update it
+        setStemMdViewer(prev => prev?.char === char ? { ...prev, content } : prev);
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  const exportStemMd = (char, pol, el) => {
+    const content = stemMdStore[char] || `# ${pol} ${el} (${char})\n\nNo content yet.`;
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${pol}${el}_${char}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Selected profile
   const selectedProfile = useMemo(() => {
@@ -5673,16 +8189,112 @@ export default function QiBraceletPage() {
     }
   }, [selectedProfile]);
 
-  // Compute Qi matrix
+  // Compute Da Yun sequence
+  const daYunResult = useMemo(() => {
+    if (!chart || !selectedProfile?.birthDate) return null;
+    try {
+      return calculateDaYun(
+        chart,
+        selectedProfile.birthDate,
+        selectedProfile.birthTime ?? '12:00',
+        selectedYear,
+        selectedProfile.gender ?? 'male',
+        11 // 11 pillars → covers ~110 years for Life Worm slider
+      );
+    } catch (err) {
+      console.error('Da Yun error:', err);
+      return null;
+    }
+  }, [chart, selectedProfile?.birthDate, selectedProfile?.birthTime, selectedProfile?.gender, selectedYear]);
+
+  // Compute NTFQ — natal TFQ after the full survival pipeline (constant for a given chart)
+  // Computed before qiMatrix so we can pass it into the MTFQ blend.
+  const topLevelNtfq = useMemo(() => {
+    if (!chart?.pillars) return null;
+    try {
+      // We need userTfq (qi-weighted TFQ) as the pipeline input.
+      // Replicate the TFQ computation here from chart data directly.
+      const pillars = chart.pillars;
+      const bmb = pillars[1]?.branch?.char;
+      const dayMasterStem = pillars[2]?.stem?.char;
+      if (!bmb || !dayMasterStem) return null;
+      const sw = getSeasonalWeights(bmb);
+      if (!sw) return null;
+      const dmPol = ['甲','丙','戊','庚','壬'].includes(dayMasterStem) ? 'Yang' : 'Yin';
+      const dmEl = { '甲':'Wood','乙':'Wood','丙':'Fire','丁':'Fire','戊':'Earth','己':'Earth','庚':'Metal','辛':'Metal','壬':'Water','癸':'Water' }[dayMasterStem];
+      const pMults = dmPol === 'Yang'
+        ? { Wood: 1.15, Fire: 1.05, Earth: 1.00, Metal: 1.00, Water: 1.10 }
+        : { Wood: 0.85, Fire: 0.95, Earth: 1.00, Metal: 1.00, Water: 0.90 };
+      // Build TFQ from 4 pillars (same logic as userTfq computation)
+      const QI_W = { year: 0.10, month: 0.30, dayMaster: 0.35, dayBranch: 0.15, hour: 0.10 };
+      const tfq = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+      for (const [idx, key] of ['year', 'month', 'day', 'hour'].entries()) {
+        const p = pillars[idx];
+        if (!p) continue;
+        // Raw element distribution: stem=1pt to its element, branch=10pt via hidden stems
+        const raw = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+        if (p.stem?.element) raw[p.stem.element] += 1;
+        (p.branch?.hiddenStems || []).forEach(hs => {
+          raw[hs.element] = (raw[hs.element] || 0) + (hs.percentage / 100) * 10;
+        });
+        if (key === 'day') {
+          ELEMENTS.forEach(el => {
+            const stemRaw = el === dmEl ? 1 : 0;
+            const branchRaw = raw[el] - stemRaw;
+            const sMult = sw[el.toLowerCase()] ?? 1.0;
+            tfq[el] += stemRaw * sMult * pMults[el] * QI_W.dayMaster
+                     + branchRaw * sMult * pMults[el] * QI_W.dayBranch;
+          });
+        } else {
+          const w = QI_W[key];
+          ELEMENTS.forEach(el => {
+            const sMult = sw[el.toLowerCase()] ?? 1.0;
+            tfq[el] += raw[el] * sMult * pMults[el] * w;
+          });
+        }
+      }
+      // Run natal pipeline on TFQ
+      const yearPillarInfo = getYearPillar(selectedYear);
+      const monthPillarsInfo = getMonthPillars(selectedYear);
+      // Use first month as representative context (natal pipeline is natal-only, month context is for interaction detection)
+      const mp0 = monthPillarsInfo[0];
+      const result = processNatalPipeline(
+        tfq,
+        {
+          chartPillars: pillars,
+          yearPillar: { stem: yearPillarInfo.stem, branch: yearPillarInfo.branch },
+          monthPillar: { stem: mp0.stem, branch: mp0.branch },
+          currentMonthBranch: mp0.branch,
+          dayMasterElement: dmEl || '',
+          dayMasterPolarity: dmPol,
+          natalBranches: {
+            year: pillars[0]?.branch?.char || '',
+            month: pillars[1]?.branch?.char || '',
+            day: pillars[2]?.branch?.char || '',
+            hour: pillars[3]?.branch?.char || '',
+          },
+          yearBranch: yearPillarInfo.branch,
+          monthBranch: mp0.branch,
+        },
+        { applyCombinationEngine, buildCombinationContext, detectInteractions, applyClashDamage, applyControlPressure, applyOvercrowding, applyTransformations, analyzeStructuralCollapse }
+      );
+      return result?.outputQi || null;
+    } catch (err) {
+      console.error('Top-level NTFQ error:', err);
+      return null;
+    }
+  }, [chart, selectedYear]);
+
+  // Compute Qi matrix (with Da Yun pillar threaded through + NTFQ for MTFQ blend)
   const qiMatrix = useMemo(() => {
     if (!chart) return null;
     try {
-      return computeQiYearMatrix(chart, selectedYear);
+      return computeQiYearMatrix(chart, selectedYear, daYunResult ?? undefined, topLevelNtfq ?? undefined);
     } catch (err) {
       console.error('Qi matrix error:', err);
       return null;
     }
-  }, [chart, selectedYear]);
+  }, [chart, selectedYear, daYunResult, topLevelNtfq]);
 
   // Group months by season
   const seasonGroups = useMemo(() => {
@@ -5723,9 +8335,113 @@ export default function QiBraceletPage() {
     return tfq;
   }, [qiMatrix, chart]);
 
-  // Year range for selector
+  // Compute per-month bracelet stones for 3D visualization
+  // Mirrors the exact MIFQ → BRQe → engineerBracelet pipeline used in BraceletDashboard
+  const braceletStonesFor3D = useMemo(() => {
+    if (!qiMatrix?.months || !chart?.pillars?.[2]?.stem?.char) return null;
+    const dmChar = chart.pillars[2].stem.char;
+    const GENERATES_MAP = { Wood: 'Fire', Fire: 'Earth', Earth: 'Metal', Metal: 'Water', Water: 'Wood' };
+    try {
+      return qiMatrix.months.map((snapshot, i) => {
+        if (!snapshot.yongShen || !snapshot.functionalQi) return null;
+        const pool = snapshot.postClash || snapshot.functionalQi || {};
+        const elRatios = computeElementRatios(pool);
+        const collapseRpt = diagnoseCollapse(elRatios);
+        const branchAnimal = snapshot.branchAnimal || 'Tiger';
+
+        // ── Compute MIFQ → BRQe ratios (same as BraceletDashboard) ──
+        let brqeRatios = null;
+        try {
+          const mtfqTotal = ELEMENTS.reduce((s, el) => s + (snapshot.functionalQi[el] || 0), 0);
+          if (mtfqTotal > 0 && snapshot.yongShen) {
+            const ys = snapshot.yongShen;
+            const sw = getSeasonalWeights(snapshot.monthBranch);
+            const ysAdj = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+            if (ys.usefulElements?.length > 0) {
+              ysAdj[ys.usefulElements[0]] += 6;
+              if (ys.usefulElements.length > 1) ysAdj[ys.usefulElements[1]] += 4;
+              const child = GENERATES_MAP[ys.usefulElements[0]];
+              if (child && ysAdj[child] === 0) ysAdj[child] += 2;
+            }
+            if (ys.forbidden) ys.forbidden.forEach(el => { ysAdj[el] -= 6; });
+            if (ys.threat && !ys.forbidden?.includes(ys.threat)) ysAdj[ys.threat] -= 4;
+            const SEASONAL_WEIGHT_TO_ADJ = { 1.0: 4, 0.8: 2, 0.6: 1, 0.4: -2, 0.2: -4 };
+            const sAdj = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+            if (sw) {
+              ELEMENTS.forEach(el => {
+                const weight = sw[el.toLowerCase()] ?? 0.6;
+                const snapped = [1.0, 0.8, 0.6, 0.4, 0.2].reduce((a, b) => Math.abs(b - weight) < Math.abs(a - weight) ? b : a);
+                sAdj[el] = SEASONAL_WEIGHT_TO_ADJ[snapped] ?? 0;
+              });
+            }
+            const mifqResult = computeIFQ({ mtfqTotalQi: mtfqTotal, yongShenAdjustment: ysAdj, seasonalAdjustment: sAdj });
+            const braceletMifqQi = {};
+            ELEMENTS.forEach(el => { braceletMifqQi[el] = mifqResult.elements[el].normalizedQi; });
+
+            // BRQe = MIFQ - MTFQ, capped at 50% of |BRQ|
+            const brqeValues = {};
+            ELEMENTS.forEach(el => {
+              const brq = (braceletMifqQi[el] || 0) - (snapshot.functionalQi[el] || 0);
+              const cap = Math.abs(brq) * 0.50;
+              const brqEff = brq * 0.35;
+              brqeValues[el] = Math.max(-cap, Math.min(cap, brqEff));
+            });
+            const brqeBracelet = designBraceletFromBRQe(brqeValues, snapshot.yongShen, dmChar);
+            brqeRatios = brqeBracelet.ratios;
+          }
+        } catch { /* fallback: no BRQe */ }
+
+        // Engineer bracelet with BRQe override (matches BraceletDashboard exactly)
+        const engineered = engineerBracelet({
+          collapse: collapseRpt,
+          month: branchAnimal,
+          totalBeads: 21,
+          beadSize: 10,
+          daYunQi: snapshot.daYunQi || null,
+          dayMasterStem: dmChar,
+          overrideRatios: brqeRatios,
+        });
+        if (!engineered?.beads?.length) return null;
+
+        // Extract stones with element + Qi contribution
+        const stones = engineered.beads
+          .filter(b => b.stone && !b.isAnchor)
+          .map(b => ({
+            element: b.element || b.stone.element,
+            name: b.stone.name || b.stone.chineseName || '?',
+            color: b.stone.color || '#888',
+            qiUnit: b.qiUnit || 0,
+          }));
+
+        // Remedied Qi = functionalQi + per-element stone contribution
+        const remediedQi = {};
+        ELEMENTS.forEach(el => {
+          const stoneBoost = stones
+            .filter(s => s.element === el)
+            .reduce((sum, s) => sum + s.qiUnit, 0);
+          remediedQi[el] = (snapshot.functionalQi[el] || 0) + stoneBoost;
+        });
+        return {
+          monthIndex: i,
+          stones,
+          remediedQi,
+          monthName: snapshot.monthName || '',
+          engineered,  // full EngineeredBracelet for floating preview
+        };
+      }).filter(Boolean);
+    } catch (err) {
+      console.error('Bracelet 3D computation error:', err);
+      return null;
+    }
+  }, [qiMatrix, chart]);
+
+  // Year range for selector — covers full lifetime (birth year to birth+100)
+  const birthYear = selectedProfile?.birthDate ? Number(selectedProfile.birthDate.split('-')[0]) : new Date().getFullYear() - 50;
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+  const yearRangeStart = birthYear;
+  const yearRangeEnd = Math.max(birthYear + 100, currentYear + 5);
+  const years = Array.from({ length: yearRangeEnd - yearRangeStart + 1 }, (_, i) => yearRangeStart + i);
+  const selectedAge = selectedYear - birthYear;
 
   return (
     <BaziThemeProvider initialMode="dark">
@@ -5767,6 +8483,24 @@ export default function QiBraceletPage() {
                 <option key={y} value={y}>{y}</option>
               ))}
             </select>
+
+            {/* Age input — syncs with year */}
+            {selectedProfile?.birthDate && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-gray-400">Age</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={selectedAge}
+                  onChange={(e) => {
+                    const age = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+                    setSelectedYear(birthYear + age);
+                  }}
+                  className="bg-slate-800 border border-white/20 rounded-lg px-2 py-2 text-sm text-white w-16 text-center"
+                />
+              </div>
+            )}
 
             {/* Export Pipeline MD */}
             {chart && qiMatrix && (
@@ -5825,6 +8559,18 @@ export default function QiBraceletPage() {
                   <h2 className="text-lg font-semibold">Four Pillars of Destiny</h2>
                   <div className="flex gap-2">
                     <button
+                      onClick={() => setShowQiPipelinePopup(true)}
+                      className="px-2 py-1 text-[10px] rounded bg-teal-800/50 hover:bg-teal-700/50 border border-teal-600/30 text-teal-300 transition-colors"
+                    >
+                      Qi Pipeline
+                    </button>
+                    <button
+                      onClick={() => setShowGlossaryPopup(true)}
+                      className="px-2 py-1 text-[10px] rounded bg-gray-700/50 hover:bg-gray-600/50 border border-gray-500/30 text-gray-200 transition-colors"
+                    >
+                      Glossary
+                    </button>
+                    <button
                       onClick={() => setShowElementsPopup(true)}
                       className="px-2 py-1 text-[10px] rounded bg-emerald-800/50 hover:bg-emerald-700/50 border border-emerald-600/30 text-emerald-300 transition-colors"
                     >
@@ -5859,24 +8605,131 @@ export default function QiBraceletPage() {
                 <p className="text-xs text-gray-400 mb-3">
                   Layer 1: Pillar Composition — stem = 1 pt, branch = 10 pts. Expand each pillar for calculation details.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {['year', 'month', 'day', 'hour'].map((key, idx) => (
+                <div className="flex gap-2 flex-wrap lg:flex-nowrap">
+                  {/* Year Pillar */}
+                  <div className="flex-1 min-w-[180px]">
                     <PillarWithFlap
-                      key={key}
-                      pillar={chart.pillars[idx]}
-                      breakdown={qiMatrix?.perPillarBreakdown?.[key]}
-                      label={PILLAR_LABELS[idx]}
-                      isYou={idx === 2}
-                      expanded={!!expandedPillarFlaps[key]}
-                      onToggle={() => setExpandedPillarFlaps(prev => ({
-                        ...prev,
-                        [key]: !prev[key],
-                      }))}
+                      pillar={chart.pillars[0]}
+                      breakdown={qiMatrix?.perPillarBreakdown?.year}
+                      label="Year"
+                      isYou={false}
+                      expanded={!!expandedPillarFlaps.year}
+                      onToggle={() => setExpandedPillarFlaps(prev => ({ ...prev, year: !prev.year }))}
                       birthMonthBranch={chart.pillars[1]?.branch?.char}
                       dayMasterPolarity={qiMatrix?.dayMasterPolarity}
                       dayMasterElement={qiMatrix?.dayMasterElement}
                     />
-                  ))}
+                  </div>
+                  {/* Month Pillar */}
+                  <div className="flex-1 min-w-[180px] overflow-visible">
+                    <PillarWithFlap
+                      pillar={chart.pillars[1]}
+                      breakdown={qiMatrix?.perPillarBreakdown?.month}
+                      label="Month"
+                      isYou={false}
+                      expanded={!!expandedPillarFlaps.month}
+                      onToggle={() => setExpandedPillarFlaps(prev => ({ ...prev, month: !prev.month }))}
+                      birthMonthBranch={chart.pillars[1]?.branch?.char}
+                      dayMasterPolarity={qiMatrix?.dayMasterPolarity}
+                      dayMasterElement={qiMatrix?.dayMasterElement}
+                    />
+                  </div>
+                  {/* 10 Heavenly Stems — 天干 */}
+                  <div className="hidden lg:flex flex-col items-center justify-start pt-8 px-2 shrink-0 relative z-20" style={{ pointerEvents: 'auto' }}>
+                    <button
+                      type="button"
+                      className="text-[9px] text-amber-300/90 font-semibold tracking-wide mb-0.5 hover:text-amber-200 hover:bg-white/10 rounded px-1 py-0.5 transition-colors cursor-pointer"
+                      onClick={() => {
+                        const content = stemMdStore['_dayMasterFacts'] || '# Day Master Facts\n\nNo content imported yet.\n\nUse the ↓ Import button in the popup titlebar to load an MD file.';
+                        setStemMdViewer({ char: '_dayMasterFacts', pol: '', el: '', content });
+                      }}
+                    >
+                      Day Master Facts {stemMdStore['_dayMasterFacts'] ? <span className="text-[6px] text-green-500">●</span> : null}
+                    </button>
+                    <div className="text-[8px] text-gray-500 font-mono mb-1">天干</div>
+                    {[
+                      { char: '甲', pol: 'Yang', el: 'Wood',  color: '#22c55e' },
+                      { char: '乙', pol: 'Yin',  el: 'Wood',  color: '#22c55e' },
+                      { char: '丙', pol: 'Yang', el: 'Fire',  color: '#ef4444' },
+                      { char: '丁', pol: 'Yin',  el: 'Fire',  color: '#ef4444' },
+                      { char: '戊', pol: 'Yang', el: 'Earth', color: '#f59e0b' },
+                      { char: '己', pol: 'Yin',  el: 'Earth', color: '#f59e0b' },
+                      { char: '庚', pol: 'Yang', el: 'Metal', color: '#94a3b8' },
+                      { char: '辛', pol: 'Yin',  el: 'Metal', color: '#94a3b8' },
+                      { char: '壬', pol: 'Yang', el: 'Water', color: '#3b82f6' },
+                      { char: '癸', pol: 'Yin',  el: 'Water', color: '#3b82f6' },
+                    ].map(s => {
+                      const isDM = chart.pillars[2]?.stem?.char === s.char;
+                      const hasMd = !!stemMdStore[s.char];
+                      return (
+                        <button
+                          key={s.char}
+                          type="button"
+                          className={`group flex items-center gap-0.5 text-[9px] font-mono leading-tight py-1 px-1.5 cursor-pointer hover:bg-white/15 rounded transition-colors w-full ${isDM ? 'bg-yellow-500/20' : ''}`}
+                          onClick={() => {
+                            const content = stemMdStore[s.char] || `# ${s.pol} ${s.el} (${s.char})\n\nNo content imported yet.\n\nUse the ↓ Import button in the popup titlebar to load an MD file.`;
+                            setStemMdViewer({ char: s.char, pol: s.pol, el: s.el, content });
+                          }}
+                        >
+                          <span className="w-7 text-right" style={{ color: s.pol === 'Yang' ? '#f87171' : '#60a5fa', fontWeight: s.pol === 'Yang' ? 800 : 400 }}>{s.pol}</span>
+                          <span className="text-[10px] mx-0.5" style={{ color: s.color }}>{s.char}</span>
+                          <span className="w-8 text-left" style={{ color: s.color }}>{s.el}</span>
+                          {hasMd && <span className="text-[6px] text-green-500 shrink-0 ml-0.5">●</span>}
+                        </button>
+                      );
+                    })}
+                    <div className="w-full border-t border-white/10 my-1.5" />
+                    {['Wood','Fire','Earth','Metal','Water'].map(el => {
+                      const key = `_yangVsYin${el}`;
+                      const hasMd = !!stemMdStore[key];
+                      const elColor = { Wood: '#22c55e', Fire: '#ef4444', Earth: '#f59e0b', Metal: '#94a3b8', Water: '#3b82f6' }[el];
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          className="group flex items-center gap-0.5 text-[9px] font-mono leading-tight py-1 px-1.5 cursor-pointer hover:bg-white/15 rounded transition-colors w-full"
+                          onClick={() => {
+                            const content = stemMdStore[key] || `# Yang vs Yin ${el}\n\nNo content imported yet.\n\nUse the ↓ Import button in the popup titlebar to load an MD file.`;
+                            setStemMdViewer({ char: key, pol: '', el: el, content });
+                          }}
+                        >
+                          <span style={{ color: '#f87171', fontWeight: 800 }}>Yang</span>
+                          <span className="text-gray-500 mx-0.5">vs</span>
+                          <span style={{ color: '#60a5fa' }}>Yin</span>
+                          <span className="ml-0.5" style={{ color: elColor }}>{el}</span>
+                          {hasMd && <span className="text-[6px] text-green-500 shrink-0 ml-auto">●</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* Day Pillar */}
+                  <div className="flex-1 min-w-[180px]">
+                    <PillarWithFlap
+                      pillar={chart.pillars[2]}
+                      breakdown={qiMatrix?.perPillarBreakdown?.day}
+                      label="Day"
+                      isYou={true}
+                      expanded={!!expandedPillarFlaps.day}
+                      onToggle={() => setExpandedPillarFlaps(prev => ({ ...prev, day: !prev.day }))}
+                      birthMonthBranch={chart.pillars[1]?.branch?.char}
+                      dayMasterPolarity={qiMatrix?.dayMasterPolarity}
+                      dayMasterElement={qiMatrix?.dayMasterElement}
+                    />
+                  </div>
+                  {/* Hour Pillar — narrower */}
+                  <div className="flex-1 min-w-[150px] max-w-[200px]">
+                    <PillarWithFlap
+                      pillar={chart.pillars[3]}
+                      breakdown={qiMatrix?.perPillarBreakdown?.hour}
+                      label="Hour"
+                      isYou={false}
+                      expanded={!!expandedPillarFlaps.hour}
+                      onToggle={() => setExpandedPillarFlaps(prev => ({ ...prev, hour: !prev.hour }))}
+                      birthMonthBranch={chart.pillars[1]?.branch?.char}
+                      dayMasterPolarity={qiMatrix?.dayMasterPolarity}
+                      dayMasterElement={qiMatrix?.dayMasterElement}
+                    />
+                  </div>
                 </div>
 
                 {/* Total Functional Qi — cross-pillar summary */}
@@ -5902,6 +8755,19 @@ export default function QiBraceletPage() {
                 />
               )}
 
+              {/* 3D/4D Qi Vector Trajectory */}
+              {qiMatrix?.months?.length > 0 && (
+                <QiVectorPlot3D
+                  months={qiMatrix.months}
+                  dayMasterPolarity={qiMatrix.dayMasterPolarity}
+                  braceletStones={braceletStonesFor3D}
+                  chart={chart}
+                  daYunResult={daYunResult}
+                  ntfq={topLevelNtfq}
+                  birthYear={birthYear}
+                />
+              )}
+
               {/* Monthly Qi Analysis */}
               {qiMatrix && (
                 <>
@@ -5915,12 +8781,17 @@ export default function QiBraceletPage() {
                           This is your constitutional baseline — the 60% structural core that defines who you are.
                           Each month below shows how seasonal energy reshapes this fingerprint.
                         </div>
-                        <PentagonRadar qi={userTfq} label="Your TFQ" size={220} />
+                        <PentagonRadar qi={userTfq} label="Natal TFQ" size={220} />
                       </div>
                     )}
 
                     {qiMatrix && (
-                      <YearInsightsPanel qiMatrix={qiMatrix} />
+                      <YearInsightsPanel
+                        qiMatrix={qiMatrix}
+                        renderMonthDetail={(snap) => (
+                          <YearStoryMonthDetail snapshot={snap} qiMatrix={qiMatrix} />
+                        )}
+                      />
                     )}
 
                     {/* Bracelet Evolution Timeline — how the bracelet changes month-to-month */}
@@ -5953,7 +8824,7 @@ export default function QiBraceletPage() {
                       );
                     })()}
 
-                    {/* Qi Timeline — animated month-to-month MFFQ distribution */}
+                    {/* Qi Timeline — animated month-to-month TotalQi distribution */}
                     {qiMatrix && (
                       <QiTimeline
                         data={(qiMatrix.months || []).map(m => ({
@@ -5984,6 +8855,53 @@ export default function QiBraceletPage() {
                       />
                     )}
 
+                    {/* ═══ NATAL PIPELINE (prominent placement) ═══ */}
+                    {userTfq && chart?.pillars && (() => {
+                      try {
+                        const natalBranches = {
+                          year: chart.pillars[0]?.branch?.char || '',
+                          month: chart.pillars[1]?.branch?.char || '',
+                          day: chart.pillars[2]?.branch?.char || '',
+                          hour: chart.pillars[3]?.branch?.char || '',
+                        };
+                        const birthMonthBranch = chart.pillars[1]?.branch?.char || '';
+
+                        const pipelineResult = processNatalPipeline(
+                          userTfq,
+                          {
+                            chartPillars: chart.pillars,
+                            yearPillar: { stem: chart.pillars[0]?.stem?.char || '', branch: chart.pillars[0]?.branch?.char || '' },
+                            monthPillar: { stem: chart.pillars[1]?.stem?.char || '', branch: birthMonthBranch },
+                            currentMonthBranch: birthMonthBranch,
+                            dayMasterElement: qiMatrix?.dayMasterElement || '',
+                            dayMasterPolarity: qiMatrix?.dayMasterPolarity || '',
+                            natalBranches,
+                            yearBranch: chart.pillars[0]?.branch?.char || '',
+                            monthBranch: birthMonthBranch,
+                          },
+                          {
+                            applyCombinationEngine,
+                            buildCombinationContext,
+                            detectInteractions,
+                            applyClashDamage,
+                            applyControlPressure,
+                            applyOvercrowding,
+                            applyTransformations,
+                            analyzeStructuralCollapse,
+                          }
+                        );
+
+                        return <NatalPipelinePanel pipelineResult={pipelineResult} />;
+                      } catch (err) {
+                        console.error('[NatalPipeline] Error:', err);
+                        return (
+                          <div className="rounded border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+                            Natal Pipeline Error: {String(err?.message || err)}
+                          </div>
+                        );
+                      }
+                    })()}
+
                     <h2 className="text-lg font-semibold">
                       Monthly Qi Analysis
                       {selectedProfile && (
@@ -6009,6 +8927,11 @@ export default function QiBraceletPage() {
                         userTfq={userTfq}
                         chart={chart}
                         qiMatrix={qiMatrix}
+                        profileBirthDate={selectedProfile?.birthDate}
+                        profileBirthTime={selectedProfile?.birthTime}
+                        profileGender={selectedProfile?.gender}
+                        profileName={selectedProfile ? `${selectedProfile.firstName || ''} ${selectedProfile.lastName || ''}`.trim() : ''}
+                        age={selectedAge}
                       />
                     ))}
                   </div>
@@ -6058,6 +8981,100 @@ export default function QiBraceletPage() {
           onClose={() => setShowFunctionalQiPopup(false)}
           width={620}
         />
+      )}
+      {showGlossaryPopup && (
+        <FloatingMdWindow
+          content={GLOSSARY_MD_V2}
+          title="Glossary — Qi Pipeline Acronyms"
+          onClose={() => setShowGlossaryPopup(false)}
+          width={720}
+        />
+      )}
+      {showQiPipelinePopup && (
+        <FloatingMdWindow
+          content={QI_PIPELINE_FLOW_MD}
+          title="Qi Pipeline — TFQ to BRQ"
+          onClose={() => setShowQiPipelinePopup(false)}
+          width={680}
+        />
+      )}
+      {stemMdViewer && (
+        <FloatingMdWindow
+          content={stemMdViewer.content}
+          title={stemMdViewer.char === '_dayMasterFacts' ? 'Day Master Facts' : stemMdViewer.char.startsWith('_yangVsYin') ? `Yang vs Yin ${stemMdViewer.el}` : `${stemMdViewer.pol} ${stemMdViewer.el} (${stemMdViewer.char}) — Day Master Reference`}
+          onClose={() => setStemMdViewer(null)}
+          onImport={() => importStemMd(stemMdViewer.char)}
+          width={700}
+        />
+      )}
+      {/* Floating profile info bar — appears when scrolled down */}
+      {showFloatingSelector && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 border-b border-white/15 shadow-xl backdrop-blur-sm px-4 py-1.5">
+          <div className="max-w-5xl mx-auto flex items-center gap-3 text-[11px] font-mono">
+            {/* Profile selector */}
+            <select
+              value={selectedProfileId || ''}
+              onChange={(e) => setSelectedProfileId(e.target.value || null)}
+              className="bg-slate-800 border border-white/15 rounded px-2 py-1 text-xs text-white shrink-0"
+            >
+              <option value="">Profile...</option>
+              {profiles?.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.firstName} {p.lastName}
+                </option>
+              ))}
+            </select>
+
+            {/* Profile info */}
+            {selectedProfile && (
+              <div className="flex items-center gap-2 text-gray-400 overflow-hidden min-w-0">
+                <span className="text-gray-500">|</span>
+                <span className="text-gray-300 shrink-0">
+                  {(() => {
+                    if (!selectedProfile.birthDate) return '';
+                    const d = new Date(selectedProfile.birthDate + 'T12:00:00');
+                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    return `${days[d.getDay()]} ${selectedProfile.birthDate}`;
+                  })()}
+                </span>
+                {selectedProfile.birthTime && (
+                  <span className="text-gray-200 shrink-0">{selectedProfile.birthTime}</span>
+                )}
+                {selectedProfile.location?.fullAddress && (
+                  <span className="text-gray-300 truncate">{selectedProfile.location.fullAddress}</span>
+                )}
+                <span className="text-gray-500">|</span>
+                {chart?.pillars?.[2]?.stem && (
+                  <span className="text-yellow-400 shrink-0">
+                    DM: {chart.pillars[2].stem.char} ({chart.pillars[2].stem.polarity} {chart.pillars[2].stem.element})
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Year selector + age */}
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="bg-slate-800 border border-white/15 rounded px-2 py-1 text-xs text-white w-20 shrink-0"
+            >
+              {years.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            <span className="text-amber-300 shrink-0">Age {selectedAge}</span>
+
+            {/* Scroll to top */}
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="text-gray-400 hover:text-white transition-colors px-1 shrink-0"
+              title="Scroll to top"
+            >↑</button>
+          </div>
+        </div>
       )}
     </BaziThemeProvider>
   );

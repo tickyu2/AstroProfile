@@ -154,6 +154,78 @@ export async function calculateElementalBalance(planets) {
   }
 }
 
+/**
+ * Run Birth Time Tuning Lab — sweep a range of birth times and score each minute
+ * @param {Object} params - Tuning lab parameters
+ * @param {string} params.birthDate - YYYY-MM-DD format
+ * @param {string} params.birthTime - HH:MM center time
+ * @param {number} params.latitude - Birth location latitude
+ * @param {number} params.longitude - Birth location longitude
+ * @param {string} [params.timezone='UTC'] - Timezone string
+ * @param {number} [params.sweepMinutes=30] - Minutes to sweep each direction
+ * @param {number} [params.stepSeconds=60] - Step size in seconds
+ * @param {string} [params.profile='defaultBalanced'] - Scoring profile
+ * @param {Array}  [params.events=[]] - Known life events for backtesting
+ * @returns {Promise<Object>} { success, result: { minuteScores, top5, bestMinute, ... } }
+ */
+export async function runBirthTimeTuningLab(params) {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(getCloudRunUrl('birth_time_tuning_lab'), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(params)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Birth Time Tuning Lab failed:', error);
+    throw error;
+  }
+}
+
+// =============================================================================
+// BATCH CHART POSITIONS (Playback Animation)
+// =============================================================================
+
+/**
+ * Batch-compute lightweight chart positions for playback animation.
+ * Uses the fast Swiss Ephemeris path (~15ms/chart) — no scoring, no aspects.
+ *
+ * @param {Object} params
+ * @param {string} params.birthDate - YYYY-MM-DD
+ * @param {number} params.latitude
+ * @param {number} params.longitude
+ * @param {string} [params.timezone='UTC']
+ * @param {number} [params.startMinutes=0] - 0-1439
+ * @param {number} [params.endMinutes=1439] - 0-1439
+ * @param {number} [params.stepMinutes=5] - 1 or 5
+ * @returns {Promise<Object>} { success, result: { frames, totalFrames, computeMs } }
+ */
+export async function batchChartPositions(params) {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(getCloudRunUrl('batch_chart_positions'), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(params),
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Batch chart positions failed:', error);
+    throw error;
+  }
+}
+
 // =============================================================================
 // UNIFIED PROFILE COMPUTATION (Python-First Architecture)
 // =============================================================================
@@ -497,17 +569,106 @@ export function getConnectionTypeInfo(connectionType) {
   };
 }
 
+
+/**
+ * Universal compatibility engine status
+ */
+export async function compatibilityEngineStatus() {
+  const response = await fetch(getCloudRunUrl('compatibility_engine_status'));
+  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+  return await response.json();
+}
+
+/**
+ * Upsert a user's compatibility vector profile (Swiss + psych overlays)
+ */
+export async function compatibilityUpsertProfile(payload) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(getCloudRunUrl('compatibility_upsert_profile'), {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+  }
+  return await response.json();
+}
+
+/**
+ * Match a user against database candidates via pgvector shortlist + deep scoring
+ */
+export async function compatibilityMatchUser(payload) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(getCloudRunUrl('compatibility_match_user'), {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+  }
+  return await response.json();
+}
+
+/**
+ * Explain compatibility for a specific pair of profiles
+ */
+export async function compatibilityExplainPair(payload) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(getCloudRunUrl('compatibility_explain_pair'), {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+  }
+  return await response.json();
+}
+
+/**
+ * Debug 72-zone mapping/comparison for a pair
+ */
+export async function compatibilityZoneDebugPair(payload) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(getCloudRunUrl('compatibility_zone_debug_pair'), {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+  }
+  return await response.json();
+}
 export default {
   checkPythonHealth,
   calculateNatalChart,
   getPlanetaryPositions,
   calculateElementalBalance,
+  runBirthTimeTuningLab,
+  batchChartPositions,
   computeUnifiedProfile,
   computeUnifiedCompatibility,
   calculateSynastry,
   findSoulFamily,
   storeProfileNode,
+  compatibilityEngineStatus,
+  compatibilityUpsertProfile,
+  compatibilityMatchUser,
+  compatibilityExplainPair,
+  compatibilityZoneDebugPair,
   formatNatalChartForDisplay,
   formatSynastryForDisplay,
   getConnectionTypeInfo
 };
+
+
+
+
+

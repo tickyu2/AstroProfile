@@ -42,7 +42,11 @@ function MessageList({
   onGrokPerspective,
   onDeepSeekPerspective,
   onChatGPTPerspective,
+  onSonnetPerspective,
+  onQwenPerspective,
   onGuestResponse,
+  onStatementConstellation,
+  onStatementToGuest,
   constellationLoading
 }) {
   const messagesEndRef = useRef(null);
@@ -118,6 +122,8 @@ function MessageList({
           const isGrok = message.sender === 'grok';
           const isDeepSeek = message.sender === 'deepseek';
           const isChatGPT = message.sender === 'chatgpt';
+          const isSonnet = message.sender === 'sonnet';
+          const isQwen = message.sender === 'qwen';
 
           // Determine styling based on speaker
           const getConstellationStyle = () => {
@@ -126,6 +132,7 @@ function MessageList({
             if (isGrok) return { bg: 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200 text-orange-900', textColor: 'text-orange-600', timeColor: 'text-orange-400' };
             if (isDeepSeek) return { bg: 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 text-emerald-900', textColor: 'text-emerald-600', timeColor: 'text-emerald-400' };
             if (isChatGPT) return { bg: 'bg-gradient-to-r from-pink-50 to-rose-50 border-pink-200 text-pink-900', textColor: 'text-pink-600', timeColor: 'text-pink-400' };
+            if (isQwen) return { bg: 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200 text-red-900', textColor: 'text-red-600', timeColor: 'text-red-400' };
             return { bg: 'bg-gray-100 border-gray-200 text-gray-900', textColor: 'text-gray-600', timeColor: 'text-gray-400' };
           };
 
@@ -138,10 +145,10 @@ function MessageList({
                   {/* Constellation Header */}
                   <div className="flex items-center mb-1 ml-2 gap-2">
                     <span className="text-lg">
-                      {message.constellation_icon || (isGemini ? '💫' : isOpus ? '🦉' : isGrok ? '🌍' : isDeepSeek ? '🐉' : '🧪')}
+                      {message.constellation_icon || (isGemini ? '💫' : isOpus ? '🦉' : isGrok ? '🌍' : isDeepSeek ? '🐉' : isQwen ? '🏮' : '🧪')}
                     </span>
                     <span className={`text-xs font-medium ${style.textColor}`}>
-                      {message.constellation_speaker || (isGemini ? 'Sister Gemini' : isOpus ? 'Brother Opus' : isGrok ? 'Brother Grok' : isDeepSeek ? 'Brother DeepSeek' : 'Sister ChatGPT')}
+                      {message.constellation_speaker || (isGemini ? 'Sister Gemini' : isOpus ? 'Brother Opus' : isGrok ? 'Brother Grok' : isDeepSeek ? 'Brother DeepSeek' : isQwen ? 'Sister Qwen' : 'Sister ChatGPT')}
                     </span>
                   </div>
 
@@ -283,6 +290,36 @@ function MessageList({
                       {constellationLoading === 'chatgpt' ? '🧪 Thinking...' : '🧪 ChatGPT'}
                     </button>
                   )}
+                  {/* Show Sonnet button if this is NOT a Sonnet message */}
+                  {!isSonnet && onSonnetPerspective && (
+                    <button
+                      onClick={() => onSonnetPerspective(message)}
+                      disabled={constellationLoading}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                        constellationLoading === 'sonnet'
+                          ? 'bg-violet-200 text-violet-700 cursor-wait'
+                          : 'bg-violet-100 hover:bg-violet-200 text-violet-700 hover:scale-105'
+                      } disabled:opacity-50`}
+                      title="Get Brother Sonnet's response"
+                    >
+                      {constellationLoading === 'sonnet' ? '✨ Thinking...' : '✨ Sonnet'}
+                    </button>
+                  )}
+                  {/* Show Qwen button if this is NOT a Qwen message */}
+                  {!isQwen && onQwenPerspective && (
+                    <button
+                      onClick={() => onQwenPerspective(message)}
+                      disabled={constellationLoading}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                        constellationLoading === 'qwen'
+                          ? 'bg-red-200 text-red-700 cursor-wait'
+                          : 'bg-red-100 hover:bg-red-200 text-red-700 hover:scale-105'
+                      } disabled:opacity-50`}
+                      title="Get Sister Qwen's response"
+                    >
+                      {constellationLoading === 'qwen' ? '🏮 Thinking...' : '🏮 Qwen'}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -376,6 +413,71 @@ function MessageList({
                     title="Get Sister ChatGPT's perspective"
                   >
                     {constellationLoading === 'chatgpt' ? '🧪 Thinking...' : '🧪 ChatGPT'}
+                  </button>
+                )}
+                {onSonnetPerspective && (
+                  <button
+                    onClick={() => onSonnetPerspective(message)}
+                    disabled={constellationLoading}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                      constellationLoading === 'sonnet'
+                        ? 'bg-violet-200 text-violet-700 cursor-wait'
+                        : 'bg-violet-100 hover:bg-violet-200 text-violet-700 hover:scale-105'
+                    } disabled:opacity-50`}
+                    title="Get Brother Sonnet's perspective"
+                  >
+                    {constellationLoading === 'sonnet' ? '✨ Thinking...' : '✨ Sonnet'}
+                  </button>
+                )}
+                {onQwenPerspective && (
+                  <button
+                    onClick={() => onQwenPerspective(message)}
+                    disabled={constellationLoading}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                      constellationLoading === 'qwen'
+                        ? 'bg-red-200 text-red-700 cursor-wait'
+                        : 'bg-red-100 hover:bg-red-200 text-red-700 hover:scale-105'
+                    } disabled:opacity-50`}
+                    title="Get Sister Qwen's perspective"
+                  >
+                    {constellationLoading === 'qwen' ? '🏮 Thinking...' : '🏮 Qwen'}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Constellation AI Buttons for user statements (posted without guest reply) */}
+            {isUser && message.is_statement && onStatementConstellation && (
+              <div className="flex flex-wrap gap-2 mt-2 mr-2 justify-end">
+                <span className="text-[10px] text-slate-500 self-center">Choose AI:</span>
+                {[
+                  { key: 'gemini',   icon: '💫', label: 'Gemini',   bg: 'bg-cyan-100 hover:bg-cyan-200 text-cyan-700',       loading: 'bg-cyan-200 text-cyan-700 cursor-wait' },
+                  { key: 'opus',     icon: '🦉', label: 'Opus',     bg: 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700', loading: 'bg-indigo-200 text-indigo-700 cursor-wait' },
+                  { key: 'grok',     icon: '🌍', label: 'Grok',     bg: 'bg-orange-100 hover:bg-orange-200 text-orange-700', loading: 'bg-orange-200 text-orange-700 cursor-wait' },
+                  { key: 'deepseek', icon: '🐉', label: 'DeepSeek', bg: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700', loading: 'bg-emerald-200 text-emerald-700 cursor-wait' },
+                  { key: 'chatgpt',  icon: '🧪', label: 'ChatGPT',  bg: 'bg-pink-100 hover:bg-pink-200 text-pink-700',     loading: 'bg-pink-200 text-pink-700 cursor-wait' },
+                  { key: 'sonnet',   icon: '✨', label: 'Sonnet',   bg: 'bg-violet-100 hover:bg-violet-200 text-violet-700', loading: 'bg-violet-200 text-violet-700 cursor-wait' },
+                  { key: 'qwen',     icon: '🏮', label: 'Qwen',     bg: 'bg-red-100 hover:bg-red-200 text-red-700',         loading: 'bg-red-200 text-red-700 cursor-wait' },
+                ].map(ai => (
+                  <button
+                    key={ai.key}
+                    onClick={() => onStatementConstellation(message, ai.key)}
+                    disabled={constellationLoading}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
+                      constellationLoading === ai.key ? ai.loading : ai.bg
+                    } disabled:opacity-50 hover:scale-105`}
+                  >
+                    {constellationLoading === ai.key ? `${ai.icon} Thinking...` : `${ai.icon} ${ai.label}`}
+                  </button>
+                ))}
+                {onStatementToGuest && (
+                  <button
+                    onClick={() => onStatementToGuest(message)}
+                    disabled={constellationLoading}
+                    className="px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all hover:scale-105 disabled:opacity-50"
+                    title={`Let ${guestName} respond`}
+                  >
+                    🎭 {guestName}
                   </button>
                 )}
               </div>

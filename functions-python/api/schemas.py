@@ -244,6 +244,37 @@ class ArabicPartsSchema(BaseModel):
     parts: Dict[str, ArabicPartSchema] = Field(default_factory=dict)
 
 
+class VenusConditionSchema(BaseModel):
+    """Venus condition summary — essential dignity, house, aspects, composite score."""
+    sign: str
+    degreeInSign: float
+    longitude: float
+    dignity: str = Field(..., description="Exalted | Domicile | Neutral | Detriment | Debilitated")
+    dignityScore: float = Field(..., description="Multiplier: 0.80-1.20")
+    dignityNarrative: str = ""
+    element: str = ""
+    modality: str = ""
+    polarity: str = ""
+    elementFlavor: str = ""
+    combustionStatus: str = Field("none", description="none | cazimi | combust | under_beams")
+    combustionMod: float = Field(1.0, description="Multiplier for Sun proximity")
+    combustionNote: str = ""
+    sunSeparation: Optional[float] = Field(None, description="Degrees from Sun (0-180)")
+    house: Optional[int] = None
+    houseStrength: str = ""
+    houseTheme: str = ""
+    houseNote: str = ""
+    retrograde: bool = False
+    retrogradeNote: str = ""
+    aspects: List[Dict[str, str]] = Field(default_factory=list)
+    harmoniousAspects: float = 0
+    challengingAspects: float = 0
+    harmonyRatio: float = 0.5
+    compositeScore: float = Field(..., description="0-1 overall Venus condition")
+    condition: str = Field(..., description="exceptional | strong | balanced | challenged | debilitated")
+    summary: str = ""
+
+
 class WesternChartSchema(BaseModel):
     """Complete Western chart - canonical v2.0 output with pre-formatted display fields."""
     # Core placements
@@ -274,6 +305,9 @@ class WesternChartSchema(BaseModel):
 
     # Chart shape (if computed)
     chartShape: Optional[str] = None
+
+    # Venus condition summary
+    venusCondition: Optional[VenusConditionSchema] = None
 
     # Metadata
     calculationMethod: str = "Swiss Ephemeris"

@@ -314,6 +314,251 @@ def calculate_overall_dignity_score(planets: List[PlanetPosition]) -> float:
     return round(total_score / total_weight, 3)
 
 
+def calculate_venus_condition(
+    venus: PlanetPosition,
+    aspects: Optional[List] = None,
+    sun_longitude: Optional[float] = None,
+) -> Dict[str, any]:
+    """
+    Compute comprehensive Venus condition summary.
+
+    Evaluates Venus through multiple lenses:
+    - Essential dignity (domicile/exaltation/detriment/debilitation)
+    - Combustion / cazimi (proximity to Sun)
+    - House placement strength (angular > succedent > cadent)
+    - Retrograde status
+    - Aspect harmony with planet-specific modifiers
+    - Overall condition score (0-1)
+
+    Args:
+        venus: Venus PlanetPosition
+        aspects: Optional list of aspects involving Venus
+            Each item should have: planet1, planet2, aspect_type (or is_harmonious/is_challenging)
+        sun_longitude: Optional Sun ecliptic longitude for combustion/cazimi detection
+
+    Returns:
+        Dict with dignity, house theme, retrograde flag, aspect summary,
+        condition label, composite score, and narrative summary.
+    """
+    # --- Essential dignity ---
+    dignity = get_dignity("Venus", venus.sign)
+    dignity_score = DIGNITY_MODIFIERS.get(dignity, 1.0)
+
+    dignity_keywords = {
+        "Exalted": "transcendent grace — Venus radiates effortlessly",
+        "Domicile": "at home — Venus expresses naturally and reliably",
+        "Neutral": "balanced — Venus functions in a steady, ordinary way",
+        "Detriment": "challenged — Venus must work harder to express love and beauty",
+        "Debilitated": "weakened — Venus feels conflicted, hidden gifts await excavation",
+    }
+    dignity_narrative = dignity_keywords.get(dignity, "")
+
+    # --- Combustion / cazimi (Sun proximity) ---
+    combustion_status = "none"
+    combustion_mod = 1.0
+    combustion_note = ""
+    sun_separation = None
+
+    if sun_longitude is not None:
+        diff = abs(venus.longitude - sun_longitude)
+        sun_separation = round(min(diff, 360 - diff), 3)
+
+        if sun_separation <= 0.28:
+            combustion_status = "cazimi"
+            combustion_mod = 1.25  # paradoxically exalted — "in the heart of the Sun"
+            combustion_note = (
+                f"Venus is cazimi ({sun_separation:.2f}° from Sun) — "
+                "in the heart of the Sun, Venus gains extraordinary power and purity"
+            )
+        elif sun_separation <= 8.5:
+            combustion_status = "combust"
+            combustion_mod = 0.70  # significantly weakened
+            combustion_note = (
+                f"Venus is combust ({sun_separation:.2f}° from Sun) — "
+                "overwhelmed by the Sun's light, Venus struggles to express freely"
+            )
+        elif sun_separation <= 17.0:
+            combustion_status = "under_beams"
+            combustion_mod = 0.88  # mildly weakened
+            combustion_note = (
+                f"Venus is under the beams ({sun_separation:.2f}° from Sun) — "
+                "partially hidden by solar glare, Venus is somewhat muted"
+            )
+
+    # --- Element & modality context ---
+    element = SIGN_ELEMENT.get(venus.sign, "")
+    modality = SIGN_MODALITY.get(venus.sign, "")
+    polarity = SIGN_POLARITY.get(venus.sign, "")
+
+    element_flavor = {
+        "Fire": "passionate, bold, spontaneous in love",
+        "Earth": "sensual, loyal, values material beauty",
+        "Air": "intellectual, social, drawn to harmony of ideas",
+        "Water": "deeply emotional, intuitive, seeks soul-level bonds",
+    }
+
+    # --- House placement ---
+    angular_houses = {1, 4, 7, 10}
+    succedent_houses = {2, 5, 8, 11}
+    house = venus.house
+
+    if house in angular_houses:
+        house_strength = "angular"
+        house_mod = 1.2
+        house_note = "Venus is prominently visible — love and aesthetics are front and center"
+    elif house in succedent_houses:
+        house_strength = "succedent"
+        house_mod = 1.0
+        house_note = "Venus has steady, resourceful expression"
+    elif house:
+        house_strength = "cadent"
+        house_mod = 0.9
+        house_note = "Venus works more subtly, behind the scenes"
+    else:
+        house_strength = "unknown"
+        house_mod = 1.0
+        house_note = "House unknown (birth time may be missing)"
+
+    house_themes = {
+        1: "self-image, personal charm, first impressions",
+        2: "values, possessions, self-worth, sensual pleasure",
+        3: "communication style, local connections, sibling bonds",
+        4: "home, family roots, emotional foundation",
+        5: "romance, creativity, playfulness, children",
+        6: "daily routines, health aesthetics, service",
+        7: "partnerships, marriage, one-on-one relationships",
+        8: "deep intimacy, shared resources, transformation",
+        9: "philosophy, travel, cross-cultural love",
+        10: "public image, career aesthetics, reputation",
+        11: "friendships, community, hopes and wishes",
+        12: "hidden love, spiritual devotion, sacrifice",
+    }
+    house_theme = house_themes.get(house, "")
+
+    # --- Retrograde ---
+    retro_mod = 0.95 if venus.retrograde else 1.0
+    retro_note = "Venus retrograde — love turns inward, revisiting past values and relationships" if venus.retrograde else ""
+
+    # --- Aspect analysis ---
+    harmonious_count = 0
+    challenging_count = 0
+    aspect_details = []
+
+    # Planet-specific aspect modifiers — some planets amplify or
+    # diminish the effect of their aspect to Venus
+    planet_aspect_weight = {
+        "jupiter": 1.2,   # greater benefic amplifies harmony
+        "moon": 1.1,      # emotional resonance
+        "neptune": 1.05,  # spiritual/artistic
+        "mars": -0.15,    # passion but friction — reduces harmony credit
+        "saturn": -0.2,   # restriction/duty — reduces harmony credit
+        "pluto": -0.1,    # intensity/obsession
+    }
+
+    if aspects:
+        for asp in aspects:
+            # Support both dict and object with attributes
+            if hasattr(asp, "planet1"):
+                p1, p2, atype = asp.planet1, asp.planet2, asp.aspect_type
+            elif isinstance(asp, dict):
+                p1, p2, atype = asp.get("planet1", ""), asp.get("planet2", ""), asp.get("aspect", asp.get("aspect_type", ""))
+            else:
+                continue
+
+            involves_venus = ("venus" in p1.lower() or "venus" in p2.lower() or
+                              p1 == "Venus" or p2 == "Venus")
+            if not involves_venus:
+                continue
+
+            other = p2 if ("venus" in p1.lower() or p1 == "Venus") else p1
+            atype_lower = atype.lower()
+            other_key = other.lower().strip()
+
+            # Base weight with planet-specific modifier
+            pw = planet_aspect_weight.get(other_key, 0)
+
+            if atype_lower in ("trine", "sextile", "quintile", "biquintile"):
+                weight = max(0.2, 1.0 + pw)  # floor at 0.2 so it stays positive
+                harmonious_count += weight
+                aspect_details.append({"planet": other, "aspect": atype, "nature": "harmonious", "weight": round(weight, 2)})
+            elif atype_lower in ("square", "opposition", "quincunx", "semi-square", "sesquiquadrate"):
+                weight = max(0.2, 1.0 - pw)  # challenging gets inverse modifier
+                challenging_count += weight
+                aspect_details.append({"planet": other, "aspect": atype, "nature": "challenging", "weight": round(weight, 2)})
+            else:
+                # conjunction — context-dependent, lean by planet modifier
+                harmonious_count += 0.5
+                challenging_count += 0.5
+                aspect_details.append({"planet": other, "aspect": atype, "nature": "neutral", "weight": 0.5})
+
+    total_asp = harmonious_count + challenging_count
+    if total_asp > 0:
+        harmony_ratio = round(harmonious_count / total_asp, 3)
+    else:
+        harmony_ratio = 0.5  # neutral when no aspects
+
+    # --- Composite score ---
+    raw_score = dignity_score * house_mod * retro_mod * combustion_mod
+    # Blend with aspect harmony (70% dignity/house/retro/combustion, 30% aspect harmony)
+    composite = (raw_score * 0.7) + (harmony_ratio * 1.2 * 0.3)  # scale harmony to ~1.0-1.2 range
+    composite = round(min(1.0, max(0.0, composite / 1.2)), 3)  # normalize to 0-1
+
+    # --- Condition label ---
+    if composite >= 0.85:
+        condition = "exceptional"
+    elif composite >= 0.70:
+        condition = "strong"
+    elif composite >= 0.50:
+        condition = "balanced"
+    elif composite >= 0.35:
+        condition = "challenged"
+    else:
+        condition = "debilitated"
+
+    # --- Build narrative ---
+    parts = [f"Venus in {venus.sign}"]
+    if dignity != "Neutral":
+        parts.append(f"({dignity})")
+    parts.append(f"— {element_flavor.get(element, '')}")
+    if combustion_status != "none":
+        parts.append(f"| {combustion_note}")
+    if house:
+        parts.append(f"| House {house}: {house_theme}")
+    if venus.retrograde:
+        parts.append(f"| {retro_note}")
+    summary = " ".join(parts)
+
+    return {
+        "sign": venus.sign,
+        "degreeInSign": round(venus.degree_in_sign, 2),
+        "longitude": round(venus.longitude, 2),
+        "dignity": dignity,
+        "dignityScore": round(dignity_score, 3),
+        "dignityNarrative": dignity_narrative,
+        "element": element,
+        "modality": modality,
+        "polarity": polarity,
+        "elementFlavor": element_flavor.get(element, ""),
+        "combustionStatus": combustion_status,
+        "combustionMod": round(combustion_mod, 3),
+        "combustionNote": combustion_note,
+        "sunSeparation": sun_separation,
+        "house": house,
+        "houseStrength": house_strength,
+        "houseTheme": house_theme,
+        "houseNote": house_note,
+        "retrograde": venus.retrograde,
+        "retrogradeNote": retro_note,
+        "aspects": aspect_details,
+        "harmoniousAspects": round(harmonious_count, 2),
+        "challengingAspects": round(challenging_count, 2),
+        "harmonyRatio": harmony_ratio,
+        "compositeScore": composite,
+        "condition": condition,
+        "summary": summary,
+    }
+
+
 def calculate_archetype_vector(planets: List[PlanetPosition]) -> Dict[str, float]:
     """
     Calculate 9-dimensional archetype vector.

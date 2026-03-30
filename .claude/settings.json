@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(firebase deploy:*)"
+      "Bash(firebase deploy:*)",
+      "Bash(openclaw doctor)",
+      "Read(//c/Users/Ticky/**)",
+      "Bash(git status:*)"
     ]
   }
 }

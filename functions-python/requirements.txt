@@ -38,3 +38,5 @@ langchain-text-splitters==0.3.11  # 20% overlap chunking for long entries
 pg8000==1.31.5               # Pure Python PostgreSQL driver (required for Cloud SQL)
 SQLAlchemy==2.0.46            # Database ORM
 cloud-sql-python-connector==1.20.0  # Google Cloud SQL connector
+
+requests==2.32.3

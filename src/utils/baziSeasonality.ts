@@ -125,6 +125,26 @@ const EARTH_TRANSITION_MAP: Record<string, { incoming: Element; outgoing: Elemen
   "丑": { incoming: "wood", outgoing: "water" }    // Winter → Spring (Ox month)
 };
 
+/**
+ * Exact per-branch seasonal weights (旺相休囚死)
+ * Used by MIFQ seasonal adjustment layer.
+ * Earth pivot months use classical 四季土 assignments.
+ */
+const BRANCH_WEIGHTS: Record<string, Record<Element, number>> = {
+  "寅": { wood: 1.0, fire: 0.8, earth: 0.4, metal: 0.2, water: 0.6 },  // Feb — Spring
+  "卯": { wood: 1.0, fire: 0.8, earth: 0.4, metal: 0.2, water: 0.6 },  // Mar — Spring
+  "辰": { wood: 0.8, fire: 0.4, earth: 1.0, metal: 0.2, water: 0.6 },  // Apr — Late Spring / Earth pivot
+  "巳": { wood: 0.6, fire: 1.0, earth: 0.8, metal: 0.2, water: 0.4 },  // May — Summer
+  "午": { wood: 0.6, fire: 1.0, earth: 0.8, metal: 0.4, water: 0.2 },  // Jun — Summer
+  "未": { wood: 0.4, fire: 0.8, earth: 1.0, metal: 0.6, water: 0.2 },  // Jul — Late Summer / Earth pivot
+  "申": { wood: 0.2, fire: 0.6, earth: 0.8, metal: 1.0, water: 0.4 },  // Aug — Early Autumn
+  "酉": { wood: 0.2, fire: 0.4, earth: 0.6, metal: 1.0, water: 0.8 },  // Sep — Autumn
+  "戌": { wood: 0.4, fire: 0.2, earth: 1.0, metal: 0.8, water: 0.6 },  // Oct — Late Autumn / Earth pivot
+  "亥": { wood: 0.8, fire: 0.2, earth: 0.4, metal: 0.6, water: 1.0 },  // Nov — Winter
+  "子": { wood: 0.6, fire: 0.2, earth: 0.4, metal: 0.8, water: 1.0 },  // Dec — Deep Winter
+  "丑": { wood: 0.4, fire: 0.2, earth: 1.0, metal: 0.6, water: 0.8 },  // Jan — Late Winter / Earth pivot
+};
+
 // ============================================================================
 // CORE FUNCTIONS
 // ============================================================================
@@ -134,41 +154,33 @@ const EARTH_TRANSITION_MAP: Record<string, { incoming: Element; outgoing: Elemen
  * Handles both regular seasons and Earth transition months
  */
 export function getSeasonalWeights(monthBranch: string): Record<Element, number> {
-  const season = SEASON_MAP[monthBranch];
+  // Use exact per-branch lookup (covers all 12 months including Earth pivots)
+  if (BRANCH_WEIGHTS[monthBranch]) {
+    return BRANCH_WEIGHTS[monthBranch];
+  }
 
+  // Fallback: standard season lookup for any non-branch key
+  const season = SEASON_MAP[monthBranch];
   if (!season) {
-    // Unknown branch, return neutral weights
     console.warn(`Unknown month branch: ${monthBranch}`);
     return { wood: 1.0, fire: 1.0, earth: 1.0, metal: 1.0, water: 1.0 };
   }
 
-  // Non-transition seasons use standard weights
   if (!season.startsWith("earth_transition")) {
     return SEASON_WEIGHTS[season];
   }
 
-  // Earth transition month - compute dynamic weights
+  // Legacy fallback for Earth transitions (should not reach here)
   const transition = EARTH_TRANSITION_MAP[monthBranch];
   if (!transition) {
     return { wood: 1.0, fire: 1.0, earth: 1.0, metal: 1.0, water: 1.0 };
   }
-
   const { incoming, outgoing } = transition;
-
-  // Start with Earth dominant, others at base level
   const weights: Record<Element, number> = {
-    earth: 1.0,   // Earth dominates transition months
-    wood: 0.4,    // Base level
-    fire: 0.4,    // Base level
-    metal: 0.4,   // Base level
-    water: 0.4    // Base level
+    earth: 1.0, wood: 0.4, fire: 0.4, metal: 0.4, water: 0.4
   };
-
-  // Incoming season element is strengthening
   weights[incoming] = 0.8;
-  // Outgoing season element is weakening
   weights[outgoing] = 0.6;
-
   return weights;
 }
 
@@ -407,6 +419,8 @@ export const ELEMENT_CHINESE: Record<Element, string> = {
 // EXPORTS
 // ============================================================================
 
+export { BRANCH_WEIGHTS };
+
 export default {
   applySeasonality,
   getSeasonalWeights,
@@ -415,6 +429,7 @@ export default {
   getSeasonalGainersLosers,
   SEASON_MAP,
   SEASON_WEIGHTS,
+  BRANCH_WEIGHTS,
   EARTH_TRANSITION_MAP,
   ELEMENT_COLORS,
   ELEMENT_EMOJIS,

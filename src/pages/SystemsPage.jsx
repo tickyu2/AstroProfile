@@ -971,6 +971,20 @@ export function SystemsPage() {
                 <p className="text-sm text-white/50">External services, AI tools, and project history</p>
               </div>
             </div>
+
+            <button
+              onClick={() => navigate('/compatibility-engine-inspector')}
+              className="px-3 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-indigo-300 text-sm transition-colors"
+            >
+              🧪 Compatibility Inspector
+            </button>
+
+            <button
+              onClick={() => navigate('/browser-worker')}
+              className="px-3 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-sm transition-colors"
+            >
+              🌐 Browser Worker
+            </button>
           </div>
         </div>
       </header>
