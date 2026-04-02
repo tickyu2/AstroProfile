@@ -27,6 +27,7 @@ import YearInsightsPanel from '../components/bazi/YearInsightsPanel';
 import MonthArchetypeBadge from '../components/bazi/MonthArchetypeBadge';
 import BraceletDashboard from '../components/bazi/BraceletDashboard';
 import QiVectorPlot3D from '../components/qi/QiVectorPlot3D';
+import QiBalanceCube from '../components/qi/QiBalanceCube';
 import { QiPipelineFlow } from '../components/qi/QiPipelineFlow';
 import { EducationLevelToggle } from '../components/qi/EducationLevelToggle';
 // QiDebugger removed — replaced by MIFQ Steps 4-7 pipeline
@@ -3070,7 +3071,7 @@ function ExternalPillarPanel({ breakdown, label, pillarQi, steps }) {
           </span>
         </div>
         <span className="text-xs font-mono text-gray-400">
-          {qiTotal.toFixed(2)} pts this month
+          {qiTotal.toFixed(3)} qi (scaled to NTFQ)
         </span>
       </div>
 
@@ -3209,21 +3210,21 @@ function ExternalPillarPanel({ breakdown, label, pillarQi, steps }) {
               </div>
             )}
 
-            {/* Final = Polarity output */}
+            {/* Final = Polarity output → Scaled to NTFQ */}
             <div>
-              <div className="text-amber-300 font-semibold">{label} Qi = Polarity output (raw pts, same as natal pillars)</div>
+              <div className="text-amber-300 font-semibold">{label} Qi = Polarity output → Scaled to NTFQ total</div>
               <div className="text-slate-500 mt-0.5 text-[9px]">
-                No normalization step — {label} Qi uses raw points just like other pillars.
+                External pillar raw pts are scaled so total matches NTFQ total. This gives all layers equal mass — MTFQ weights (×0.9, ×0.5, ×0.3) become pure influence multipliers.
               </div>
             </div>
           </div>
         )}
 
-        {/* Qi Output Bars — always visible */}
+        {/* Qi Output Bars — shows both raw and normalized */}
         {pillarQi && (
           <div className="space-y-1.5">
             <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-              {label.toUpperCase()} QI — FINAL OUTPUT
+              {label.toUpperCase()} QI — SCALED TO NTFQ
             </div>
             {ELEMENTS.map(el => {
               const v = pillarQi[el] || 0;
@@ -3243,10 +3244,13 @@ function ExternalPillarPanel({ breakdown, label, pillarQi, steps }) {
                       />
                     )}
                   </div>
-                  <span className="w-16 text-right font-mono text-gray-300">{v.toFixed(2)} pts</span>
+                  <span className="w-16 text-right font-mono text-gray-300">{v.toFixed(3)} qi</span>
                 </div>
               );
             })}
+            <div className="text-[9px] text-gray-500 font-mono mt-1">
+              Scaled total: {ELEMENTS.reduce((s, el) => s + (pillarQi[el] || 0), 0).toFixed(3)} qi (= NTFQ total)
+            </div>
           </div>
         )}
       </div>
@@ -3298,11 +3302,18 @@ function CombinedYMFQPanel({ yearFq, monthFq, year, monthName, natalTfq, daYunQi
           </div>
 
           {/* Formula display */}
-          <div className="rounded border border-white/10 bg-black/30 px-3 py-2 text-[10px] font-mono text-gray-300">
-            MTFQ = <span className="text-amber-300">1.0</span> × NTFQ
-            + <span className="text-pink-300">0.9</span> × DaYunQi
-            + <span className="text-purple-300">0.5</span> × YearQi
-            + <span className="text-cyan-300">0.3</span> × MonthQi
+          <div className="rounded border border-white/10 bg-black/30 px-3 py-2 text-[10px] font-mono text-gray-300 space-y-1">
+            <div>
+              MTFQ = <span className="text-amber-300">1.0</span> × NTFQ
+              + <span className="text-pink-300">0.9</span> × DaYun′
+              + <span className="text-purple-300">0.5</span> × Year′
+              + <span className="text-cyan-300">0.3</span> × Month′
+            </div>
+            <div className="text-[9px] text-gray-500">
+              DaYun′, Year′, Month′ are scaled so each layer's total = NTFQ total.
+              All layers have equal mass; weights (1.0, 0.9, 0.5, 0.3) are pure influence multipliers.
+              Natal ≈ 37%, DaYun ≈ 33%, Year ≈ 19%, Month ≈ 11%.
+            </div>
           </div>
 
           {/* Input layers table */}
@@ -3312,9 +3323,9 @@ function CombinedYMFQPanel({ yearFq, monthFq, year, monthName, natalTfq, daYunQi
                 <tr className="bg-white/5">
                   <th className="px-2 py-1.5 text-left text-gray-400">Element</th>
                   <th className="px-2 py-1.5 text-right text-amber-300">NTFQ<br /><span className="text-[9px] text-gray-500">×1.0 (body)</span></th>
-                  {daYunQi && <th className="px-2 py-1.5 text-right text-pink-300">Da Yun<br /><span className="text-[9px] text-gray-500">×0.9 (decade)</span></th>}
-                  <th className="px-2 py-1.5 text-right text-purple-300">Year Qi<br /><span className="text-[9px] text-gray-500">×0.5 ({year})</span></th>
-                  <th className="px-2 py-1.5 text-right text-cyan-300">Month Qi<br /><span className="text-[9px] text-gray-500">×0.3 ({monthName})</span></th>
+                  {daYunQi && <th className="px-2 py-1.5 text-right text-pink-300">DaYun′<br /><span className="text-[9px] text-gray-500">×0.9 (scaled)</span></th>}
+                  <th className="px-2 py-1.5 text-right text-purple-300">Year′<br /><span className="text-[9px] text-gray-500">×0.5 ({year})</span></th>
+                  <th className="px-2 py-1.5 text-right text-cyan-300">Month′<br /><span className="text-[9px] text-gray-500">×0.3 ({monthName})</span></th>
                   <th className="px-2 py-1.5 text-right text-green-300">MTFQ<br /><span className="text-[9px] text-gray-500">Weighted</span></th>
                 </tr>
               </thead>
@@ -8351,6 +8362,7 @@ export default function QiBraceletPage() {
 
         // ── Compute MIFQ → BRQe ratios (same as BraceletDashboard) ──
         let brqeRatios = null;
+        let brqeCorrection = null; // BRQe per-element correction values
         try {
           const mtfqTotal = ELEMENTS.reduce((s, el) => s + (snapshot.functionalQi[el] || 0), 0);
           if (mtfqTotal > 0 && snapshot.yongShen) {
@@ -8386,6 +8398,7 @@ export default function QiBraceletPage() {
               const brqEff = brq * 0.35;
               brqeValues[el] = Math.max(-cap, Math.min(cap, brqEff));
             });
+            brqeCorrection = { ...brqeValues };
             const brqeBracelet = designBraceletFromBRQe(brqeValues, snapshot.yongShen, dmChar);
             brqeRatios = brqeBracelet.ratios;
           }
@@ -8413,18 +8426,17 @@ export default function QiBraceletPage() {
             qiUnit: b.qiUnit || 0,
           }));
 
-        // Remedied Qi = functionalQi + per-element stone contribution
+        // Remedied Qi = MTFQ + BRQe (from pipeline, NOT raw stone qiUnits)
+        // BRQe closes 35% of the gap between MTFQ and MIFQ, capped at 50% of |BRQ|
         const remediedQi = {};
         ELEMENTS.forEach(el => {
-          const stoneBoost = stones
-            .filter(s => s.element === el)
-            .reduce((sum, s) => sum + s.qiUnit, 0);
-          remediedQi[el] = (snapshot.functionalQi[el] || 0) + stoneBoost;
+          remediedQi[el] = (snapshot.functionalQi[el] || 0) + (brqeCorrection?.[el] || 0);
         });
         return {
           monthIndex: i,
           stones,
           remediedQi,
+          brqeCorrection, // per-element BRQe values for display
           monthName: snapshot.monthName || '',
           engineered,  // full EngineeredBracelet for floating preview
         };
@@ -8765,6 +8777,17 @@ export default function QiBraceletPage() {
                   daYunResult={daYunResult}
                   ntfq={topLevelNtfq}
                   birthYear={birthYear}
+                />
+              )}
+
+              {/* Qi Balance Cube — 3D ratio visualization */}
+              {qiMatrix?.months?.length > 0 && (
+                <QiBalanceCube
+                  months={qiMatrix.months}
+                  dayMasterPolarity={qiMatrix.dayMasterPolarity}
+                  natalTfq={userTfq}
+                  daYunQi={qiMatrix.months[0]?.daYunQi}
+                  braceletStones={braceletStonesFor3D}
                 />
               )}
 

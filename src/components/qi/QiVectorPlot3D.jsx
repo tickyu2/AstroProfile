@@ -238,6 +238,7 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
       const layers = { natal: {}, dayun: {}, year: {}, month: {} };
       ELEMENTS.forEach(el => {
         vals[el] = m.functionalQi?.[el] || 0;
+        // 4D layers: weighted contributions — what each layer adds to MTFQ
         layers.natal[el]  = (m.natalTfq?.[el] || 0) * W_NATAL;
         layers.dayun[el]  = (m.daYunQi?.[el]  || 0) * W_DAYUN;
         layers.year[el]   = (m.yearQi?.[el]   || 0) * W_YEAR;
@@ -328,8 +329,8 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
 
     // 4D layer shapes: for each month, 4 nested pentagons (natal, dayun, year, month)
     const LAYER_DEFS = [
-      { key: 'natal', color: '#fbbf24', label: 'Natal ×1.0' },
-      { key: 'dayun', color: '#ec4899', label: 'Da Yun ×0.9' },
+      { key: 'natal', color: '#fbbf24', label: 'NTFQ ×1.0' },
+      { key: 'dayun', color: '#ec4899', label: 'DaYun ×0.9' },
       { key: 'year',  color: '#a78bfa', label: 'Year ×0.5' },
       { key: 'month', color: '#22d3ee', label: 'Month ×0.3' },
     ];
