@@ -230,3 +230,112 @@ export function pillarPosition(
     y: centerY + distance * Math.sin(angle),
   };
 }
+
+// ── Coaching engine ──
+
+export interface SubLeverage {
+  pillarId: string;
+  pillarName: string;
+  sub: SubComponent;
+  leverage: number;       // weight × (1 - score) — room for improvement weighted by importance
+  projectedGain: number;  // H gain if this sub raised by 10%
+}
+
+/**
+ * Find the single highest-leverage subcomponent across all pillars.
+ * leverage = sub.weight × (1 - sub.score) × pillar.weight
+ * Then simulate a +10% raise to compute projected happiness gain.
+ */
+export function findBestImprovement(pillars: Pillar[], currentResult: HappinessResult, kR = 0.35): SubLeverage | null {
+  let best: SubLeverage | null = null;
+
+  for (const p of pillars) {
+    for (const s of p.subs) {
+      const leverage = s.weight * (1 - s.score) * p.weight;
+      if (!best || leverage > best.leverage) {
+        // Simulate +10% on this sub
+        const simPillars = pillars.map(pp => {
+          if (pp.id !== p.id) return pp;
+          const simSubs = pp.subs.map(ss =>
+            ss.id === s.id ? { ...ss, score: Math.min(1, ss.score + 0.10) } : ss
+          );
+          return { ...pp, subs: simSubs, score: computePillarScore(simSubs) };
+        });
+        const simResult = computeHappiness(simPillars, kR);
+        const gain = simResult.score100 - currentResult.score100;
+
+        best = { pillarId: p.id, pillarName: p.name, sub: s, leverage, projectedGain: gain };
+      }
+    }
+  }
+  return best;
+}
+
+// ── Path to target ──
+
+export interface PillarGap {
+  pillarId: string;
+  pillarName: string;
+  pillarIcon: string;
+  pillarColor: string;
+  current: number;
+  needed: number;
+  gap: number;
+  subs: (SubComponent & { target: number })[];
+}
+
+/**
+ * Compute the improvements needed per pillar to reach a target happiness score.
+ * Uses iterative simulation: raises weakest pillars proportionally until target is met.
+ */
+export function computePathToTarget(pillars: Pillar[], targetScore = 90, kR = 0.35): PillarGap[] {
+  // Simple approach: compute how much each pillar needs to increase
+  // by distributing the gap proportionally to their weight × (1 - score)
+  const current = computeHappiness(pillars, kR);
+  if (current.score100 >= targetScore) {
+    return pillars.map(p => ({
+      pillarId: p.id, pillarName: p.name, pillarIcon: p.icon, pillarColor: p.color,
+      current: p.score, needed: p.score, gap: 0,
+      subs: p.subs.map(s => ({ ...s, target: s.score })),
+    }));
+  }
+
+  // Iteratively raise all pillars proportionally until we hit the target
+  const simPillars: Pillar[] = JSON.parse(JSON.stringify(pillars));
+  let iterations = 0;
+  while (iterations < 200) {
+    const simResult = computeHappiness(simPillars, kR);
+    if (simResult.score100 >= targetScore) break;
+
+    // Raise each pillar's subs proportionally to their leverage
+    for (const p of simPillars) {
+      for (const s of p.subs) {
+        const room = 1 - s.score;
+        if (room > 0.01) {
+          // Raise by a small step, weighted by leverage
+          s.score = Math.min(1, s.score + 0.005 * s.weight * (1 - s.score));
+        }
+      }
+      p.score = computePillarScore(p.subs);
+    }
+    iterations++;
+  }
+
+  // Build the gap report
+  return pillars.map((p, i) => {
+    const sim = simPillars[i];
+    return {
+      pillarId: p.id,
+      pillarName: p.name,
+      pillarIcon: p.icon,
+      pillarColor: p.color,
+      current: p.score,
+      needed: sim.score,
+      gap: Math.max(0, sim.score - p.score),
+      subs: p.subs.map((s, j) => ({
+        ...s,
+        target: sim.subs[j].score,
+      })),
+    };
+  }).sort((a, b) => b.gap - a.gap);
+}

@@ -21,7 +21,9 @@ import {
   pillarRadius,
   pillarDistance,
   pillarPosition,
-  PILLAR_COLORS
+  PILLAR_COLORS,
+  findBestImprovement,
+  computePathToTarget
 } from '../utils/happinessEngine';
 
 // ── Constants ──
@@ -416,6 +418,184 @@ function SummaryTable({ pillars, result, onSelectPillar, selectedPillar }) {
 }
 
 // ============================================================================
+// COACHING CARD — "What to Improve Next"
+// ============================================================================
+
+function CoachingCard({ pillars, result }) {
+  const best = useMemo(() => findBestImprovement(pillars, result), [pillars, result]);
+  if (!best) return null;
+
+  const weakest = result.weakest;
+
+  return (
+    <div className="bg-purple-500/[0.06] border border-purple-500/20 rounded-xl p-4 space-y-2">
+      <h3 className="text-sm font-semibold text-purple-300 flex items-center gap-2">
+        <span className="text-base">🧭</span> What to Improve Next
+      </h3>
+
+      <div className="text-xs text-white/80">
+        <span className="text-white/50">Weakest Pillar:</span>{' '}
+        <span className="font-semibold" style={{ color: weakest.color }}>{weakest.icon} {weakest.name}</span>
+        {' '}at <span className="font-mono font-semibold" style={{ color: weakest.color }}>{Math.round(weakest.score * 100)}%</span>
+      </div>
+
+      <div className="text-xs text-white/80">
+        <span className="text-white/50">Highest-leverage sub:</span>{' '}
+        <span className="font-semibold text-white">{best.sub.name}</span>
+        {' '}({Math.round(best.sub.score * 100)}% → {Math.round(Math.min(100, best.sub.score * 100 + 10))}%)
+      </div>
+
+      <div className="text-xs text-purple-200 font-semibold">
+        Expected gain: <span className="text-purple-300 font-mono">+{best.projectedGain}</span> Happiness
+      </div>
+
+      <div className="text-[10px] text-white/40 leading-relaxed mt-1">
+        <span className="font-semibold text-white/50">{best.sub.name}</span> has weight {best.sub.weight.toFixed(2)} inside{' '}
+        <span className="font-semibold text-white/50">{best.pillarName}</span> (pillar weight {pillars.find(p => p.id === best.pillarId)?.weight.toFixed(2)}).
+        Raising it +10% lifts the weakest pillar, which has the biggest multiplier impact on total Happiness.
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// PATH TO 90 PANEL
+// ============================================================================
+
+function PathTo90Panel({ pillars, result }) {
+  const [open, setOpen] = useState(false);
+  const [targetScore, setTargetScore] = useState(90);
+
+  const gaps = useMemo(() => computePathToTarget(pillars, targetScore), [pillars, targetScore]);
+  const significantGaps = gaps.filter(g => g.gap > 0.005);
+
+  // Simulate the target state to show projected H
+  const simResult = useMemo(() => {
+    if (significantGaps.length === 0) return result;
+    const simPillars = pillars.map(p => {
+      const gap = gaps.find(g => g.pillarId === p.id);
+      if (!gap) return p;
+      return { ...p, score: gap.needed, subs: gap.subs };
+    });
+    return computeHappiness(simPillars);
+  }, [pillars, gaps, result]);
+
+  return (
+    <div className="bg-slate-900/50 rounded-2xl border border-white/5 p-4">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between text-sm font-semibold text-white/70 hover:text-white/90 transition-colors"
+      >
+        <span className="flex items-center gap-2">
+          <span className="text-base">🎯</span> Path to {targetScore}
+        </span>
+        <span className="text-white/40">{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div className="mt-4 space-y-4">
+          {/* Target selector */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-white/50">Target:</span>
+            {[80, 85, 90, 95].map(t => (
+              <button
+                key={t}
+                onClick={() => setTargetScore(t)}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                  targetScore === t
+                    ? 'bg-purple-500/20 border-purple-500/40 text-purple-300'
+                    : 'bg-white/5 border-white/10 text-white/50 hover:text-white/70'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {/* Status */}
+          <div className="text-xs text-white/70">
+            Current: <span className="font-mono font-semibold text-purple-300">{result.score100}</span>
+            <span className="text-white/30 mx-2">→</span>
+            Target: <span className="font-mono font-semibold text-purple-300">{targetScore}</span>
+            <span className="text-white/30 mx-2">|</span>
+            Gap: <span className="font-mono font-semibold text-amber-300">{Math.max(0, targetScore - result.score100)}</span> points
+          </div>
+
+          {result.score100 >= targetScore ? (
+            <div className="text-sm text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+              You've already reached {targetScore}! Congratulations.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {significantGaps.map(gap => (
+                <div key={gap.pillarId} className="bg-white/[0.02] rounded-lg border border-white/5 p-3">
+                  {/* Pillar header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-white/90">
+                      <span className="mr-1">{gap.pillarIcon}</span>
+                      {gap.pillarName}
+                    </span>
+                    <span className="text-[10px] font-mono">
+                      <span style={{ color: gap.pillarColor }}>{Math.round(gap.current * 100)}%</span>
+                      <span className="text-white/30 mx-1">→</span>
+                      <span className="text-green-400">{Math.round(gap.needed * 100)}%</span>
+                      <span className="text-white/30 ml-1">(+{Math.round(gap.gap * 100)}%)</span>
+                    </span>
+                  </div>
+
+                  {/* Progress bar: current → needed */}
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-2">
+                    <div className="h-full rounded-full relative" style={{ width: `${Math.min(100, gap.needed * 100)}%` }}>
+                      <div
+                        className="absolute inset-y-0 left-0 rounded-full"
+                        style={{
+                          width: `${(gap.current / Math.max(0.01, gap.needed)) * 100}%`,
+                          background: gap.pillarColor,
+                        }}
+                      />
+                      <div
+                        className="absolute inset-y-0 rounded-full opacity-40"
+                        style={{
+                          left: `${(gap.current / Math.max(0.01, gap.needed)) * 100}%`,
+                          right: 0,
+                          background: '#4ade80',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sub-component targets */}
+                  <div className="space-y-0.5">
+                    {gap.subs
+                      .filter(s => s.target - s.score > 0.005)
+                      .sort((a, b) => (b.target - b.score) - (a.target - a.score))
+                      .map(s => (
+                        <div key={s.id} className="flex items-center justify-between text-[10px] text-white/60 pl-2">
+                          <span>{s.name} <span className="text-white/30">(w={s.weight.toFixed(2)})</span></span>
+                          <span className="font-mono">
+                            {Math.round(s.score * 100)}%
+                            <span className="text-white/30 mx-1">→</span>
+                            <span className="text-green-400">{Math.round(s.target * 100)}%</span>
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* Projected result */}
+              <div className="text-[10px] text-white/50 bg-purple-500/[0.05] border border-purple-500/15 rounded-lg p-2">
+                Projected Happiness after improvements: <span className="text-purple-300 font-semibold font-mono">{simResult.score100}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
 // MAIN PAGE
 // ============================================================================
 
@@ -641,6 +821,11 @@ export default function HappinessEnginePage() {
                 </p>
               </div>
             </div>
+
+            {/* Path to 90 panel */}
+            <div className="mt-4">
+              <PathTo90Panel pillars={pillars} result={result} />
+            </div>
           </div>
 
           {/* Right: Detail panel */}
@@ -651,6 +836,11 @@ export default function HappinessEnginePage() {
                 pillar={activePillar}
                 onUpdateSub={handleUpdateSub}
               />
+
+              {/* Coaching card — always visible under details */}
+              <div className="mt-4">
+                <CoachingCard pillars={pillars} result={result} />
+              </div>
             </div>
 
             {/* Data sources legend */}
