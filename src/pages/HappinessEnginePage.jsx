@@ -1,0 +1,472 @@
+/**
+ * HUMAN HAPPINESS ENGINE PAGE
+ *
+ * 8-pillar radial wheel with:
+ * - Central Happiness core (breathing, size = score)
+ * - 8 pillar circles (bouncing, size = strength, distance = weight)
+ * - Sub-circles orbiting each pillar on click
+ * - Summary panel with all pillars numerically
+ * - Geometric mean computation with R multiplier
+ *
+ * Data sourced from BaZi + Western Astrology + user input.
+ */
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  DEFAULT_PILLARS,
+  computeHappiness,
+  computePillarScore,
+  pillarRadius,
+  pillarDistance,
+  pillarPosition,
+  PILLAR_COLORS
+} from '../utils/happinessEngine';
+
+// ── Constants ──
+const WHEEL_SIZE = 460;
+const CENTER = WHEEL_SIZE / 2;
+
+// ── Source badge colors ──
+const SOURCE_COLORS = {
+  bazi: { bg: 'bg-red-500/20', text: 'text-red-300', label: 'BaZi' },
+  western: { bg: 'bg-indigo-500/20', text: 'text-indigo-300', label: 'Western' },
+  tcm: { bg: 'bg-emerald-500/20', text: 'text-emerald-300', label: 'TCM' },
+  user: { bg: 'bg-amber-500/20', text: 'text-amber-300', label: 'User' },
+  computed: { bg: 'bg-cyan-500/20', text: 'text-cyan-300', label: 'Computed' },
+};
+
+// ============================================================================
+// HAPPINESS WHEEL — SVG radial visualization
+// ============================================================================
+
+function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPillar }) {
+  const [tick, setTick] = useState(0);
+
+  // Animation loop
+  useEffect(() => {
+    let frame;
+    let t = 0;
+    const animate = () => {
+      t += 0.015;
+      setTick(t);
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  // Core radius breathes with happiness score
+  const coreBaseR = 20 + 30 * (happinessScore / 100);
+  const coreR = coreBaseR + 3 * Math.sin(tick * 0.8);
+  const coreGlow = Math.max(0, happinessScore / 100);
+
+  return (
+    <svg
+      viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
+      className="w-full max-w-[460px] mx-auto"
+      style={{ filter: 'drop-shadow(0 0 30px rgba(120, 80, 255, 0.15))' }}
+    >
+      {/* Background radial guide rings */}
+      {[120, 160, 200].map(r => (
+        <circle key={r} cx={CENTER} cy={CENTER} r={r}
+          fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={0.5} />
+      ))}
+
+      {/* Connection lines from core to each pillar */}
+      {pillars.map((p, i) => {
+        const dist = pillarDistance(p.weight);
+        const bounce = 4 * Math.sin(tick * 1.2 + i * 0.8);
+        const pos = pillarPosition(i, pillars.length, dist + bounce, CENTER, CENTER);
+        return (
+          <line key={`line-${p.id}`}
+            x1={CENTER} y1={CENTER} x2={pos.x} y2={pos.y}
+            stroke={p.color} strokeWidth={0.8} opacity={0.2}
+            strokeDasharray="4 4"
+          />
+        );
+      })}
+
+      {/* Pillar circles */}
+      {pillars.map((p, i) => {
+        const dist = pillarDistance(p.weight);
+        const bounce = 4 * Math.sin(tick * 1.2 + i * 0.8);
+        const pos = pillarPosition(i, pillars.length, dist + bounce, CENTER, CENTER);
+        const r = pillarRadius(p.score);
+        const isSelected = selectedPillar?.id === p.id;
+        const pulseR = r + (isSelected ? 3 * Math.sin(tick * 2) : 1.5 * Math.sin(tick * 1.5 + i));
+
+        return (
+          <g key={p.id}
+            onClick={() => onSelectPillar(isSelected ? null : p)}
+            style={{ cursor: 'pointer' }}
+          >
+            {/* Glow */}
+            <circle cx={pos.x} cy={pos.y} r={pulseR + 8}
+              fill="none" stroke={p.color} strokeWidth={isSelected ? 2 : 0.5}
+              opacity={isSelected ? 0.5 : 0.15}
+            />
+            {/* Main circle */}
+            <circle cx={pos.x} cy={pos.y} r={pulseR}
+              fill={p.color} fillOpacity={0.15 + 0.15 * p.score}
+              stroke={p.color} strokeWidth={isSelected ? 2.5 : 1.5}
+              opacity={isSelected ? 1 : 0.8}
+            />
+            {/* Icon */}
+            <text x={pos.x} y={pos.y - 6} textAnchor="middle" fontSize={14}
+              dominantBaseline="central" fill="white"
+            >
+              {p.icon}
+            </text>
+            {/* Label */}
+            <text x={pos.x} y={pos.y + 10} textAnchor="middle" fontSize={9}
+              fill="white" opacity={0.9} fontWeight={isSelected ? 700 : 500}
+            >
+              {p.shortName}
+            </text>
+            {/* Score */}
+            <text x={pos.x} y={pos.y + 21} textAnchor="middle" fontSize={8}
+              fill={p.color} opacity={0.8} fontFamily="monospace"
+            >
+              {Math.round(p.score * 100)}%
+            </text>
+
+            {/* Sub-circles (shown when selected) */}
+            {isSelected && p.subs.map((sub, si) => {
+              const subAngle = -Math.PI / 2 + (2 * Math.PI * si) / p.subs.length;
+              const subDist = pulseR + 22 + 6 * Math.sin(tick * 2 + si);
+              const sx = pos.x + subDist * Math.cos(subAngle);
+              const sy = pos.y + subDist * Math.sin(subAngle);
+              const subR = 4 + 8 * sub.score;
+              return (
+                <g key={sub.id}>
+                  <line x1={pos.x} y1={pos.y} x2={sx} y2={sy}
+                    stroke={p.color} strokeWidth={0.5} opacity={0.3}
+                  />
+                  <circle cx={sx} cy={sy} r={subR}
+                    fill={p.color} fillOpacity={0.25 + 0.2 * sub.score}
+                    stroke={p.color} strokeWidth={1} opacity={0.7}
+                  />
+                  <text x={sx} y={sy + subR + 9} textAnchor="middle"
+                    fontSize={7} fill="white" opacity={0.7}
+                  >
+                    {sub.name.length > 10 ? sub.name.slice(0, 10) + '…' : sub.name}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        );
+      })}
+
+      {/* Central Happiness core */}
+      <circle cx={CENTER} cy={CENTER} r={coreR + 12}
+        fill="none" stroke={`rgba(184, 107, 255, ${0.15 + 0.15 * coreGlow})`}
+        strokeWidth={1.5}
+      />
+      <circle cx={CENTER} cy={CENTER} r={coreR}
+        fill={`rgba(120, 60, 220, ${0.3 + 0.3 * coreGlow})`}
+        stroke="rgba(184, 107, 255, 0.8)" strokeWidth={2}
+      />
+      <text x={CENTER} y={CENTER - 8} textAnchor="middle" fontSize={20}
+        fontWeight={700} fill="white" dominantBaseline="central"
+      >
+        {happinessScore}
+      </text>
+      <text x={CENTER} y={CENTER + 10} textAnchor="middle" fontSize={9}
+        fill="rgba(200, 180, 255, 0.8)"
+      >
+        Happiness
+      </text>
+    </svg>
+  );
+}
+
+// ============================================================================
+// PILLAR DETAIL PANEL — Shows breakdown when a pillar is selected
+// ============================================================================
+
+function PillarDetailPanel({ pillar, onUpdateSub }) {
+  if (!pillar) {
+    return (
+      <div className="text-center text-white/40 py-8">
+        <p className="text-sm">Select a pillar to see details</p>
+        <p className="text-xs mt-1">Click any circle on the wheel</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <span className="text-2xl">{pillar.icon}</span>
+        <div>
+          <h3 className="text-white font-semibold text-lg">{pillar.name}</h3>
+          <div className="flex items-center gap-2 text-xs">
+            <span style={{ color: pillar.color }} className="font-mono font-bold">
+              {Math.round(pillar.score * 100)}%
+            </span>
+            <span className="text-white/40">Weight: {pillar.weight.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Score bar */}
+      <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${pillar.score * 100}%`,
+            background: `linear-gradient(90deg, ${pillar.color}66, ${pillar.color})`,
+          }}
+        />
+      </div>
+
+      {/* Sub-components */}
+      <div className="space-y-2">
+        <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider">Sub-Components</h4>
+        {pillar.subs.map(sub => {
+          const src = SOURCE_COLORS[sub.source] || SOURCE_COLORS.computed;
+          return (
+            <div key={sub.id} className="bg-white/[0.03] rounded-lg p-2.5 border border-white/5">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs text-white/80">{sub.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded ${src.bg} ${src.text}`}>
+                    {src.label}
+                  </span>
+                  <span className="text-xs font-mono" style={{ color: pillar.color }}>
+                    {Math.round(sub.score * 100)}%
+                  </span>
+                </div>
+              </div>
+              {/* Slider */}
+              <input
+                type="range" min={0} max={100} value={Math.round(sub.score * 100)}
+                onChange={e => onUpdateSub(pillar.id, sub.id, parseInt(e.target.value) / 100)}
+                className="w-full h-1 appearance-none bg-white/10 rounded-full cursor-pointer"
+                style={{
+                  accentColor: pillar.color,
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// SUMMARY TABLE — All pillars at a glance
+// ============================================================================
+
+function SummaryTable({ pillars, result }) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-white/10">
+      <table className="w-full text-xs font-mono">
+        <thead>
+          <tr className="bg-white/5 text-white/50">
+            <th className="px-3 py-2 text-left">Pillar</th>
+            <th className="px-3 py-2 text-right">Score</th>
+            <th className="px-3 py-2 text-right">Weight</th>
+            <th className="px-3 py-2 text-right">Contrib</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pillars.map((p, i) => {
+            const contrib = result.pillarContributions[i]?.contribution ?? 0;
+            const isWeakest = result.weakest.id === p.id;
+            const isStrongest = result.strongest.id === p.id;
+            return (
+              <tr key={p.id} className="border-t border-white/5">
+                <td className="px-3 py-1.5 text-white/80">
+                  <span className="mr-1.5">{p.icon}</span>
+                  {p.shortName}
+                  {isWeakest && <span className="ml-1 text-red-400 text-[9px]">LOW</span>}
+                  {isStrongest && <span className="ml-1 text-green-400 text-[9px]">TOP</span>}
+                </td>
+                <td className="px-3 py-1.5 text-right" style={{ color: p.color }}>
+                  {Math.round(p.score * 100)}%
+                </td>
+                <td className="px-3 py-1.5 text-right text-white/40">
+                  {p.weight.toFixed(2)}
+                </td>
+                <td className="px-3 py-1.5 text-right text-white/60">
+                  {contrib.toFixed(4)}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {/* Footer with equation */}
+      <div className="px-3 py-2 bg-white/[0.03] border-t border-white/5 text-[10px] text-white/40">
+        H = <span className="text-purple-300 font-semibold">{result.base.toFixed(4)}</span>
+        {' × (1 + 0.35 × R) = '}
+        <span className="text-purple-300 font-semibold">{result.boosted.toFixed(4)}</span>
+        {' → '}
+        <span className="text-white font-bold">{result.score100}</span>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// MAIN PAGE
+// ============================================================================
+
+export default function HappinessEnginePage() {
+  const [pillars, setPillars] = useState(() => {
+    // Initialize with demo scores
+    return DEFAULT_PILLARS.map(p => ({
+      ...p,
+      subs: p.subs.map(s => ({
+        ...s,
+        score: 0.3 + Math.random() * 0.5, // random 30–80% for demo
+      })),
+    })).map(p => ({
+      ...p,
+      score: computePillarScore(p.subs),
+    }));
+  });
+
+  const [selectedPillar, setSelectedPillar] = useState(null);
+
+  // Recompute happiness when pillars change
+  const result = useMemo(() => computeHappiness(pillars), [pillars]);
+
+  // Update a sub-component score
+  const handleUpdateSub = useCallback((pillarId, subId, newScore) => {
+    setPillars(prev => prev.map(p => {
+      if (p.id !== pillarId) return p;
+      const newSubs = p.subs.map(s => s.id === subId ? { ...s, score: newScore } : s);
+      return { ...p, subs: newSubs, score: computePillarScore(newSubs) };
+    }));
+
+    // Also update selectedPillar reference
+    setSelectedPillar(prev => {
+      if (!prev || prev.id !== pillarId) return prev;
+      const updated = pillars.find(p => p.id === pillarId);
+      if (!updated) return prev;
+      const newSubs = updated.subs.map(s => s.id === subId ? { ...s, score: newScore } : s);
+      return { ...updated, subs: newSubs, score: computePillarScore(newSubs) };
+    });
+  }, [pillars]);
+
+  // Keep selectedPillar in sync with pillars state
+  const activePillar = selectedPillar
+    ? pillars.find(p => p.id === selectedPillar.id) || null
+    : null;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
+      {/* Header */}
+      <div className="border-b border-white/10 bg-slate-900/80 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard" className="text-white/40 hover:text-white/70 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">Human Happiness Engine</h1>
+              <p className="text-xs text-white/40">8-Pillar Blueprint for Human Flourishing</p>
+            </div>
+          </div>
+
+          {/* Happiness score card */}
+          <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl px-5 py-2.5 text-right">
+            <div className="text-2xl font-bold text-purple-300">{result.score100}</div>
+            <div className="text-[10px] text-purple-400/70">Happiness Score</div>
+            <div className="text-[9px] text-white/30 font-mono">
+              base: {(result.base * 100).toFixed(1)} | R-boost: ×{(1 + 0.35 * (pillars.find(p => p.id === 'R')?.score || 0)).toFixed(2)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main layout */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: Wheel */}
+          <div className="lg:col-span-2">
+            <div className="bg-slate-900/50 rounded-2xl border border-white/5 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-white/60">Happiness Constellation</h2>
+                <div className="flex items-center gap-2 text-[9px] text-white/30">
+                  <span>Size = strength</span>
+                  <span className="text-white/10">|</span>
+                  <span>Distance = weight</span>
+                  <span className="text-white/10">|</span>
+                  <span>Click to expand</span>
+                </div>
+              </div>
+
+              <HappinessWheel
+                pillars={pillars}
+                happinessScore={result.score100}
+                selectedPillar={activePillar}
+                onSelectPillar={setSelectedPillar}
+              />
+
+              {/* Equation display */}
+              <div className="mt-3 text-center text-[10px] text-white/30 font-mono">
+                H = (L<sup>0.15</sup> Q<sup>0.15</sup> C<sup>0.15</sup> N<sup>0.15</sup> E<sup>0.10</sup> M<sup>0.15</sup> P<sup>0.10</sup> R<sup>0.15</sup>) × (1 + 0.35R)
+              </div>
+            </div>
+
+            {/* Summary table */}
+            <div className="mt-4 bg-slate-900/50 rounded-2xl border border-white/5 p-4">
+              <h2 className="text-sm font-semibold text-white/60 mb-3">All Pillars Summary</h2>
+              <SummaryTable pillars={pillars} result={result} />
+
+              {/* Insight */}
+              <div className="mt-3 text-xs text-white/50 space-y-1">
+                <p>
+                  <span className="text-red-400">{result.weakest.icon} {result.weakest.name}</span> is your weakest pillar at{' '}
+                  <span className="text-red-300 font-mono">{Math.round(result.weakest.score * 100)}%</span>.
+                  {' '}Raising it would have the largest impact on your overall happiness.
+                </p>
+                <p className="text-[10px] text-white/30">
+                  The multiplicative model means a single weak pillar drags everything down —
+                  like a tide that must lift all boats.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Detail panel */}
+          <div className="lg:col-span-1">
+            <div className="bg-slate-900/50 rounded-2xl border border-white/5 p-4 sticky top-4">
+              <h2 className="text-sm font-semibold text-white/60 mb-3">Pillar Details</h2>
+              <PillarDetailPanel
+                pillar={activePillar}
+                onUpdateSub={handleUpdateSub}
+              />
+            </div>
+
+            {/* Data sources legend */}
+            <div className="mt-4 bg-slate-900/50 rounded-2xl border border-white/5 p-4">
+              <h2 className="text-sm font-semibold text-white/60 mb-3">Data Sources</h2>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(SOURCE_COLORS).map(([key, src]) => (
+                  <span key={key} className={`text-[10px] px-2 py-1 rounded ${src.bg} ${src.text}`}>
+                    {src.label}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[10px] text-white/30 mt-2">
+                Each sub-component is sourced from BaZi, Western Astrology, TCM, user input, or computed from other values.
+                Adjust sliders to explore how changes affect your Happiness Score.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -73,6 +73,7 @@ const NatalWheelPage = lazy(() => import('./pages/NatalWheelPage'))
 const BaZiBranchWheelPage = lazy(() => import('./pages/BaZiBranchWheelPage'))
 const GrayWhaleLifeCyclePage = lazy(() => import('./pages/GrayWhaleLifeCyclePage'))
 const GrayWhaleMigrationPage = lazy(() => import('./pages/GrayWhaleMigrationPage'))
+const HappinessEnginePage = lazy(() => import('./pages/HappinessEnginePage'))
 
 // CCLR - Couples Cosmic Love Rejuvenation (lazy loaded)
 const CCLRHomePage = lazy(() => import('./pages/cclr').then(m => ({ default: m.CCLRHomePage })))
@@ -156,6 +157,7 @@ function App() {
               <Route path="/branch-wheel" element={<BaZiBranchWheelPage />} />
               <Route path="/whale-lifecycle" element={<GrayWhaleLifeCyclePage />} />
               <Route path="/whale-migration" element={<GrayWhaleMigrationPage />} />
+              <Route path="/happiness" element={<HappinessEnginePage />} />
               <Route path="/chinese-zodiac" element={<ChineseZodiacPage />} />
               <Route path="/soul-family" element={<SoulFamilyPage />} />
               <Route path="/chat" element={<GuestChat />} />
