@@ -77,8 +77,10 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
       {/* Connection lines from core to each pillar */}
       {pillars.map((p, i) => {
         const dist = pillarDistance(p.weight);
+        const isSelLine = selectedPillar?.id === p.id;
+        const push = isSelLine ? 22 : 0;
         const bounce = 3 * Math.sin(tick * 0.5 + i * 0.8);
-        const pos = pillarPosition(i, pillars.length, dist + bounce, CENTER, CENTER);
+        const pos = pillarPosition(i, pillars.length, dist + bounce + push, CENTER, CENTER);
         return (
           <line key={`line-${p.id}`}
             x1={CENTER} y1={CENTER} x2={pos.x} y2={pos.y}
@@ -90,11 +92,12 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
 
       {/* Pillar circles */}
       {pillars.map((p, i) => {
-        const dist = pillarDistance(p.weight);
-        const bounce = 3 * Math.sin(tick * 0.5 + i * 0.8);
-        const pos = pillarPosition(i, pillars.length, dist + bounce, CENTER, CENTER);
-        const r = pillarRadius(p.score);
         const isSelected = selectedPillar?.id === p.id;
+        const dist = pillarDistance(p.weight);
+        const selectedPush = isSelected ? 22 : 0;
+        const bounce = 3 * Math.sin(tick * 0.5 + i * 0.8);
+        const pos = pillarPosition(i, pillars.length, dist + bounce + selectedPush, CENTER, CENTER);
+        const r = pillarRadius(p.score);
         const pulseR = r + (isSelected ? 2.5 * Math.sin(tick * 0.8) : 1.2 * Math.sin(tick * 0.6 + i));
 
         return (
