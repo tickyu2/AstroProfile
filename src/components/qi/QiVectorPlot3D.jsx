@@ -66,6 +66,7 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
   const [locked, setLocked] = useState(null); // locked month index
   const [selectedElement, setSelectedElement] = useState(null); // clicked element name
   const [viewMode, setViewMode] = useState('mtfq'); // 'mtfq' | '4d' | 'bars'
+  const [layerVis, setLayerVis] = useState({ natal: true, dayun: true, year: true, month: true, mtfq: true });
   const [isSpinning, setIsSpinning] = useState(true);
   const [heartbeat, setHeartbeat] = useState(false);
   const [heartbeatPaused, setHeartbeatPaused] = useState(false);
@@ -297,7 +298,7 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
 
   // ── Build 3D scene ──
   const scene = useMemo(() => {
-    const monthSpacing = 42 * zoom;
+    const monthSpacing = 54 * zoom;
     const totalHeight = (monthData.length - 1) * monthSpacing;
     const shapes = [];
 
@@ -343,7 +344,12 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
         });
         return { ...ld, pts };
       });
-      return { month: m, index: mi, yOff, perLayer };
+      // MTFQ resultant pentagon (sum of all weighted layers)
+      const mtfqPts = ELEMENTS.map((el, ei) => {
+        const [bx, , bz] = pentagonVertex(ei, (m.vals[el] / maxVal) * R);
+        return [bx, yOff, bz];
+      });
+      return { month: m, index: mi, yOff, perLayer, mtfqPts };
     });
 
     // Remedied pentagons (bracelet-adjusted Qi)
@@ -459,7 +465,8 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
         return { ...layer, projected };
       });
       const avgDepth = projLayers[0].projected.reduce((s, p) => s + p.depth, 0) / 5;
-      return { ...ls, projLayers, avgDepth };
+      const mtfqProjected = proj(ls.mtfqPts);
+      return { ...ls, projLayers, avgDepth, mtfqProjected };
     });
     layerMonths.sort((a, b) => b.avgDepth - a.avgDepth);
 
@@ -595,6 +602,11 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
               className="text-[11px] font-mono w-5 h-5 flex items-center justify-center rounded border border-white/20 text-gray-400 hover:text-white hover:border-white/40 transition-colors"
               title="Zoom out"
             >−</button>
+            <button
+              onClick={() => { setRotX(-Math.PI / 2); setRotY(0); setZoom(1.0); setIsSpinning(false); }}
+              className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20 hover:border-yellow-400 transition-colors"
+              title="Reset to flat pentagon view (90° to eye)"
+            >RESET</button>
           </div>
         </div>
       </div>
@@ -646,24 +658,6 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
             {rendered.axisProj.map((p, i) => (
               <line key={`ax-${i}`} x1={290} y1={290} x2={p.x} y2={p.y} stroke={ELEM_COLORS[ELEMENTS[i]]} strokeWidth={0.6} opacity={0.2} />
             ))}
-
-            {/* DaYun reference shape */}
-            <polygon
-              points={polyPoints(rendered.daYunProj)}
-              fill="none"
-              stroke="rgba(236,72,153,0.45)"
-              strokeWidth={1.5}
-              strokeDasharray="4 3"
-            />
-
-            {/* Natal reference shape */}
-            <polygon
-              points={polyPoints(rendered.natalProj)}
-              fill="none"
-              stroke="rgba(251,191,36,0.4)"
-              strokeWidth={1.2}
-              strokeDasharray="3 2"
-            />
 
             {/* Month shapes — MTFQ mode or 4D layer mode */}
             {viewMode === 'mtfq' ? (
@@ -758,18 +752,31 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
                     style={{ cursor: 'pointer' }}
                   >
                     {/* Render layers outer→inner: natal (biggest) first, month (smallest) last */}
-                    {[...lm.projLayers].reverse().map((layer, li) => (
+                    {[...lm.projLayers].reverse().map((layer, li) => {
+                      if (!layerVis[layer.key]) return null;
+                      return (
+                        <polygon
+                          key={li}
+                          points={polyPoints(layer.projected)}
+                          fill="none"
+                          stroke={layer.color}
+                          strokeWidth={isHov ? 1.8 : 1}
+                          opacity={baseOp + li * 0.05}
+                        />
+                      );
+                    })}
+                    {/* MTFQ resultant pentagon — the weighted sum */}
+                    {layerVis.mtfq && (
                       <polygon
-                        key={li}
-                        points={polyPoints(layer.projected)}
+                        points={polyPoints(lm.mtfqProjected)}
                         fill="none"
-                        stroke={layer.color}
-                        strokeWidth={isHov ? 1.8 : 1}
-                        opacity={baseOp + li * 0.05}
+                        stroke="#4ade80"
+                        strokeWidth={isHov ? 2.5 : 1.5}
+                        opacity={isHov ? 0.9 : baseOp * 0.8}
                       />
-                    ))}
-                    {/* Vertex dots on outermost (natal) layer */}
-                    {lm.projLayers[0].projected.map((p, pi) => (
+                    )}
+                    {/* Vertex dots on MTFQ resultant */}
+                    {layerVis.mtfq && lm.mtfqProjected.map((p, pi) => (
                       <circle key={pi} cx={p.x} cy={p.y} r={isHov ? 3 : 1.5}
                         fill={ELEM_COLORS[ELEMENTS[pi]]}
                         opacity={isHov ? 1 : 0.6}
@@ -1056,11 +1063,14 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
               <span className="text-white font-semibold">{m.label}</span>
               {locked !== null && <span className="text-teal-400 text-[8px]">LOCKED</span>}
               <span style={{ color: SEASON_COLORS[m.season] }}>{m.season}</span>
-              {ELEMENTS.map(el => (
-                <span key={el}>
-                  <span style={{ color: ELEM_COLORS[el] }}>{el}</span> {m.vals[el].toFixed(2)}
-                </span>
-              ))}
+              {ELEMENTS.map(el => {
+                const pct = m.total > 0 ? (m.vals[el] / m.total * 100) : 0;
+                return (
+                  <span key={el} className="text-[12px]" style={{ color: ELEM_COLORS[el] }}>
+                    {el} {m.vals[el].toFixed(2)} {pct.toFixed(0)}%
+                  </span>
+                );
+              })}
               <span><span className="text-amber-300">N</span>{m.natal.toFixed(1)} <span className="text-pink-300">D</span>{m.dayun.toFixed(1)} <span className="text-cyan-300">W</span>{m.weather.toFixed(1)}</span>
               {m.collapse && <span className="text-red-400">COLLAPSE</span>}
             </div>
@@ -1072,10 +1082,33 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
       <div className="px-4 pb-3 flex items-center gap-3 text-[9px] text-gray-300 font-mono flex-wrap">
         {viewMode === '4d' ? (
           <>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-1 rounded-sm" style={{ background: '#fbbf24' }} /> Natal ×1.0</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-1 rounded-sm" style={{ background: '#ec4899' }} /> Da Yun ×0.9</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-1 rounded-sm" style={{ background: '#a78bfa' }} /> Year ×0.5</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-1 rounded-sm" style={{ background: '#22d3ee' }} /> Month ×0.3</span>
+            <button
+              className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20 hover:border-yellow-400 transition-colors mr-1"
+              onClick={() => setLayerVis({ natal: true, dayun: true, year: true, month: true, mtfq: true })}
+              title="Reset all layers visible"
+            >RESET</button>
+            {[
+              { key: 'natal', color: '#fbbf24', label: 'Natal ×1.0' },
+              { key: 'dayun', color: '#ec4899', label: 'Da Yun ×0.9' },
+              { key: 'year',  color: '#a78bfa', label: 'Year ×0.5' },
+              { key: 'month', color: '#22d3ee', label: 'Month ×0.3' },
+              { key: 'mtfq',  color: '#4ade80', label: 'MTFQ (result)' },
+            ].map(({ key, color, label }) => {
+              const on = layerVis[key];
+              return (
+                <button
+                  key={key}
+                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded border transition-colors ${on ? 'border-white/20 bg-white/5' : 'border-white/5 bg-transparent'}`}
+                  style={{ opacity: on ? 1 : 0.35 }}
+                  onClick={() => setLayerVis(prev => ({ ...prev, [key]: !prev[key] }))}
+                  title={`Toggle ${label}`}
+                >
+                  <span className="inline-block w-3 h-1 rounded-sm" style={{ background: color }} />
+                  {on ? '' : <span className="line-through">{label}</span>}
+                  {on ? label : ''}
+                </button>
+              );
+            })}
           </>
         ) : (
           <>
@@ -1084,12 +1117,6 @@ export default function QiVectorPlot3D({ months, dayMasterPolarity, braceletSton
                 <span className="inline-block w-2 h-2 rounded-full" style={{ background: col }} /> {season}
               </span>
             ))}
-            <span className="flex items-center gap-1">
-              <span className="inline-block w-3 h-0 border-t border-dashed" style={{ borderColor: '#ec4899' }} /> Da Yun
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block w-3 h-0 border-t border-dotted" style={{ borderColor: '#fbbf24' }} /> Natal
-            </span>
             {showRemedied && (
               <span className="flex items-center gap-1">
                 <span className="inline-block w-3 h-0 border-t border-dashed" style={{ borderColor: '#a78bfa' }} /> Remedied

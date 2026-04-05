@@ -131,7 +131,19 @@ export default function QiBalanceCube({ months, dayMasterPolarity, natalTfq, daY
       return { monthIndex: bs.monthIndex, pre, post };
     }).filter(Boolean) : [];
 
-    return { monthPoints, maxExtent, natalPt, daYunVec, braceletVectors };
+    // Synergy shift vectors: pre-synergy → post-synergy (functionalQi)
+    const synergyVectors = months.map((m, i) => {
+      if (!m.mtfqPreSynergy || !m.functionalQi) return null;
+      const pre = mtfqToCube(m.mtfqPreSynergy);
+      const post = mtfqToCube(m.functionalQi);
+      // Only show if there's a meaningful shift
+      const dx = post[0] - pre[0], dy = post[1] - pre[1], dz = post[2] - pre[2];
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (dist < 0.001) return null;
+      return { monthIndex: i, pre, post };
+    }).filter(Boolean);
+
+    return { monthPoints, maxExtent, natalPt, daYunVec, braceletVectors, synergyVectors };
   }, [months, natalTfq, daYunQi, braceletStones, hasBracelet]);
 
   // ── Project scene ──
@@ -240,7 +252,14 @@ export default function QiBalanceCube({ months, dayMasterPolarity, natalTfq, daY
       { label: 'Water Dom.', center: [0, -maxExtent * 0.7, 0], color: ELEM_COLORS.Water },
     ].map(cz => ({ ...cz, proj: proj3d(cz.center) })) : [];
 
-    return { axes, cubeCorners, cubeEdges, projPoints, natalProj, daYunPlane, correctionArrows, collapseZones, cx, cy };
+    // Synergy shift arrows
+    const synergyArrows = data.synergyVectors.map(sv => ({
+      ...sv,
+      preProj: proj3d(sv.pre),
+      postProj: proj3d(sv.post),
+    }));
+
+    return { axes, cubeCorners, cubeEdges, projPoints, natalProj, daYunPlane, correctionArrows, collapseZones, synergyArrows, cx, cy };
   }, [data, rotXAngle, rotYAngle, zoom, showDaYun, showCollapse]);
 
   if (!data || !rendered) return null;
@@ -388,6 +407,24 @@ export default function QiBalanceCube({ months, dayMasterPolarity, natalTfq, daY
             );
           })}
 
+          {/* Synergy shift arrows (lime: pre-synergy → post-synergy) */}
+          {rendered.synergyArrows.map((sa, i) => {
+            const isActive = activeIdx === sa.monthIndex;
+            return (
+              <g key={`syn-${i}`} opacity={isActive ? 0.9 : 0.25}>
+                <line
+                  x1={sa.preProj.x} y1={sa.preProj.y}
+                  x2={sa.postProj.x} y2={sa.postProj.y}
+                  stroke="#4ade80" strokeWidth={isActive ? 2 : 1}
+                  markerEnd="url(#synArrow)"
+                />
+                <circle cx={sa.preProj.x} cy={sa.preProj.y} r={isActive ? 3 : 1.5}
+                  fill="none" stroke="#4ade80" strokeWidth={0.8} opacity={0.6}
+                />
+              </g>
+            );
+          })}
+
           {/* BRQe correction arrows */}
           {showBracelet && rendered.correctionArrows.map((ca, i) => {
             const isActive = activeIdx === ca.monthIndex;
@@ -408,10 +445,13 @@ export default function QiBalanceCube({ months, dayMasterPolarity, natalTfq, daY
             );
           })}
 
-          {/* Arrowhead marker */}
+          {/* Arrowhead markers */}
           <defs>
             <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
               <polygon points="0 0, 6 2, 0 4" fill="#a78bfa" />
+            </marker>
+            <marker id="synArrow" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+              <polygon points="0 0, 6 2, 0 4" fill="#4ade80" />
             </marker>
           </defs>
 

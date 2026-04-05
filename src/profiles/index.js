@@ -50,6 +50,9 @@ import davidBeckhamProfile from './modern/davidBeckham.js';
 import victoriaBeckhamProfile from './modern/victoriaBeckham.js';
 import beckhamCoupleProfile from './couples/beckhamCouple.js';
 
+// Modern Artist - Céline Dion
+import celineDionProfile from './modern/celineDion.js';
+
 // Entertainment Couples - Dolly Parton & Carl Dean
 import dollyPartonProfile from './modern/dollyParton.js';
 import carlDeanProfile from './modern/carlDean.js';
@@ -567,6 +570,19 @@ export const profileRegistry = {
     compatibility_score: 92,
     years_together: 60,
     years_married: 58
+  },
+
+  // Modern Artist - Céline Dion
+  'modern_celinedion': {
+    profile: celineDionProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 49,
+    constitutional_network: 'entertainment',
+    relationship_connections: []
   },
 
   // Future profiles:

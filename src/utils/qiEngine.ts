@@ -94,6 +94,11 @@ export interface QiMonthSnapshot {
   // ── Da Yun (大運) influence — optional, present when daYunPillar is passed ──
   daYunQi?: QiDist;          // Step 3.5 contribution (raw pts, ×0.9 in MTFQ)
   daYunPillar?: DaYunPillar; // The active 大運 pillar this month
+
+  // ── Synergy (生 generation amplification) ──
+  synergyGains?: QiDist;     // Per-element Qi created by generation cycle (additive)
+  synergyPairDetail?: { gen: ElementName; recv: ElementName; extG: number; E: number; S: number; kEff: number; gain: number }[];
+  mtfqPreSynergy?: QiDist;   // MTFQ computed WITHOUT synergy (for before/after trajectory shift)
 }
 
 export interface HiddenStemInfo {
@@ -180,6 +185,89 @@ export const MTFQ_W_NATAL  = 1.0;
 export const MTFQ_W_DAYUN  = 0.9;
 export const MTFQ_W_YEAR   = 0.5;
 export const MTFQ_W_MONTH  = 0.3;
+
+// ── Synergy: Wu Xing generation cycle amplification ─────────────────────────
+// Applied to scaled external Qi (DaYun′ + Year′ + Month′) BEFORE MTFQ blending.
+// Each generator element creates a k-fraction of new Qi in the generated element.
+// This is additive (not conservation) — Qi is created, not transferred.
+//
+// Seasonal modulation: the generator's expressiveness in the current month
+// scales κ within a gentle 0.8–1.2 band:
+//   E ∈ [0.2, 1.0] → S ∈ [0.8, 1.2]
+//   S = 0.8 + 0.4 × (E − 0.2) / 0.8
+//   κ_eff = κ_base × S
+export const SYNERGY_K = 0.2;  // base generation coefficient
+
+// Generator → Generated (producing cycle: Wood→Fire→Earth→Metal→Water→Wood)
+const SYNERGY_PAIRS: [ElementName, ElementName][] = [
+  ['Wood',  'Fire'],
+  ['Fire',  'Earth'],
+  ['Earth', 'Metal'],
+  ['Metal', 'Water'],
+  ['Water', 'Wood'],
+];
+
+/** Convert expressiveness (0.2–1.0) to synergy factor (0.8–1.2) */
+function expressivenessToSynergyFactor(E: number): number {
+  return 0.8 + 0.4 * ((Math.max(0.2, Math.min(1.0, E)) - 0.2) / 0.8);
+}
+
+/**
+ * Compute per-element synergy gains from external Qi.
+ * For each generator→generated pair: gain = κ_eff × externalTotal[generator]
+ * If seasonalWeights provided, κ_eff = κ_base × synergyFactor(expressiveness).
+ * Returns the gains vector AND per-pair detail for baby-step trace.
+ */
+export function computeSynergyGains(
+  externalTotal: QiDist,
+  kBase = SYNERGY_K,
+  seasonalWeights?: QiDist
+): { gains: QiDist; pairDetail: { gen: ElementName; recv: ElementName; extG: number; E: number; S: number; kEff: number; gain: number }[] } {
+  const gains = emptyQi();
+  const pairDetail: { gen: ElementName; recv: ElementName; extG: number; E: number; S: number; kEff: number; gain: number }[] = [];
+  for (const [gen, recv] of SYNERGY_PAIRS) {
+    const extG = externalTotal[gen];
+    const E = seasonalWeights ? seasonalWeights[gen] : 0.6; // 0.6 = neutral → S=1.0
+    const S = expressivenessToSynergyFactor(E);
+    const kEff = kBase * S;
+    const gain = kEff * extG;
+    gains[recv] += gain;
+    pairDetail.push({ gen, recv, extG, E, S, kEff, gain });
+  }
+  return { gains, pairDetail };
+}
+
+/**
+ * Apply synergy gains back into the three external layers proportionally.
+ * Each layer keeps its original share of the element, but the total grows.
+ * E.g. if DaYun had 60% of Fire and Year had 40%, after synergy boosts Fire,
+ * DaYun still gets 60% of the new Fire total.
+ */
+function applySynergyToLayers(
+  dayun: QiDist, year: QiDist, month: QiDist, gains: QiDist
+): { dayunSyn: QiDist; yearSyn: QiDist; monthSyn: QiDist } {
+  const dayunSyn = emptyQi();
+  const yearSyn  = emptyQi();
+  const monthSyn = emptyQi();
+
+  for (const el of ELEMENT_KEYS) {
+    const extBefore = dayun[el] + year[el] + month[el];
+    const extAfter  = extBefore + gains[el];
+
+    if (extBefore <= 0) {
+      // No external Qi for this element — distribute gain equally among layers
+      dayunSyn[el] = dayun[el] + gains[el] / 3;
+      yearSyn[el]  = year[el]  + gains[el] / 3;
+      monthSyn[el] = month[el] + gains[el] / 3;
+    } else {
+      // Proportional redistribution
+      dayunSyn[el] = (dayun[el] / extBefore) * extAfter;
+      yearSyn[el]  = (year[el]  / extBefore) * extAfter;
+      monthSyn[el] = (month[el] / extBefore) * extAfter;
+    }
+  }
+  return { dayunSyn, yearSyn, monthSyn };
+}
 
 // ============================================================================
 // HELPERS
@@ -861,14 +949,36 @@ export function computeQiMonthSnapshot(
   const yearScale  = yearRawTotal  > 0 ? natalTotal / yearRawTotal  : 0;
   const monthScale = monthRawTotal > 0 ? natalTotal / monthRawTotal : 0;
 
-  // Pre-compute scaled layer vectors
-  const daYunScaled = daYunR ? scaleQi(daYunR.qi, daYunScale) : emptyQi();
-  const yearScaled  = scaleQi(yearR.qi, yearScale);
-  const monthScaled = scaleQi(monthR.qi, monthScale);
+  // Pre-compute scaled layer vectors (before synergy)
+  const daYunScaledRaw = daYunR ? scaleQi(daYunR.qi, daYunScale) : emptyQi();
+  const yearScaledRaw  = scaleQi(yearR.qi, yearScale);
+  const monthScaledRaw = scaleQi(monthR.qi, monthScale);
+
+  // ── Step 4.5: Synergy — Wu Xing generation amplification ──────────────
+  // Sum external Qi across all 3 layers, then compute generation gains.
+  // Wood→Fire, Fire→Earth, Earth→Metal, Metal→Water, Water→Wood
+  // Gains are additive: Qi is CREATED, not transferred.
+  // Seasonal modulation: generator expressiveness (0.2–1.0) → synergy factor (0.8–1.2)
+  const externalTotal = emptyQi();
+  for (const el of ELEMENT_KEYS) {
+    externalTotal[el] = daYunScaledRaw[el] + yearScaledRaw[el] + monthScaledRaw[el];
+  }
+  const monthSeasonalWeights = seasonalWeightsFor(m.branchChar);
+  const { gains: synergyGains, pairDetail: synergyPairDetail } = computeSynergyGains(
+    externalTotal, SYNERGY_K, monthSeasonalWeights
+  );
+  const { dayunSyn, yearSyn, monthSyn } = applySynergyToLayers(
+    daYunScaledRaw, yearScaledRaw, monthScaledRaw, synergyGains
+  );
+
+  // Use synergy-enhanced layers for MTFQ blending
+  const daYunScaled = dayunSyn;
+  const yearScaled  = yearSyn;
+  const monthScaled = monthSyn;
 
   const mtfqDetail: string[] = [
-    'MTFQ = 1.0 × NTFQ + 0.9 × DaYun′ + 0.5 × Year′ + 0.3 × Month′',
-    'Where DaYun′/Year′/Month′ are scaled so each layer total = NTFQ total.',
+    'MTFQ = 1.0 × NTFQ + 0.9 × DaYun″ + 0.5 × Year″ + 0.3 × Month″',
+    'Where DaYun″/Year″/Month″ are scaled to NTFQ total, then boosted by Wu Xing synergy.',
     ntfq ? '' : '⚠ NTFQ not available — using raw TFQ as fallback.',
     '',
     '─── Step A: NTFQ Reference Total ───',
@@ -889,16 +999,41 @@ export function computeQiMonthSnapshot(
     `  Year:  ${natalTotal.toFixed(3)} / ${yearRawTotal.toFixed(3)} = ${yearScale.toFixed(4)}`,
     `  Month: ${natalTotal.toFixed(3)} / ${monthRawTotal.toFixed(3)} = ${monthScale.toFixed(4)}`,
     '',
-    '─── Step D: Scaled Layers (each totals ≈ N) ───',
+    '─── Step D: Scaled Layers (pre-synergy, each totals ≈ N) ───',
     `  NTFQ:   ${fmtQi(natalForMtfq)}  Σ = ${natalTotal.toFixed(3)}`,
     daYunR
-      ? `  DaYun′: ${fmtQi(daYunScaled)}  Σ = ${sumQi(daYunScaled).toFixed(3)}`
+      ? `  DaYun′: ${fmtQi(daYunScaledRaw)}  Σ = ${sumQi(daYunScaledRaw).toFixed(3)}`
       : `  DaYun′: — not active —`,
-    `  Year′:  ${fmtQi(yearScaled)}  Σ = ${sumQi(yearScaled).toFixed(3)}`,
-    `  Month′: ${fmtQi(monthScaled)}  Σ = ${sumQi(monthScaled).toFixed(3)}`,
+    `  Year′:  ${fmtQi(yearScaledRaw)}  Σ = ${sumQi(yearScaledRaw).toFixed(3)}`,
+    `  Month′: ${fmtQi(monthScaledRaw)}  Σ = ${sumQi(monthScaledRaw).toFixed(3)}`,
+    '',
+    `─── Step D.5: Synergy — 生 Generation Amplification (k = ${SYNERGY_K}, seasonal) ───`,
+    `  Month branch: ${m.branchChar} (${m.name})`,
+    `  Seasonal expressiveness: ${fmtQi(monthSeasonalWeights)}`,
+    `  External total: ${fmtQi(externalTotal)}`,
+    '',
+    ...synergyPairDetail.map(d =>
+      `  ${d.gen} → ${d.recv}: κ=${SYNERGY_K} × S=${d.S.toFixed(2)} (E=${d.E.toFixed(1)}) × ${d.extG.toFixed(3)} = κ_eff ${d.kEff.toFixed(3)} × ${d.extG.toFixed(3)} = +${d.gain.toFixed(4)} ${d.recv}`
+    ),
+    '',
+    `  Synergy gains:  ${fmtQi(synergyGains)}  (new Qi created)`,
+    `  Total Qi added:  ${sumQi(synergyGains).toFixed(3)} pts`,
+    '',
+    '─── Step D.6: Synergy-Enhanced Layers (post-synergy) ───',
+    daYunR
+      ? `  DaYun″: ${fmtQi(daYunScaled)}  Σ = ${sumQi(daYunScaled).toFixed(3)}`
+      : `  DaYun″: — not active —`,
+    `  Year″:  ${fmtQi(yearScaled)}  Σ = ${sumQi(yearScaled).toFixed(3)}`,
+    `  Month″: ${fmtQi(monthScaled)}  Σ = ${sumQi(monthScaled).toFixed(3)}`,
     '',
     '─── Step E: Weighted Blending (×1.0, ×0.9, ×0.5, ×0.3) ───',
   ].filter(Boolean);
+
+  // Pre-synergy MTFQ (for trajectory shift visualization)
+  const mtfqPreSynergy = emptyQi();
+  for (const k of ELEMENT_KEYS) {
+    mtfqPreSynergy[k] = MTFQ_W_NATAL * natalForMtfq[k] + MTFQ_W_DAYUN * daYunScaledRaw[k] + MTFQ_W_YEAR * yearScaledRaw[k] + MTFQ_W_MONTH * monthScaledRaw[k];
+  }
 
   for (const k of ELEMENT_KEYS) {
     const n = natalForMtfq[k];
@@ -919,7 +1054,7 @@ export function computeQiMonthSnapshot(
   mtfqDetail.push(`Total = ${sumQi(mtfq).toFixed(3)} pts`);
 
   allSteps.push({
-    label: `Step 5: MTFQ — 1.0×NTFQ + 0.9×DaYun + 0.5×Year + 0.3×Month (${m.name})`,
+    label: `Step 5: MTFQ — Synergy + 1.0×NTFQ + 0.9×DaYun″ + 0.5×Year″ + 0.3×Month″ (${m.name})`,
     detail: mtfqDetail.join('\n'),
     qi: cloneQi(mtfq),
     totalQi: sumQi(mtfq),
@@ -1013,6 +1148,9 @@ export function computeQiMonthSnapshot(
     causeMap,
     daYunQi: daYunR ? cloneQi(daYunScaled) : undefined,
     daYunPillar: daYunPillar,
+    synergyGains: cloneQi(synergyGains),
+    synergyPairDetail,
+    mtfqPreSynergy: cloneQi(mtfqPreSynergy),
   };
 }
 

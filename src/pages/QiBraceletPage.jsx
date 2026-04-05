@@ -16,6 +16,9 @@ import { calculateDaYun } from '../utils/daYunEngine';
 import DaYunQiOverlay from '../components/qi/DaYunQiOverlay';
 import { designBracelet, designBraceletFromBRQe, scoreBracelet, scoreAllStones, exportBraceletSchema, findSubstitutes, diagnoseCollapse, computeElementRatios, engineerBracelet, computeBraceletQiUnits } from '../data/stoneDatabase';
 import { getSeasonalWeights, getSeasonInfo } from '../utils/baziSeasonality';
+import { getTenGod } from '../utils/tenGodsCalculations';
+import { TEN_GOD_LIBRARY } from '../utils/baziRules/libraries/tenGodLibrary';
+import { computeDayMasterStrength } from '../utils/dayMasterStrength';
 import {
   BaziThemeProvider,
   ModularPillarCard,
@@ -26,6 +29,7 @@ import CauseMapPanel from '../components/bazi/CauseMapPanel';
 import YearInsightsPanel from '../components/bazi/YearInsightsPanel';
 import MonthArchetypeBadge from '../components/bazi/MonthArchetypeBadge';
 import BraceletDashboard from '../components/bazi/BraceletDashboard';
+import ExtremeArchetypePanel from '../components/bazi/ExtremeArchetypePanel';
 import QiVectorPlot3D from '../components/qi/QiVectorPlot3D';
 import QiBalanceCube from '../components/qi/QiBalanceCube';
 import { QiPipelineFlow } from '../components/qi/QiPipelineFlow';
@@ -42,7 +46,7 @@ import { PentagonRadar, QiBar } from '../components/qi/PentagonRadar';
 import { applyClashes, applyDirectionalClashes, computeThreePassClashes, applySheng, applyOvercrowding, applyControl, applyTransformations } from '../utils/qiTransforms';
 import { processNatalPipeline } from '../utils/natalPipeline';
 import { detectInteractions, getYearPillar, getMonthPillars } from '../utils/braceletEngine';
-import { computeIFQ } from '../utils/mifqEngine';
+import { computeIFQ, computeDmStrengthAdjustment } from '../utils/mifqEngine';
 
 // ============================================================================
 // CONSTANTS
@@ -4366,8 +4370,1115 @@ function analyzeStructuralCollapse(qi) {
 // (Stem+Branch → Seasonality → Polarity) and are used as-is.
 // ============================================================================
 
-function MTFQBlendDashboard({ natalTfq, daYunQi, yearQi, monthQi, monthName, year }) {
+// ============================================================================
+// DAY MASTER STRENGTH PANEL — Full gauntlet: Base → Rooting → Season → Support → Polarity → Score
+// ============================================================================
+
+// ── Day Master Strength — Gauntlet Reference MD ──────────────────────────
+const DMS_GAUNTLET_MD = `# Day Master Strength — The 6-Stage Gauntlet
+
+How strong is your Day Master? This panel answers that question by running
+the DM element through **six sequential stages**, each one amplifying or
+dampening the score before the final 0–100 rating.
+
+---
+
+## Stage 1 — Base DM Qi
+
+| Input | Formula |
+|---|---|
+| Day Stem Qi | 1 pt × season × polarity × 0.35 |
+| Day Branch Qi | hidden-stem pts × season × polarity × 0.15 |
+| **Base DM Qi** | **Stem Qi + α × Branch Qi** (α = 0.5) |
+
+The Day Stem always contributes 1 raw point. The Day Branch contributes
+only if the DM element appears among the branch's hidden stems.
+
+---
+
+## Stage 2 — Rooting (Hidden Stems in Branches)
+
+**"Does the DM element have roots in the chart's branches?"**
+
+Each pillar's branch is checked for the DM element among its hidden stems.
+If found, a root point is awarded based on **pillar weight × season factor**.
+
+| Pillar | Weight | Why |
+|---|---|---|
+| Day Branch | 1.0 | Primary root — your own foundation |
+| Month Branch | 1.2 | Strongest — season of birth |
+| Year Branch | 0.7 | Ancestral, more distant |
+| Hour Branch | 0.7 | Future-facing, more distant |
+
+### Root Points → Score → Multiplier
+
+| Total Points | Score | Label | Multiplier |
+|---|---|---|---|
+| < 0.5 | 0 | No root | ×0.7 |
+| 0.5 – 1.5 | 1 | Light root | ×1.0 |
+| 1.5 – 2.5 | 2 | Solid root | ×1.3 |
+| ≥ 2.5 | 3 | Deep root | ×1.6 |
+
+**DM Qi after rooting = Base DM Qi × M_root**
+
+---
+
+## Stage 3 — Seasonality (Month Branch vs DM Element)
+
+**"How well does the DM element express itself in this birth month?"**
+
+Each element has a seasonal expressiveness value **E** (0.2 – 1.0) depending
+on the birth month branch:
+
+| Branch | Animal | Wood | Fire | Earth | Metal | Water |
+|---|---|---|---|---|---|---|
+| 寅 | Tiger | 1.0 | 0.8 | 0.4 | 0.2 | 0.6 |
+| 卯 | Rabbit | 1.0 | 0.8 | 0.4 | 0.2 | 0.6 |
+| 辰 | Dragon | 0.8 | 0.4 | 1.0 | 0.2 | 0.6 |
+| 巳 | Snake | 0.6 | 1.0 | 0.8 | 0.2 | 0.4 |
+| 午 | Horse | 0.6 | 1.0 | 0.8 | 0.4 | 0.2 |
+| 未 | Goat | 0.4 | 0.8 | 1.0 | 0.6 | 0.2 |
+| 申 | Monkey | 0.2 | 0.6 | 0.8 | 1.0 | 0.4 |
+| 酉 | Rooster | 0.2 | 0.4 | 0.6 | 1.0 | 0.8 |
+| 戌 | Dog | 0.4 | 0.2 | 1.0 | 0.8 | 0.6 |
+| 亥 | Pig | 0.8 | 0.2 | 0.4 | 0.6 | 1.0 |
+| 子 | Rat | 0.6 | 0.2 | 0.4 | 0.8 | 1.0 |
+| 丑 | Ox | 0.4 | 0.2 | 1.0 | 0.6 | 0.8 |
+
+### Expressiveness → Seasonal Multiplier
+
+\`\`\`
+S = 0.8 + 0.4 × (E − 0.2) / 0.8
+\`\`\`
+
+This maps E ∈ [0.2, 1.0] → S ∈ [0.8, 1.2].
+
+**DM Qi after season = DM Qi after rooting × S**
+
+---
+
+## Stage 4 — Support vs Drain
+
+**"Is the chart environment helping or weakening the DM?"**
+
+| Category | Elements | Relationship |
+|---|---|---|
+| **Support** | Same element (peer) + Generator (parent) | Feeds the DM |
+| **Drain** | Child element + Controller (officer) | Weakens the DM |
+
+The ratio R_SD = Support Qi / Drain Qi determines the multiplier:
+
+| R_SD | Category | Multiplier |
+|---|---|---|
+| < 0.7 | Severely drained | ×0.7 |
+| 0.7 – 1.0 | Slightly drained | ×0.9 |
+| 1.0 – 1.3 | Balanced | ×1.0 |
+| 1.3 – 1.8 | Well supported | ×1.2 |
+| ≥ 1.8 | Strongly over-supported | ×1.4 |
+
+### Generation & Control Cycles
+
+| DM Element | Generator (parent) | Child | Controller (officer) |
+|---|---|---|---|
+| Wood | Water | Fire | Metal |
+| Fire | Wood | Earth | Water |
+| Earth | Fire | Metal | Wood |
+| Metal | Earth | Water | Fire |
+| Water | Metal | Wood | Earth |
+
+**DM Qi after support = DM Qi after season × M_support**
+
+---
+
+## Stage 5 — Polarity Fine-Tuning
+
+**"Does the DM's Yin/Yang nature shift the balance?"**
+
+Yang DMs benefit slightly from over-support (they expand into strength).
+Yin DMs benefit slightly when drained (they refine under pressure).
+
+\`\`\`
+D = R_SD − 1.0          (deviation from balance)
+P = +1 (Yang) or −1 (Yin)
+k = 0.15                 (sensitivity)
+M_pol = 1 + P × k × D   (clamped to [0.85, 1.15])
+\`\`\`
+
+**DM Qi after polarity = DM Qi after support × M_pol**
+
+---
+
+## Stage 6 — Final Strength Score
+
+\`\`\`
+Score = (DM Qi after polarity / Qi_norm) × 100
+Qi_norm = 2.0 (normalization constant)
+\`\`\`
+
+| Score | Tier | Meaning |
+|---|---|---|
+| 0 – 20 | Overweak | DM barely registers; needs strong support |
+| 20 – 40 | Weak | DM present but fragile; benefits from support |
+| 40 – 60 | Balanced | Healthy equilibrium; chart flows naturally |
+| 60 – 80 | Strong | DM dominates; may need draining/controlling |
+| 80 – 100 | Overstrong | DM overpowers everything; strong remedies needed |
+
+---
+
+## Quick Reference — Full Pipeline
+
+\`\`\`
+Base DM Qi  =  Stem Qi  +  α × Branch Qi
+     ↓ × M_root     (rooting)
+     ↓ × S          (seasonality)
+     ↓ × M_support  (support vs drain)
+     ↓ × M_pol      (polarity fine-tuning)
+     ↓ ÷ Qi_norm × 100  →  Score (0–100)  →  Tier
+\`\`\`
+`;
+
+// ── Stage 4 — Support vs Drain narrative MD ──────────────────────────────
+const SUPPORT_DRAIN_MD = `# Stage 4 — Support vs Drain
+
+## How the world around you strengthens or weakens your Day Master
+
+Every Day Master lives inside an elemental ecosystem.
+Some forces lift it up, others pull from it, and Stage 4 measures
+exactly how those forces balance in your chart.
+
+---
+
+## Supportive Qi — the elements that nourish you
+
+These are the energies that **feed** your Day Master or **stand beside** it:
+
+| Role | Chinese | What it does |
+|---|---|---|
+| **Parent (Resource)** | 生我 *shēng wǒ* | The element that *generates* your DM — like Water feeding Wood |
+| **Peer (Companion)** | 比劫 *bǐ jié* | The *same element* as your DM — strength in numbers |
+
+Together they form your **Support Qi** — the part of the chart that
+strengthens your core and replenishes your reserves.
+
+---
+
+## Draining Qi — the elements that pull from you
+
+These are the energies that **take effort** from your Day Master:
+
+| Role | Chinese | What it does |
+|---|---|---|
+| **Child (Output)** | 我生 *wǒ shēng* | The element your DM *produces* — like Wood feeding Fire |
+| **Officer (Controller)** | 克我 *kè wǒ* | The element that *restrains* your DM — like Metal chopping Wood |
+
+These form your **Drain Qi** — the part of the chart that demands
+energy, attention, or adaptation.
+
+---
+
+## The Balance Point
+
+Once we total both sides, we compare them:
+
+\`\`\`
+R_SD = Support Qi / Drain Qi
+\`\`\`
+
+This ratio tells us the "weather" around your Day Master:
+
+| R_SD | Category | Multiplier | Meaning |
+|---|---|---|---|
+| < 0.7 | Severely drained | ×0.7 | DM is overwhelmed — needs rescue |
+| 0.7 – 1.0 | Slightly drained | ×0.9 | DM is under pressure but functioning |
+| 1.0 – 1.3 | Balanced | ×1.0 | Healthy equilibrium — the ideal zone |
+| 1.3 – 1.8 | Well supported | ×1.2 | DM has a strong safety net |
+| ≥ 1.8 | Strongly over-supported | ×1.4 | DM dominates — may lack challenge |
+
+---
+
+## Why this matters
+
+Support vs Drain reveals whether your Day Master is:
+
+- **Carried** by a nurturing environment
+- **Challenged** by demanding forces
+- **Balanced** between give and take
+- **Over-fed** with too much of the same energy
+
+It answers the question:
+
+> *"Is the world giving you more than it takes, or taking more than it gives?"*
+
+This multiplier becomes the bridge between your rooted strength (Stage 2)
+and your polarity fine-tuning (Stage 5), shaping the final Day Master
+Strength score.
+
+---
+
+## The Five Relationships at a Glance
+
+For any Day Master element, the Wu Xing cycle creates four relationships:
+
+| DM Element | Parent (Resource) | Peer (Companion) | Child (Output) | Officer (Controller) |
+|---|---|---|---|---|
+| Wood | Water | Wood | Fire | Metal |
+| Fire | Wood | Fire | Earth | Water |
+| Earth | Fire | Earth | Metal | Wood |
+| Metal | Earth | Metal | Water | Fire |
+| Water | Metal | Water | Wood | Earth |
+
+The **Parent** and **Peer** columns are Support.
+The **Child** and **Officer** columns are Drain.
+`;
+
+function DayMasterStrengthPanel({ chart, qiMatrix, userTfq }) {
+  const [showGauntletMd, setShowGauntletMd] = useState(false);
+  const [showSupportDrainMd, setShowSupportDrainMd] = useState(false);
+  if (!chart || !qiMatrix || !userTfq) return null;
+
+  const dmElement = qiMatrix.dayMasterElement;
+  const isYang = qiMatrix.dayMasterPolarity === 'Yang';
+  const bd = qiMatrix.perPillarBreakdown;
+  const bmb = chart.pillars[1]?.branch?.char;
+  const sw = bmb ? getSeasonalWeights(bmb) : null;
+  if (!sw || !bd || !dmElement) return null;
+
+  // Build seasonal weights (capitalize keys)
+  const seasonalWeights = {
+    Wood: sw.wood ?? 1.0, Fire: sw.fire ?? 1.0, Earth: sw.earth ?? 1.0,
+    Metal: sw.metal ?? 1.0, Water: sw.water ?? 1.0,
+  };
+
+  // Build pillar info for rooting
+  const pillarDefs = [
+    { label: 'Year',  bd: bd.year,  pillar: chart.pillars[0] },
+    { label: 'Month', bd: bd.month, pillar: chart.pillars[1] },
+    { label: 'Day',   bd: bd.day,   pillar: chart.pillars[2] },
+    { label: 'Hour',  bd: bd.hour,  pillar: chart.pillars[3] },
+  ];
+
+  const pillars = pillarDefs.map(p => ({
+    label: p.label,
+    branchChar: p.pillar?.branch?.char || '',
+    branchAnimal: p.pillar?.branch?.animal || '',
+    hiddenStems: (p.bd?.hiddenStems || []).map(hs => ({
+      element: hs.element,
+      pct: hs.pct,
+    })),
+  }));
+
+  // DM Stem Qi and Day Branch Qi from TFQ breakdown
+  const polMults = isYang
+    ? { Wood: 1.15, Fire: 1.05, Earth: 1.00, Metal: 1.00, Water: 1.10 }
+    : { Wood: 0.85, Fire: 0.95, Earth: 1.00, Metal: 1.00, Water: 0.90 };
+  const sMult = seasonalWeights[dmElement] ?? 1.0;
+  const pMult = polMults[dmElement] ?? 1.0;
+  const dmStemQi = 1 * sMult * pMult * 0.35;  // Day Stem = 1pt raw
+  // Day Branch contribution for DM element
+  const dayBd = bd.day;
+  const dmRawInBranch = (dayBd.raw[dmElement] || 0) - 1; // subtract the stem point
+  const dmBranchQi = Math.max(0, dmRawInBranch) * sMult * pMult * 0.15;
+
+  const result = computeDayMasterStrength({
+    dmElement,
+    isYang,
+    tfqTotals: userTfq,
+    dmStemQi,
+    dmBranchQi,
+    pillars,
+    seasonalWeights,
+  });
+
+  const r = result;
+  const elColor = ELEM_COLORS[dmElement] || '#fff';
+
+  // Tier badge colors
+  const tierBg = {
+    Overweak: 'bg-red-900/30 border-red-500/40 text-red-300',
+    Weak: 'bg-orange-900/30 border-orange-500/40 text-orange-300',
+    Balanced: 'bg-green-900/30 border-green-500/40 text-green-300',
+    Strong: 'bg-blue-900/30 border-blue-500/40 text-blue-300',
+    Overstrong: 'bg-purple-900/30 border-purple-500/40 text-purple-300',
+  };
+
+  const Section = ({ title, extra, children }) => (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <div className="text-[11px] font-bold text-amber-300 uppercase tracking-wider">{title}</div>
+        {extra}
+      </div>
+      {children}
+    </div>
+  );
+
+  const Row = ({ label, value, color, bold }) => (
+    <div className="flex items-center justify-between text-[11px] font-mono">
+      <span className="text-white/70">{label}</span>
+      <span className={`${bold ? 'font-bold' : ''} ${!color ? 'text-white' : ''}`} style={color ? { color } : undefined}>{value}</span>
+    </div>
+  );
+
+  const Highlight = ({ label, value }) => (
+    <div className="flex items-center justify-between text-[11px] font-mono px-2 py-1 rounded bg-white/5 border border-white/10 mt-1">
+      <span className="text-white/80">{label}</span>
+      <span className="text-white font-bold">{value}</span>
+    </div>
+  );
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+      {/* Header with score */}
+      <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <div className="text-2xl font-bold" style={{ color: r.tierColor }}>{r.score.toFixed(0)}</div>
+              <div className="text-[9px] text-white/50">/100</div>
+            </div>
+            <div className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold ${tierBg[r.tier]}`}>
+              {r.tier}
+            </div>
+            <div className="ml-1">
+              <div className="text-sm font-semibold text-white">Day Master Strength</div>
+              <div className="text-[10px] text-white/60 mt-0.5">
+                <span style={{ color: elColor }} className="font-semibold">{isYang ? 'Yang' : 'Yin'} {dmElement}</span> — through the 6-stage gauntlet
+              </div>
+            </div>
+          </div>
+          <button onClick={() => setShowGauntletMd(prev => !prev)} className="text-[9px] font-mono text-amber-400/70 hover:text-amber-300 transition-colors px-1.5 py-0.5 rounded border border-amber-700/30 hover:border-amber-500/50 bg-amber-900/20">MD</button>
+        </div>
+        {/* Score bar */}
+        <div className="mt-3 h-3.5 bg-white/5 rounded-full overflow-hidden relative">
+          <div className="absolute inset-y-0 left-0 rounded-full transition-all" style={{
+            width: `${r.score}%`,
+            background: `linear-gradient(90deg, ${r.tierColor}88, ${r.tierColor})`,
+          }} />
+          {/* Tick marks at 20, 40, 60, 80 */}
+          {[20, 40, 60, 80].map(t => (
+            <div key={t} className="absolute top-0 bottom-0 w-px bg-white/30" style={{ left: `${t}%` }} />
+          ))}
+        </div>
+        {/* Numeric marks */}
+        <div className="relative mt-0.5 h-3" style={{ fontSize: 0 }}>
+          {[0, 20, 40, 60, 80, 100].map(t => (
+            <span key={t} className="absolute text-[9px] font-mono text-white/50 -translate-x-1/2" style={{ left: `${t}%` }}>{t}</span>
+          ))}
+        </div>
+        {/* Tier labels */}
+        <div className="flex mt-0.5">
+          {[
+            { label: 'Overweak', color: '#ef4444' },
+            { label: 'Weak', color: '#f97316' },
+            { label: 'Balanced', color: '#22c55e' },
+            { label: 'Strong', color: '#3b82f6' },
+            { label: 'Overstrong', color: '#a855f7' },
+          ].map(t => (
+            <span key={t.label} className="flex-1 text-center text-[10px] font-semibold" style={{ color: t.color + 'aa' }}>{t.label}</span>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-4 space-y-4">
+        {/* Stage 1: Base DM Qi */}
+        <Section title="Stage 1 — Base Day Master Qi">
+          <Row label="Day Stem Qi (1pt × season × polarity × 0.35)" value={r.dmStemQi.toFixed(4)} color={elColor} />
+          <Row label="Day Branch Qi (hidden stem × season × polarity × 0.15)" value={r.dmBranchQi.toFixed(4)} color={elColor} />
+          <Row label={`Day Branch weight (α)`} value={r.dayBranchWeight.toFixed(1)} />
+          <Highlight label={`Base DM Qi = ${r.dmStemQi.toFixed(4)} + ${r.dayBranchWeight} × ${r.dmBranchQi.toFixed(4)}`} value={r.baseDMQi.toFixed(4)} />
+        </Section>
+
+        {/* Stage 2: Rooting */}
+        <Section title={`Stage 2 — Rooting (looking for ${dmElement} in all branches)`}>
+          <div className="text-[9px] text-white/60 mb-1">
+            Scan every branch for {dmElement} in its hidden stems. If present → that branch is a root.
+          </div>
+          <div className="text-[9px] font-mono text-white/50 mb-2 px-2 py-1 rounded bg-white/[0.03] border border-white/8">
+            Formula per branch: <span className="text-white/80">P = w<sub>pillar</sub> × S<sub>month</sub></span> &nbsp;(only if {dmElement} is present; 0 otherwise)
+          </div>
+
+          {/* Season factor callout */}
+          <div className="text-[9px] font-mono text-white/60 mb-2">
+            S<sub>month</sub> ({dmElement} in {chart.pillars[1]?.branch?.animal || 'month'}) = <span className="text-white font-bold">{r.rootingDetails[0]?.seasonFactor.toFixed(1)}</span>
+          </div>
+
+          <div className="space-y-2.5">
+            {r.rootingDetails.map((rd, idx) => {
+              const pillarHiddenStems = pillars[idx]?.hiddenStems || [];
+              const wLabel = `w_${rd.pillar.toLowerCase()}`;
+              return (
+                <div key={rd.pillar} className={`rounded-lg border px-3 py-2 ${rd.hasRoot ? 'border-green-500/20 bg-green-900/[0.06]' : 'border-white/8 bg-white/[0.02]'}`}>
+                  {/* Pillar header */}
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[11px] font-bold ${rd.pillar === 'Month' ? 'text-pink-300' : rd.pillar === 'Day' ? 'text-amber-300' : 'text-white/80'}`}>
+                        {rd.pillar} Branch
+                      </span>
+                      <span className="text-[11px] text-white/70">— {rd.branchChar} {rd.branchAnimal}</span>
+                    </div>
+                    {rd.hasRoot ? (
+                      <span className="text-[9px] font-bold text-green-400 bg-green-900/30 px-1.5 py-0.5 rounded">ROOT</span>
+                    ) : (
+                      <span className="text-[9px] text-white/30 bg-white/5 px-1.5 py-0.5 rounded">no root</span>
+                    )}
+                  </div>
+
+                  {/* Hidden stems breakdown */}
+                  <div className="text-[9px] text-white/50 mb-1">Hidden stems:</div>
+                  <div className="flex gap-1.5 mb-2">
+                    {pillarHiddenStems.map((hs, hi) => (
+                      <div
+                        key={hi}
+                        className={`flex-1 text-center text-[10px] font-mono rounded px-1 py-1 border ${
+                          hs.element === dmElement
+                            ? 'border-green-500/50 bg-green-900/30 font-bold ring-1 ring-green-500/30'
+                            : 'border-white/8 bg-white/[0.03] text-white/50'
+                        }`}
+                      >
+                        <div style={hs.element === dmElement ? { color: elColor } : undefined}>{hs.element}</div>
+                        <div className={hs.element === dmElement ? 'text-green-300' : 'text-white/40'}>{hs.pct}%</div>
+                        {hs.element === dmElement && (
+                          <div className="text-[7px] text-green-400 mt-0.5">← DM</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Baby-step calculation */}
+                  {rd.hasRoot ? (
+                    <div className="text-[10px] font-mono space-y-0.5 border-t border-white/8 pt-1.5 mt-1">
+                      <div className="flex justify-between text-white/60">
+                        <span>Step 1: {dmElement} present?</span>
+                        <span className="text-green-400 font-bold">YES ({rd.hiddenStemPct}%)</span>
+                      </div>
+                      <div className="flex justify-between text-white/60">
+                        <span>Step 2: Branch weight ({wLabel})</span>
+                        <span className="text-white">{rd.pillarWeight}</span>
+                      </div>
+                      <div className="flex justify-between text-white/60">
+                        <span>Step 3: Season factor (S<sub>month</sub>)</span>
+                        <span className="text-white">{rd.seasonFactor.toFixed(1)}</span>
+                      </div>
+                      <div className="flex justify-between text-white font-bold bg-white/5 rounded px-1 py-0.5 mt-0.5">
+                        <span>P<sub>{rd.pillar.toLowerCase()}</sub> = {rd.pillarWeight} × {rd.seasonFactor.toFixed(1)}</span>
+                        <span>= {rd.points.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-[10px] font-mono border-t border-white/8 pt-1.5 mt-1">
+                      <div className="flex justify-between text-white/40">
+                        <span>{dmElement} present?</span>
+                        <span>NO → P<sub>{rd.pillar.toLowerCase()}</sub> = 0</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Summation line */}
+          <div className="mt-3 px-2 py-1.5 rounded bg-white/[0.03] border border-white/10 text-[10px] font-mono">
+            <div className="text-white/70 mb-1">
+              P<sub>total</sub> = {r.rootingDetails.map(rd => `P_${rd.pillar.toLowerCase()}`).join(' + ')}
+            </div>
+            <div className="text-white font-bold">
+              P<sub>total</sub> = {r.rootingDetails.map(rd => rd.points.toFixed(2)).join(' + ')} = {r.rootingPointsTotal.toFixed(2)}
+            </div>
+          </div>
+
+          {/* Score mapping */}
+          <div className="mt-2 space-y-0.5">
+            <Row label={`P_total ${r.rootingPointsTotal.toFixed(2)} → Rooting score`} value={`${r.rootingScore}/3 (${r.rootingLabel})`} bold />
+            <Row label={`Rooting score ${r.rootingScore} → M_root`} value={`×${r.rootingMultiplier.toFixed(1)}`} bold />
+          </div>
+          <Highlight label={`DM Qi after rooting = ${r.baseDMQi.toFixed(4)} × ${r.rootingMultiplier.toFixed(1)}`} value={r.dmQiAfterRooting.toFixed(4)} />
+        </Section>
+
+        {/* Stage 3: Seasonality */}
+        <Section title="Stage 3 — Seasonality (Month Branch vs DM Element)">
+          <Row label={`${dmElement} expressiveness E (in ${chart.pillars[1]?.branch?.animal || 'month'})`} value={r.seasonalExpressiveness.toFixed(1)} color={elColor} />
+          <Row label="Seasonal multiplier S = 0.8 + 0.4 × (E − 0.2) / 0.8" value={`×${r.seasonalMultiplier.toFixed(2)}`} />
+          <Highlight label={`DM Qi after season = ${r.dmQiAfterRooting.toFixed(4)} × ${r.seasonalMultiplier.toFixed(2)}`} value={r.dmQiAfterSeason.toFixed(4)} />
+        </Section>
+
+        {/* Stage 4: Support vs Drain */}
+        <Section
+          title="Stage 4 — Support vs Drain"
+          extra={<button onClick={() => setShowSupportDrainMd(prev => !prev)} className="text-[9px] font-mono text-amber-400/70 hover:text-amber-300 transition-colors px-1.5 py-0.5 rounded border border-amber-700/30 hover:border-amber-500/50 bg-amber-900/20">MD</button>}
+        >
+          {/* Educational intro */}
+          <div className="text-[10px] text-white/80 mb-2">
+            Is the chart environment strengthening or weakening {isYang ? 'Yang' : 'Yin'} {dmElement}?
+            We evaluate total Qi from elements that <span className="text-green-400">support</span> (<span className="text-white/60">生我</span> Resource + <span className="text-white/60">比劫</span> Companion) vs <span className="text-red-400">drain</span> (<span className="text-white/60">我生</span> Output + <span className="text-white/60">克我</span> Controller) the Day Master.
+          </div>
+
+          {/* Wu Xing relationship diagram */}
+          <div className="text-[10px] font-mono px-2.5 py-2 rounded bg-white/[0.03] border border-white/10 mb-3">
+            <div className="text-white/80 font-semibold mb-1.5">Wu Xing relationships for {dmElement}:</div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <div>
+                <span className="text-green-400">{r.supportDrain.generatorElement}</span>
+                <span className="text-white/60"> → generates → </span>
+                <span style={{ color: elColor }} className="font-bold">{dmElement}</span>
+                <span className="text-white/70"> — Parent</span>
+                <span className="text-white/40 text-[8px] ml-1">生我</span>
+              </div>
+              <div>
+                <span style={{ color: elColor }} className="font-bold">{dmElement}</span>
+                <span className="text-white/60"> → produces → </span>
+                <span className="text-red-400">{r.supportDrain.childElement}</span>
+                <span className="text-white/70"> — Child</span>
+                <span className="text-white/40 text-[8px] ml-1">我生</span>
+              </div>
+              <div>
+                <span style={{ color: elColor }} className="font-bold">{dmElement}</span>
+                <span className="text-white/60"> = same element </span>
+                <span className="text-green-400"> — Peer</span>
+                <span className="text-white/40 text-[8px] ml-1">比劫</span>
+              </div>
+              <div>
+                <span className="text-red-400">{r.supportDrain.controllerElement}</span>
+                <span className="text-white/60"> → controls → </span>
+                <span style={{ color: elColor }} className="font-bold">{dmElement}</span>
+                <span className="text-white/70"> — Officer</span>
+                <span className="text-white/40 text-[8px] ml-1">克我</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Support vs Drain columns */}
+          <div className="grid grid-cols-2 gap-x-3 text-[10px] font-mono">
+            <div className="rounded-lg border border-green-500/20 bg-green-900/[0.06] px-2.5 py-2">
+              <div className="text-[10px] text-green-400 font-bold mb-1.5">Supportive Qi <span className="text-white/40 font-normal text-[8px]">生我 + 比劫</span></div>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-white/90">{r.supportDrain.generatorElement} <span className="text-white/60">(Resource — generates {dmElement})</span></span>
+                  <span style={{ color: ELEM_COLORS[r.supportDrain.generatorElement] }} className="font-bold">{(userTfq[r.supportDrain.generatorElement] || 0).toFixed(3)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/90">{r.dmElement} <span className="text-white/60">(Companion — same element)</span></span>
+                  <span style={{ color: ELEM_COLORS[r.dmElement] }} className="font-bold">{(userTfq[r.dmElement] || 0).toFixed(3)}</span>
+                </div>
+              </div>
+              <div className="flex justify-between mt-1.5 pt-1.5 border-t border-green-500/20 font-bold text-green-300">
+                <span>Support Qi</span>
+                <span>{r.supportDrain.supportQi.toFixed(3)}</span>
+              </div>
+            </div>
+            <div className="rounded-lg border border-red-500/20 bg-red-900/[0.06] px-2.5 py-2">
+              <div className="text-[10px] text-red-400 font-bold mb-1.5">Draining Qi <span className="text-white/40 font-normal text-[8px]">我生 + 克我</span></div>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-white/90">{r.supportDrain.childElement} <span className="text-white/60">(Output — {dmElement} produces it)</span></span>
+                  <span style={{ color: ELEM_COLORS[r.supportDrain.childElement] }} className="font-bold">{(userTfq[r.supportDrain.childElement] || 0).toFixed(3)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/90">{r.supportDrain.controllerElement} <span className="text-white/60">(Controller — restrains {dmElement})</span></span>
+                  <span style={{ color: ELEM_COLORS[r.supportDrain.controllerElement] }} className="font-bold">{(userTfq[r.supportDrain.controllerElement] || 0).toFixed(3)}</span>
+                </div>
+              </div>
+              <div className="flex justify-between mt-1.5 pt-1.5 border-t border-red-500/20 font-bold text-red-300">
+                <span>Drain Qi</span>
+                <span>{r.supportDrain.drainQi.toFixed(3)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* R_SD calculation */}
+          <div className="mt-3 text-[10px] font-mono">
+            <div className="flex justify-between text-white/90">
+              <span>R_SD = Support / Drain = {r.supportDrain.supportQi.toFixed(3)} / {r.supportDrain.drainQi.toFixed(3)}</span>
+              <span className="text-white font-bold">{r.supportDrain.ratioSD.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* R_SD visual scale with all tiers */}
+          {(() => {
+            const sdTiers = [
+              { max: 0.7, label: 'Severely drained', mult: 0.7, color: '#ef4444', desc: 'DM is overwhelmed — needs rescue' },
+              { max: 1.0, label: 'Slightly drained',  mult: 0.9, color: '#f97316', desc: 'DM is under pressure but functioning' },
+              { max: 1.3, label: 'Balanced',           mult: 1.0, color: '#22c55e', desc: 'Healthy equilibrium — ideal zone' },
+              { max: 1.8, label: 'Well supported',     mult: 1.2, color: '#3b82f6', desc: 'DM has a strong safety net' },
+              { max: 3.5, label: 'Strongly over-supported', mult: 1.4, color: '#a855f7', desc: 'DM dominates — may lack challenge' },
+            ];
+            // Map R_SD to 0-100% position on scale (scale caps at 3.5)
+            const scaleMax = 3.5;
+            const markerPct = Math.min(r.supportDrain.ratioSD / scaleMax * 100, 100);
+            const activeTier = sdTiers.find((t, i) => r.supportDrain.ratioSD < t.max || i === sdTiers.length - 1);
+
+            return (
+              <div className="mt-2">
+                {/* Scale bar */}
+                <div className="relative h-3 rounded-full overflow-hidden flex">
+                  {sdTiers.map((t, i) => {
+                    const prevMax = i === 0 ? 0 : sdTiers[i - 1].max;
+                    const widthPct = ((t.max > scaleMax ? scaleMax : t.max) - prevMax) / scaleMax * 100;
+                    return (
+                      <div key={i} className="h-full" style={{
+                        width: `${widthPct}%`,
+                        backgroundColor: t.color + '40',
+                        borderRight: i < sdTiers.length - 1 ? '1px solid rgba(255,255,255,0.15)' : 'none',
+                      }} />
+                    );
+                  })}
+                  {/* Marker for current R_SD */}
+                  <div className="absolute top-0 bottom-0 w-0.5 bg-white" style={{ left: `${markerPct}%` }}>
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-bold text-white bg-white/25 rounded px-1">
+                      {r.supportDrain.ratioSD.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+                {/* Scale labels */}
+                <div className="flex mt-0.5">
+                  {sdTiers.map((t, i) => {
+                    const prevMax = i === 0 ? 0 : sdTiers[i - 1].max;
+                    const widthPct = ((t.max > scaleMax ? scaleMax : t.max) - prevMax) / scaleMax * 100;
+                    return (
+                      <div key={i} className="text-center text-[8px] font-semibold font-mono" style={{ width: `${widthPct}%`, color: t.color }}>
+                        {t.label}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Tier reference table */}
+                <div className="mt-2 rounded border border-white/10 overflow-hidden">
+                  <div className="grid grid-cols-[auto_auto_1fr] text-[10px] font-mono">
+                    {sdTiers.map((t, i) => {
+                      const prevMax = i === 0 ? 0 : sdTiers[i - 1].max;
+                      const isActive = activeTier === t;
+                      return (
+                        <React.Fragment key={i}>
+                          <div className={`px-2 py-1 border-b border-white/5 ${isActive ? 'bg-white/10 font-bold' : ''}`} style={{ color: t.color }}>
+                            {i === sdTiers.length - 1 ? `≥ ${prevMax.toFixed(1)}` : `${prevMax.toFixed(1)} – ${t.max.toFixed(1)}`}
+                          </div>
+                          <div className={`px-2 py-1 border-b border-white/5 ${isActive ? 'bg-white/10 font-bold text-white' : 'text-white/70'}`}>
+                            ×{t.mult}
+                          </div>
+                          <div className={`px-2 py-1 border-b border-white/5 ${isActive ? 'bg-white/10 text-white' : 'text-white/60'}`}>
+                            {isActive ? '→ ' : ''}{t.desc}
+                          </div>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Category result */}
+          <div className="mt-2">
+            <Row label={`Category: ${r.supportDrain.category}`} value={`×${r.supportDrain.multiplier.toFixed(1)}`} bold />
+          </div>
+
+          {/* Interpretation */}
+          <div className="mt-2 text-[10px] text-white/80 px-2 py-1.5 rounded bg-white/[0.03] border border-white/10">
+            {r.supportDrain.ratioSD >= 1.8 ? (
+              <span>R_SD of <span className="text-white font-bold">{r.supportDrain.ratioSD.toFixed(2)}</span> means {dmElement} is heavily reinforced by its environment.
+                The DM has more help than resistance — this amplifies strength by <span className="text-white font-bold">×{r.supportDrain.multiplier.toFixed(1)}</span>.
+                In practice: {isYang ? 'Yang' : 'Yin'} {dmElement} can handle output demands easily, but may lack the friction that drives growth.</span>
+            ) : r.supportDrain.ratioSD >= 1.3 ? (
+              <span>R_SD of <span className="text-white font-bold">{r.supportDrain.ratioSD.toFixed(2)}</span> means {dmElement} has a healthy safety net.
+                Support exceeds drain — the DM gets a <span className="text-white font-bold">×{r.supportDrain.multiplier.toFixed(1)}</span> boost.
+                In practice: {isYang ? 'Yang' : 'Yin'} {dmElement} is well-resourced and resilient.</span>
+            ) : r.supportDrain.ratioSD >= 1.0 ? (
+              <span>R_SD of <span className="text-white font-bold">{r.supportDrain.ratioSD.toFixed(2)}</span> means {dmElement} is in equilibrium.
+                Support and drain are roughly balanced — the DM passes through unchanged at <span className="text-white font-bold">×{r.supportDrain.multiplier.toFixed(1)}</span>.
+                In practice: {isYang ? 'Yang' : 'Yin'} {dmElement} flows naturally with the chart.</span>
+            ) : r.supportDrain.ratioSD >= 0.7 ? (
+              <span>R_SD of <span className="text-white font-bold">{r.supportDrain.ratioSD.toFixed(2)}</span> means {dmElement} is under moderate pressure.
+                Drain slightly exceeds support — the DM is dampened by <span className="text-white font-bold">×{r.supportDrain.multiplier.toFixed(1)}</span>.
+                In practice: {isYang ? 'Yang' : 'Yin'} {dmElement} must work harder to express itself.</span>
+            ) : (
+              <span>R_SD of <span className="text-white font-bold">{r.supportDrain.ratioSD.toFixed(2)}</span> means {dmElement} is overwhelmed.
+                The chart environment drains far more than it supports — the DM is severely reduced at <span className="text-white font-bold">×{r.supportDrain.multiplier.toFixed(1)}</span>.
+                In practice: {isYang ? 'Yang' : 'Yin'} {dmElement} struggles to maintain presence and needs remedial support.</span>
+            )}
+          </div>
+
+          <Highlight label={`DM Qi after support = ${r.dmQiAfterSeason.toFixed(4)} × ${r.supportDrain.multiplier.toFixed(1)}`} value={r.dmQiAfterSupport.toFixed(4)} />
+        </Section>
+
+        {/* Stage 5: Polarity */}
+        <Section title={`Stage 5 — Polarity Fine-Tuning (${isYang ? 'Yang' : 'Yin'})`}>
+          <Row label="Deviation D = R_SD − 1.0" value={r.polarity.deviation.toFixed(2)} />
+          <Row label={`P = ${isYang ? '+1 (Yang)' : '−1 (Yin)'}, k = ${r.polarity.k}`} value="" />
+          <Row label={`M_pol = 1 + P×k×D = 1 + ${r.polarity.P}×${r.polarity.k}×${r.polarity.deviation.toFixed(2)}`} value={r.polarity.rawMultiplier.toFixed(3)} />
+          <Row label="Clamped [0.85, 1.15]" value={`×${r.polarity.multiplier.toFixed(3)}`} bold />
+          <Highlight label={`DM Qi after polarity = ${r.dmQiAfterSupport.toFixed(4)} × ${r.polarity.multiplier.toFixed(3)}`} value={r.dmQiAfterPolarity.toFixed(4)} />
+        </Section>
+
+        {/* Stage 6: Final Score */}
+        <Section title="Stage 6 — Final Strength">
+          <Row label="Qi normalization constant" value={r.qiNorm.toFixed(1)} />
+          <Row label={`Score = (${r.dmQiAfterPolarity.toFixed(4)} / ${r.qiNorm.toFixed(1)}) × 100`} value={r.score.toFixed(1)} bold />
+          <div className="flex items-center justify-center gap-3 mt-2 py-2 rounded-lg border" style={{ borderColor: r.tierColor + '40', backgroundColor: r.tierColor + '10' }}>
+            <span className="text-3xl font-black" style={{ color: r.tierColor }}>{r.score.toFixed(0)}</span>
+            <div>
+              <div className="text-sm font-bold" style={{ color: r.tierColor }}>{r.tier}</div>
+              <div className="text-[9px] text-white/60">Day Master Strength</div>
+            </div>
+          </div>
+        </Section>
+      </div>
+      {showGauntletMd && (
+        <FloatingMdWindow
+          content={DMS_GAUNTLET_MD}
+          title="Day Master Strength — 6-Stage Gauntlet Reference"
+          onClose={() => setShowGauntletMd(false)}
+        />
+      )}
+      {showSupportDrainMd && (
+        <FloatingMdWindow
+          content={SUPPORT_DRAIN_MD}
+          title="Stage 4 — Support vs Drain Guide"
+          onClose={() => setShowSupportDrainMd(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+
+// ============================================================================
+// TEN GODS CAREER PANEL — How DM Strength shapes career through Ten Gods
+// ============================================================================
+
+const TEN_GODS_CAREER_MD = `# Ten Gods — Career Profile Guide
+
+## What are the Ten Gods?
+
+The **Ten Gods** (十神) describe how every element in your chart relates to your
+Day Master. There are five relationship categories, each split into Yin/Yang pairs
+to make ten gods total.
+
+---
+
+## The Five Categories
+
+### Output (食伤) — What you create
+*DM produces this element*
+
+| God | Chinese | Archetype | Career themes |
+|---|---|---|---|
+| Eating God | 食神 | The Artist | Arts, food, hospitality, gentle creativity |
+| Hurting Officer | 伤官 | The Rebel | Performance, innovation, media, bold expression |
+
+**Strong DM** → Output becomes productive and expressive — talent flows easily.
+**Weak DM** → Output drains energy — creativity feels exhausting.
+
+---
+
+### Wealth (财) — What you control
+*DM controls this element*
+
+| God | Chinese | Archetype | Career themes |
+|---|---|---|---|
+| Direct Wealth | 正财 | The Banker | Finance, accounting, real estate, steady income |
+| Indirect Wealth | 偏财 | The Networker | Sales, speculation, networking, multiple streams |
+
+**Strong DM** → Wealth is manageable and profitable.
+**Weak DM** → Wealth becomes draining — money slips away.
+
+---
+
+### Officer (官杀) — What controls you
+*This element controls DM*
+
+| God | Chinese | Archetype | Career themes |
+|---|---|---|---|
+| Direct Officer | 正官 | The Magistrate | Management, law, governance, civil service |
+| Seven Killings | 七杀 | The Warrior | Military, surgery, trading, crisis management |
+
+**Strong DM** → Officer brings recognition and leadership opportunities.
+**Weak DM** → Officer becomes oppressive — pressure overwhelms.
+
+---
+
+### Resource (印) — What generates you
+*This element produces DM*
+
+| God | Chinese | Archetype | Career themes |
+|---|---|---|---|
+| Direct Resource | 正印 | The Teacher | Education, healthcare, academia, mentoring |
+| Indirect Resource | 偏印 | The Mystic | Research, psychology, technology, esoteric fields |
+
+**Strong DM** → Resource stabilizes and supports growth.
+**Weak DM** → Resource is desperately needed — seek mentors and learning.
+
+---
+
+### Companion (比劫) — Your peers
+*Same element as DM*
+
+| God | Chinese | Archetype | Career themes |
+|---|---|---|---|
+| Friend | 比肩 | The Competitor | Entrepreneurship, athletics, consulting |
+| Rob Wealth | 劫财 | The Gambler | High-risk ventures, negotiation, speculation |
+
+**Strong DM** → Companion becomes teamwork and healthy competition.
+**Weak DM** → Companion becomes rivalry and resource conflict.
+
+---
+
+## How DM Strength Modifies Career
+
+| DM Strength | Career Behavior |
+|---|---|
+| **Overweak (0–20)** | Needs structured, supportive environments. Avoids high-pressure roles. |
+| **Weak (20–40)** | Thrives with mentorship and steady growth. Advisory and support roles. |
+| **Balanced (40–60)** | Flexible — adapts to both creative and structured careers naturally. |
+| **Strong (60–80)** | Handles pressure, output, and leadership. Built for demanding careers. |
+| **Overstrong (80–100)** | Dominates — needs challenges and outlets to avoid stagnation. |
+
+---
+
+## Career Fit Score (1–5 stars)
+
+The star rating combines Ten God Qi strength with DM Strength:
+- Strong DM + Strong Ten God Qi = high career fit (the DM can use this energy)
+- Weak DM + Strong Ten God Qi = moderate fit (energy present but hard to harness)
+- Any DM + Very Weak Ten God Qi = low fit (energy simply isn't there)
+`;
+
+// Category → Ten God IDs mapping
+const TG_CATEGORY_MAP = {
+  output:    { label: 'Output',    chinese: '食伤', color: '#a855f7', icon: '🎭', ids: ['EG', 'HO'], desc: 'What you create' },
+  wealth:    { label: 'Wealth',    chinese: '财',   color: '#f59e0b', icon: '💰', ids: ['DW', 'IW'], desc: 'What you control' },
+  authority: { label: 'Officer',   chinese: '官杀', color: '#ef4444', icon: '🏛️', ids: ['DO', '7K'], desc: 'What controls you' },
+  resource:  { label: 'Resource',  chinese: '印',   color: '#22c55e', icon: '📚', ids: ['DR', 'IR'], desc: 'What generates you' },
+  companion: { label: 'Companion', chinese: '比劫', color: '#3b82f6', icon: '🤝', ids: ['F', 'RW'],  desc: 'Your peers' },
+};
+
+// Wu Xing: category → element for a given DM
+function getCategoryElement(dmElement, category) {
+  const PRODUCE = { Wood: 'Fire', Fire: 'Earth', Earth: 'Metal', Metal: 'Water', Water: 'Wood' };
+  const CONTROL = { Wood: 'Earth', Fire: 'Metal', Earth: 'Water', Metal: 'Wood', Water: 'Fire' };
+  const CONTROLLED_BY = { Wood: 'Metal', Fire: 'Water', Earth: 'Wood', Metal: 'Fire', Water: 'Earth' };
+  const PRODUCED_BY = { Wood: 'Water', Fire: 'Wood', Earth: 'Fire', Metal: 'Earth', Water: 'Metal' };
+  switch (category) {
+    case 'output': return PRODUCE[dmElement];
+    case 'wealth': return CONTROL[dmElement];
+    case 'authority': return CONTROLLED_BY[dmElement];
+    case 'resource': return PRODUCED_BY[dmElement];
+    case 'companion': return dmElement;
+    default: return dmElement;
+  }
+}
+
+function classifyTenGodStrength(qi) {
+  if (qi < 0.2) return { label: 'Very Weak', color: '#ef4444' };
+  if (qi < 0.5) return { label: 'Weak', color: '#f97316' };
+  if (qi < 1.0) return { label: 'Moderate', color: '#eab308' };
+  if (qi < 1.5) return { label: 'Strong', color: '#22c55e' };
+  return { label: 'Very Strong', color: '#a855f7' };
+}
+
+function getCareerFitScore(qi, dmScore) {
+  const strong = dmScore >= 60;
+  const base = qi < 0.2 ? 1 : qi < 0.5 ? 2 : qi < 1.0 ? 3 : qi < 1.5 ? 4 : 5;
+  return strong ? base : Math.max(1, base - 1);
+}
+
+function getDmInteraction(category, dmScore) {
+  const strong = dmScore >= 60;
+  const interactions = {
+    output:    [strong ? 'Output becomes productive and expressive — talent flows.' : 'Output drains energy — creativity feels exhausting.'],
+    wealth:    [strong ? 'Wealth is manageable and profitable.' : 'Wealth becomes draining — hard to hold onto gains.'],
+    authority: [strong ? 'Officer brings leadership and recognition.' : 'Officer becomes oppressive — pressure overwhelms.'],
+    resource:  [strong ? 'Resource stabilizes and supports growth.' : 'Resource is desperately needed — seek mentors.'],
+    companion: [strong ? 'Companion becomes teamwork and collaboration.' : 'Companion becomes rivalry and conflict.'],
+  };
+  return (interactions[category] || [''])[0];
+}
+
+function TenGodsCareerPanel({ chart, qiMatrix, userTfq, dmStrengthScore }) {
+  const [showTenGodsMd, setShowTenGodsMd] = useState(false);
+  if (!chart || !qiMatrix || !userTfq) return null;
+
+  const dmElement = qiMatrix.dayMasterElement;
+  const isYang = qiMatrix.dayMasterPolarity === 'Yang';
+  const dmLabel = `${isYang ? 'Yang' : 'Yin'} ${dmElement}`;
+  const score = dmStrengthScore || 50;
+
+  // Build per-category data
+  const categories = Object.entries(TG_CATEGORY_MAP).map(([catKey, cat]) => {
+    const el = getCategoryElement(dmElement, catKey);
+    const qi = userTfq[el] || 0;
+    const strength = classifyTenGodStrength(qi);
+    const fitScore = getCareerFitScore(qi, score);
+    const interaction = getDmInteraction(catKey, score);
+
+    // Get library entries for the two gods in this category
+    const gods = cat.ids.map(id => TEN_GOD_LIBRARY.find(g => g.id === id)).filter(Boolean);
+
+    return { ...cat, catKey, el, qi, strength, fitScore, interaction, gods };
+  });
+
+  // Sort by Qi desc for summary
+  const sorted = [...categories].sort((a, b) => b.qi - a.qi);
+  const top1 = sorted[0];
+  const top2 = sorted[1];
+  const weakest = sorted[sorted.length - 1];
+
+  // ── DM Strength × Ten God Archetype Classifier ──
+  const dmBand = score < 20 ? 'Overweak' : score < 40 ? 'Weak' : score < 60 ? 'Balanced' : score < 80 ? 'Strong' : 'Overstrong';
+  const archetype = (() => {
+    const t1 = top1.catKey;
+    const isWeak = score < 40;
+    const isStrong = score >= 60;
+    // Weak DM archetypes — success through external support
+    if (isWeak && t1 === 'output')    return { name: 'The Supported Prodigy', icon: '🌟', color: '#a855f7', desc: 'Weak DM + dominant Output = extraordinary talent that explodes with coaching, sponsorship, and institutional backing. Not self-powered — externally fueled. Elite athletes, child prodigies, sponsored performers.', strengths: ['Highly coachable', 'Absorbs training rapidly', 'Thrives with structure', 'Performs under pressure'], needs: ['Mentors & coaches', 'Institutional support', 'Structured environments', 'External validation'] };
+    if (isWeak && t1 === 'resource')  return { name: 'The Eternal Student', icon: '📚', color: '#22c55e', desc: 'Weak DM + dominant Resource = a person who grows through learning, mentorship, and accumulation of knowledge. Scholars, researchers, lifelong learners who build expertise over decades.', strengths: ['Deep learning ability', 'Patient growth', 'Knowledge retention', 'Mentor magnetism'], needs: ['Time to develop', 'Patient mentors', 'Academic environments', 'Intellectual freedom'] };
+    if (isWeak && t1 === 'companion') return { name: 'The Pack Runner', icon: '🤝', color: '#3b82f6', desc: 'Weak DM + dominant Companion = strength through alliance, partnership, and collective action. Team athletes, co-founders, ensemble performers who shine brightest in groups.', strengths: ['Team synergy', 'Loyalty', 'Collaborative instinct', 'Peer motivation'], needs: ['Strong partners', 'Team environments', 'Shared goals', 'Collective identity'] };
+    if (isWeak && t1 === 'authority') return { name: 'The Reluctant Leader', icon: '🏛️', color: '#ef4444', desc: 'Weak DM + dominant Officer = thrust into authority by circumstance, not ambition. Leaders who emerge through crisis, duty, or institutional need rather than personal drive.', strengths: ['Duty-driven', 'Responsive to pressure', 'Institutional awareness', 'Crisis leadership'], needs: ['Clear mandate', 'Institutional backing', 'Strong advisors', 'Structured authority'] };
+    if (isWeak && t1 === 'wealth')    return { name: 'The Lucky Channel', icon: '💫', color: '#f59e0b', desc: 'Weak DM + dominant Wealth = wealth flows through this person, not from them. Brand ambassadors, lottery winners, inheritance receivers, influencers who attract money through presence.', strengths: ['Wealth magnetism', 'Brand appeal', 'Social capital', 'Opportunity attraction'], needs: ['Financial advisors', 'Wealth managers', 'Stable partners', 'Spending discipline'] };
+    // Strong DM archetypes — self-powered engines
+    if (isStrong && t1 === 'output')    return { name: 'The Creative Powerhouse', icon: '🔥', color: '#ef4444', desc: 'Strong DM + dominant Output = raw creative force that produces at scale. Prolific artists, high-output entrepreneurs, performers who generate endlessly without burnout.', strengths: ['Prolific output', 'Stamina', 'Creative endurance', 'Self-driven production'], needs: ['Creative outlets', 'Audience', 'Channels for output', 'Avoid stagnation'] };
+    if (isStrong && t1 === 'resource')  return { name: 'The Grounded Sage', icon: '🌳', color: '#22c55e', desc: 'Strong DM + dominant Resource = deeply rooted wisdom combined with the strength to teach and lead. Master practitioners, senior mentors, institutional builders.', strengths: ['Deep expertise', 'Teaching ability', 'Institutional trust', 'Patient authority'], needs: ['Avoid over-support', 'Seek challenges', 'Share knowledge', 'Prevent stagnation'] };
+    if (isStrong && t1 === 'companion') return { name: 'The Alpha Competitor', icon: '⚔️', color: '#f97316', desc: 'Strong DM + dominant Companion = fierce independence and competitive drive. Solo entrepreneurs, competitive athletes, self-made leaders who dominate through sheer force of will.', strengths: ['Independence', 'Competitive fire', 'Self-reliance', 'Leadership presence'], needs: ['Worthy rivals', 'Clear goals', 'Avoid isolation', 'Channel aggression'] };
+    if (isStrong && t1 === 'authority') return { name: 'The Natural Commander', icon: '👑', color: '#a855f7', desc: 'Strong DM + dominant Officer = born leader who thrives under authority and pressure. CEOs, military commanders, political leaders who naturally assume control.', strengths: ['Authority presence', 'Pressure tolerance', 'Decision making', 'Institutional leadership'], needs: ['Positions of power', 'Clear hierarchy', 'Respect from peers', 'Legacy building'] };
+    if (isStrong && t1 === 'wealth')    return { name: 'The Empire Builder', icon: '🏗️', color: '#f59e0b', desc: 'Strong DM + dominant Wealth = the capacity to control, manage, and multiply resources at scale. Tycoons, investors, business moguls who build lasting wealth structures.', strengths: ['Resource management', 'Business acumen', 'Deal-making', 'Long-term vision'], needs: ['Investment opportunities', 'Financial growth', 'Strategic partners', 'Avoid hoarding'] };
+    // Balanced DM — adaptive
+    if (t1 === 'output')    return { name: 'The Versatile Creator', icon: '🎨', color: '#a855f7', desc: 'Balanced DM + strong Output = flexible creativity that adapts to any medium. Multi-disciplinary artists, portfolio careerists, adaptive performers.', strengths: ['Adaptability', 'Multi-talent', 'Creative flexibility', 'Balanced expression'], needs: ['Variety', 'Multiple outlets', 'Avoid over-specialization', 'Cross-pollination'] };
+    if (t1 === 'resource')  return { name: 'The Adaptive Learner', icon: '🔬', color: '#22c55e', desc: 'Balanced DM + strong Resource = steady growth through continuous learning. Career changers, interdisciplinary thinkers, late bloomers.', strengths: ['Continuous growth', 'Cross-domain thinking', 'Resilient learning', 'Practical wisdom'], needs: ['New challenges', 'Diverse inputs', 'Mentorship both ways', 'Applied learning'] };
+    return { name: 'The Adaptive Navigator', icon: '🧭', color: '#3b82f6', desc: 'Balanced DM with no extreme Ten God dominance = maximum flexibility. Generalists, portfolio careerists, people who thrive by reading the environment and adapting.', strengths: ['Flexibility', 'Environmental reading', 'Balanced judgment', 'Steady growth'], needs: ['Diverse opportunities', 'Room to explore', 'Avoid narrow specialization', 'Periodic reinvention'] };
+  })();
+
+  // Auto-generate career summary
+  const dmLine = score >= 60
+    ? `With a Strong Day Master (${score.toFixed(0)}), this chart handles pressure, output, and responsibility with ease.`
+    : score < 40
+    ? `With a weaker Day Master (${score.toFixed(0)}), this chart thrives in supportive, structured environments.`
+    : `With a Balanced Day Master (${score.toFixed(0)}), this chart adapts well to varied career environments.`;
+  const summaryText = `${dmLine} The strongest career indicator is ${top1.label} (${top1.chinese}), pointing toward ${top1.gods.map(g => g.archetype.replace('The ', '')).join(' and ')} roles. The second influence is ${top2.label} (${top2.chinese}), adding ${top2.gods.map(g => g.archetype.replace('The ', '')).join(' and ')} energy.`;
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden mt-4">
+      {/* Header */}
+      <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-semibold text-white">Ten Gods — Career Profile</div>
+            <div className="text-[10px] text-white/80 mt-0.5">
+              <span style={{ color: ELEM_COLORS[dmElement] }} className="font-semibold">{dmLabel}</span> — DM Strength {score} · How career forces behave in this chart
+            </div>
+          </div>
+          <button onClick={() => setShowTenGodsMd(prev => !prev)} className="text-[9px] font-mono text-amber-400/70 hover:text-amber-300 transition-colors px-1.5 py-0.5 rounded border border-amber-700/30 hover:border-amber-500/50 bg-amber-900/20">MD</button>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-3">
+        {/* Category cards */}
+        {categories.map(cat => (
+          <div key={cat.catKey} className="rounded-lg border border-white/8 bg-white/[0.02] overflow-hidden">
+            {/* Category header */}
+            <div className="px-3 py-2 flex items-center justify-between" style={{ borderLeft: `3px solid ${cat.color}` }}>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{cat.icon}</span>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-white">{cat.label}</span>
+                    <span className="text-[9px] text-white/60">{cat.chinese}</span>
+                    <span className="text-[10px] text-white/70">— {cat.desc}</span>
+                  </div>
+                  <div className="text-[10px] text-white/80">
+                    Element: <span style={{ color: ELEM_COLORS[cat.el] }} className="font-semibold">{cat.el}</span> · Qi: <span className="text-white font-bold">{cat.qi.toFixed(3)}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Strength badge */}
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ color: cat.strength.color, backgroundColor: cat.strength.color + '20', border: `1px solid ${cat.strength.color}40` }}>
+                  {cat.strength.label}
+                </span>
+                {/* Star rating */}
+                <div className="flex text-[10px]" style={{ color: '#fbbf24' }}>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i} className={i < cat.fitScore ? '' : 'opacity-20'}>{i < cat.fitScore ? '★' : '☆'}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Gods detail */}
+            <div className="px-3 py-2 border-t border-white/5">
+              <div className="grid grid-cols-2 gap-2 mb-1.5">
+                {cat.gods.map(g => (
+                  <div key={g.id} className="text-[10px] font-mono rounded px-2 py-1.5 bg-white/[0.03] border border-white/8">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <span className="text-white font-bold">{g.name}</span>
+                      <span className="text-white/60">{g.nameZh}</span>
+                    </div>
+                    <div className="text-white/70">{g.archetype} · {g.overview.split('.')[0]}</div>
+                  </div>
+                ))}
+              </div>
+              {/* Career roles */}
+              <div className="text-[10px] text-white/80 mb-1">
+                <span className="text-white/60">Careers: </span>
+                {cat.gods.map(g => g.career.split('.')[0]).join('. ')}.
+              </div>
+              {/* DM interaction */}
+              <div className="text-[10px] font-mono text-white/90 px-2 py-1 rounded bg-white/[0.03] border border-white/10">
+                <span className="text-white/60">DM {score >= 60 ? 'Strong' : score < 40 ? 'Weak' : 'Balanced'} → </span>
+                {cat.interaction}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Career Archetype */}
+        <div className="rounded-lg border overflow-hidden" style={{ borderColor: archetype.color + '30' }}>
+          <div className="px-3 py-2 flex items-center gap-2" style={{ backgroundColor: archetype.color + '10' }}>
+            <span className="text-xl">{archetype.icon}</span>
+            <div>
+              <div className="text-[12px] font-bold" style={{ color: archetype.color }}>{archetype.name}</div>
+              <div className="text-[9px] text-white/50">{dmBand} {dmElement} + dominant {top1.label}</div>
+            </div>
+          </div>
+          <div className="px-3 py-2 space-y-2">
+            <div className="text-[10px] text-white/80 leading-relaxed">{archetype.desc}</div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <div className="text-[9px] font-semibold text-green-400 mb-0.5">Strengths</div>
+                {archetype.strengths.map(s => (
+                  <div key={s} className="text-[9px] text-white/70">• {s}</div>
+                ))}
+              </div>
+              <div>
+                <div className="text-[9px] font-semibold text-amber-400 mb-0.5">Needs</div>
+                {archetype.needs.map(n => (
+                  <div key={n} className="text-[9px] text-white/70">• {n}</div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Career Summary */}
+        <div className="rounded-lg border border-amber-500/20 bg-amber-900/[0.06] px-3 py-2">
+          <div className="text-[11px] font-bold text-amber-300 mb-1">Career Summary</div>
+          <div className="text-[10px] text-white/80 leading-relaxed">{summaryText}</div>
+        </div>
+      </div>
+
+      {showTenGodsMd && (
+        <FloatingMdWindow
+          content={TEN_GODS_CAREER_MD}
+          title="Ten Gods — Career Profile Guide"
+          onClose={() => setShowTenGodsMd(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+
+function MTFQBlendDashboard({ natalTfq, daYunQi, yearQi, monthQi, monthName, year, synergyGains, synergyPairDetail }) {
   const [showMtfqMd, setShowMtfqMd] = useState(false);
+  const [showSynergyMd, setShowSynergyMd] = useState(false);
   // natalTfq = engine's natalForMtfq (NTFQ if available, else raw polarityQi)
   const natalQi = natalTfq;
   const natalLabel = 'NTFQ (post-pipeline)';
@@ -4460,6 +5571,82 @@ function MTFQBlendDashboard({ natalTfq, daYunQi, yearQi, monthQi, monthName, yea
           );
         })}
 
+        {/* ── A.5 Synergy — Wu Xing Generation Amplification ── */}
+        {synergyGains && (
+          <div className="rounded border border-lime-500/20 overflow-hidden bg-lime-950/10">
+            <div className="px-3 py-1.5 bg-lime-500/10 border-b border-lime-500/20 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="text-[10px] font-semibold text-lime-300 uppercase tracking-wider">
+                  Synergy — 生 Generation Amplification (k = 0.2)
+                </div>
+                <div className="text-[9px] font-mono text-lime-400">
+                  +{ELEMENTS.reduce((s, el) => s + (synergyGains[el] || 0), 0).toFixed(3)} pts created
+                </div>
+              </div>
+              <button onClick={() => setShowSynergyMd(prev => !prev)}
+                className="text-[9px] font-mono text-amber-400/70 hover:text-amber-300 transition-colors px-1.5 py-0.5 rounded border border-amber-700/30 hover:border-amber-500/50 bg-amber-900/20"
+              >MD</button>
+            </div>
+            <div className="p-3 space-y-2">
+              <div className="text-[9px] text-gray-300 font-mono">
+                External Qi generates new Qi via the producing cycle.
+                Qi is <span className="text-lime-300">created</span>, not transferred.
+                Season modulates κ: <span className="text-amber-300">0.8</span> (dead) → <span className="text-lime-300">1.0</span> (neutral) → <span className="text-emerald-300">1.2</span> (prosperous).
+              </div>
+              {/* Generation pairs */}
+              <div className="space-y-1.5">
+                {(() => {
+                  const labels = { Wood: 'Wood feeds Fire', Fire: 'Fire creates Earth', Earth: 'Earth bears Metal', Metal: 'Metal enriches Water', Water: 'Water nourishes Wood' };
+                  const pairs = synergyPairDetail || [
+                    { gen: 'Wood', recv: 'Fire' }, { gen: 'Fire', recv: 'Earth' },
+                    { gen: 'Earth', recv: 'Metal' }, { gen: 'Metal', recv: 'Water' },
+                    { gen: 'Water', recv: 'Wood' },
+                  ].map(p => ({ ...p, extG: (daYunQi?.[p.gen] || 0) + (yearQi?.[p.gen] || 0) + (monthQi?.[p.gen] || 0), E: 0.6, S: 1.0, kEff: 0.2, gain: synergyGains[p.recv] || 0 }));
+                  return pairs.map(d => {
+                    const sColor = d.S >= 1.1 ? '#4ade80' : d.S <= 0.9 ? '#fbbf24' : '#94a3b8';
+                    return (
+                      <div key={d.gen} className="flex items-center gap-2 text-[11px] font-mono">
+                        <span className="w-12 text-right font-semibold" style={{ color: ELEM_COLORS[d.gen] }}>{d.gen}</span>
+                        <span className="text-gray-400">→</span>
+                        <span className="w-12 font-semibold" style={{ color: ELEM_COLORS[d.recv] }}>{d.recv}</span>
+                        <span className="text-gray-300">κ<sub>eff</sub> {d.kEff.toFixed(3)} × {d.extG.toFixed(3)}</span>
+                        <span className="text-lime-300 font-bold">=&nbsp;+{d.gain.toFixed(4)}</span>
+                        <span className="text-[8px] px-1 py-0.5 rounded" style={{ color: sColor, border: `1px solid ${sColor}33`, background: `${sColor}11` }}>
+                          S={d.S.toFixed(2)}
+                        </span>
+                        <span className="text-gray-300 text-[9px]">{labels[d.gen]}</span>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+              {/* Per-element gains bar */}
+              <div className="space-y-0.5 pt-1.5 border-t border-white/10">
+                <div className="text-[9px] text-gray-400 font-mono mb-1">Per-element Qi created:</div>
+                {ELEMENTS.map(el => {
+                  const gain = synergyGains[el] || 0;
+                  const maxGain = Math.max(...ELEMENTS.map(e => synergyGains[e] || 0), 0.001);
+                  return (
+                    <div key={el} className="flex items-center gap-1.5 text-[10px]">
+                      <span className="w-10 text-right font-mono font-semibold" style={{ color: ELEM_COLORS[el] }}>{el}</span>
+                      <div className="flex-1 h-3.5 bg-white/5 rounded overflow-hidden relative">
+                        <div className="absolute inset-y-0 left-0 rounded" style={{
+                          width: `${(gain / maxGain) * 100}%`,
+                          backgroundColor: ELEM_COLORS[el],
+                          opacity: 0.7,
+                        }} />
+                        <div className="absolute inset-0 flex items-center px-1.5 text-[9px] font-mono">
+                          <span className="text-white font-semibold">+{gain.toFixed(4)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ── B. Per-Element Calculation Table ── */}
         <div className="rounded border border-white/10 overflow-hidden">
           <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-3 py-1.5 bg-white/5">
@@ -4539,6 +5726,14 @@ function MTFQBlendDashboard({ natalTfq, daYunQi, yearQi, monthQi, monthName, yea
           width={680}
         />
       )}
+      {showSynergyMd && (
+        <FloatingMdWindow
+          content={SYNERGY_MD}
+          title="Synergy — 生 Wu Xing Generation Amplification"
+          onClose={() => setShowSynergyMd(false)}
+          width={680}
+        />
+      )}
     </div>
   );
 }
@@ -4547,7 +5742,7 @@ function MTFQBlendDashboard({ natalTfq, daYunQi, yearQi, monthQi, monthName, yea
 // MONTH CARD — one month in the seasonal grid
 // ============================================================================
 
-function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterElement, year, userTfq, chart, qiMatrix, profileBirthDate, profileBirthTime, profileGender }) {
+function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterElement, year, userTfq, chart, qiMatrix, profileBirthDate, profileBirthTime, profileGender, dmStrengthAdj, dmStrengthScore }) {
   const fqi = snapshot.functionalQi;
   const total = ELEMENTS.reduce((s, k) => s + fqi[k], 0);
   const hasClash = snapshot.interactions.length > 0;
@@ -4773,7 +5968,7 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
                   });
                 }
 
-                const mifqResult = computeIFQ({ mtfqTotalQi: mtfqTotal, yongShenAdjustment: ysAdj, seasonalAdjustment: sAdj });
+                const mifqResult = computeIFQ({ mtfqTotalQi: mtfqTotal, yongShenAdjustment: ysAdj, seasonalAdjustment: sAdj, dmStrengthAdjustment: dmStrengthAdj?.adjustments });
                 braceletMifqQi = {};
                 ELEMENTS.forEach(el => { braceletMifqQi[el] = mifqResult.elements[el].normalizedQi; });
               }
@@ -4847,6 +6042,8 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
                           collapseReport={collapseRpt}
                           daYunStem={snapshot.daYunPillar?.stem}
                           daYunQi={snapshot.daYunQi}
+                          dmStrengthScore={dmStrengthScore}
+                          dmElement={qiMatrix?.dayMasterElement}
                         />
                       );
                     })()}
@@ -4900,6 +6097,8 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
               monthQi={snapshot.monthQi}
               monthName={snapshot.monthName}
               year={year}
+              synergyGains={snapshot.synergyGains}
+              synergyPairDetail={snapshot.synergyPairDetail}
             />
           )}
 
@@ -5081,6 +6280,7 @@ function MonthCard({ snapshot, expanded, onToggle, dayMasterPolarity, dayMasterE
               mtfqTotalQi: mtfqTotal,
               yongShenAdjustment: yongShenAdj,
               seasonalAdjustment: seasonalAdj,
+              dmStrengthAdjustment: dmStrengthAdj?.adjustments,
             });
             const mifqQi = {};
             ELEMENTS.forEach(el => { mifqQi[el] = mifqResult.elements[el].normalizedQi; });
@@ -5344,6 +6544,7 @@ function MIFQPanel({ mifqResult, mtfq, mifqQi, monthName, season, ysNotes, sNote
                   <th className="px-1.5 py-1 text-right">Base</th>
                   <th className="px-1.5 py-1 text-right text-amber-300">+YS</th>
                   <th className="px-1.5 py-1 text-right">After</th>
+                  <th className="px-1.5 py-1 text-right text-pink-300">+DM Str</th>
                   <th className="px-1.5 py-1 text-right text-cyan-300">+Season</th>
                   <th className="px-1.5 py-1 text-right">Raw %</th>
                   <th className="px-1.5 py-1 text-right text-teal-300">MIFQ</th>
@@ -5358,6 +6559,7 @@ function MIFQPanel({ mifqResult, mtfq, mifqQi, monthName, season, ysNotes, sNote
                       <td className="px-1.5 py-1 text-right text-gray-300">{s.base}%</td>
                       <td className="px-1.5 py-1 text-right text-amber-300">{s.yongShenAdj > 0 ? '+' : ''}{s.yongShenAdj}%</td>
                       <td className="px-1.5 py-1 text-right text-gray-200">{s.afterYongShen}%</td>
+                      <td className="px-1.5 py-1 text-right text-pink-300">{s.dmStrengthAdj > 0 ? '+' : ''}{s.dmStrengthAdj.toFixed(1)}%</td>
                       <td className="px-1.5 py-1 text-right text-cyan-300">{s.seasonalAdj > 0 ? '+' : ''}{s.seasonalAdj}%</td>
                       <td className="px-1.5 py-1 text-right text-white">{s.rawPercent.toFixed(1)}%</td>
                       <td className="px-1.5 py-1 text-right text-teal-300 font-semibold">{s.normalizedQi.toFixed(3)}</td>
@@ -5369,6 +6571,7 @@ function MIFQPanel({ mifqResult, mtfq, mifqQi, monthName, season, ysNotes, sNote
                   <td className="px-1.5 py-1 text-right text-gray-300">100%</td>
                   <td className="px-1.5 py-1 text-right text-amber-300/60">—</td>
                   <td className="px-1.5 py-1 text-right text-gray-400">—</td>
+                  <td className="px-1.5 py-1 text-right text-pink-300/60">—</td>
                   <td className="px-1.5 py-1 text-right text-cyan-300/60">—</td>
                   <td className="px-1.5 py-1 text-right text-white font-semibold">{mifqResult.totalRawPercent.toFixed(1)}%</td>
                   <td className="px-1.5 py-1 text-right text-teal-300 font-bold">{mifqResult.totalNormalizedQi.toFixed(3)}</td>
@@ -6880,6 +8083,128 @@ BRQ(e)  →  x s  →  BRQ_eff(e)  →  clamp(±cap)  →  BRQₑ(e)
 // MTFQ FORMULA MD — Background, Classical BaZi Relation
 // ============================================================================
 
+const SYNERGY_MD = `## Synergy — 生 Wu Xing Generation Amplification
+
+### Position in Pipeline
+
+\`\`\`
+Natal Pipeline → NTFQ
+                          ↓
+DaYun (raw) → Scale → DaYun′ ─┐
+Year  (raw) → Scale → Year′  ─┤→ ★ SYNERGY ★ → DaYun″ Year″ Month″
+Month (raw) → Scale → Month′ ─┘
+                                        ↓
+              MTFQ = 1.0×NTFQ + 0.9×DaYun″ + 0.5×Year″ + 0.3×Month″
+\`\`\`
+
+Synergy sits **after NTFQ-scaling** and **before MTFQ blending**.
+It modifies only external layers (DaYun, Year, Month) — **never NTFQ**.
+
+### Classical Foundation
+
+The Wu Xing producing (生 shēng) cycle:
+
+| Generator | Generated | Classical meaning |
+|-----------|-----------|-------------------|
+| Wood 木 | Fire 火 | Wood feeds Fire |
+| Fire 火 | Earth 土 | Fire creates Earth (ash) |
+| Earth 土 | Metal 金 | Earth bears Metal (ore) |
+| Metal 金 | Water 水 | Metal enriches Water (condensation) |
+| Water 水 | Wood 木 | Water nourishes Wood |
+
+### Key Metaphysical Property
+
+This is **generative**, not conservative:
+- The generator does **NOT** lose Qi
+- The generated element **GAINS** Qi
+- Qi is **created** through transformation
+- This is not a closed system — it is a catalytic process
+
+### The Math
+
+For each generator → generated pair:
+
+\`\`\`
+gain[generated] += κ_eff × External[generator]
+\`\`\`
+
+Where:
+- **κ_base = 0.2** (synergy coefficient)
+- **E** = generator's seasonal expressiveness (0.2–1.0, from 旺相休囚死 matrix)
+- **S** = synergy factor = 0.8 + 0.4 × (E − 0.2) / 0.8 → range **0.8–1.2**
+- **κ_eff = κ_base × S** (effective coefficient, season-modulated)
+- **External** = DaYun′ + Year′ + Month′ (post-scaling, pre-synergy)
+
+| Expressiveness | Season state | S factor | κ_eff |
+|---------------|-------------|----------|-------|
+| E = 0.2 (Dead) | Out of season | 0.80 | 0.160 |
+| E = 0.6 (Resting) | Neutral | 1.00 | 0.200 |
+| E = 1.0 (Prosperous) | Peak season | 1.20 | 0.240 |
+
+### Example (step by step, March — Wood prosperous)
+
+\`\`\`
+External = { Wood: 0.18, Fire: 0.12, Earth: 0.08, Metal: 0.15, Water: 0.10 }
+Season: 卯 (March) — Wood E=1.0, Fire E=0.8, Earth E=0.4, Metal E=0.2, Water E=0.6
+
+Wood  → Fire:   κ=0.2 × S=1.20 (E=1.0) × 0.18 = κ_eff 0.240 × 0.18 = +0.043 Fire
+Fire  → Earth:  κ=0.2 × S=1.10 (E=0.8) × 0.12 = κ_eff 0.220 × 0.12 = +0.026 Earth
+Earth → Metal:  κ=0.2 × S=0.90 (E=0.4) × 0.08 = κ_eff 0.180 × 0.08 = +0.014 Metal
+Metal → Water:  κ=0.2 × S=0.80 (E=0.2) × 0.15 = κ_eff 0.160 × 0.15 = +0.024 Water
+Water → Wood:   κ=0.2 × S=1.00 (E=0.6) × 0.10 = κ_eff 0.200 × 0.10 = +0.020 Wood
+
+Gains = { Wood: +0.020, Fire: +0.043, Earth: +0.026, Metal: +0.014, Water: +0.024 }
+Total new Qi = 0.127 pts
+\`\`\`
+
+### Full 12-Month Synergy Matrix
+
+Each cell: **E** (expressiveness) → **S** (factor) → **κ_eff**
+
+| Month | Branch | Wood→Fire | Fire→Earth | Earth→Metal | Metal→Water | Water→Wood |
+|-------|--------|-----------|------------|-------------|-------------|------------|
+| Feb | 寅 | E=1.0 S=1.20 **κ=.240** | E=0.8 S=1.10 **κ=.220** | E=0.4 S=0.90 **κ=.180** | E=0.2 S=0.80 **κ=.160** | E=0.6 S=1.00 **κ=.200** |
+| Mar | 卯 | E=1.0 S=1.20 **κ=.240** | E=0.8 S=1.10 **κ=.220** | E=0.4 S=0.90 **κ=.180** | E=0.2 S=0.80 **κ=.160** | E=0.6 S=1.00 **κ=.200** |
+| Apr | 辰 | E=0.8 S=1.10 **κ=.220** | E=0.4 S=0.90 **κ=.180** | E=1.0 S=1.20 **κ=.240** | E=0.2 S=0.80 **κ=.160** | E=0.6 S=1.00 **κ=.200** |
+| May | 巳 | E=0.6 S=1.00 **κ=.200** | E=1.0 S=1.20 **κ=.240** | E=0.8 S=1.10 **κ=.220** | E=0.2 S=0.80 **κ=.160** | E=0.4 S=0.90 **κ=.180** |
+| Jun | 午 | E=0.6 S=1.00 **κ=.200** | E=1.0 S=1.20 **κ=.240** | E=0.8 S=1.10 **κ=.220** | E=0.4 S=0.90 **κ=.180** | E=0.2 S=0.80 **κ=.160** |
+| Jul | 未 | E=0.4 S=0.90 **κ=.180** | E=0.8 S=1.10 **κ=.220** | E=1.0 S=1.20 **κ=.240** | E=0.6 S=1.00 **κ=.200** | E=0.2 S=0.80 **κ=.160** |
+| Aug | 申 | E=0.2 S=0.80 **κ=.160** | E=0.6 S=1.00 **κ=.200** | E=0.8 S=1.10 **κ=.220** | E=1.0 S=1.20 **κ=.240** | E=0.4 S=0.90 **κ=.180** |
+| Sep | 酉 | E=0.2 S=0.80 **κ=.160** | E=0.4 S=0.90 **κ=.180** | E=0.6 S=1.00 **κ=.200** | E=1.0 S=1.20 **κ=.240** | E=0.8 S=1.10 **κ=.220** |
+| Oct | 戌 | E=0.4 S=0.90 **κ=.180** | E=0.2 S=0.80 **κ=.160** | E=1.0 S=1.20 **κ=.240** | E=0.8 S=1.10 **κ=.220** | E=0.6 S=1.00 **κ=.200** |
+| Nov | 亥 | E=0.8 S=1.10 **κ=.220** | E=0.2 S=0.80 **κ=.160** | E=0.4 S=0.90 **κ=.180** | E=0.6 S=1.00 **κ=.200** | E=1.0 S=1.20 **κ=.240** |
+| Dec | 子 | E=0.6 S=1.00 **κ=.200** | E=0.2 S=0.80 **κ=.160** | E=0.4 S=0.90 **κ=.180** | E=0.8 S=1.10 **κ=.220** | E=1.0 S=1.20 **κ=.240** |
+| Jan | 丑 | E=0.4 S=0.90 **κ=.180** | E=0.2 S=0.80 **κ=.160** | E=1.0 S=1.20 **κ=.240** | E=0.6 S=1.00 **κ=.200** | E=0.8 S=1.10 **κ=.220** |
+
+**Patterns:** Spring → Wood→Fire strongest. Summer → Fire→Earth strongest. Autumn → Metal→Water strongest. Winter → Water→Wood strongest. Earth pivots → Earth→Metal strongest.
+
+### Redistribution
+
+Gains are distributed back into DaYun/Year/Month **proportionally** to each layer's original share:
+
+\`\`\`
+DaYun″[el] = (DaYun′[el] / extBefore) × extAfter
+Year″[el]  = (Year′[el]  / extBefore) × extAfter
+Month″[el] = (Month′[el] / extBefore) × extAfter
+\`\`\`
+
+### Why This Was Impossible Before NTFQ-Scaling
+
+Before scaling, external layers were 3–7× larger than NTFQ.
+Synergy would have caused **runaway amplification**.
+Now all layers have equal mass — synergy is a small, controlled boost.
+
+### What Synergy IS and IS NOT
+
+**IS:** A computational translation of classical Wu Xing generation physics
+**IS:** Additive (Qi is created, not transferred)
+**IS:** Applied only to external climate layers
+
+**IS NOT:** Classical BaZi numerical computation
+**IS NOT:** A conservation rule or zero-sum exchange
+**IS NOT:** Applied to NTFQ (natal constitution is untouched)
+`;
+
 const MTFQ_FORMULA_MD = `## MTFQ — Monthly Total Functional Qi
 
 ### The Formula
@@ -7371,7 +8696,7 @@ BRQ = IFQ - MTFQ
 // SEASONAL ROW — group of 3 months
 // ============================================================================
 
-function SeasonRow({ season, months, expandedMonths, setExpandedMonths, dayMasterPolarity, dayMasterElement, year, userTfq, chart, qiMatrix, profileBirthDate, profileBirthTime, profileGender, profileName, age }) {
+function SeasonRow({ season, months, expandedMonths, setExpandedMonths, dayMasterPolarity, dayMasterElement, year, userTfq, chart, qiMatrix, profileBirthDate, profileBirthTime, profileGender, profileName, age, dmStrengthAdj, dmStrengthScore }) {
   if (!months || months.length === 0) return null;
 
   return (
@@ -7405,6 +8730,8 @@ function SeasonRow({ season, months, expandedMonths, setExpandedMonths, dayMaste
             profileBirthDate={profileBirthDate}
             profileBirthTime={profileBirthTime}
             profileGender={profileGender}
+            dmStrengthAdj={dmStrengthAdj}
+            dmStrengthScore={dmStrengthScore}
           />
         ))}
       </div>
@@ -8346,6 +9673,54 @@ export default function QiBraceletPage() {
     return tfq;
   }, [qiMatrix, chart]);
 
+  // Compute Day Master Strength score (for Ten Gods panel)
+  const dmStrengthScore = useMemo(() => {
+    if (!qiMatrix || !userTfq || !chart) return null;
+    const dmElement = qiMatrix.dayMasterElement;
+    const isYang = qiMatrix.dayMasterPolarity === 'Yang';
+    const bd = qiMatrix.perPillarBreakdown;
+    const bmb = chart.pillars[1]?.branch?.char;
+    const sw = bmb ? getSeasonalWeights(bmb) : null;
+    if (!sw || !bd || !dmElement) return null;
+    const seasonalWeights = {
+      Wood: sw.wood ?? 1.0, Fire: sw.fire ?? 1.0, Earth: sw.earth ?? 1.0,
+      Metal: sw.metal ?? 1.0, Water: sw.water ?? 1.0,
+    };
+    const polMults = isYang
+      ? { Wood: 1.15, Fire: 1.05, Earth: 1.00, Metal: 1.00, Water: 1.10 }
+      : { Wood: 0.85, Fire: 0.95, Earth: 1.00, Metal: 1.00, Water: 0.90 };
+    const sMult = seasonalWeights[dmElement] ?? 1.0;
+    const pMult = polMults[dmElement] ?? 1.0;
+    const dmStemQi = 1 * sMult * pMult * 0.35;
+    const dayBd = bd.day;
+    const dmRawInBranch = (dayBd.raw[dmElement] || 0) - 1;
+    const dmBranchQi = Math.max(0, dmRawInBranch) * sMult * pMult * 0.15;
+    const pillars = [
+      { label: 'Year', bd: bd.year, pillar: chart.pillars[0] },
+      { label: 'Month', bd: bd.month, pillar: chart.pillars[1] },
+      { label: 'Day', bd: bd.day, pillar: chart.pillars[2] },
+      { label: 'Hour', bd: bd.hour, pillar: chart.pillars[3] },
+    ].map(p => ({
+      label: p.label,
+      branchChar: p.pillar?.branch?.char || '',
+      branchAnimal: p.pillar?.branch?.animal || '',
+      hiddenStems: (p.bd?.hiddenStems || []).map(hs => ({ element: hs.element, pct: hs.pct })),
+    }));
+    try {
+      const result = computeDayMasterStrength({ dmElement, isYang, tfqTotals: userTfq, dmStemQi, dmBranchQi, pillars, seasonalWeights });
+      return result.score;
+    } catch { return null; }
+  }, [qiMatrix, userTfq, chart]);
+
+  // DM Strength → IFQ adjustment (bracelet prescription bias)
+  const dmStrengthAdj = useMemo(() => {
+    if (dmStrengthScore == null || !qiMatrix?.dayMasterElement) return null;
+    return computeDmStrengthAdjustment({
+      dmElement: qiMatrix.dayMasterElement,
+      dmStrengthScore,
+    });
+  }, [dmStrengthScore, qiMatrix]);
+
   // Compute per-month bracelet stones for 3D visualization
   // Mirrors the exact MIFQ → BRQe → engineerBracelet pipeline used in BraceletDashboard
   const braceletStonesFor3D = useMemo(() => {
@@ -8386,7 +9761,7 @@ export default function QiBraceletPage() {
                 sAdj[el] = SEASONAL_WEIGHT_TO_ADJ[snapped] ?? 0;
               });
             }
-            const mifqResult = computeIFQ({ mtfqTotalQi: mtfqTotal, yongShenAdjustment: ysAdj, seasonalAdjustment: sAdj });
+            const mifqResult = computeIFQ({ mtfqTotalQi: mtfqTotal, yongShenAdjustment: ysAdj, seasonalAdjustment: sAdj, dmStrengthAdjustment: dmStrengthAdj?.adjustments });
             const braceletMifqQi = {};
             ELEMENTS.forEach(el => { braceletMifqQi[el] = mifqResult.elements[el].normalizedQi; });
 
@@ -8755,6 +10130,26 @@ export default function QiBraceletPage() {
                 )}
               </section>
 
+              {/* Day Master Strength — Full Gauntlet */}
+              {qiMatrix && userTfq && (
+                <DayMasterStrengthPanel chart={chart} qiMatrix={qiMatrix} userTfq={userTfq} />
+              )}
+
+              {/* Extreme Archetype — appears when DM < 10 or > 90 */}
+              {qiMatrix && userTfq && dmStrengthScore != null && (
+                <ExtremeArchetypePanel
+                  dmElement={qiMatrix.dayMasterElement}
+                  dmScore={dmStrengthScore}
+                  isYang={qiMatrix.dayMasterPolarity === 'Yang'}
+                  userTfq={userTfq}
+                />
+              )}
+
+              {/* Ten Gods — Career Profile */}
+              {qiMatrix && userTfq && (
+                <TenGodsCareerPanel chart={chart} qiMatrix={qiMatrix} userTfq={userTfq} dmStrengthScore={dmStrengthScore} />
+              )}
+
               {/* Education Panel — Understanding the Pipeline */}
               <QiEducationPanel />
 
@@ -8955,6 +10350,8 @@ export default function QiBraceletPage() {
                         profileGender={selectedProfile?.gender}
                         profileName={selectedProfile ? `${selectedProfile.firstName || ''} ${selectedProfile.lastName || ''}`.trim() : ''}
                         age={selectedAge}
+                        dmStrengthAdj={dmStrengthAdj}
+                        dmStrengthScore={dmStrengthScore}
                       />
                     ))}
                   </div>

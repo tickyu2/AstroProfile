@@ -1784,7 +1784,7 @@ function PressureChart({ allMonthBracelets, userTfq }) {
 // WHY THIS REMEDY PANEL — Explains why the bracelet uses these elements
 // ============================================================================
 
-function WhyThisRemedyPanel({ yongShen, dynamicPool, userTfq, bracelet }) {
+function WhyThisRemedyPanel({ yongShen, dynamicPool, userTfq, bracelet, dmStrengthScore, dmElement }) {
   if (!yongShen || !dynamicPool || !bracelet) return null;
   const els = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
   const useful = yongShen.usefulElements || [];
@@ -1797,11 +1797,13 @@ function WhyThisRemedyPanel({ yongShen, dynamicPool, userTfq, bracelet }) {
   const sorted = els.map(el => ({ el, pct: ((dynamicPool[el] || 0) / total) * 100 })).sort((a, b) => b.pct - a.pct);
   const dominant = sorted[0];
 
-  // Element role map for this month
+  // Element role map
   const GENERATES_MAP = { Wood: 'Fire', Fire: 'Earth', Earth: 'Metal', Metal: 'Water', Water: 'Wood' };
   const CONTROLS_MAP = { Wood: 'Earth', Fire: 'Metal', Earth: 'Water', Metal: 'Wood', Water: 'Fire' };
+  const PARENT_MAP = { Wood: 'Water', Fire: 'Wood', Earth: 'Fire', Metal: 'Earth', Water: 'Metal' };
+  const CONTROLLER_MAP = { Wood: 'Metal', Fire: 'Water', Earth: 'Wood', Metal: 'Fire', Water: 'Earth' };
 
-  const roles = els.map(el => {
+  const elemRoles = els.map(el => {
     const isUseful = useful.includes(el);
     const isForbidden = forbidden.includes(el);
     const inBracelet = bracelet.ratios[el] > 0;
@@ -1812,17 +1814,44 @@ function WhyThisRemedyPanel({ yongShen, dynamicPool, userTfq, bracelet }) {
     return { el, role, pct: sorted.find(s => s.el === el)?.pct || 0 };
   });
 
+  // DM Strength data
+  const hasDm = dmStrengthScore != null && dmElement;
+  const band = hasDm ? (dmStrengthScore < 20 ? 'Overweak' : dmStrengthScore < 40 ? 'Weak' : dmStrengthScore < 60 ? 'Balanced' : dmStrengthScore < 80 ? 'Strong' : 'Overstrong') : null;
+  const isWeak = band === 'Weak' || band === 'Overweak';
+  const isStrong = band === 'Strong' || band === 'Overstrong';
+
+  // Ten God role targets for DM Strength
+  const tenGodRoles = hasDm && band !== 'Balanced' ? (() => {
+    const child = GENERATES_MAP[dmElement];
+    const controlled = CONTROLS_MAP[dmElement];
+    const controller = CONTROLLER_MAP[dmElement];
+    const parent = PARENT_MAP[dmElement];
+    if (isWeak) {
+      return [
+        { role: 'Resource', chinese: '印', el: parent, weight: isWeak && band === 'Overweak' ? 1.0 : 0.8, desc: `generates ${dmElement}` },
+        { role: 'Companion', chinese: '比劫', el: dmElement, weight: isWeak && band === 'Overweak' ? 0.8 : 0.5, desc: `same element — reinforces ${dmElement}` },
+      ];
+    }
+    return [
+      { role: 'Output', chinese: '食伤', el: child, weight: band === 'Overstrong' ? 1.0 : 0.8, desc: `${dmElement} produces it — drains excess` },
+      { role: 'Wealth', chinese: '财', el: controlled, weight: band === 'Overstrong' ? 0.8 : 0.6, desc: `${dmElement} controls it — channels strength` },
+      { role: 'Officer', chinese: '官杀', el: controller, weight: band === 'Overstrong' ? 0.6 : 0.4, desc: `controls ${dmElement} — provides structure` },
+    ];
+  })() : null;
+
+  const ELEM_COLORS = { Wood: '#22c55e', Fire: '#ef4444', Earth: '#f59e0b', Metal: '#a1a1aa', Water: '#3b82f6' };
+
   return (
-    <div className="space-y-2">
-      <h4 className="text-xs font-semibold text-white/60">Why This Remedy</h4>
+    <div className="space-y-3">
+      <h4 className="text-xs font-semibold text-white/80">Why This Remedy</h4>
 
       {/* Element role badges */}
       <div className="flex flex-wrap gap-1.5">
-        {roles.map(({ el, role }) => {
+        {elemRoles.map(({ el, role }) => {
           const bg = role === 'prescribed' ? 'bg-green-500/20 border-green-500/30 text-green-300'
             : role === 'forbidden' ? 'bg-red-500/20 border-red-500/30 text-red-300'
             : role === 'supporting' ? 'bg-teal-500/20 border-teal-500/30 text-teal-300'
-            : 'bg-white/5 border-white/10 text-white/30';
+            : 'bg-white/5 border-white/10 text-white/40';
           const label = role === 'prescribed' ? 'Rx' : role === 'forbidden' ? 'X' : role === 'supporting' ? '+' : '-';
           return (
             <span key={el} className={`text-[10px] px-2 py-0.5 rounded border ${bg}`}>
@@ -1832,31 +1861,93 @@ function WhyThisRemedyPanel({ yongShen, dynamicPool, userTfq, bracelet }) {
         })}
       </div>
 
-      {/* Explanation bullets */}
-      <div className="text-[10px] text-white/40 space-y-1">
+      {/* ── Section 1: Structure Analysis ── */}
+      <div className="text-[10px] text-white/70 space-y-1.5">
         {isCollapse && mode === 'single-dominant' && (
-          <p><span className="text-purple-300">{dominant.el}</span> is {dominant.pct.toFixed(0)}% of functional Qi - too dominant to control. The bracelet follows the structure and exhausts {dominant.el} through <span className="text-teal-300">{GENERATES_MAP[dominant.el]}</span>.</p>
+          <p><span className="text-purple-300 font-semibold">從旺格 (Follow the Strong)</span> — <span className="text-white">{dominant.el}</span> is {dominant.pct.toFixed(0)}% of functional Qi, too dominant to control. The bracelet follows the structure and exhausts {dominant.el} through <span className="text-teal-300">{GENERATES_MAP[dominant.el]}</span>.</p>
         )}
         {isCollapse && mode === 'drained' && (
-          <p>A key element has nearly vanished. The bracelet feeds it through its mother element to rebuild structural integrity.</p>
+          <p><span className="text-cyan-300 font-semibold">虛弱 (Drained)</span> — A key element has nearly vanished. The bracelet feeds it through its mother element to rebuild structural integrity.</p>
         )}
         {isCollapse && mode === 'bi-polar' && (
-          <p>Two elements dominate equally. The bracelet bridges them with their shared child element to prevent oscillation.</p>
+          <p><span className="text-purple-300 font-semibold">兩神成象 (Bi-Polar)</span> — Two elements dominate equally. The bracelet bridges them with their shared child element to prevent oscillation.</p>
         )}
         {!isCollapse && yongShen.status === 'critical_imbalance' && (
-          <p>Critical deficit detected. The bracelet supplies {useful.join(' + ')} to restore functional balance.</p>
+          <p><span className="text-amber-300 font-semibold">Critical Deficit</span> — The bracelet supplies {useful.join(' + ')} to restore functional balance.</p>
         )}
         {!isCollapse && yongShen.status === 'balanced' && (
-          <p>Chart is relatively balanced. The bracelet provides gentle maintenance for minor monthly deficits.</p>
+          <p><span className="text-green-300 font-semibold">Balanced</span> — Chart is relatively balanced. Gentle maintenance for minor monthly deficits.</p>
         )}
 
         {useful.length > 0 && (
-          <p>Prescribed elements: <span className="text-green-300">{useful.join(', ')}</span> - these are the Yong Shen remedy for this month.</p>
+          <p>Prescribed elements: <span className="text-green-300 font-semibold">{useful.join(', ')}</span> — Yong Shen remedy for this month.</p>
         )}
         {forbidden.length > 0 && (
-          <p>Forbidden: <span className="text-red-300">{forbidden.join(', ')}</span> - {forbidden.map(f => `${f} ${CONTROLS_MAP[f] ? `controls ${CONTROLS_MAP[f]}` : ''}`).join('; ')}. Would destabilize the structure.</p>
+          <p>Forbidden: <span className="text-red-300 font-semibold">{forbidden.join(', ')}</span> — {forbidden.map(f => `${f} ${CONTROLS_MAP[f] ? `controls ${CONTROLS_MAP[f]}` : ''}`).join('; ')}. Would destabilize the structure.</p>
         )}
       </div>
+
+      {/* ── Section 2: DM Strength → Role Targeting ── */}
+      {hasDm && band !== 'Balanced' && tenGodRoles && (
+        <div className="border-t border-white/10 pt-2 mt-1">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] font-bold text-pink-300">DM Strength {dmStrengthScore.toFixed(0)} ({band})</span>
+            <span className="text-[9px] text-white/50">→ IFQ prescription bias</span>
+          </div>
+
+          <div className="text-[10px] text-white/70 mb-2">
+            {isWeak ? (
+              <span>{dmElement} Day Master is <span className="text-pink-300 font-semibold">{band}</span> — needs support. Bracelet IFQ is biased toward elements that feed and reinforce the DM.</span>
+            ) : (
+              <span>{dmElement} Day Master is <span className="text-pink-300 font-semibold">{band}</span> — has surplus strength. Bracelet IFQ is biased toward elements that channel and drain excess Qi.</span>
+            )}
+          </div>
+
+          {/* Role → Element targeting table */}
+          <div className="rounded border border-white/10 overflow-hidden">
+            <table className="w-full text-[10px] font-mono">
+              <thead>
+                <tr className="bg-white/5 text-white/60">
+                  <th className="px-2 py-1 text-left">Ten God Role</th>
+                  <th className="px-2 py-1 text-left">Element</th>
+                  <th className="px-2 py-1 text-right">IFQ Bias</th>
+                  <th className="px-2 py-1 text-left">Why</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tenGodRoles.map(r => (
+                  <tr key={r.role} className="border-t border-white/5">
+                    <td className="px-2 py-1 text-white/80">
+                      {r.role} <span className="text-white/40">{r.chinese}</span>
+                    </td>
+                    <td className="px-2 py-1 font-semibold" style={{ color: ELEM_COLORS[r.el] }}>
+                      {r.el}
+                    </td>
+                    <td className="px-2 py-1 text-right text-pink-300 font-semibold">
+                      +{(r.weight * 8).toFixed(1)}%
+                    </td>
+                    <td className="px-2 py-1 text-white/50">
+                      {r.desc}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="text-[9px] text-white/40 mt-1">
+            These adjustments shift IFQ after Yong Shen, before seasonal correction. Max ±8% per element.
+          </div>
+        </div>
+      )}
+
+      {hasDm && band === 'Balanced' && (
+        <div className="border-t border-white/10 pt-2 mt-1">
+          <div className="text-[10px] text-white/60">
+            <span className="text-pink-300 font-semibold">DM Strength {dmStrengthScore.toFixed(0)} (Balanced)</span> — no DM-driven bias applied. Yong Shen and seasonal adjustments drive the prescription alone.
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2354,6 +2445,8 @@ export default function BraceletDashboard({
   collapseReport,
   daYunStem,          // optional: active 大運 stem char — intensifies polarity bias when same as DM
   daYunQi,            // optional: Da Yun Qi vector — drives controller stone placement engine
+  dmStrengthScore,    // optional: DM Strength score (0–100) — influences IFQ prescription bias
+  dmElement,          // optional: DM element name — for DM Strength explanation
 }) {
   const [selectedGoal, setSelectedGoal] = useState(null);
   const [whyOpen, setWhyOpen] = useState(true);
@@ -2567,7 +2660,7 @@ export default function BraceletDashboard({
         {whyOpen && (
           <div className="space-y-4 bg-white/[0.02] rounded-lg p-3 border border-white/5">
             <CollapseModePanel dynamicPool={dynamicPool} yongShen={yongShen} />
-            <WhyThisRemedyPanel yongShen={yongShen} dynamicPool={dynamicPool} userTfq={userTfq} bracelet={bracelet} />
+            <WhyThisRemedyPanel yongShen={yongShen} dynamicPool={dynamicPool} userTfq={userTfq} bracelet={bracelet} dmStrengthScore={dmStrengthScore} dmElement={dmElement} />
             <PressureChart allMonthBracelets={allMonthBracelets} userTfq={userTfq} />
             <StabilityHeatmap allMonthBracelets={allMonthBracelets} userTfq={userTfq} />
           </div>

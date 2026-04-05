@@ -321,10 +321,4 @@ export function formatTenGodForDisplay(id: TenGodId, lang: 'en' | 'zh' = 'en'): 
   return `【${tg.name}】\n${tg.overview}\n\nPersonality: ${tg.personality}\nCareer: ${tg.career}\nRelationships: ${tg.relationships}`;
 }
 
-// ==================== EXPORTS ====================
-
-export {
-  getTenGodInterpretation,
-  getTenGodsByCategory,
-  formatTenGodForDisplay
-};
+// (Functions are exported at definition above)
