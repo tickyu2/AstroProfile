@@ -17,6 +17,8 @@ function ChatHeader({
   guestType,
   lunaMode,
   onToggleLuna,
+  equationMode,
+  onToggleEquationMode,
   hasConstitutionalData,
   learnedFactsCount,
   selectedUserProfile
@@ -67,20 +69,41 @@ function ChatHeader({
             </div>
           </div>
 
-          {/* Right: Luna Toggle */}
-          <button
-            onClick={onToggleLuna}
-            className={`
-              px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2
-              ${lunaMode === 'active'
-                ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }
-            `}
-          >
-            <span className={`w-2 h-2 rounded-full ${lunaMode === 'active' ? 'bg-purple-500 animate-pulse' : 'bg-gray-400'}`} />
-            Luna: {lunaMode === 'active' ? 'Active' : 'Silent'}
-          </button>
+          {/* Right: Mode Toggles */}
+          <div className="flex items-center gap-2">
+            {/* Equation Mode Toggle — only show for guests that support it */}
+            {onToggleEquationMode && (
+              <button
+                onClick={onToggleEquationMode}
+                className={`
+                  px-3 py-2 rounded-lg font-medium transition-all flex items-center gap-2 text-sm
+                  ${equationMode
+                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }
+                `}
+                title={equationMode ? 'Equation Mode active — guest will prioritize mathematical output' : 'Enable Equation Mode for formula-heavy responses'}
+              >
+                <span className="text-base">{equationMode ? '📐' : '📝'}</span>
+                {equationMode ? 'Equations' : 'Normal'}
+              </button>
+            )}
+
+            {/* Luna Toggle */}
+            <button
+              onClick={onToggleLuna}
+              className={`
+                px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2
+                ${lunaMode === 'active'
+                  ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }
+              `}
+            >
+              <span className={`w-2 h-2 rounded-full ${lunaMode === 'active' ? 'bg-purple-500 animate-pulse' : 'bg-gray-400'}`} />
+              Luna: {lunaMode === 'active' ? 'Active' : 'Silent'}
+            </button>
+          </div>
         </div>
 
         {/* Luna Mode Explanation */}

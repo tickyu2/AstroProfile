@@ -6,6 +6,10 @@
  */
 
 import einsteinProfile from './historical/einstein.js';
+import ramanujanProfile from './historical/ramanujan.js';
+import bohrProfile from './historical/bohr.js';
+import teslaProfile from './historical/tesla.js';
+import noetherProfile from './historical/emmyNoether.js';
 import cleopatraProfile from './historical/cleopatra.js';
 import ronaldReaganProfile from './historical/ronaldReagan.js';
 import nancyReaganProfile from './historical/nancyReagan.js';
@@ -76,7 +80,58 @@ export const profileRegistry = {
     curated_by: 'GENESIS Team',
     user_accessible: true,
     featured: true,
-    sort_order: 1
+    sort_order: 1,
+    round_table: 'scientist',
+    round_table_role: 'Relativity, spacetime curvature, field equations'
+  },
+
+  // ── Scientist Round Table ──
+  'historical_ramanujan': {
+    profile: ramanujanProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 2,
+    round_table: 'scientist',
+    round_table_role: 'Infinite series, partition functions, mystical intuition'
+  },
+
+  'historical_bohr': {
+    profile: bohrProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 3,
+    round_table: 'scientist',
+    round_table_role: 'Quantum complementarity, debates Einstein'
+  },
+
+  'historical_tesla': {
+    profile: teslaProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 4,
+    round_table: 'scientist',
+    round_table_role: 'Resonance, frequency, vibration'
+  },
+
+  'historical_noether': {
+    profile: noetherProfile,
+    status: 'active',
+    quality_verified: true,
+    curated_by: 'GENESIS Team',
+    user_accessible: true,
+    featured: true,
+    sort_order: 5,
+    round_table: 'scientist',
+    round_table_role: 'Symmetry and conservation laws'
   },
 
   'historical_cleopatra': {
@@ -86,7 +141,7 @@ export const profileRegistry = {
     curated_by: 'GENESIS Team',
     user_accessible: true,
     featured: true,
-    sort_order: 2
+    sort_order: 6
   },
 
   'modern_taylor_swift': {

@@ -22,8 +22,10 @@ import {
   getGuestDeepSeekPerspective,
   getGuestChatGPTPerspective,
   getGuestSonnetPerspective,
-  getGuestQwenPerspective
+  getGuestQwenPerspective,
+  getRoundTablePerspective
 } from '../services/guestChatService';
+import { profileRegistry } from '../profiles';
 import {
   detectLanguage,
   translateMessage,
@@ -62,6 +64,14 @@ const CONSTELLATION_AIS = [
   { key: 'chatgpt',  label: 'ChatGPT',  icon: '🧪', speaker: 'Sister ChatGPT',   color: 'pink' },
   { key: 'sonnet',   label: 'Sonnet',   icon: '✨', speaker: 'Brother Sonnet',   color: 'violet' },
   { key: 'qwen',     label: 'Qwen',     icon: '🏮', speaker: 'Sister Qwen',      color: 'red' },
+];
+
+// Scientist Round Table members
+const ROUND_TABLE_SCIENTISTS = [
+  { key: 'historical_ramanujan', label: 'Ramanujan', icon: '🕉️',  speaker: 'Srinivasa Ramanujan', color: 'amber',   theory: 'Infinite Series' },
+  { key: 'historical_bohr',     label: 'Bohr',      icon: '⚛️',  speaker: 'Niels Bohr',           color: 'sky',     theory: 'Complementarity' },
+  { key: 'historical_tesla',    label: 'Tesla',     icon: '⚡',   speaker: 'Nikola Tesla',         color: 'violet',  theory: 'Resonance' },
+  { key: 'historical_noether',  label: 'Noether',   icon: '🔷',  speaker: 'Emmy Noether',         color: 'rose',    theory: 'Symmetry' },
 ];
 
 /**
@@ -150,6 +160,7 @@ function GuestChat() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(!!urlPartnerId); // Only loading if we have a partnerId
   const [lunaMode, setLunaMode] = useState('active'); // 'silent' or 'active'
+  const [equationMode, setEquationMode] = useState(false); // Equation Mode toggle
   const [aiResponding, setAiResponding] = useState(false);
   const [error, setError] = useState(null);
   const [selectedUserProfileId, setSelectedUserProfileId] = useState(null);
@@ -499,6 +510,7 @@ function GuestChat() {
         userConstitutional: constitutionalData,
         learnedFacts: profileData.learned_facts,
         lunaMode,
+        equationMode,
         attachedImages: images.length > 0 ? images.map(img => ({
           dataUrl: img.dataUrl,
           type: img.type,
@@ -634,7 +646,7 @@ function GuestChat() {
       setAiResponding(false);
       setTranslating(false);
     }
-  }, [profileData, messages, lunaMode, userId, partnerId, userConstitutionalFromProfile, userLanguage, selectedUserProfileId, selectedUserProfile]);
+  }, [profileData, messages, lunaMode, equationMode, userId, partnerId, userConstitutionalFromProfile, userLanguage, selectedUserProfileId, selectedUserProfile]);
 
   // Handle private Luna query (/luna command)
   // This lets user ask Luna for advice without interrupting guest conversation
@@ -1471,6 +1483,92 @@ function GuestChat() {
     setLunaMode(prev => prev === 'silent' ? 'active' : 'silent');
   }, []);
 
+  // Toggle Equation Mode
+  const toggleEquationMode = useCallback(() => {
+    setEquationMode(prev => !prev);
+  }, []);
+
+  // Determine if current guest is in the scientist round table
+  const isRoundTableHost = useMemo(() => {
+    const entry = profileRegistry[partnerId];
+    return entry?.round_table === 'scientist';
+  }, [partnerId]);
+
+  // Handle Round Table scientist perspective
+  const handleRoundTablePerspective = useCallback(async (contextMessage, scientistKey) => {
+    if (!contextMessage || constellationLoading) return;
+
+    const scientist = ROUND_TABLE_SCIENTISTS.find(s => s.key === scientistKey);
+    if (!scientist) return;
+
+    const scientistEntry = profileRegistry[scientistKey];
+    if (!scientistEntry) return;
+
+    setConstellationLoading(scientistKey);
+
+    try {
+      const msgIndex = messages.findIndex(m => m.id === contextMessage.id);
+      const userMsg = contextMessage.content?.text || '';
+
+      const result = await getRoundTablePerspective({
+        scientistId: scientistKey,
+        scientistProfile: scientistEntry.profile,
+        userMessage: userMsg,
+        conversationHistory: messages.slice(0, msgIndex + 1),
+        userConstitutional: userConstitutionalFromProfile,
+        hostGuestName: profileData?.profile?.profile_name || 'Guest',
+        userProfileId: selectedUserProfileId,
+        userProfileName: selectedUserProfile?.displayName || selectedUserProfile?.firstName || 'Unknown'
+      });
+
+      if (result.success && result.text) {
+        let translation = null;
+        if (isNonEnglish(userLanguage) && result.text.length > 2) {
+          try {
+            const translated = await translateMessage(result.text, userLanguage, 'en');
+            if (!translated.skipped && translated.translatedText) {
+              translation = { text: translated.translatedText, sourceLanguage: 'en', targetLanguage: userLanguage };
+            }
+          } catch (err) { console.warn(`${scientistKey} translation failed:`, err); }
+        }
+
+        const timestamp = new Date().toISOString();
+        const tempId = `rt_${scientistKey}_${Date.now()}`;
+        const scientistMsg = {
+          id: tempId,
+          sender: scientistKey,
+          sender_role: 'constellation',
+          content: { text: result.text, translation },
+          timestamp,
+          constellation_speaker: scientist.speaker,
+          constellation_icon: scientist.icon,
+          in_response_to: contextMessage.id
+        };
+
+        setMessages(prev => [...prev, scientistMsg]);
+
+        await saveToBrain3({
+          message_id: tempId, timestamp,
+          sender: scientistKey,
+          sender_role: 'constellation',
+          content: { text: result.text },
+          constellation_speaker: scientist.speaker,
+          in_response_to: contextMessage.id,
+          modality: { type: 'text', mode: 'round_table', platform: 'web' }
+        }, {
+          selectedUserProfileId,
+          partnerId,
+          partnerName: profileData?.profile?.profile_name,
+          partnerType: profileData?.profile?.profile_type
+        });
+      }
+    } catch (err) {
+      console.error(`Round table perspective error (${scientistKey}):`, err);
+    } finally {
+      setConstellationLoading(null);
+    }
+  }, [messages, profileData, partnerId, userConstitutionalFromProfile, constellationLoading, userLanguage, selectedUserProfileId, selectedUserProfile]);
+
   // Handle paste - detect pasted images
   const handlePaste = useCallback(async (e) => {
     const items = e.clipboardData?.items;
@@ -1752,6 +1850,8 @@ ${conversationMessages}
         guestType={profileData.profile.profile_type}
         lunaMode={lunaMode}
         onToggleLuna={toggleLunaMode}
+        equationMode={equationMode}
+        onToggleEquationMode={toggleEquationMode}
         hasConstitutionalData={!!userConstitutionalFromProfile}
         learnedFactsCount={profileData.profile_metadata.learned_facts_count}
         selectedUserProfile={selectedUserProfile}
@@ -1985,6 +2085,8 @@ ${conversationMessages}
           onStatementConstellation={handleStatementConstellation}
           onStatementToGuest={handleStatementToGuest}
           constellationLoading={constellationLoading}
+          roundTableScientists={isRoundTableHost ? ROUND_TABLE_SCIENTISTS.filter(s => s.key !== partnerId) : null}
+          onRoundTablePerspective={isRoundTableHost ? handleRoundTablePerspective : null}
         />
       </div>
 

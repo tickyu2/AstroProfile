@@ -47,7 +47,9 @@ function MessageList({
   onGuestResponse,
   onStatementConstellation,
   onStatementToGuest,
-  constellationLoading
+  constellationLoading,
+  roundTableScientists,
+  onRoundTablePerspective
 }) {
   const messagesEndRef = useRef(null);
 
@@ -445,6 +447,38 @@ function MessageList({
                 )}
               </div>
             )}
+
+            {/* Round Table Scientist Buttons (only when host is a round table member) */}
+            {isGuest && roundTableScientists && onRoundTablePerspective && (() => {
+              const RT_COLORS = {
+                amber:  { idle: 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200', loading: 'bg-amber-200 text-amber-800 border-amber-300 cursor-wait' },
+                sky:    { idle: 'bg-sky-50 hover:bg-sky-100 text-sky-700 border-sky-200',          loading: 'bg-sky-200 text-sky-800 border-sky-300 cursor-wait' },
+                violet: { idle: 'bg-violet-50 hover:bg-violet-100 text-violet-700 border-violet-200', loading: 'bg-violet-200 text-violet-800 border-violet-300 cursor-wait' },
+                rose:   { idle: 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200',     loading: 'bg-rose-200 text-rose-800 border-rose-300 cursor-wait' },
+              };
+              return (
+                <div className="flex flex-wrap items-center gap-2 mt-1.5 ml-2">
+                  <span className="text-[10px] text-amber-400/70 font-semibold tracking-wide">ROUND TABLE</span>
+                  {roundTableScientists.map(scientist => {
+                    const colors = RT_COLORS[scientist.color] || RT_COLORS.amber;
+                    const isLoading = constellationLoading === scientist.key;
+                    return (
+                      <button
+                        key={scientist.key}
+                        onClick={() => onRoundTablePerspective(message, scientist.key)}
+                        disabled={constellationLoading}
+                        className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all border ${
+                          isLoading ? colors.loading : `${colors.idle} hover:scale-105`
+                        } disabled:opacity-50`}
+                        title={`${scientist.speaker} — ${scientist.theory}`}
+                      >
+                        {isLoading ? `${scientist.icon} Thinking...` : `${scientist.icon} ${scientist.label}`}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
 
             {/* Constellation AI Buttons for user statements (posted without guest reply) */}
             {isUser && message.is_statement && onStatementConstellation && (

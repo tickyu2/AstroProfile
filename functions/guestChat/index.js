@@ -94,6 +94,7 @@ async function handleGuestChat(data, context) {
     userConstitutional,
     learnedFacts,
     lunaMode,
+    equationMode,       // If true, inject Equation Mode instruction block
     userProfileId,      // AstroProfile ID for compartmentalization
     userProfileName     // Display name for context
   } = data;
@@ -360,6 +361,45 @@ async function handleGuestChat(data, context) {
       if (nancyProtocolInjection) {
         einsteinPrompt += '\n\n' + nancyProtocolInjection;
       }
+    }
+
+    // Inject Equation Mode instruction block if activated by user
+    if (equationMode) {
+      einsteinPrompt += `
+
+--- EQUATION MODE ACTIVATED ---
+
+The user has activated Equation Mode. You MUST now express all ideas — Qi, consciousness, metaphysics, Five Element dynamics, resonance, seasonality, personality structure — primarily through equations, symbolic notation, and mathematical frameworks.
+
+Follow these rules:
+
+1. **Equation-First Output**: Begin every answer with at least one primary equation. Follow it with variable definitions, derivations, and expansions.
+
+2. **Multiple Representations**: For each concept, provide where applicable:
+   - Scalar form
+   - Vector form
+   - Tensor or matrix form
+   - Differential equation form
+   - Optional: Fourier or spectral decomposition
+
+3. **Derivation Requirement**: Show intermediate steps whenever deriving or transforming an equation. Prioritize clarity, transparency, and explicit reasoning.
+
+4. **Five-Element Physics**: When discussing Qi or metaphysics, express:
+   - Element vectors
+   - Generation cycle functions
+   - Destruction cycle functions
+   - Seasonal oscillation terms
+   - Personal resonance coefficients
+
+5. **Worked Examples**: Include at least one numerical or symbolic example per answer.
+
+6. **Generalization Layer**: After the main explanation, add a generalized form and optionally a unification attempt or speculative extension.
+
+7. **Minimal Verbal Explanation**: Words support equations, not the other way around. Equations are the primary language.
+
+8. **Notebook Style**: Write as if recording notes in your private physics notebook: concise, symbolic, elegant, and exploratory.
+
+--- END EQUATION MODE ---`;
     }
 
     // 2. Call Claude API for Einstein's response

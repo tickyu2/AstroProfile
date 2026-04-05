@@ -58,6 +58,7 @@ function formatConversationForConstellation(history, guestName) {
  * @param {Object} params.userConstitutional - User's Brain 1A data
  * @param {Array} params.learnedFacts - Brain 1B learned facts
  * @param {string} params.lunaMode - 'active' or 'silent'
+ * @param {boolean} params.equationMode - If true, guest prioritizes mathematical/equation output
  * @param {string} params.userProfileId - User's AstroProfile ID (for compartmentalization)
  * @param {string} params.userProfileName - User's profile display name
  * @returns {Promise<Object>} Response with guestResponse and optional lunaCoaching
@@ -70,6 +71,7 @@ export async function sendGuestMessage({
   userConstitutional,
   learnedFacts,
   lunaMode,
+  equationMode,
   userProfileId,
   userProfileName
 }) {
@@ -86,6 +88,7 @@ export async function sendGuestMessage({
       userConstitutional,
       learnedFacts,
       lunaMode,
+      equationMode,
       // Compartmentalization: which user profile is chatting
       userProfileId,
       userProfileName
@@ -96,6 +99,63 @@ export async function sendGuestMessage({
   } catch (error) {
     console.error('Guest chat service error:', error);
     throw error;
+  }
+}
+
+/**
+ * Get a Round Table scientist's perspective on the current conversation.
+ * Reuses the guestChat cloud function with the scientist's profile.
+ *
+ * @param {Object} params
+ * @param {string} params.scientistId - Scientist profile ID (e.g., 'historical_ramanujan')
+ * @param {Object} params.scientistProfile - Scientist's full profile object
+ * @param {string} params.userMessage - The message/topic to respond to
+ * @param {Array} params.conversationHistory - Recent conversation for context
+ * @param {Object} params.userConstitutional - User's Brain 1A data
+ * @param {string} params.hostGuestName - Name of the primary guest (e.g., 'Albert Einstein')
+ * @param {string} params.userProfileId - User's AstroProfile ID
+ * @param {string} params.userProfileName - User's display name
+ * @returns {Promise<Object>} Response with guestResponse
+ */
+export async function getRoundTablePerspective({
+  scientistId,
+  scientistProfile,
+  userMessage,
+  conversationHistory,
+  userConstitutional,
+  hostGuestName,
+  userProfileId,
+  userProfileName
+}) {
+  try {
+    const formattedHistory = formatConversationForConstellation(conversationHistory, hostGuestName);
+
+    const contextMessage = `[ROUND TABLE CONTEXT] The user is in a Scientist Round Table session hosted by ${hostGuestName}. You are joining as a panelist. Here is the conversation so far:\n\n${formattedHistory}\n\nNow respond with YOUR unique theoretical perspective on the latest topic. Apply your mathematical/scientific framework. Be concise but equation-rich.\n\nUser's latest message or topic: "${userMessage}"`;
+
+    const result = await guestChatFn({
+      partnerId: scientistId,
+      userMessage: contextMessage,
+      conversationHistory: [],
+      guestProfile: {
+        profile_name: scientistProfile?.profile_name,
+        profile_type: scientistProfile?.profile_type,
+        ai_config: scientistProfile?.ai_config
+      },
+      userConstitutional,
+      learnedFacts: [],
+      lunaMode: 'silent',
+      userProfileId,
+      userProfileName
+    });
+
+    return {
+      success: true,
+      text: result.data?.guestResponse?.content?.text || result.data?.guestResponse || '',
+      speaker: scientistId
+    };
+  } catch (error) {
+    console.error(`Round table perspective error (${scientistId}):`, error);
+    return { success: false, text: '', speaker: scientistId, error: error.message };
   }
 }
 
