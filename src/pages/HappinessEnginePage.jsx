@@ -49,7 +49,7 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
     let frame;
     let t = 0;
     const animate = () => {
-      t += 0.015;
+      t += 0.006;
       setTick(t);
       frame = requestAnimationFrame(animate);
     };
@@ -59,7 +59,7 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
 
   // Core radius breathes with happiness score
   const coreBaseR = 20 + 30 * (happinessScore / 100);
-  const coreR = coreBaseR + 3 * Math.sin(tick * 0.8);
+  const coreR = coreBaseR + 3 * Math.sin(tick * 0.4);
   const coreGlow = Math.max(0, happinessScore / 100);
 
   return (
@@ -77,7 +77,7 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
       {/* Connection lines from core to each pillar */}
       {pillars.map((p, i) => {
         const dist = pillarDistance(p.weight);
-        const bounce = 4 * Math.sin(tick * 1.2 + i * 0.8);
+        const bounce = 3 * Math.sin(tick * 0.5 + i * 0.8);
         const pos = pillarPosition(i, pillars.length, dist + bounce, CENTER, CENTER);
         return (
           <line key={`line-${p.id}`}
@@ -91,11 +91,11 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
       {/* Pillar circles */}
       {pillars.map((p, i) => {
         const dist = pillarDistance(p.weight);
-        const bounce = 4 * Math.sin(tick * 1.2 + i * 0.8);
+        const bounce = 3 * Math.sin(tick * 0.5 + i * 0.8);
         const pos = pillarPosition(i, pillars.length, dist + bounce, CENTER, CENTER);
         const r = pillarRadius(p.score);
         const isSelected = selectedPillar?.id === p.id;
-        const pulseR = r + (isSelected ? 3 * Math.sin(tick * 2) : 1.5 * Math.sin(tick * 1.5 + i));
+        const pulseR = r + (isSelected ? 2.5 * Math.sin(tick * 0.8) : 1.2 * Math.sin(tick * 0.6 + i));
 
         return (
           <g key={p.id}
@@ -135,7 +135,7 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
             {/* Sub-circles (shown when selected) */}
             {isSelected && p.subs.map((sub, si) => {
               const subAngle = -Math.PI / 2 + (2 * Math.PI * si) / p.subs.length;
-              const subDist = pulseR + 22 + 6 * Math.sin(tick * 2 + si);
+              const subDist = pulseR + 22 + 4 * Math.sin(tick * 0.7 + si);
               const sx = pos.x + subDist * Math.cos(subAngle);
               const sy = pos.y + subDist * Math.sin(subAngle);
               const subR = 4 + 8 * sub.score;
