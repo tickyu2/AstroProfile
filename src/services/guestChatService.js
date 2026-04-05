@@ -144,6 +144,7 @@ export async function getRoundTablePerspective({
       userConstitutional,
       learnedFacts: [],
       lunaMode: 'silent',
+      skipPostProcessing: true,
       userProfileId,
       userProfileName
     });

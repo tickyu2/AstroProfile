@@ -95,6 +95,7 @@ async function handleGuestChat(data, context) {
     learnedFacts,
     lunaMode,
     equationMode,       // If true, inject Equation Mode instruction block
+    skipPostProcessing, // If true, skip Brain 1B, Neo4j, topic extraction (used by Round Table)
     userProfileId,      // AstroProfile ID for compartmentalization
     userProfileName     // Display name for context
   } = data;
@@ -463,9 +464,9 @@ Rules:
       }
     }
 
-    // 3. Luna Active Mode - Private Coaching
+    // 3. Luna Active Mode - Private Coaching (skip for round table)
     let lunaCoaching = null;
-    if (lunaMode === 'active') {
+    if (lunaMode === 'active' && !skipPostProcessing) {
       lunaCoaching = await getLunaCoaching({
         userMessage,
         guestResponse: einsteinText,
@@ -480,7 +481,7 @@ Rules:
     let extractedFactsCount = 0;
     let brain1BResult = null;
 
-    if (brain1BService && brain1BService.processMessage) {
+    if (brain1BService && brain1BService.processMessage && !skipPostProcessing) {
       try {
         brain1BResult = await brain1BService.processMessage(
           userId,
@@ -505,14 +506,14 @@ Rules:
     }
 
     // Fallback: Legacy fact extraction (if Brain 1B not available)
-    const legacyFacts = extractBiographicalFacts(userMessage, {
+    const legacyFacts = skipPostProcessing ? [] : extractBiographicalFacts(userMessage, {
       partnerId,
       timestamp
     });
 
     // 4b. Extract topics and update Neo4j conversation memory
     let extractedTopics = [];
-    if (topicExtractor && topicExtractor.extractTopics) {
+    if (topicExtractor && topicExtractor.extractTopics && !skipPostProcessing) {
       extractedTopics = topicExtractor.extractTopics(userMessage, einsteinText, neo4jGuestId);
       if (extractedTopics.length > 0) {
         console.log(`[Topics] Extracted: ${extractedTopics.join(', ')}`);
@@ -520,7 +521,7 @@ Rules:
     }
 
     // Update Neo4j conversation memory (async, don't block)
-    if (neo4jGuestService && neo4jGuestService.isAvailable()) {
+    if (neo4jGuestService && neo4jGuestService.isAvailable() && !skipPostProcessing) {
       neo4jGuestService.updateConversationMemory(userId, neo4jGuestId, {
         topics: extractedTopics
       }).catch(err => {
@@ -529,6 +530,17 @@ Rules:
     }
 
     // 5. Batch write to Firestore - PROFILE-SCOPED BRAIN ARCHITECTURE
+    // Skip for round table calls — client handles Brain 3 persistence
+    if (skipPostProcessing) {
+      return {
+        guestResponse: {
+          content: { text: einsteinText },
+          timestamp,
+          model: 'claude-sonnet-4-20250514'
+        }
+      };
+    }
+
     // Each profile has its own complete brain: profiles/{profileId}/b3_conversations
     // This enables: portable souls, no comingling, per-profile SoulPartner
     const batch = db.batch();
