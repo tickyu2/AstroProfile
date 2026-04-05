@@ -13,6 +13,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useProfiles } from '../contexts/ProfileContext';
 import {
   DEFAULT_PILLARS,
   computeHappiness,
@@ -319,6 +320,10 @@ function SummaryTable({ pillars, result }) {
 // ============================================================================
 
 export default function HappinessEnginePage() {
+  const { profiles, loading: profilesLoading } = useProfiles();
+  const [selectedProfileId, setSelectedProfileId] = useState(null);
+  const [showFloatingBar, setShowFloatingBar] = useState(false);
+
   const [pillars, setPillars] = useState(() => {
     // Initialize with demo scores
     return DEFAULT_PILLARS.map(p => ({
@@ -334,6 +339,18 @@ export default function HappinessEnginePage() {
   });
 
   const [selectedPillar, setSelectedPillar] = useState(null);
+
+  // Selected profile
+  const selectedProfile = useMemo(() => {
+    return profiles?.find(p => p.id === selectedProfileId) || null;
+  }, [profiles, selectedProfileId]);
+
+  // Show floating bar when scrolled past 250px
+  useEffect(() => {
+    const onScroll = () => setShowFloatingBar(window.scrollY > 250);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Recompute happiness when pillars change
   const result = useMemo(() => computeHappiness(pillars), [pillars]);
@@ -361,9 +378,60 @@ export default function HappinessEnginePage() {
     ? pillars.find(p => p.id === selectedPillar.id) || null
     : null;
 
+  // Profile display name helper
+  const profileDisplayName = selectedProfile
+    ? `${selectedProfile.firstName || ''} ${selectedProfile.lastName || ''}`.trim() || 'Selected'
+    : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
-      {/* Header */}
+      {/* ── Floating profile bar — appears when scrolled down ── */}
+      {showFloatingBar && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 border-b border-white/15 shadow-xl backdrop-blur-sm px-4 py-1.5">
+          <div className="max-w-7xl mx-auto flex items-center gap-3 text-[11px] font-mono">
+            {/* Profile selector (compact) */}
+            <select
+              value={selectedProfileId || ''}
+              onChange={(e) => setSelectedProfileId(e.target.value || null)}
+              className="bg-slate-800 border border-white/15 rounded px-2 py-1 text-xs text-white shrink-0"
+            >
+              <option value="">Profile...</option>
+              {profiles?.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.firstName} {p.lastName}
+                </option>
+              ))}
+            </select>
+
+            {/* Profile info */}
+            {selectedProfile && (
+              <div className="flex items-center gap-2 text-gray-400 overflow-hidden min-w-0">
+                <span className="text-gray-500">|</span>
+                <span className="text-gray-300 shrink-0">
+                  {selectedProfile.birthDate || ''}
+                </span>
+                {selectedProfile.birthTime && (
+                  <span className="text-gray-200 shrink-0">{selectedProfile.birthTime}</span>
+                )}
+                {selectedProfile.location?.fullAddress && (
+                  <span className="text-gray-300 truncate">{selectedProfile.location.fullAddress}</span>
+                )}
+              </div>
+            )}
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Happiness score (compact) */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-purple-400 font-bold text-sm">{result.score100}</span>
+              <span className="text-purple-400/50 text-[9px]">Happiness</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Header ── */}
       <div className="border-b border-white/10 bg-slate-900/80 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -386,6 +454,42 @@ export default function HappinessEnginePage() {
               base: {(result.base * 100).toFixed(1)} | R-boost: ×{(1 + 0.35 * (pillars.find(p => p.id === 'R')?.score || 0)).toFixed(2)}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ── Profile Selector Bar ── */}
+      <div className="border-b border-white/5 bg-slate-900/40">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-4">
+          <select
+            value={selectedProfileId || ''}
+            onChange={(e) => setSelectedProfileId(e.target.value || null)}
+            className="bg-slate-800 border border-white/20 rounded-lg px-3 py-2 text-sm text-white"
+          >
+            <option value="">Select profile...</option>
+            {profiles?.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.firstName} {p.lastName}
+              </option>
+            ))}
+          </select>
+
+          {selectedProfile && (
+            <div className="flex items-center gap-3 text-xs text-gray-400">
+              {selectedProfile.birthDate && (
+                <span className="text-gray-300">{selectedProfile.birthDate}</span>
+              )}
+              {selectedProfile.birthTime && (
+                <span className="text-gray-200">{selectedProfile.birthTime}</span>
+              )}
+              {selectedProfile.location?.city && (
+                <span className="text-gray-300">{selectedProfile.location.city}, {selectedProfile.location.country}</span>
+              )}
+            </div>
+          )}
+
+          {!selectedProfile && !profilesLoading && (
+            <span className="text-xs text-white/30">Select a profile to compute happiness from BaZi + Western data</span>
+          )}
         </div>
       </div>
 
