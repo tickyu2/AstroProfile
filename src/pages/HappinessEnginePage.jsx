@@ -71,7 +71,7 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
       {/* Background radial guide rings */}
       {[120, 160, 200].map(r => (
         <circle key={r} cx={CENTER} cy={CENTER} r={r}
-          fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={0.5} />
+          fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={0.6} />
       ))}
 
       {/* Connection lines from core to each pillar */}
@@ -82,7 +82,7 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
         return (
           <line key={`line-${p.id}`}
             x1={CENTER} y1={CENTER} x2={pos.x} y2={pos.y}
-            stroke={p.color} strokeWidth={0.8} opacity={0.2}
+            stroke="#fbbf24" strokeWidth={1.2} opacity={0.45}
             strokeDasharray="4 4"
           />
         );
@@ -104,30 +104,30 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
           >
             {/* Glow */}
             <circle cx={pos.x} cy={pos.y} r={pulseR + 8}
-              fill="none" stroke={p.color} strokeWidth={isSelected ? 2 : 0.5}
-              opacity={isSelected ? 0.5 : 0.15}
+              fill="none" stroke={p.color} strokeWidth={isSelected ? 2.5 : 1}
+              opacity={isSelected ? 0.6 : 0.25}
             />
             {/* Main circle */}
             <circle cx={pos.x} cy={pos.y} r={pulseR}
-              fill={p.color} fillOpacity={0.15 + 0.15 * p.score}
-              stroke={p.color} strokeWidth={isSelected ? 2.5 : 1.5}
-              opacity={isSelected ? 1 : 0.8}
+              fill={p.color} fillOpacity={0.2 + 0.2 * p.score}
+              stroke={p.color} strokeWidth={isSelected ? 2.5 : 2}
+              opacity={1}
             />
             {/* Icon */}
-            <text x={pos.x} y={pos.y - 6} textAnchor="middle" fontSize={14}
+            <text x={pos.x} y={pos.y - 6} textAnchor="middle" fontSize={15}
               dominantBaseline="central" fill="white"
             >
               {p.icon}
             </text>
             {/* Label */}
-            <text x={pos.x} y={pos.y + 10} textAnchor="middle" fontSize={9}
-              fill="white" opacity={0.9} fontWeight={isSelected ? 700 : 500}
+            <text x={pos.x} y={pos.y + 10} textAnchor="middle" fontSize={10}
+              fill="white" opacity={1} fontWeight={isSelected ? 700 : 600}
             >
               {p.shortName}
             </text>
             {/* Score */}
-            <text x={pos.x} y={pos.y + 21} textAnchor="middle" fontSize={8}
-              fill={p.color} opacity={0.8} fontFamily="monospace"
+            <text x={pos.x} y={pos.y + 21} textAnchor="middle" fontSize={9}
+              fill={p.color} opacity={1} fontWeight={600} fontFamily="monospace"
             >
               {Math.round(p.score * 100)}%
             </text>
@@ -142,14 +142,14 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
               return (
                 <g key={sub.id}>
                   <line x1={pos.x} y1={pos.y} x2={sx} y2={sy}
-                    stroke={p.color} strokeWidth={0.5} opacity={0.3}
+                    stroke={p.color} strokeWidth={0.8} opacity={0.5}
                   />
                   <circle cx={sx} cy={sy} r={subR}
-                    fill={p.color} fillOpacity={0.25 + 0.2 * sub.score}
-                    stroke={p.color} strokeWidth={1} opacity={0.7}
+                    fill={p.color} fillOpacity={0.3 + 0.25 * sub.score}
+                    stroke={p.color} strokeWidth={1.2} opacity={0.9}
                   />
                   <text x={sx} y={sy + subR + 9} textAnchor="middle"
-                    fontSize={7} fill="white" opacity={0.7}
+                    fontSize={7.5} fill="white" opacity={0.9}
                   >
                     {sub.name.length > 10 ? sub.name.slice(0, 10) + '…' : sub.name}
                   </text>
@@ -161,21 +161,21 @@ function HappinessWheel({ pillars, happinessScore, selectedPillar, onSelectPilla
       })}
 
       {/* Central Happiness core */}
-      <circle cx={CENTER} cy={CENTER} r={coreR + 12}
-        fill="none" stroke={`rgba(184, 107, 255, ${0.15 + 0.15 * coreGlow})`}
-        strokeWidth={1.5}
+      <circle cx={CENTER} cy={CENTER} r={coreR + 14}
+        fill="none" stroke={`rgba(184, 107, 255, ${0.25 + 0.2 * coreGlow})`}
+        strokeWidth={2}
       />
       <circle cx={CENTER} cy={CENTER} r={coreR}
-        fill={`rgba(120, 60, 220, ${0.3 + 0.3 * coreGlow})`}
-        stroke="rgba(184, 107, 255, 0.8)" strokeWidth={2}
+        fill={`rgba(120, 60, 220, ${0.35 + 0.35 * coreGlow})`}
+        stroke="rgba(200, 140, 255, 0.9)" strokeWidth={2.5}
       />
-      <text x={CENTER} y={CENTER - 8} textAnchor="middle" fontSize={20}
+      <text x={CENTER} y={CENTER - 8} textAnchor="middle" fontSize={22}
         fontWeight={700} fill="white" dominantBaseline="central"
       >
         {happinessScore}
       </text>
-      <text x={CENTER} y={CENTER + 10} textAnchor="middle" fontSize={9}
-        fill="rgba(200, 180, 255, 0.8)"
+      <text x={CENTER} y={CENTER + 12} textAnchor="middle" fontSize={10}
+        fill="rgba(220, 200, 255, 0.95)" fontWeight={600}
       >
         Happiness
       </text>
