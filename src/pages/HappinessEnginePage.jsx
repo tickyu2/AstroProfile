@@ -200,6 +200,10 @@ function PillarDetailPanel({ pillar, onUpdateSub }) {
     );
   }
 
+  // Find weakest sub by contribution (score × weight)
+  const subsWithContrib = pillar.subs.map(s => ({ ...s, contrib: s.score * s.weight }));
+  const weakestSub = subsWithContrib.reduce((a, b) => a.contrib < b.contrib ? a : b);
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -211,7 +215,10 @@ function PillarDetailPanel({ pillar, onUpdateSub }) {
             <span style={{ color: pillar.color }} className="font-mono font-bold">
               {Math.round(pillar.score * 100)}%
             </span>
-            <span className="text-white/40">Weight: {pillar.weight.toFixed(2)}</span>
+            <span className="text-white/50">Weight: {pillar.weight.toFixed(2)} ({Math.round(pillar.weight * 100)}%)</span>
+          </div>
+          <div className="text-[10px] text-white/40 mt-0.5">
+            Weakest: <span className="text-red-400">{weakestSub.name}</span> ({Math.round(weakestSub.score * 100)}%)
           </div>
         </div>
       </div>
@@ -227,36 +234,58 @@ function PillarDetailPanel({ pillar, onUpdateSub }) {
         />
       </div>
 
-      {/* Sub-components */}
+      {/* Sub-components with weights */}
       <div className="space-y-2">
-        <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider">Sub-Components</h4>
+        <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider">Sub-Components (Weighted)</h4>
         {pillar.subs.map(sub => {
           const src = SOURCE_COLORS[sub.source] || SOURCE_COLORS.computed;
+          const contrib = sub.score * sub.weight;
+          const isWeakest = sub.id === weakestSub.id;
           return (
-            <div key={sub.id} className="bg-white/[0.03] rounded-lg p-2.5 border border-white/5">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-white/80">{sub.name}</span>
+            <div key={sub.id} className={`bg-white/[0.03] rounded-lg p-2.5 border ${isWeakest ? 'border-red-500/30' : 'border-white/5'}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-white/90">{sub.name}</span>
                 <div className="flex items-center gap-2">
                   <span className={`text-[9px] px-1.5 py-0.5 rounded ${src.bg} ${src.text}`}>
                     {src.label}
                   </span>
-                  <span className="text-xs font-mono" style={{ color: pillar.color }}>
+                  <span className="text-xs font-mono font-semibold" style={{ color: pillar.color }}>
                     {Math.round(sub.score * 100)}%
                   </span>
                 </div>
+              </div>
+              {/* Weight + Contribution row */}
+              <div className="flex items-center justify-between text-[10px] text-white/50 mb-1.5">
+                <span>w={sub.weight.toFixed(2)} ({Math.round(sub.weight * 100)}%)</span>
+                <span>
+                  contrib: <span className="text-white/70 font-mono">{contrib.toFixed(3)}</span>
+                </span>
               </div>
               {/* Slider */}
               <input
                 type="range" min={0} max={100} value={Math.round(sub.score * 100)}
                 onChange={e => onUpdateSub(pillar.id, sub.id, parseInt(e.target.value) / 100)}
                 className="w-full h-1 appearance-none bg-white/10 rounded-full cursor-pointer"
-                style={{
-                  accentColor: pillar.color,
-                }}
+                style={{ accentColor: pillar.color }}
               />
             </div>
           );
         })}
+      </div>
+
+      {/* Pillar score equation */}
+      <div className="text-[10px] text-white/50 bg-white/[0.02] rounded-lg p-2 border border-white/5 font-mono">
+        <span className="text-white/40">Pillar Score = </span>
+        {pillar.subs.map((s, i) => (
+          <span key={s.id}>
+            {i > 0 && <span className="text-white/30"> + </span>}
+            <span className="text-white/60">{s.score.toFixed(2)}×{s.weight.toFixed(2)}</span>
+          </span>
+        ))}
+        <span className="text-white/30"> = </span>
+        <span style={{ color: pillar.color }} className="font-semibold">{pillar.score.toFixed(3)}</span>
+        <span className="text-white/30"> → </span>
+        <span className="text-white font-semibold">{Math.round(pillar.score * 100)}%</span>
       </div>
     </div>
   );

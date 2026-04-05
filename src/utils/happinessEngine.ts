@@ -16,6 +16,7 @@ export interface SubComponent {
   id: string;
   name: string;
   score: number;       // 0–1
+  weight: number;      // subcomponent weight within pillar (subs weights sum to 1.0)
   source?: string;     // 'bazi' | 'western' | 'tcm' | 'user' | 'computed'
   description?: string;
 }
@@ -47,88 +48,88 @@ export const DEFAULT_PILLARS: Pillar[] = [
     id: 'L', name: 'Longevity', shortName: 'Long', icon: '🏛️',
     color: PILLAR_COLORS.L, weight: 0.15, score: 0,
     subs: [
-      { id: 'sleep', name: 'Sleep Quality', score: 0, source: 'user' },
-      { id: 'inflammation', name: 'Inflammation', score: 0, source: 'tcm' },
-      { id: 'mito', name: 'Mitochondria', score: 0, source: 'computed' },
-      { id: 'cardio', name: 'Cardiovascular', score: 0, source: 'computed' },
-      { id: 'jing', name: 'Jing (Essence)', score: 0, source: 'bazi' },
-      { id: 'antioxidants', name: 'Antioxidants', score: 0, source: 'tcm' },
+      { id: 'sleep', name: 'Sleep Quality', score: 0, weight: 0.25, source: 'user' },
+      { id: 'inflammation', name: 'Inflammation', score: 0, weight: 0.20, source: 'tcm' },
+      { id: 'mito', name: 'Mitochondria', score: 0, weight: 0.15, source: 'computed' },
+      { id: 'cardio', name: 'Cardiovascular', score: 0, weight: 0.20, source: 'computed' },
+      { id: 'jing', name: 'Jing (Essence)', score: 0, weight: 0.10, source: 'bazi' },
+      { id: 'antioxidants', name: 'Antioxidants', score: 0, weight: 0.10, source: 'tcm' },
     ],
   },
   {
     id: 'Q', name: 'Qi Optimization', shortName: 'Qi', icon: '🌀',
     color: PILLAR_COLORS.Q, weight: 0.15, score: 0,
     subs: [
-      { id: 'flow', name: 'Flow State', score: 0, source: 'bazi' },
-      { id: 'coherence', name: 'Coherence', score: 0, source: 'computed' },
-      { id: 'efficiency', name: 'Efficiency', score: 0, source: 'bazi' },
-      { id: 'balance', name: 'Element Balance', score: 0, source: 'bazi' },
-      { id: 'seasonal', name: 'Seasonal Alignment', score: 0, source: 'bazi' },
+      { id: 'flow', name: 'Flow State', score: 0, weight: 0.25, source: 'bazi' },
+      { id: 'coherence', name: 'Coherence', score: 0, weight: 0.25, source: 'computed' },
+      { id: 'efficiency', name: 'Efficiency', score: 0, weight: 0.20, source: 'bazi' },
+      { id: 'balance', name: 'Element Balance', score: 0, weight: 0.20, source: 'bazi' },
+      { id: 'seasonal', name: 'Seasonal Alignment', score: 0, weight: 0.10, source: 'bazi' },
     ],
   },
   {
     id: 'C', name: 'Cognitive Performance', shortName: 'Mind', icon: '🧠',
     color: PILLAR_COLORS.C, weight: 0.15, score: 0,
     subs: [
-      { id: 'clarity', name: 'Mental Clarity', score: 0, source: 'bazi' },
-      { id: 'memory', name: 'Memory', score: 0, source: 'computed' },
-      { id: 'creativity', name: 'Creativity', score: 0, source: 'western' },
-      { id: 'learning', name: 'Learning Speed', score: 0, source: 'bazi' },
-      { id: 'decision', name: 'Decision Making', score: 0, source: 'bazi' },
+      { id: 'clarity', name: 'Mental Clarity', score: 0, weight: 0.30, source: 'bazi' },
+      { id: 'memory', name: 'Memory', score: 0, weight: 0.20, source: 'computed' },
+      { id: 'creativity', name: 'Creativity', score: 0, weight: 0.15, source: 'western' },
+      { id: 'learning', name: 'Learning Speed', score: 0, weight: 0.10, source: 'bazi' },
+      { id: 'decision', name: 'Decision Making', score: 0, weight: 0.25, source: 'bazi' },
     ],
   },
   {
     id: 'N', name: 'Nervous System', shortName: 'Nerves', icon: '🌿',
     color: PILLAR_COLORS.N, weight: 0.15, score: 0,
     subs: [
-      { id: 'stress', name: 'Stress Regulation', score: 0, source: 'bazi' },
-      { id: 'recovery', name: 'Recovery Rate', score: 0, source: 'computed' },
-      { id: 'vagal', name: 'Vagal Tone', score: 0, source: 'computed' },
-      { id: 'resilience', name: 'Emotional Resilience', score: 0, source: 'western' },
-      { id: 'calm', name: 'Baseline Calm', score: 0, source: 'bazi' },
+      { id: 'stress', name: 'Stress Regulation', score: 0, weight: 0.30, source: 'bazi' },
+      { id: 'recovery', name: 'Recovery Rate', score: 0, weight: 0.20, source: 'computed' },
+      { id: 'vagal', name: 'Vagal Tone', score: 0, weight: 0.15, source: 'computed' },
+      { id: 'resilience', name: 'Emotional Resilience', score: 0, weight: 0.20, source: 'western' },
+      { id: 'calm', name: 'Baseline Calm', score: 0, weight: 0.15, source: 'bazi' },
     ],
   },
   {
     id: 'E', name: 'Environment', shortName: 'Env', icon: '🌍',
     color: PILLAR_COLORS.E, weight: 0.10, score: 0,
     subs: [
-      { id: 'home', name: 'Home Fit', score: 0, source: 'user' },
-      { id: 'work', name: 'Work Fit', score: 0, source: 'user' },
-      { id: 'climate', name: 'Climate Resonance', score: 0, source: 'bazi' },
-      { id: 'community', name: 'Community Access', score: 0, source: 'user' },
+      { id: 'home', name: 'Home Fit', score: 0, weight: 0.30, source: 'user' },
+      { id: 'work', name: 'Work Fit', score: 0, weight: 0.30, source: 'user' },
+      { id: 'climate', name: 'Climate Resonance', score: 0, weight: 0.20, source: 'bazi' },
+      { id: 'community', name: 'Community Access', score: 0, weight: 0.20, source: 'user' },
     ],
   },
   {
     id: 'M', name: 'Meaning & Connection', shortName: 'Meaning', icon: '💫',
     color: PILLAR_COLORS.M, weight: 0.15, score: 0,
     subs: [
-      { id: 'purpose_sense', name: 'Sense of Purpose', score: 0, source: 'western' },
-      { id: 'belonging', name: 'Belonging', score: 0, source: 'user' },
-      { id: 'spirituality', name: 'Spiritual Practice', score: 0, source: 'user' },
-      { id: 'contribution', name: 'Contribution', score: 0, source: 'user' },
-      { id: 'identity', name: 'Identity Coherence', score: 0, source: 'bazi' },
+      { id: 'purpose_sense', name: 'Sense of Purpose', score: 0, weight: 0.30, source: 'western' },
+      { id: 'belonging', name: 'Belonging', score: 0, weight: 0.25, source: 'user' },
+      { id: 'spirituality', name: 'Spiritual Practice', score: 0, weight: 0.10, source: 'user' },
+      { id: 'contribution', name: 'Contribution', score: 0, weight: 0.15, source: 'user' },
+      { id: 'identity', name: 'Identity Coherence', score: 0, weight: 0.20, source: 'bazi' },
     ],
   },
   {
     id: 'P', name: 'Purpose / Career', shortName: 'Purpose', icon: '🎯',
     color: PILLAR_COLORS.P, weight: 0.10, score: 0,
     subs: [
-      { id: 'role_fit', name: 'Role Fit', score: 0, source: 'bazi' },
-      { id: 'growth', name: 'Growth Path', score: 0, source: 'western' },
-      { id: 'mastery', name: 'Mastery', score: 0, source: 'bazi' },
-      { id: 'reward', name: 'Reward Alignment', score: 0, source: 'user' },
-      { id: 'impact', name: 'Impact', score: 0, source: 'user' },
+      { id: 'role_fit', name: 'Role Fit', score: 0, weight: 0.30, source: 'bazi' },
+      { id: 'growth', name: 'Growth Path', score: 0, weight: 0.20, source: 'western' },
+      { id: 'mastery', name: 'Mastery', score: 0, weight: 0.20, source: 'bazi' },
+      { id: 'reward', name: 'Reward Alignment', score: 0, weight: 0.15, source: 'user' },
+      { id: 'impact', name: 'Impact', score: 0, weight: 0.15, source: 'user' },
     ],
   },
   {
     id: 'R', name: 'Relationship Resonance', shortName: 'Relate', icon: '💞',
     color: PILLAR_COLORS.R, weight: 0.15, score: 0,
     subs: [
-      { id: 'partner_fit', name: 'Partner Fit', score: 0, source: 'computed' },
-      { id: 'support', name: 'Support Quality', score: 0, source: 'user' },
-      { id: 'communication', name: 'Communication', score: 0, source: 'bazi' },
-      { id: 'emotional', name: 'Emotional Resonance', score: 0, source: 'western' },
-      { id: 'stability', name: 'Relational Stability', score: 0, source: 'computed' },
+      { id: 'partner_fit', name: 'Partner Fit', score: 0, weight: 0.30, source: 'computed' },
+      { id: 'support', name: 'Support Quality', score: 0, weight: 0.20, source: 'user' },
+      { id: 'communication', name: 'Communication', score: 0, weight: 0.20, source: 'bazi' },
+      { id: 'emotional', name: 'Emotional Resonance', score: 0, weight: 0.15, source: 'western' },
+      { id: 'stability', name: 'Relational Stability', score: 0, weight: 0.15, source: 'computed' },
     ],
   },
 ];
@@ -180,10 +181,18 @@ export function computeHappiness(pillars: Pillar[], kR = 0.35): HappinessResult 
 /**
  * Compute pillar score from its sub-components (simple weighted average).
  */
+/**
+ * Compute pillar score from weighted sub-components.
+ * PillarScore = Σ(wᵢ × sᵢ) where weights sum to 1.0.
+ * Falls back to simple average if no weights defined.
+ */
 export function computePillarScore(subs: SubComponent[]): number {
   if (subs.length === 0) return 0;
-  const total = subs.reduce((sum, s) => sum + s.score, 0);
-  return total / subs.length;
+  const hasWeights = subs.every(s => s.weight != null && s.weight > 0);
+  if (hasWeights) {
+    return subs.reduce((sum, s) => sum + s.score * s.weight, 0);
+  }
+  return subs.reduce((sum, s) => sum + s.score, 0) / subs.length;
 }
 
 /**
