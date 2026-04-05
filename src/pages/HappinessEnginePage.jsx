@@ -291,7 +291,7 @@ function SummaryTable({ pillars, result }) {
                 <td className="px-3 py-1.5 text-right" style={{ color: p.color }}>
                   {Math.round(p.score * 100)}%
                 </td>
-                <td className="px-3 py-1.5 text-right text-white/40">
+                <td className="px-3 py-1.5 text-right text-white/60">
                   {p.weight.toFixed(2)}
                 </td>
                 <td className="px-3 py-1.5 text-right text-white/60">
@@ -304,7 +304,7 @@ function SummaryTable({ pillars, result }) {
       </table>
 
       {/* Footer with equation */}
-      <div className="px-3 py-2 bg-white/[0.03] border-t border-white/5 text-[10px] text-white/40">
+      <div className="px-3 py-2 bg-white/[0.03] border-t border-white/5 text-[11px] text-white/70">
         H = <span className="text-purple-300 font-semibold">{result.base.toFixed(4)}</span>
         {' × (1 + 0.35 × R) = '}
         <span className="text-purple-300 font-semibold">{result.boosted.toFixed(4)}</span>
@@ -442,7 +442,7 @@ export default function HappinessEnginePage() {
             </Link>
             <div>
               <h1 className="text-xl font-bold tracking-tight">Human Happiness Engine</h1>
-              <p className="text-xs text-white/40">8-Pillar Blueprint for Human Flourishing</p>
+              <p className="text-xs text-white/60">8-Pillar Blueprint for Human Flourishing</p>
             </div>
           </div>
 
@@ -450,7 +450,7 @@ export default function HappinessEnginePage() {
           <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl px-5 py-2.5 text-right">
             <div className="text-2xl font-bold text-purple-300">{result.score100}</div>
             <div className="text-[10px] text-purple-400/70">Happiness Score</div>
-            <div className="text-[9px] text-white/30 font-mono">
+            <div className="text-[9px] text-white/60 font-mono">
               base: {(result.base * 100).toFixed(1)} | R-boost: ×{(1 + 0.35 * (pillars.find(p => p.id === 'R')?.score || 0)).toFixed(2)}
             </div>
           </div>
@@ -488,7 +488,7 @@ export default function HappinessEnginePage() {
           )}
 
           {!selectedProfile && !profilesLoading && (
-            <span className="text-xs text-white/30">Select a profile to compute happiness from BaZi + Western data</span>
+            <span className="text-xs text-white/50">Select a profile to compute happiness from BaZi + Western data</span>
           )}
         </div>
       </div>
@@ -501,11 +501,11 @@ export default function HappinessEnginePage() {
             <div className="bg-slate-900/50 rounded-2xl border border-white/5 p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-semibold text-white/60">Happiness Constellation</h2>
-                <div className="flex items-center gap-2 text-[9px] text-white/30">
+                <div className="flex items-center gap-2 text-[9px] text-white/60">
                   <span>Size = strength</span>
-                  <span className="text-white/10">|</span>
+                  <span className="text-white/30">|</span>
                   <span>Distance = weight</span>
-                  <span className="text-white/10">|</span>
+                  <span className="text-white/30">|</span>
                   <span>Click to expand</span>
                 </div>
               </div>
@@ -518,7 +518,7 @@ export default function HappinessEnginePage() {
               />
 
               {/* Equation display */}
-              <div className="mt-3 text-center text-[10px] text-white/30 font-mono">
+              <div className="mt-3 text-center text-[11px] text-white/70 font-mono">
                 H = (L<sup>0.15</sup> Q<sup>0.15</sup> C<sup>0.15</sup> N<sup>0.15</sup> E<sup>0.10</sup> M<sup>0.15</sup> P<sup>0.10</sup> R<sup>0.15</sup>) × (1 + 0.35R)
               </div>
             </div>
@@ -529,13 +529,13 @@ export default function HappinessEnginePage() {
               <SummaryTable pillars={pillars} result={result} />
 
               {/* Insight */}
-              <div className="mt-3 text-xs text-white/50 space-y-1">
+              <div className="mt-3 text-xs text-white/70 space-y-1">
                 <p>
                   <span className="text-red-400">{result.weakest.icon} {result.weakest.name}</span> is your weakest pillar at{' '}
                   <span className="text-red-300 font-mono">{Math.round(result.weakest.score * 100)}%</span>.
                   {' '}Raising it would have the largest impact on your overall happiness.
                 </p>
-                <p className="text-[10px] text-white/30">
+                <p className="text-[10px] text-white/50">
                   The multiplicative model means a single weak pillar drags everything down —
                   like a tide that must lift all boats.
                 </p>
@@ -563,7 +563,7 @@ export default function HappinessEnginePage() {
                   </span>
                 ))}
               </div>
-              <p className="text-[10px] text-white/30 mt-2">
+              <p className="text-[10px] text-white/50 mt-2">
                 Each sub-component is sourced from BaZi, Western Astrology, TCM, user input, or computed from other values.
                 Adjust sliders to explore how changes affect your Happiness Score.
               </p>

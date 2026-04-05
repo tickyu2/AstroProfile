@@ -198,7 +198,7 @@ export function pillarRadius(score: number, baseRadius = 28, maxRadius = 52): nu
  * Compute distance from center for a pillar based on its weight.
  * Higher weight → closer to center.
  */
-export function pillarDistance(weight: number, minDist = 100, maxDist = 180): number {
+export function pillarDistance(weight: number, minDist = 130, maxDist = 200): number {
   // weight ranges from 0.10 to 0.15 typically
   // normalize: 0.10 → far, 0.15 → close
   const norm = (weight - 0.08) / (0.17 - 0.08); // expand range for more spread
