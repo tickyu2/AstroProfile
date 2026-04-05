@@ -266,7 +266,10 @@ function PillarDetailPanel({ pillar, onUpdateSub }) {
 // SUMMARY TABLE — All pillars at a glance
 // ============================================================================
 
-function SummaryTable({ pillars, result }) {
+function SummaryTable({ pillars, result, onSelectPillar, selectedPillar }) {
+  const R = pillars.find(p => p.id === 'R')?.score ?? 0;
+  const rBoost = 1 + 0.35 * R;
+
   return (
     <div className="overflow-hidden rounded-lg border border-white/10">
       <table className="w-full text-xs font-mono">
@@ -275,6 +278,8 @@ function SummaryTable({ pillars, result }) {
             <th className="px-3 py-2 text-left">Pillar</th>
             <th className="px-3 py-2 text-right">Score</th>
             <th className="px-3 py-2 text-right">Weight</th>
+            <th className="px-3 py-2 text-right">Weight%</th>
+            <th className="px-3 py-2 text-right">Calculation</th>
             <th className="px-3 py-2 text-right">Contrib</th>
           </tr>
         </thead>
@@ -283,21 +288,35 @@ function SummaryTable({ pillars, result }) {
             const contrib = result.pillarContributions[i]?.contribution ?? 0;
             const isWeakest = result.weakest.id === p.id;
             const isStrongest = result.strongest.id === p.id;
+            const isActive = selectedPillar?.id === p.id;
+            const scoreVal = Math.max(0.001, p.score);
             return (
-              <tr key={p.id} className="border-t border-white/5">
-                <td className="px-3 py-1.5 text-white/80">
-                  <span className="mr-1.5">{p.icon}</span>
-                  {p.shortName}
+              <tr
+                key={p.id}
+                className={`border-t border-white/5 cursor-pointer transition-colors ${isActive ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]'}`}
+                onClick={() => onSelectPillar(isActive ? null : p)}
+              >
+                <td className="px-3 py-1.5 text-white/90">
+                  <span className="mr-1">{p.icon}</span>
+                  <span className="text-white/50 mr-1">{p.id}</span>
+                  <span className="text-[10px]">–</span>
+                  <span className="ml-1">{p.name}</span>
                   {isWeakest && <span className="ml-1 text-red-400 text-[9px]">LOW</span>}
                   {isStrongest && <span className="ml-1 text-green-400 text-[9px]">TOP</span>}
                 </td>
-                <td className="px-3 py-1.5 text-right" style={{ color: p.color }}>
+                <td className="px-3 py-1.5 text-right font-semibold" style={{ color: p.color }}>
                   {Math.round(p.score * 100)}%
                 </td>
                 <td className="px-3 py-1.5 text-right text-white/60">
                   {p.weight.toFixed(2)}
                 </td>
-                <td className="px-3 py-1.5 text-right text-white/60">
+                <td className="px-3 py-1.5 text-right text-white/70">
+                  {Math.round(p.weight * 100)}%
+                </td>
+                <td className="px-3 py-1.5 text-right text-white/50 text-[10px]">
+                  {scoreVal.toFixed(2)}<sup>{p.weight.toFixed(2)}</sup>
+                </td>
+                <td className="px-3 py-1.5 text-right text-white/70 font-semibold">
                   {contrib.toFixed(4)}
                 </td>
               </tr>
@@ -306,13 +325,62 @@ function SummaryTable({ pillars, result }) {
         </tbody>
       </table>
 
-      {/* Footer with equation */}
-      <div className="px-3 py-2 bg-white/[0.03] border-t border-white/5 text-[11px] text-white/70">
-        H = <span className="text-purple-300 font-semibold">{result.base.toFixed(4)}</span>
-        {' × (1 + 0.35 × R) = '}
-        <span className="text-purple-300 font-semibold">{result.boosted.toFixed(4)}</span>
-        {' → '}
-        <span className="text-white font-bold">{result.score100}</span>
+      {/* Footer with step-by-step equation */}
+      <div className="px-3 py-3 bg-white/[0.03] border-t border-white/5 text-[11px] text-white/70 space-y-1.5">
+        {/* Step 1: Product of contributions */}
+        <div>
+          <span className="text-white/50">Step 1 — Base (geometric mean):</span>
+          <div className="mt-0.5 ml-2">
+            H<sub>base</sub> = {pillars.map((p, i) => (
+              <span key={p.id}>
+                {i > 0 && <span className="text-white/30"> × </span>}
+                <span style={{ color: p.color }}>{p.id}</span>
+                <sup>{p.weight.toFixed(2)}</sup>
+              </span>
+            ))}
+          </div>
+          <div className="mt-0.5 ml-2">
+            H<sub>base</sub> = {pillars.map((p, i) => {
+              const contrib = result.pillarContributions[i]?.contribution ?? 0;
+              return (
+                <span key={p.id}>
+                  {i > 0 && <span className="text-white/30"> × </span>}
+                  <span style={{ color: p.color }}>{contrib.toFixed(4)}</span>
+                </span>
+              );
+            })}
+            <span className="text-white/30"> = </span>
+            <span className="text-purple-300 font-semibold">{result.base.toFixed(4)}</span>
+          </div>
+        </div>
+
+        {/* Step 2: R multiplier */}
+        <div>
+          <span className="text-white/50">Step 2 — Relationship boost:</span>
+          <div className="mt-0.5 ml-2">
+            H = H<sub>base</sub> × (1 + 0.35 × <span style={{ color: PILLAR_COLORS.R }}>R</span>)
+            <span className="text-white/30"> = </span>
+            <span className="text-purple-300">{result.base.toFixed(4)}</span>
+            <span className="text-white/30"> × </span>
+            (1 + 0.35 × <span style={{ color: PILLAR_COLORS.R }}>{R.toFixed(2)}</span>)
+            <span className="text-white/30"> = </span>
+            <span className="text-purple-300">{result.base.toFixed(4)}</span>
+            <span className="text-white/30"> × </span>
+            <span className="text-pink-300">{rBoost.toFixed(4)}</span>
+            <span className="text-white/30"> = </span>
+            <span className="text-purple-300 font-semibold">{result.boosted.toFixed(4)}</span>
+          </div>
+        </div>
+
+        {/* Step 3: Final score */}
+        <div>
+          <span className="text-white/50">Step 3 — Final score:</span>
+          <div className="mt-0.5 ml-2">
+            H × 100 = <span className="text-purple-300">{result.boosted.toFixed(4)}</span>
+            <span className="text-white/30"> × 100 = </span>
+            <span className="text-white font-bold text-sm">{result.score100}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -529,7 +597,7 @@ export default function HappinessEnginePage() {
             {/* Summary table */}
             <div className="mt-4 bg-slate-900/50 rounded-2xl border border-white/5 p-4">
               <h2 className="text-sm font-semibold text-white/60 mb-3">All Pillars Summary</h2>
-              <SummaryTable pillars={pillars} result={result} />
+              <SummaryTable pillars={pillars} result={result} onSelectPillar={setSelectedPillar} selectedPillar={activePillar} />
 
               {/* Insight */}
               <div className="mt-3 text-xs text-white/70 space-y-1">
