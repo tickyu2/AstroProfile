@@ -12,6 +12,15 @@
 
 // ── Pillar definitions ──
 
+export interface MicroComponent {
+  id: string;
+  name: string;
+  score: number;       // 0–1
+  weight: number;      // micro weight within sub (sum to 1.0)
+  inverse?: boolean;   // if true, lower raw = better (e.g., fog, emotional interference)
+  source?: string;
+}
+
 export interface SubComponent {
   id: string;
   name: string;
@@ -19,6 +28,7 @@ export interface SubComponent {
   weight: number;      // subcomponent weight within pillar (subs weights sum to 1.0)
   source?: string;     // 'bazi' | 'western' | 'tcm' | 'user' | 'computed'
   description?: string;
+  micros?: MicroComponent[];  // optional drill-down micro-components
 }
 
 export interface Pillar {
@@ -71,7 +81,15 @@ export const DEFAULT_PILLARS: Pillar[] = [
     id: 'C', name: 'Cognitive Performance', shortName: 'Mind', icon: '🧠',
     color: PILLAR_COLORS.C, weight: 0.15, score: 0,
     subs: [
-      { id: 'clarity', name: 'Mental Clarity', score: 0, weight: 0.30, source: 'bazi' },
+      { id: 'clarity', name: 'Mental Clarity', score: 0, weight: 0.30, source: 'bazi',
+        micros: [
+          { id: 'focus', name: 'Focus Stability', score: 0, weight: 0.30, source: 'bazi' },
+          { id: 'organization', name: 'Thought Organization', score: 0, weight: 0.25, source: 'bazi' },
+          { id: 'fog', name: 'Cognitive Fog', score: 0, weight: 0.20, inverse: true, source: 'computed' },
+          { id: 'processing', name: 'Processing Ease', score: 0, weight: 0.15, source: 'western' },
+          { id: 'emotion', name: 'Emotional Interference', score: 0, weight: 0.10, inverse: true, source: 'computed' },
+        ],
+      },
       { id: 'memory', name: 'Memory', score: 0, weight: 0.20, source: 'computed' },
       { id: 'creativity', name: 'Creativity', score: 0, weight: 0.15, source: 'western' },
       { id: 'learning', name: 'Learning Speed', score: 0, weight: 0.10, source: 'bazi' },
@@ -181,6 +199,19 @@ export function computeHappiness(pillars: Pillar[], kR = 0.35): HappinessResult 
 /**
  * Compute pillar score from its sub-components (simple weighted average).
  */
+/**
+ * Compute a sub-component's score from its micro-components (if any).
+ * For inverse micros (fog, emotional interference), uses (1 - score).
+ * MicroScore = Σ(wᵢ × effectiveScore)
+ */
+export function computeMicroScore(micros: MicroComponent[]): number {
+  if (!micros || micros.length === 0) return 0;
+  return micros.reduce((sum, m) => {
+    const effective = m.inverse ? (1 - m.score) : m.score;
+    return sum + effective * m.weight;
+  }, 0);
+}
+
 /**
  * Compute pillar score from weighted sub-components.
  * PillarScore = Σ(wᵢ × sᵢ) where weights sum to 1.0.

@@ -18,6 +18,7 @@ import {
   DEFAULT_PILLARS,
   computeHappiness,
   computePillarScore,
+  computeMicroScore,
   pillarRadius,
   pillarDistance,
   pillarPosition,
@@ -270,6 +271,39 @@ function PillarDetailPanel({ pillar, onUpdateSub }) {
                 className="w-full h-1 appearance-none bg-white/10 rounded-full cursor-pointer"
                 style={{ accentColor: pillar.color }}
               />
+
+              {/* Micro-component drill-down (if this sub has micros) */}
+              {sub.micros && sub.micros.length > 0 && (
+                <div className="mt-2 ml-1 pl-2 border-l-2 space-y-1" style={{ borderColor: `${pillar.color}40` }}>
+                  <div className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Micro-Breakdown</div>
+                  {sub.micros.map(micro => {
+                    const effective = micro.inverse ? (1 - micro.score) : micro.score;
+                    const mContrib = effective * micro.weight;
+                    return (
+                      <div key={micro.id} className="flex items-center justify-between text-[10px]">
+                        <span className="text-white/70">
+                          {micro.name}
+                          {micro.inverse && <span className="text-white/30 ml-0.5">(inv)</span>}
+                        </span>
+                        <span className="font-mono text-white/60">
+                          {micro.inverse ? (
+                            <><span className="text-red-400">{Math.round(micro.score * 100)}%</span> → <span className="text-green-400">{Math.round(effective * 100)}%</span></>
+                          ) : (
+                            <span style={{ color: pillar.color }}>{Math.round(micro.score * 100)}%</span>
+                          )}
+                          <span className="text-white/30 ml-1">w={micro.weight.toFixed(2)}</span>
+                          <span className="text-white/40 ml-1">c={mContrib.toFixed(3)}</span>
+                        </span>
+                      </div>
+                    );
+                  })}
+                  <div className="text-[9px] text-white/40 font-mono mt-1">
+                    Micro total = <span style={{ color: pillar.color }}>{computeMicroScore(sub.micros).toFixed(3)}</span>
+                    <span className="text-white/30"> → </span>
+                    <span className="text-white/60">{Math.round(computeMicroScore(sub.micros) * 100)}%</span>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
@@ -605,13 +639,20 @@ export default function HappinessEnginePage() {
   const [showFloatingBar, setShowFloatingBar] = useState(false);
 
   const [pillars, setPillars] = useState(() => {
-    // Initialize with demo scores
+    // Initialize with demo scores, including micro-components
     return DEFAULT_PILLARS.map(p => ({
       ...p,
-      subs: p.subs.map(s => ({
-        ...s,
-        score: 0.3 + Math.random() * 0.5, // random 30–80% for demo
-      })),
+      subs: p.subs.map(s => {
+        // Seed micro-components if they exist
+        if (s.micros && s.micros.length > 0) {
+          const seededMicros = s.micros.map(m => ({
+            ...m,
+            score: 0.2 + Math.random() * 0.6, // 20–80% for demo
+          }));
+          return { ...s, micros: seededMicros, score: computeMicroScore(seededMicros) };
+        }
+        return { ...s, score: 0.3 + Math.random() * 0.5 };
+      }),
     })).map(p => ({
       ...p,
       score: computePillarScore(p.subs),
