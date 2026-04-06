@@ -10561,23 +10561,28 @@ export default function QiBraceletPage() {
                               {breakdown.map(d => {
                                 const tierColor = d.multiplier >= 1.6 ? '#4ade80' : d.multiplier >= 1.3 ? '#86efac' : d.multiplier >= 1.0 ? '#9ca3af' : '#f87171';
                                 const tierLabel = d.multiplier >= 1.6 ? 'Deep' : d.multiplier >= 1.3 ? 'Solid' : d.multiplier >= 1.0 ? 'Light' : 'None';
-                                // Build per-pillar contribution lookup
-                                const pillarContrib = {};
-                                ['Year', 'Month', 'Day', 'Hour'].forEach(p => { pillarContrib[p] = 0; });
-                                d.perBranch.forEach(s => { pillarContrib[s.pillar] += s.contribution; });
+                                // Build per-pillar sources lookup
+                                const pillarSources = {};
+                                ['Year', 'Month', 'Day', 'Hour'].forEach(p => { pillarSources[p] = []; });
+                                d.perBranch.forEach(s => { pillarSources[s.pillar].push(s); });
 
                                 return (
                                   <tr key={d.element} className="border-t border-white/5">
                                     <td className="px-2 py-1 font-semibold" style={{ color: ELEM_COLORS[d.element] }}>{d.element}</td>
                                     {['Year', 'Month', 'Day', 'Hour'].map(p => {
-                                      const c = pillarContrib[p];
+                                      const sources = pillarSources[p];
+                                      if (sources.length === 0) {
+                                        return <td key={p} className="px-2 py-1 text-center"><span className="text-gray-500">—</span></td>;
+                                      }
+                                      const total = sources.reduce((s, x) => s + x.contribution, 0);
                                       return (
                                         <td key={p} className="px-2 py-1 text-center">
-                                          {c > 0 ? (
-                                            <span className="text-amber-300">{c.toFixed(2)}</span>
-                                          ) : (
-                                            <span className="text-gray-500">—</span>
-                                          )}
+                                          <div className="text-amber-300 font-semibold">{total.toFixed(2)}</div>
+                                          {sources.map((s, si) => (
+                                            <div key={si} className="text-[7px] text-gray-400 leading-tight">
+                                              {s.weight}×{s.seasonFactor?.toFixed(2) ?? '?'}
+                                            </div>
+                                          ))}
                                         </td>
                                       );
                                     })}

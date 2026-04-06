@@ -335,7 +335,7 @@ export interface RootingBreakdown {
   element: ElementName;
   points: number;
   multiplier: number;
-  perBranch: { pillar: string; branchChar: string; animal: string; stemChar: string; pct: number; weight: number; contribution: number }[];
+  perBranch: { pillar: string; branchChar: string; animal: string; stemChar: string; pct: number; weight: number; seasonFactor: number; contribution: number }[];
 }
 
 /**
@@ -376,7 +376,7 @@ function computeElementRooting(
       rootPoints[el] += contribution;
       perElementPerBranch[el].push({
         pillar: pillarLabels[i], branchChar: p.branch.char, animal,
-        stemChar: hs.stem, pct: hs.pct, weight: pillarWeight, contribution,
+        stemChar: hs.stem, pct: hs.pct, weight: pillarWeight, seasonFactor: sFactor, contribution,
       });
     }
   }
