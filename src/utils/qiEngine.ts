@@ -307,6 +307,50 @@ function animalName(char: string): string {
   return BRANCHES[char]?.animal || 'Unknown';
 }
 
+// ── Rooting influence weights per pillar (separate from TFQ pillar weights) ──
+// These represent how much each branch contributes to elemental rooting.
+// Month branch is strongest (seasonal environment), Year is weakest (ancestral).
+const ROOTING_INFLUENCE: Record<string, number> = {
+  Year: 0.08,
+  Month: 0.45,
+  Day: 0.35,
+  Hour: 0.12,
+};
+
+/**
+ * Compute rooting boost for each element across all 4 branches.
+ * For each branch, if an element appears in its hidden stems, that element
+ * gets a rooting boost = pillar_rooting_weight × hidden_stem_pct/100.
+ *
+ * Returns a multiplier per element: 1.0 (no root) to ~1.3 (well-rooted).
+ */
+function computeElementRooting(pillars: any[]): QiDist {
+  const pillarLabels = ['Year', 'Month', 'Day', 'Hour'];
+  const rootPoints: QiDist = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+
+  for (let i = 0; i < 4; i++) {
+    const p = pillars[i];
+    if (!p?.branch?.char) continue;
+    const hidden = HIDDEN_STEMS[p.branch.char] || [];
+    const rootWeight = ROOTING_INFLUENCE[pillarLabels[i]] || 0.10;
+
+    for (const hs of hidden) {
+      const el = stemElement(hs.stem);
+      // Rooting contribution = pillar influence × presence strength (pct/100)
+      rootPoints[el] += rootWeight * (hs.pct / 100);
+    }
+  }
+
+  // Convert root points to multipliers: 0 points → ×1.0, 0.5 → ×1.15, 1.0+ → ×1.30
+  const multipliers: QiDist = { Wood: 1.0, Fire: 1.0, Earth: 1.0, Metal: 1.0, Water: 1.0 };
+  for (const k of ELEMENT_KEYS) {
+    // Soft cap: rooting boost is 0.30 × min(rootPoints, 1.0)
+    const capped = Math.min(rootPoints[k], 1.0);
+    multipliers[k] = 1.0 + 0.30 * capped;
+  }
+  return multipliers;
+}
+
 /** Map lowercase seasonal weights to capitalized ElementName keys */
 function seasonalWeightsFor(monthBranch: string): QiDist {
   const w = getSeasonalWeights(monthBranch);
@@ -366,8 +410,15 @@ export function computeNatalQi(
     day: emptyBreakdown(), hour: emptyBreakdown(),
   };
 
+  // Compute element rooting multipliers from all 4 branches
+  const rootMult = computeElementRooting(pillars);
+  const rootedElements = ELEMENT_KEYS.filter(k => rootMult[k] > 1.001);
+
   steps.push('Layer 1: Pillar Composition (stem = 1 pt, branch = 10 pts)');
   steps.push(`Birth Season (${birthMonthBranch}): ${ELEMENT_KEYS.map(k => `${k}×${sw[k]}`).join(', ')}`);
+  if (rootedElements.length > 0) {
+    steps.push(`Rooting: ${rootedElements.map(k => `${k}×${rootMult[k].toFixed(2)}`).join(', ')} (unrooted elements ×1.00)`);
+  }
   steps.push('');
 
   for (let i = 0; i < 4; i++) {
@@ -407,19 +458,31 @@ export function computeNatalQi(
       pSteps.push(hsLine);
     }
 
-    // Raw pillar total (pre-season)
+    // Raw pillar total (pre-rooting)
     const rawNonzero = ELEMENT_KEYS.filter(k => raw[k] > 0);
     const rawLine = `Raw: ${rawNonzero.map(k => `${k}=${raw[k].toFixed(1)}`).join(', ')} (${sumQi(raw).toFixed(0)} pts)`;
     steps.push(`  ${rawLine}`);
     pSteps.push(rawLine);
 
-    // Apply birth season to this pillar
+    // Apply rooting multipliers
+    const rooted = emptyQi();
+    for (const k of ELEMENT_KEYS) {
+      rooted[k] = raw[k] * rootMult[k];
+    }
+    const rootedNonzero = ELEMENT_KEYS.filter(k => rooted[k] > 0.01 && rootMult[k] > 1.001);
+    if (rootedNonzero.length > 0) {
+      const rootLine = `Rooting: ${rootedNonzero.map(k => `${k}=${raw[k].toFixed(1)}×${rootMult[k].toFixed(2)}=${rooted[k].toFixed(2)}`).join(', ')}`;
+      steps.push(`  ${rootLine}`);
+      pSteps.push(rootLine);
+    }
+
+    // Apply birth season to rooted pillar
     const seasoned = emptyQi();
     for (const k of ELEMENT_KEYS) {
-      seasoned[k] = raw[k] * sw[k];
+      seasoned[k] = rooted[k] * sw[k];
     }
     const seasonedNonzero = ELEMENT_KEYS.filter(k => seasoned[k] > 0.01);
-    const seasonLine = `Season (${birthMonthBranch}): ${seasonedNonzero.map(k => `${k}=${raw[k].toFixed(1)}×${sw[k]}=${seasoned[k].toFixed(2)}`).join(', ')}`;
+    const seasonLine = `Season (${birthMonthBranch}): ${seasonedNonzero.map(k => `${k}=${rooted[k].toFixed(2)}×${sw[k]}=${seasoned[k].toFixed(2)}`).join(', ')}`;
     steps.push(`  ${seasonLine}`);
     pSteps.push(seasonLine);
     steps.push('');
