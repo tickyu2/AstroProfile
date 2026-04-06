@@ -1438,61 +1438,62 @@ Rooting determines:
 
 Think of it like a tree: the stem is the trunk above ground, but the branches' hidden stems are the root system underground. A tree without roots falls in the first wind.
 
-## Rooting Influence Weights Per Pillar
+## Rooting Pillar Weights (Stage 2 — same as Day Master Strength)
 
 Each branch contributes differently to rooting based on its position in the chart:
 
 | Pillar | Branch | Rooting Weight | Why |
 |---|---|---|---|
-| **Month** | Birth month | **0.45** | Strongest — the seasonal environment shapes all Qi |
-| **Day** | Day branch | **0.35** | Your personal foundation — the ground you stand on |
-| **Hour** | Hour branch | **0.12** | Inner layer — subtle, personal, less visible |
-| **Year** | Year branch | **0.08** | Ancestral background — distant but present |
+| **Month** | Birth month | **1.2** | Strongest root — seasonal environment shapes all Qi |
+| **Day** | Day branch | **1.0** | Standard — your personal foundation |
+| **Year** | Year branch | **0.7** | Ancestral background — weaker but present |
+| **Hour** | Hour branch | **0.7** | Inner layer — subtle, personal |
 
-These weights are **separate from TFQ pillar weights** (10/30/35/15/10). Rooting influence and Qi weighting are two different layers.
+These weights are the **same weights used in the Day Master Strength gauntlet (Stage 2)**. They are separate from TFQ pillar weights (10/30/35/15/10).
 
-## How Rooting is Computed
+## How Rooting is Computed (Stage 2 Logic)
 
 For each of the 5 elements, we scan all 4 branches:
 
 \`\`\`
-Root Points(element) = Σ (rooting_weight × hidden_stem_pct / 100)
+Root Points(element) = Σ (pillar_root_weight × seasonal_factor)
 \`\`\`
 
 For each branch:
 - Check if the element appears in the branch's hidden stems
-- If yes: contribution = **pillar rooting weight × hidden stem percentage / 100**
+- If yes: contribution = **pillar rooting weight × seasonal factor** (for that element in the birth month)
 - If no: contribution = 0
 
-### Root Points → Multiplier
+The **seasonal factor** means elements that are in-season root more strongly, while out-of-season elements root weakly even if present.
 
-\`\`\`
-Multiplier = 1.0 + 0.30 × min(rootPoints, 1.0)
-\`\`\`
+### Root Points → Tier → Multiplier
 
-| Root Points | Multiplier | Meaning |
-|---|---|---|
-| 0.00 | ×1.00 | No root — element is floating, unchanged |
-| 0.25 | ×1.08 | Light root — some underground support |
-| 0.50 | ×1.15 | Moderate root — solid foundation |
-| 0.75 | ×1.23 | Strong root — deep support |
-| 1.00+ | ×1.30 | Maximum root — element is deeply anchored (capped) |
+Root points are converted to **tiers** (same as DM Strength Stage 2):
+
+| Total Points | Tier | Multiplier | Meaning |
+|---|---|---|---|
+| < 0.5 | No root | **×0.7** | Element is floating — weakened by 30% |
+| 0.5 – 1.5 | Light root | **×1.0** | Some support — baseline strength |
+| 1.5 – 2.5 | Solid root | **×1.3** | Well-supported — 30% boost |
+| ≥ 2.5 | Deep root | **×1.6** | Deeply anchored — 60% boost |
+
+**Key insight**: An element with NO root is **penalized** (×0.7), not just left unchanged. This reflects classical BaZi: a floating element is weaker than a rooted one.
 
 ## Example: Eileen Gu (己 Yin Earth)
 
-Let's trace **Wood** rooting across her 4 branches:
+Let's trace **Wood** rooting across her 4 branches (birth month 申 Monkey, Wood seasonal factor = 0.60):
 
-| Pillar | Branch | Hidden Stems | Wood? | Weight | Contribution |
+| Pillar | Branch | Wood Present? | Pillar Weight | Season Factor | Contribution |
 |---|---|---|---|---|---|
-| Year | 未 Goat | 己(60%) 丁(30%) 乙(10%) | **乙 Yes** (10%) | 0.08 | 0.08 × 0.10 = 0.008 |
-| Month | 申 Monkey | 庚(60%) 壬(30%) 戊(10%) | No | 0.45 | 0 |
-| Day | 卯 Rabbit | 乙(100%) | **乙 Yes** (100%) | 0.35 | 0.35 × 1.00 = 0.350 |
-| Hour | 巳 Snake | 丙(60%) 庚(30%) 戊(10%) | No | 0.12 | 0 |
+| Year | 未 Goat | **乙 Yes** | 0.7 | 0.60 | 0.7 × 0.60 = 0.42 |
+| Month | 申 Monkey | No | 1.2 | — | 0 |
+| Day | 卯 Rabbit | **乙 Yes** | 1.0 | 0.60 | 1.0 × 0.60 = 0.60 |
+| Hour | 巳 Snake | No | 0.7 | — | 0 |
 
-**Wood root points = 0.008 + 0 + 0.350 + 0 = 0.358**
-**Wood multiplier = 1.0 + 0.30 × min(0.358, 1.0) = ×1.107**
+**Wood root points = 0.42 + 0 + 0.60 + 0 = 1.02**
+**Wood tier = Light root (0.5–1.5) → ×1.0**
 
-This means Wood gets a **10.7% boost** from rooting — it has a moderate root in the Day Branch (卯 Rabbit is pure Wood).
+Wood has light rooting — enough to maintain baseline strength but not enough for a boost.
 
 ## Where Rooting Fits in the Pipeline
 

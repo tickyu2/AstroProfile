@@ -317,15 +317,19 @@ function animalName(char: string): string {
   return BRANCHES[char]?.animal || 'Unknown';
 }
 
-// ── Rooting influence weights per pillar (separate from TFQ pillar weights) ──
-// These represent how much each branch contributes to elemental rooting.
-// Month branch is strongest (seasonal environment), Year is weakest (ancestral).
-const ROOTING_INFLUENCE: Record<string, number> = {
-  Year: 0.08,
-  Month: 0.45,
-  Day: 0.35,
-  Hour: 0.12,
+// ── Rooting pillar weights — same as DM Strength Stage 2 ──
+// Month is strongest root (seasonal environment), Day is personal foundation.
+const ROOTING_PILLAR_WEIGHT: Record<string, number> = {
+  Day: 1.0, Month: 1.2, Year: 0.7, Hour: 0.7,
 };
+
+// Rooting tiers — same as DM Strength Stage 2
+const ROOTING_TIERS: { maxPts: number; label: string; mult: number }[] = [
+  { maxPts: 0.5,       label: 'No root',    mult: 0.7 },
+  { maxPts: 1.5,       label: 'Light root',  mult: 1.0 },
+  { maxPts: 2.5,       label: 'Solid root',  mult: 1.3 },
+  { maxPts: Infinity,  label: 'Deep root',   mult: 1.6 },
+];
 
 export interface RootingBreakdown {
   element: ElementName;
@@ -335,13 +339,17 @@ export interface RootingBreakdown {
 }
 
 /**
- * Compute rooting boost for each element across all 4 branches.
- * For each branch, if an element appears in its hidden stems, that element
- * gets a rooting boost = pillar_rooting_weight × hidden_stem_pct/100.
- *
- * Returns multipliers and detailed breakdown per element.
+ * Compute rooting for each element using DM Strength Stage 2 logic:
+ * 1. Scan all 4 branches for each element in hidden stems
+ * 2. Root contribution = pillar_root_weight × seasonal_factor (for that element)
+ *    (only if element is present in branch's hidden stems)
+ * 3. Sum root points across all branches
+ * 4. Convert to tier: No root (×0.7), Light (×1.0), Solid (×1.3), Deep (×1.6)
  */
-function computeElementRooting(pillars: any[]): { multipliers: QiDist; breakdown: RootingBreakdown[]; steps: string[] } {
+function computeElementRooting(
+  pillars: any[],
+  seasonalWeights: QiDist
+): { multipliers: QiDist; breakdown: RootingBreakdown[]; steps: string[] } {
   const pillarLabels = ['Year', 'Month', 'Day', 'Hour'];
   const rootPoints: QiDist = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
   const perElementPerBranch: Record<ElementName, RootingBreakdown['perBranch']> = {
@@ -349,42 +357,50 @@ function computeElementRooting(pillars: any[]): { multipliers: QiDist; breakdown
   };
   const steps: string[] = [];
 
-  steps.push('Rooting Scan — checking all 4 branches for element presence:');
-  steps.push(`  Influence weights: ${pillarLabels.map((l, i) => `${l}=${ROOTING_INFLUENCE[l]}`).join(', ')}`);
+  steps.push('Rooting (Stage 2 style) — scan all 4 branches for each element:');
+  steps.push(`  Pillar weights: ${pillarLabels.map(l => `${l}=${ROOTING_PILLAR_WEIGHT[l]}`).join(', ')}`);
+  steps.push(`  Seasonal factor applied per element`);
 
   for (let i = 0; i < 4; i++) {
     const p = pillars[i];
     if (!p?.branch?.char) continue;
     const hidden = HIDDEN_STEMS[p.branch.char] || [];
-    const rootWeight = ROOTING_INFLUENCE[pillarLabels[i]] || 0.10;
+    const pillarWeight = ROOTING_PILLAR_WEIGHT[pillarLabels[i]] || 0.7;
     const animal = animalName(p.branch.char);
 
     for (const hs of hidden) {
       const el = stemElement(hs.stem);
-      const contribution = rootWeight * (hs.pct / 100);
+      const sFactor = seasonalWeights[el] ?? 1.0;
+      // Root contribution = pillar_weight × seasonal_factor (if element present)
+      const contribution = pillarWeight * sFactor;
       rootPoints[el] += contribution;
       perElementPerBranch[el].push({
         pillar: pillarLabels[i], branchChar: p.branch.char, animal,
-        stemChar: hs.stem, pct: hs.pct, weight: rootWeight, contribution,
+        stemChar: hs.stem, pct: hs.pct, weight: pillarWeight, contribution,
       });
     }
   }
 
+  // Convert root points to tier-based multipliers (same as DM Strength Stage 2)
   const multipliers: QiDist = { Wood: 1.0, Fire: 1.0, Earth: 1.0, Metal: 1.0, Water: 1.0 };
   const breakdown: RootingBreakdown[] = [];
 
   for (const k of ELEMENT_KEYS) {
-    const capped = Math.min(rootPoints[k], 1.0);
-    multipliers[k] = 1.0 + 0.30 * capped;
+    const pts = rootPoints[k];
+    const tier = ROOTING_TIERS.find(t => pts < t.maxPts) || ROOTING_TIERS[ROOTING_TIERS.length - 1];
+    multipliers[k] = tier.mult;
     const branches = perElementPerBranch[k];
 
-    breakdown.push({ element: k, points: rootPoints[k], multiplier: multipliers[k], perBranch: branches });
+    breakdown.push({ element: k, points: pts, multiplier: tier.mult, perBranch: branches });
 
     if (branches.length > 0) {
-      const branchDetail = branches.map(b => `${b.pillar}/${b.branchChar}${b.animal} ${b.stemChar}(${b.pct}%)×${b.weight}=${b.contribution.toFixed(3)}`).join(' + ');
-      steps.push(`  ${k}: ${branchDetail} = pts ${rootPoints[k].toFixed(3)} → ×${multipliers[k].toFixed(2)}`);
+      const branchDetail = branches.map(b => {
+        const sf = seasonalWeights[stemElement(b.stemChar)] ?? 1.0;
+        return `${b.pillar}/${b.branchChar}${b.animal}(w=${b.weight}×S=${sf.toFixed(2)}=${b.contribution.toFixed(2)})`;
+      }).join(' + ');
+      steps.push(`  ${k}: ${branchDetail} = ${pts.toFixed(2)} pts → ${tier.label} ×${tier.mult}`);
     } else {
-      steps.push(`  ${k}: no root found → ×1.00`);
+      steps.push(`  ${k}: no root → ${tier.label} ×${tier.mult}`);
     }
   }
 
@@ -450,8 +466,8 @@ export function computeNatalQi(
     day: emptyBreakdown(), hour: emptyBreakdown(),
   };
 
-  // Compute element rooting multipliers from all 4 branches
-  const rooting = computeElementRooting(pillars);
+  // Compute element rooting multipliers from all 4 branches (Stage 2 style)
+  const rooting = computeElementRooting(pillars, sw);
   const rootMult = rooting.multipliers;
   const rootedElements = ELEMENT_KEYS.filter(k => rootMult[k] > 1.001);
 
