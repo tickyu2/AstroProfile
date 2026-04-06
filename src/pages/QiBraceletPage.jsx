@@ -7319,7 +7319,7 @@ function MIFQPanel({ mifqResult, mtfq, mifqQi, monthName, season, ysNotes, sNote
                                                 {label && <div className="text-[7px] text-gray-500">{label}</div>}
                                               </div>
                                             ) : (
-                                              <span className="text-gray-600">—</span>
+                                              <span className="text-gray-500">—</span>
                                             )}
                                           </td>
                                         );
@@ -10455,16 +10455,16 @@ export default function QiBraceletPage() {
                           className="text-[9px] font-mono text-green-400/70 hover:text-green-300 transition-colors px-1.5 py-0.5 rounded border border-green-700/30 hover:border-green-500/50 bg-green-900/20"
                         >MD</button>
                       </div>
-                      <div className="text-[10px] text-gray-500 mb-3">
-                        <span className="text-white/70">Layer 1</span> — per-pillar influence weight × seasonal factor → root points per element.{' '}
-                        <span className="text-white/70">Layer 2</span> — total root points → tier → multiplier applied to ALL pillars for that element.
+                      <div className="text-[10px] text-gray-300 mb-3">
+                        <span className="text-white font-semibold">Layer 1</span> — per-pillar influence weight × seasonal factor → root points per element.{' '}
+                        <span className="text-white font-semibold">Layer 2</span> — total root points → tier → multiplier applied to ALL pillars for that element.
                       </div>
 
                       {/* Influence weight legend */}
-                      <div className="flex gap-3 text-[9px] text-gray-500 mb-3 font-mono">
+                      <div className="flex gap-3 text-[9px] text-gray-300 mb-3 font-mono">
                         <span>Pillar root weights:</span>
                         {Object.entries(rootWeights).map(([l, w]) => (
-                          <span key={l} className="text-white/60">{l}={w}</span>
+                          <span key={l} className="text-white/80">{l}={w}</span>
                         ))}
                       </div>
 
@@ -10479,7 +10479,7 @@ export default function QiBraceletPage() {
                               <div className="flex items-center justify-between mb-1.5">
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs font-bold" style={{ color: ELEM_COLORS[d.element] }}>{d.element}</span>
-                                  <span className="text-[10px] font-mono text-white/60">pts={d.points.toFixed(2)}</span>
+                                  <span className="text-[10px] font-mono text-white/80">pts={d.points.toFixed(2)}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-[10px] font-semibold" style={{ color: tierColor }}>{tierLabel}</span>
@@ -10499,13 +10499,13 @@ export default function QiBraceletPage() {
                               {d.perBranch.length > 0 ? (
                                 <div className="space-y-0.5">
                                   {d.perBranch.map((s, i) => (
-                                    <div key={i} className="flex items-center justify-between text-[9px] font-mono text-gray-400">
+                                    <div key={i} className="flex items-center justify-between text-[9px] font-mono text-gray-300">
                                       <span>
-                                        <span className="text-white/50">{s.pillar}</span>/{s.branchChar}{s.animal}{' '}
+                                        <span className="text-white/80">{s.pillar}</span>/{s.branchChar}{s.animal}{' '}
                                         <span style={{ color: ELEM_COLORS[d.element] }}>{s.stemChar}</span>({s.pct}%)
                                       </span>
                                       <span>
-                                        w={s.weight} × S = <span className="text-white/70">{s.contribution.toFixed(2)}</span>
+                                        w={s.weight} × S = <span className="text-white font-semibold">{s.contribution.toFixed(2)}</span>
                                       </span>
                                     </div>
                                   ))}
@@ -10519,7 +10519,7 @@ export default function QiBraceletPage() {
                       </div>
 
                       {/* Tier legend */}
-                      <div className="flex gap-4 mt-3 text-[9px] text-gray-500">
+                      <div className="flex gap-4 mt-3 text-[9px] text-gray-300">
                         {[
                           { label: 'No root', pts: '<0.5', mult: '×0.7', color: '#f87171' },
                           { label: 'Light', pts: '0.5–1.5', mult: '×1.0', color: '#9ca3af' },
@@ -10536,21 +10536,21 @@ export default function QiBraceletPage() {
                       {/* Double Multiplier Summary — per pillar × per element */}
                       <div className="mt-4 border-t border-white/10 pt-3">
                         <div className="text-[10px] font-semibold text-green-300 mb-1">Double Multiplier Per Pillar</div>
-                        <div className="text-[9px] text-gray-500 mb-2">
-                          <span className="text-amber-300">M1</span> = Rooting Influence (this pillar's contribution to root points).{' '}
-                          <span className="text-cyan-300">M2</span> = Rooting Tier (chart-wide multiplier applied to raw Qi).{' '}
-                          <span className="text-white/70">Combined</span> = M1 feeds M2; M2 is what multiplies the Qi.
+                        <div className="text-[9px] text-gray-300 mb-2">
+                          <span className="text-amber-300 font-semibold">M1</span> = Rooting Influence (this pillar's contribution to root points).{' '}
+                          <span className="text-cyan-300 font-semibold">M2</span> = Rooting Tier (chart-wide multiplier applied to raw Qi).{' '}
+                          <span className="text-white font-semibold">Combined</span> = M1 feeds M2; M2 is what multiplies the Qi.
                         </div>
 
                         <div className="rounded border border-white/10 overflow-hidden">
                           <table className="w-full text-[9px] font-mono">
                             <thead>
-                              <tr className="bg-white/5 text-gray-400">
+                              <tr className="bg-white/5 text-gray-200">
                                 <th className="px-2 py-1.5 text-left">Element</th>
                                 {['Year', 'Month', 'Day', 'Hour'].map(p => (
                                   <th key={p} className="px-2 py-1.5 text-center">
                                     {p}<br/>
-                                    <span className="text-[8px] text-gray-500">w={rootWeights[p]}</span>
+                                    <span className="text-[8px] text-gray-400">w={rootWeights[p]}</span>
                                   </th>
                                 ))}
                                 <th className="px-2 py-1.5 text-center">Total<br/><span className="text-[8px] text-amber-300">M1 pts</span></th>
@@ -10576,7 +10576,7 @@ export default function QiBraceletPage() {
                                           {c > 0 ? (
                                             <span className="text-amber-300">{c.toFixed(2)}</span>
                                           ) : (
-                                            <span className="text-gray-600">—</span>
+                                            <span className="text-gray-500">—</span>
                                           )}
                                         </td>
                                       );
@@ -10592,7 +10592,7 @@ export default function QiBraceletPage() {
                           </table>
                         </div>
 
-                        <div className="text-[9px] text-gray-500 mt-2">
+                        <div className="text-[9px] text-gray-300 mt-2">
                           Read across: each cell shows how much that pillar's branch contributed to this element's root points (M1).
                           The last column shows the resulting chart-wide tier multiplier (M2) applied to ALL pillars for that element.
                         </div>
