@@ -327,38 +327,68 @@ const ROOTING_INFLUENCE: Record<string, number> = {
   Hour: 0.12,
 };
 
+export interface RootingBreakdown {
+  element: ElementName;
+  points: number;
+  multiplier: number;
+  perBranch: { pillar: string; branchChar: string; animal: string; stemChar: string; pct: number; weight: number; contribution: number }[];
+}
+
 /**
  * Compute rooting boost for each element across all 4 branches.
  * For each branch, if an element appears in its hidden stems, that element
  * gets a rooting boost = pillar_rooting_weight × hidden_stem_pct/100.
  *
- * Returns a multiplier per element: 1.0 (no root) to ~1.3 (well-rooted).
+ * Returns multipliers and detailed breakdown per element.
  */
-function computeElementRooting(pillars: any[]): QiDist {
+function computeElementRooting(pillars: any[]): { multipliers: QiDist; breakdown: RootingBreakdown[]; steps: string[] } {
   const pillarLabels = ['Year', 'Month', 'Day', 'Hour'];
   const rootPoints: QiDist = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
+  const perElementPerBranch: Record<ElementName, RootingBreakdown['perBranch']> = {
+    Wood: [], Fire: [], Earth: [], Metal: [], Water: [],
+  };
+  const steps: string[] = [];
+
+  steps.push('Rooting Scan — checking all 4 branches for element presence:');
+  steps.push(`  Influence weights: ${pillarLabels.map((l, i) => `${l}=${ROOTING_INFLUENCE[l]}`).join(', ')}`);
 
   for (let i = 0; i < 4; i++) {
     const p = pillars[i];
     if (!p?.branch?.char) continue;
     const hidden = HIDDEN_STEMS[p.branch.char] || [];
     const rootWeight = ROOTING_INFLUENCE[pillarLabels[i]] || 0.10;
+    const animal = animalName(p.branch.char);
 
     for (const hs of hidden) {
       const el = stemElement(hs.stem);
-      // Rooting contribution = pillar influence × presence strength (pct/100)
-      rootPoints[el] += rootWeight * (hs.pct / 100);
+      const contribution = rootWeight * (hs.pct / 100);
+      rootPoints[el] += contribution;
+      perElementPerBranch[el].push({
+        pillar: pillarLabels[i], branchChar: p.branch.char, animal,
+        stemChar: hs.stem, pct: hs.pct, weight: rootWeight, contribution,
+      });
     }
   }
 
-  // Convert root points to multipliers: 0 points → ×1.0, 0.5 → ×1.15, 1.0+ → ×1.30
   const multipliers: QiDist = { Wood: 1.0, Fire: 1.0, Earth: 1.0, Metal: 1.0, Water: 1.0 };
+  const breakdown: RootingBreakdown[] = [];
+
   for (const k of ELEMENT_KEYS) {
-    // Soft cap: rooting boost is 0.30 × min(rootPoints, 1.0)
     const capped = Math.min(rootPoints[k], 1.0);
     multipliers[k] = 1.0 + 0.30 * capped;
+    const branches = perElementPerBranch[k];
+
+    breakdown.push({ element: k, points: rootPoints[k], multiplier: multipliers[k], perBranch: branches });
+
+    if (branches.length > 0) {
+      const branchDetail = branches.map(b => `${b.pillar}/${b.branchChar}${b.animal} ${b.stemChar}(${b.pct}%)×${b.weight}=${b.contribution.toFixed(3)}`).join(' + ');
+      steps.push(`  ${k}: ${branchDetail} = pts ${rootPoints[k].toFixed(3)} → ×${multipliers[k].toFixed(2)}`);
+    } else {
+      steps.push(`  ${k}: no root found → ×1.00`);
+    }
   }
-  return multipliers;
+
+  return { multipliers, breakdown, steps };
 }
 
 /** Map lowercase seasonal weights to capitalized ElementName keys */
@@ -421,14 +451,17 @@ export function computeNatalQi(
   };
 
   // Compute element rooting multipliers from all 4 branches
-  const rootMult = computeElementRooting(pillars);
+  const rooting = computeElementRooting(pillars);
+  const rootMult = rooting.multipliers;
   const rootedElements = ELEMENT_KEYS.filter(k => rootMult[k] > 1.001);
 
-  steps.push('Layer 1: Pillar Composition (stem = 1 pt, branch = 10 pts)');
-  steps.push(`Birth Season (${birthMonthBranch}): ${ELEMENT_KEYS.map(k => `${k}×${sw[k]}`).join(', ')}`);
-  if (rootedElements.length > 0) {
-    steps.push(`Rooting: ${rootedElements.map(k => `${k}×${rootMult[k].toFixed(2)}`).join(', ')} (unrooted elements ×1.00)`);
-  }
+  steps.push('Layer 1: Pillar Composition — Raw → Rooting → Seasonality');
+  steps.push(`  stem = 1 pt, branch = 10 pts`);
+  steps.push(`  Birth Season (${birthMonthBranch}): ${ELEMENT_KEYS.map(k => `${k}×${sw[k]}`).join(', ')}`);
+  steps.push('');
+
+  // Rooting detail
+  steps.push(...rooting.steps);
   steps.push('');
 
   for (let i = 0; i < 4; i++) {

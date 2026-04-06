@@ -1425,6 +1425,93 @@ braceletPolarityScore() — 0–20
 > This is the heart of BaZi.
 `;
 
+const ROOTING_MD = `# Element Rooting — Branch Support for Elemental Qi
+
+## What is Rooting?
+
+In BaZi, **rooting** is the foundation of real Qi. An element that appears in a stem is "visible" but may be floating — without roots in any branch, it lacks staying power.
+
+Rooting determines:
+- Whether an element has **real support** in the chart
+- How **deep and stable** that support is
+- How much of the element's Qi is **actually usable**
+
+Think of it like a tree: the stem is the trunk above ground, but the branches' hidden stems are the root system underground. A tree without roots falls in the first wind.
+
+## Rooting Influence Weights Per Pillar
+
+Each branch contributes differently to rooting based on its position in the chart:
+
+| Pillar | Branch | Rooting Weight | Why |
+|---|---|---|---|
+| **Month** | Birth month | **0.45** | Strongest — the seasonal environment shapes all Qi |
+| **Day** | Day branch | **0.35** | Your personal foundation — the ground you stand on |
+| **Hour** | Hour branch | **0.12** | Inner layer — subtle, personal, less visible |
+| **Year** | Year branch | **0.08** | Ancestral background — distant but present |
+
+These weights are **separate from TFQ pillar weights** (10/30/35/15/10). Rooting influence and Qi weighting are two different layers.
+
+## How Rooting is Computed
+
+For each of the 5 elements, we scan all 4 branches:
+
+\`\`\`
+Root Points(element) = Σ (rooting_weight × hidden_stem_pct / 100)
+\`\`\`
+
+For each branch:
+- Check if the element appears in the branch's hidden stems
+- If yes: contribution = **pillar rooting weight × hidden stem percentage / 100**
+- If no: contribution = 0
+
+### Root Points → Multiplier
+
+\`\`\`
+Multiplier = 1.0 + 0.30 × min(rootPoints, 1.0)
+\`\`\`
+
+| Root Points | Multiplier | Meaning |
+|---|---|---|
+| 0.00 | ×1.00 | No root — element is floating, unchanged |
+| 0.25 | ×1.08 | Light root — some underground support |
+| 0.50 | ×1.15 | Moderate root — solid foundation |
+| 0.75 | ×1.23 | Strong root — deep support |
+| 1.00+ | ×1.30 | Maximum root — element is deeply anchored (capped) |
+
+## Example: Eileen Gu (己 Yin Earth)
+
+Let's trace **Wood** rooting across her 4 branches:
+
+| Pillar | Branch | Hidden Stems | Wood? | Weight | Contribution |
+|---|---|---|---|---|---|
+| Year | 未 Goat | 己(60%) 丁(30%) 乙(10%) | **乙 Yes** (10%) | 0.08 | 0.08 × 0.10 = 0.008 |
+| Month | 申 Monkey | 庚(60%) 壬(30%) 戊(10%) | No | 0.45 | 0 |
+| Day | 卯 Rabbit | 乙(100%) | **乙 Yes** (100%) | 0.35 | 0.35 × 1.00 = 0.350 |
+| Hour | 巳 Snake | 丙(60%) 庚(30%) 戊(10%) | No | 0.12 | 0 |
+
+**Wood root points = 0.008 + 0 + 0.350 + 0 = 0.358**
+**Wood multiplier = 1.0 + 0.30 × min(0.358, 1.0) = ×1.107**
+
+This means Wood gets a **10.7% boost** from rooting — it has a moderate root in the Day Branch (卯 Rabbit is pure Wood).
+
+## Where Rooting Fits in the Pipeline
+
+\`\`\`
+Raw Qi (stem + branch hidden stems)
+  → Rooting (×1.00 to ×1.30 per element)     ← THIS STEP
+  → Seasonality (×0.60 to ×1.20 per element)
+  → Polarity (×0.80 to ×1.00 per element)
+  → Qi Weighting (10/30/35/15/10)
+  → TFQ (Total Functional Qi)
+\`\`\`
+
+Rooting is applied BEFORE seasonality because rooting represents the **structural foundation** of Qi — it determines how much Qi is really there before the season modifies its expression.
+
+---
+
+*Rooting is the invisible foundation. Without it, elements float. With it, they have staying power.*
+`;
+
 const SEASONALITY_MATRIX_MD = `# Seasonality Matrix — Element Expressiveness (v2)
 
 ## Why Seasonality Matters
@@ -9515,6 +9602,7 @@ export default function QiBraceletPage() {
   const [expandedPillarFlaps, setExpandedPillarFlaps] = useState({});
   const [showQiPopup, setShowQiPopup] = useState(false);
   const [showElementsPopup, setShowElementsPopup] = useState(false);
+  const [showRootingPopup, setShowRootingPopup] = useState(false);
   const [showSeasonalityPopup, setShowSeasonalityPopup] = useState(false);
   const [showPolarityPopup, setShowPolarityPopup] = useState(false);
   const [showFunctionalQiPopup, setShowFunctionalQiPopup] = useState(false);
@@ -10026,6 +10114,12 @@ export default function QiBraceletPage() {
                       Elements Composition
                     </button>
                     <button
+                      onClick={() => setShowRootingPopup(true)}
+                      className="px-2 py-1 text-[10px] rounded bg-green-800/50 hover:bg-green-700/50 border border-green-600/30 text-green-300 transition-colors"
+                    >
+                      Rooting
+                    </button>
+                    <button
                       onClick={() => setShowSeasonalityPopup(true)}
                       className="px-2 py-1 text-[10px] rounded bg-blue-800/50 hover:bg-blue-700/50 border border-blue-600/30 text-blue-300 transition-colors"
                     >
@@ -10438,6 +10532,14 @@ export default function QiBraceletPage() {
           title="Elements Composition — Layer 1"
           onClose={() => setShowElementsPopup(false)}
           width={620}
+        />
+      )}
+      {showRootingPopup && (
+        <FloatingMdWindow
+          content={ROOTING_MD}
+          title="Element Rooting — Branch Support"
+          onClose={() => setShowRootingPopup(false)}
+          width={700}
         />
       )}
       {showSeasonalityPopup && (
