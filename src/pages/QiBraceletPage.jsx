@@ -1425,92 +1425,155 @@ braceletPolarityScore() — 0–20
 > This is the heart of BaZi.
 `;
 
-const ROOTING_MD = `# Element Rooting — Branch Support for Elemental Qi
+const ROOTING_MD = `# Element Rooting — The Two Multipliers
 
 ## What is Rooting?
 
-In BaZi, **rooting** is the foundation of real Qi. An element that appears in a stem is "visible" but may be floating — without roots in any branch, it lacks staying power.
+In BaZi, **rooting** is the foundation of real Qi. An element that appears in a stem is "visible" but may be floating — without roots in any branch, it lacks staying power. A tree without roots falls in the first wind.
 
-Rooting determines:
-- Whether an element has **real support** in the chart
-- How **deep and stable** that support is
-- How much of the element's Qi is **actually usable**
+Rooting produces **two separate multipliers** that work together:
 
-Think of it like a tree: the stem is the trunk above ground, but the branches' hidden stems are the root system underground. A tree without roots falls in the first wind.
+1. **Rooting Influence Weight** — how much each PILLAR contributes to rooting (per-pillar)
+2. **Rooting Tier Multiplier** — the final strength multiplier applied to each ELEMENT (chart-wide)
 
-## Rooting Pillar Weights (Stage 2 — same as Day Master Strength)
+These are two different layers, and both are essential.
 
-Each branch contributes differently to rooting based on its position in the chart:
+---
 
-| Pillar | Branch | Rooting Weight | Why |
+## Multiplier 1: Rooting Influence Weight (Per Pillar)
+
+**Purpose**: Determines how much each branch contributes when scanning for element roots.
+
+Not all pillars contribute equally to rooting. The Month branch (your birth season) is the strongest root source, while the Year branch (ancestral energy) is the weakest.
+
+### Table 1 — Pillar Rooting Influence Weights
+
+| Pillar | Weight | Role | Why this weight |
 |---|---|---|---|
-| **Month** | Birth month | **1.2** | Strongest root — seasonal environment shapes all Qi |
-| **Day** | Day branch | **1.0** | Standard — your personal foundation |
-| **Year** | Year branch | **0.7** | Ancestral background — weaker but present |
-| **Hour** | Hour branch | **0.7** | Inner layer — subtle, personal |
+| **Month** | **1.2** | Seasonal environment | The strongest root — the season you were born in shapes all elemental Qi |
+| **Day** | **1.0** | Personal foundation | Your own ground — the branch you stand on every day |
+| **Year** | **0.7** | Ancestral background | Distant but present — inherited elemental support |
+| **Hour** | **0.7** | Inner layer | Subtle, personal — your internal elemental landscape |
 
-These weights are the **same weights used in the Day Master Strength gauntlet (Stage 2)**. They are separate from TFQ pillar weights (10/30/35/15/10).
+**These are NOT the same as TFQ pillar weights** (Year 10%, Month 30%, Day Master 35%, Day Branch 15%, Hour 10%). Rooting influence and Qi weighting are two separate systems:
 
-## How Rooting is Computed (Stage 2 Logic)
+| System | Purpose | Weights |
+|---|---|---|
+| **Rooting Influence** | How much each branch contributes to root scanning | Month 1.2, Day 1.0, Year 0.7, Hour 0.7 |
+| **TFQ Pillar Weighting** | How much each pillar's final Qi counts in TFQ | Year 10%, Month 30%, DM 35%, DB 15%, Hour 10% |
 
-For each of the 5 elements, we scan all 4 branches:
+### How Multiplier 1 is Used
+
+When scanning for roots, each branch's contribution is:
 
 \`\`\`
-Root Points(element) = Σ (pillar_root_weight × seasonal_factor)
+Contribution = Pillar Rooting Weight × Seasonal Factor (for that element)
 \`\`\`
 
-For each branch:
-- Check if the element appears in the branch's hidden stems
-- If yes: contribution = **pillar rooting weight × seasonal factor** (for that element in the birth month)
-- If no: contribution = 0
+The **seasonal factor** means elements that are in-season root more strongly.
+An element present in the Month branch (weight 1.2) during its peak season (factor 1.20) contributes 1.2 × 1.20 = **1.44** root points — very strong.
+The same element in the Year branch (weight 0.7) out of season (factor 0.60) contributes 0.7 × 0.60 = **0.42** — much weaker.
 
-The **seasonal factor** means elements that are in-season root more strongly, while out-of-season elements root weakly even if present.
+---
 
-### Root Points → Tier → Multiplier
+## Multiplier 2: Rooting Tier (Per Element, Chart-Wide)
 
-Root points are converted to **tiers** (same as DM Strength Stage 2):
+**Purpose**: The final multiplier applied to each element's raw Qi across ALL pillars.
 
-| Total Points | Tier | Multiplier | Meaning |
+After scanning all 4 branches, each element's total root points are converted to a **tier**:
+
+### Table 2 — Rooting Tier Multipliers
+
+| Total Root Points | Tier | Multiplier | Meaning |
 |---|---|---|---|
-| < 0.5 | No root | **×0.7** | Element is floating — weakened by 30% |
-| 0.5 – 1.5 | Light root | **×1.0** | Some support — baseline strength |
-| 1.5 – 2.5 | Solid root | **×1.3** | Well-supported — 30% boost |
-| ≥ 2.5 | Deep root | **×1.6** | Deeply anchored — 60% boost |
+| < 0.5 | **No root** | **×0.7** | Element is floating — **penalized by 30%**. No branch supports it. |
+| 0.5 – 1.5 | **Light root** | **×1.0** | Baseline — some branch support, but not strong. |
+| 1.5 – 2.5 | **Solid root** | **×1.3** | Well-rooted — **30% boost**. Multiple branches support it. |
+| ≥ 2.5 | **Deep root** | **×1.6** | Deeply anchored — **60% boost**. Dominant root presence. |
 
-**Key insight**: An element with NO root is **penalized** (×0.7), not just left unchanged. This reflects classical BaZi: a floating element is weaker than a rooted one.
+**Critical insight**: An element with NO root gets a **penalty** (×0.7), not just ×1.0. This is the key difference from a simple presence check — a floating element IS weaker than a rooted one.
 
-## Example: Eileen Gu (己 Yin Earth)
+### How Multiplier 2 is Applied
 
-Let's trace **Wood** rooting across her 4 branches (birth month 申 Monkey, Wood seasonal factor = 0.60):
+This multiplier is **chart-wide** — it applies to the same element in ALL 4 pillars:
 
-| Pillar | Branch | Wood Present? | Pillar Weight | Season Factor | Contribution |
+\`\`\`
+Rooted Qi (pillar, element) = Raw Qi (pillar, element) × Tier Multiplier (element)
+\`\`\`
+
+If Earth has Solid root (×1.3), then:
+- Earth in Year Pillar × 1.3
+- Earth in Month Pillar × 1.3
+- Earth in Day Pillar × 1.3
+- Earth in Hour Pillar × 1.3
+
+The rooting tier reflects the **chart-wide stability** of that element, not per-pillar availability.
+
+---
+
+## How the Two Multipliers Work Together
+
+\`\`\`
+Step 1: Scan all 4 branches using Multiplier 1 (pillar influence weights)
+        → Produces root points per element
+
+Step 2: Convert root points to Multiplier 2 (tier multiplier)
+        → ×0.7 / ×1.0 / ×1.3 / ×1.6 per element
+
+Step 3: Apply Multiplier 2 to raw Qi in all pillars
+        → Rooted Qi feeds into Seasonality → Polarity → Qi Weighting → TFQ
+\`\`\`
+
+**Multiplier 1 feeds into Multiplier 2**. They are not independent — they are sequential.
+
+---
+
+## Example: Eileen Gu — Earth Rooting
+
+Birth month: 申 Monkey (Autumn). Earth seasonal factor = 0.90.
+
+### Step 1: Scan branches (using Multiplier 1)
+
+| Pillar | Branch | Earth Hidden Stem? | Pillar Weight | × Season | = Contribution |
 |---|---|---|---|---|---|
-| Year | 未 Goat | **乙 Yes** | 0.7 | 0.60 | 0.7 × 0.60 = 0.42 |
-| Month | 申 Monkey | No | 1.2 | — | 0 |
-| Day | 卯 Rabbit | **乙 Yes** | 1.0 | 0.60 | 1.0 × 0.60 = 0.60 |
-| Hour | 巳 Snake | No | 0.7 | — | 0 |
+| Year | 未 Goat | 己 Earth 60% — **Yes** | 0.7 | × 0.90 | **0.63** |
+| Month | 申 Monkey | 戊 Earth 10% — **Yes** | 1.2 | × 0.90 | **1.08** |
+| Day | 卯 Rabbit | 乙 Wood 100% — **No** | 1.0 | — | **0** |
+| Hour | 巳 Snake | 戊 Earth 10% — **Yes** | 0.7 | × 0.90 | **0.63** |
 
-**Wood root points = 0.42 + 0 + 0.60 + 0 = 1.02**
-**Wood tier = Light root (0.5–1.5) → ×1.0**
+**Earth root points = 0.63 + 1.08 + 0 + 0.63 = 2.34**
 
-Wood has light rooting — enough to maintain baseline strength but not enough for a boost.
+### Step 2: Convert to tier (Multiplier 2)
 
-## Where Rooting Fits in the Pipeline
+2.34 points → **Solid root** (1.5–2.5) → **×1.3**
+
+### Step 3: Apply to all pillars
+
+- Earth in Year Pillar: raw × 1.3
+- Earth in Month Pillar: raw × 1.3
+- Earth in Day Pillar: raw × 1.3 (even though Day Branch has no Earth root!)
+- Earth in Hour Pillar: raw × 1.3
+
+This is because rooting is **chart-wide**: Earth has strong roots somewhere in the chart (Year, Month, Hour), so Earth is stable everywhere — including in the Day Pillar where the branch doesn't contain it.
+
+---
+
+## Pipeline Position
 
 \`\`\`
 Raw Qi (stem + branch hidden stems)
-  → Rooting (×1.00 to ×1.30 per element)     ← THIS STEP
-  → Seasonality (×0.60 to ×1.20 per element)
-  → Polarity (×0.80 to ×1.00 per element)
+  → Rooting Tier Multiplier (×0.7 to ×1.6)    ← THIS STEP
+  → Seasonality (×0.60 to ×1.20)
+  → Polarity (×0.80 to ×1.00)
   → Qi Weighting (10/30/35/15/10)
   → TFQ (Total Functional Qi)
 \`\`\`
 
-Rooting is applied BEFORE seasonality because rooting represents the **structural foundation** of Qi — it determines how much Qi is really there before the season modifies its expression.
+Rooting is applied FIRST because it represents the **structural foundation** — how much Qi actually exists before the season and polarity modify its expression.
 
 ---
 
-*Rooting is the invisible foundation. Without it, elements float. With it, they have staying power.*
+*Rooting is the invisible foundation. Multiplier 1 measures how strong the roots are. Multiplier 2 determines how that root strength affects the element everywhere in the chart.*
 `;
 
 const SEASONALITY_MATRIX_MD = `# Seasonality Matrix — Element Expressiveness (v2)
@@ -10385,7 +10448,13 @@ export default function QiBraceletPage() {
 
                   return (
                     <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 mt-2">
-                      <div className="text-sm font-semibold text-green-300 mb-1">Chart-Wide Element Rooting</div>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="text-sm font-semibold text-green-300">Chart-Wide Element Rooting</div>
+                        <button
+                          onClick={() => setShowRootingPopup(true)}
+                          className="text-[9px] font-mono text-green-400/70 hover:text-green-300 transition-colors px-1.5 py-0.5 rounded border border-green-700/30 hover:border-green-500/50 bg-green-900/20"
+                        >MD</button>
+                      </div>
                       <div className="text-[10px] text-gray-500 mb-3">
                         <span className="text-white/70">Layer 1</span> — per-pillar influence weight × seasonal factor → root points per element.{' '}
                         <span className="text-white/70">Layer 2</span> — total root points → tier → multiplier applied to ALL pillars for that element.
