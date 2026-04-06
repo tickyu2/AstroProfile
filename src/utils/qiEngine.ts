@@ -579,7 +579,7 @@ export function computeNatalQi(
   steps.push(`  ${fmtQi(qi)}`);
   steps.push(`  Total = ${sumQi(qi).toFixed(2)} pts`);
 
-  return { qi, perPillar, perPillarBreakdown, steps };
+  return { qi, perPillar, perPillarBreakdown, rootingMultipliers: rootMult, steps };
 }
 
 // ============================================================================
@@ -1376,6 +1376,7 @@ export function computeQiYearMatrix(
     natalQi: cloneQi(natalResult.qi),
     polarityQi: cloneQi(polarityResult.qi),
     perPillarBreakdown: natalResult.perPillarBreakdown,
+    rootingMultipliers: natalResult.rootingMultipliers,
     dayMasterPolarity,
     dayMasterElement,
   };

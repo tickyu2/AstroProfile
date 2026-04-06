@@ -1843,7 +1843,7 @@ function getSeasonalLevel(mult) {
   return SEASONAL_LEVEL[closest] || { name: '', desc: '' };
 }
 
-function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, dayMasterElement }) {
+function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, dayMasterElement, rootingMultipliers }) {
   const S = PILLAR_SUFFIX[label];
   const isDay = label === 'Day';
   const { stemChar, stemElement: sEl, stemFullEnglish, branchChar, branchAnimal, hiddenStems, raw, seasoned, polarityAdjusted, qiWeighted } = breakdown;
@@ -1865,33 +1865,41 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
   const stemPts = {};
   ELEMENTS.forEach(el => { stemPts[el] = stemCounts[el] * 1; });
 
+  // Compute rooted values (raw × rooting multiplier)
+  const rooted = {};
+  ELEMENTS.forEach(el => { rooted[el] = raw[el] * (rootingMultipliers?.[el] ?? 1.0); });
+
   // Seasonal weights for birth month
   const sw = birthMonthBranch ? getSeasonalWeights(birthMonthBranch) : null;
   const seasonInfo = birthMonthBranch ? getSeasonInfo(birthMonthBranch) : null;
 
-  // Polarity multipliers lookup
+  // Polarity multipliers — v2 strength-modulation model (Yang=baseline, Yin=subtle reduction)
   const pMults = dayMasterPolarity === 'Yang'
-    ? { Wood: 1.15, Fire: 1.05, Earth: 1.00, Metal: 1.00, Water: 1.10 }
+    ? { Wood: 1.00, Fire: 1.00, Earth: 1.00, Metal: 1.00, Water: 1.00 }
     : dayMasterPolarity === 'Yin'
-      ? { Wood: 0.85, Fire: 0.95, Earth: 1.00, Metal: 1.00, Water: 0.90 }
+      ? { Wood: 0.85, Fire: 0.95, Earth: 0.90, Metal: 1.00, Water: 0.80 }
       : null;
 
   // Qi weight percentage for non-Day pillars
   const qiWeightPct = { Year: 10, Month: 30, Hour: 10 }[label] || null;
 
-  // Day pillar: compute separate DM and DB pipelines locally
-  let dmRaw, dbRaw, dmSeasoned, dbSeasoned, dmPolAdj, dbPolAdj, dmQi, dbQi;
+  // Day pillar: compute separate DM and DB pipelines locally (using rooted values)
+  let dmRaw, dbRaw, dmRooted, dbRooted, dmSeasoned, dbSeasoned, dmPolAdj, dbPolAdj, dmQi, dbQi;
   if (isDay && sw && pMults) {
     dmRaw = {}; dbRaw = {};
+    dmRooted = {}; dbRooted = {};
     dmSeasoned = {}; dbSeasoned = {};
     dmPolAdj = {}; dbPolAdj = {};
     dmQi = {}; dbQi = {};
     ELEMENTS.forEach(el => {
       dmRaw[el] = el === sEl ? 1 : 0;
       dbRaw[el] = raw[el] - dmRaw[el];
+      const rMult = rootingMultipliers?.[el] ?? 1.0;
+      dmRooted[el] = dmRaw[el] * rMult;
+      dbRooted[el] = dbRaw[el] * rMult;
       const sMult = sw[el.toLowerCase()] ?? 1.0;
-      dmSeasoned[el] = dmRaw[el] * sMult;
-      dbSeasoned[el] = dbRaw[el] * sMult;
+      dmSeasoned[el] = dmRooted[el] * sMult;
+      dbSeasoned[el] = dbRooted[el] * sMult;
       dmPolAdj[el] = dmSeasoned[el] * pMults[el];
       dbPolAdj[el] = dbSeasoned[el] * pMults[el];
       dmQi[el] = dmPolAdj[el] * 0.35;
@@ -2024,6 +2032,73 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
         </div>
       ))}
 
+      {/* === Rooting Adjustment === */}
+      {rootingMultipliers && (
+        <>
+          <Sep />
+          <div className="text-gray-400 font-semibold">
+            Rooting Adjustment (Stage 2)
+          </div>
+          <div className="text-gray-500 mb-1">
+            Each element's raw pts multiplied by its rooting tier multiplier:
+          </div>
+
+          {/* Rooting multiplier table */}
+          <div className="rounded border border-white/10 overflow-hidden mb-2">
+            <table className="w-full text-[10px]">
+              <thead>
+                <tr className="bg-white/5">
+                  <th className="px-2 py-1 text-left text-gray-400">Element</th>
+                  <th className="px-2 py-1 text-right text-gray-400">×</th>
+                  <th className="px-2 py-1 text-left text-gray-400">Tier</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ELEMENTS.map(el => {
+                  const mult = rootingMultipliers[el] ?? 1.0;
+                  const tier = mult >= 1.6 ? 'Deep root' : mult >= 1.3 ? 'Solid root' : mult >= 1.0 ? 'Light root' : 'No root';
+                  const tierColor = mult >= 1.6 ? 'text-green-400' : mult >= 1.3 ? 'text-green-300' : mult >= 1.0 ? 'text-gray-400' : 'text-red-400';
+                  return (
+                    <tr key={el} className="border-t border-white/5">
+                      <td className="px-2 py-0.5"><ElSpan el={el}>{el}</ElSpan></td>
+                      <td className={`px-2 py-0.5 text-right font-semibold ${tierColor}`}>{mult.toFixed(1)}</td>
+                      <td className={`px-2 py-0.5 ${tierColor}`}>{tier}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Per-element rooted values */}
+          <div className="text-gray-400 font-semibold">
+            {label.toUpperCase()} PILLAR Rooted ({S}R):
+          </div>
+          {ELEMENTS.map(el => {
+            const mult = rootingMultipliers[el] ?? 1.0;
+            const rootedVal = rooted[el];
+            return (
+              <div key={el}>
+                <ElSpan el={el}>{el}</ElSpan>
+                <span className="text-gray-500"> ({S}R)</span>
+                {' = '}
+                <span className="text-gray-400">{raw[el].toFixed(3)}</span>
+                {' × '}
+                <span className="text-gray-400">{mult.toFixed(1)}</span>
+                {' = '}
+                <span className="text-white font-semibold">{rootedVal.toFixed(3)}</span>
+                {mult < 1.0 && raw[el] > 0 && (
+                  <span className="text-red-400/70 ml-1">(no root — {Math.round((1 - mult) * 100)}% penalty)</span>
+                )}
+                {mult > 1.0 && raw[el] > 0 && (
+                  <span className="text-green-400/70 ml-1">(+{Math.round((mult - 1) * 100)}% boost)</span>
+                )}
+              </div>
+            );
+          })}
+        </>
+      )}
+
       {/* === C. Seasonality Adjustment (non-Day) === */}
       {!isDay && sw && seasonInfo && (
         <>
@@ -2073,24 +2148,24 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
           </div>
           {ELEMENTS.map(el => {
             const mult = sw[el.toLowerCase()] ?? 1.0;
-            const rawPts = raw[el];
+            const rootedPts = rooted[el];
             const adjPts = seasoned[el];
-            const reduction = rawPts > 0 ? Math.round((1 - mult) * 100) : 0;
+            const change = rootedPts > 0 ? Math.round((mult - 1) * 100) : 0;
             return (
               <div key={el}>
                 <ElSpan el={el}>{el}</ElSpan>
                 <span className="text-gray-500"> ({S}SA)</span>
                 {' = '}
-                <span className="text-gray-400">{rawPts.toFixed(3)} pts</span>
+                <span className="text-gray-400">{rootedPts.toFixed(3)} pts</span>
                 {' × '}
-                <span className="text-gray-400">{mult.toFixed(1)}</span>
+                <span className="text-gray-400">{mult.toFixed(2)}</span>
                 {' = '}
                 <span className="text-white font-semibold">{adjPts.toFixed(3)}</span>
-                {rawPts > 0 && mult < 1.0 && (
-                  <span className="text-red-400/70 ml-1">({reduction}% reduction)</span>
+                {rootedPts > 0 && change < 0 && (
+                  <span className="text-red-400/70 ml-1">({change}%)</span>
                 )}
-                {rawPts > 0 && mult >= 1.0 && (
-                  <span className="text-green-400/70 ml-1">(full strength)</span>
+                {rootedPts > 0 && change > 0 && (
+                  <span className="text-green-400/70 ml-1">(+{change}%)</span>
                 )}
               </div>
             );
@@ -2417,7 +2492,7 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
   );
 }
 
-function PillarWithFlap({ pillar, breakdown, label, isYou, expanded, onToggle, birthMonthBranch, dayMasterPolarity, dayMasterElement }) {
+function PillarWithFlap({ pillar, breakdown, label, isYou, expanded, onToggle, birthMonthBranch, dayMasterPolarity, dayMasterElement, rootingMultipliers }) {
   if (!pillar || !breakdown) return null;
 
   const [showPolarityGuide, setShowPolarityGuide] = React.useState(false);
@@ -2518,7 +2593,7 @@ function PillarWithFlap({ pillar, breakdown, label, isYou, expanded, onToggle, b
       {/* Expandable baby-step calculation flap */}
       {expanded && (
         <div className="mt-1 p-3 rounded-lg bg-slate-900/80 border border-white/10 space-y-3 max-h-[32rem] overflow-y-auto">
-          <BabyStepCalc breakdown={breakdown} label={label} birthMonthBranch={birthMonthBranch} dayMasterPolarity={dayMasterPolarity} dayMasterElement={dayMasterElement} />
+          <BabyStepCalc breakdown={breakdown} label={label} birthMonthBranch={birthMonthBranch} dayMasterPolarity={dayMasterPolarity} dayMasterElement={dayMasterElement} rootingMultipliers={rootingMultipliers} />
 
           {/* Visual Qi bar summaries — shared maxPts so bars are proportional across all stages */}
           {(() => {
@@ -2718,9 +2793,9 @@ function IncomingBabyStepCalc({ breakdown, label, currentMonthBranch, dayMasterP
   const _sharedMax = Math.max(..._allDists.flatMap(d => ELEMENTS.map(el => d[el] || 0)), 1);
 
   const pMults = dayMasterPolarity === 'Yang'
-    ? { Wood: 1.15, Fire: 1.05, Earth: 1.00, Metal: 1.00, Water: 1.10 }
+    ? { Wood: 1.00, Fire: 1.00, Earth: 1.00, Metal: 1.00, Water: 1.00 }
     : dayMasterPolarity === 'Yin'
-      ? { Wood: 0.85, Fire: 0.95, Earth: 1.00, Metal: 1.00, Water: 0.90 }
+      ? { Wood: 0.85, Fire: 0.95, Earth: 0.90, Metal: 1.00, Water: 0.80 }
       : null;
 
   // Build stem element count
@@ -10162,6 +10237,7 @@ export default function QiBraceletPage() {
                       birthMonthBranch={chart.pillars[1]?.branch?.char}
                       dayMasterPolarity={qiMatrix?.dayMasterPolarity}
                       dayMasterElement={qiMatrix?.dayMasterElement}
+                      rootingMultipliers={qiMatrix?.rootingMultipliers}
                     />
                   </div>
                   {/* Month Pillar */}
@@ -10176,6 +10252,7 @@ export default function QiBraceletPage() {
                       birthMonthBranch={chart.pillars[1]?.branch?.char}
                       dayMasterPolarity={qiMatrix?.dayMasterPolarity}
                       dayMasterElement={qiMatrix?.dayMasterElement}
+                      rootingMultipliers={qiMatrix?.rootingMultipliers}
                     />
                   </div>
                   {/* 10 Heavenly Stems — 天干 */}
@@ -10258,6 +10335,7 @@ export default function QiBraceletPage() {
                       birthMonthBranch={chart.pillars[1]?.branch?.char}
                       dayMasterPolarity={qiMatrix?.dayMasterPolarity}
                       dayMasterElement={qiMatrix?.dayMasterElement}
+                      rootingMultipliers={qiMatrix?.rootingMultipliers}
                     />
                   </div>
                   {/* Hour Pillar — narrower */}
@@ -10272,6 +10350,7 @@ export default function QiBraceletPage() {
                       birthMonthBranch={chart.pillars[1]?.branch?.char}
                       dayMasterPolarity={qiMatrix?.dayMasterPolarity}
                       dayMasterElement={qiMatrix?.dayMasterElement}
+                      rootingMultipliers={qiMatrix?.rootingMultipliers}
                     />
                   </div>
                 </div>
