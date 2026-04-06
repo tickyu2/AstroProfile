@@ -10532,6 +10532,71 @@ export default function QiBraceletPage() {
                           </span>
                         ))}
                       </div>
+
+                      {/* Double Multiplier Summary — per pillar × per element */}
+                      <div className="mt-4 border-t border-white/10 pt-3">
+                        <div className="text-[10px] font-semibold text-green-300 mb-1">Double Multiplier Per Pillar</div>
+                        <div className="text-[9px] text-gray-500 mb-2">
+                          <span className="text-amber-300">M1</span> = Rooting Influence (this pillar's contribution to root points).{' '}
+                          <span className="text-cyan-300">M2</span> = Rooting Tier (chart-wide multiplier applied to raw Qi).{' '}
+                          <span className="text-white/70">Combined</span> = M1 feeds M2; M2 is what multiplies the Qi.
+                        </div>
+
+                        <div className="rounded border border-white/10 overflow-hidden">
+                          <table className="w-full text-[9px] font-mono">
+                            <thead>
+                              <tr className="bg-white/5 text-gray-400">
+                                <th className="px-2 py-1.5 text-left">Element</th>
+                                {['Year', 'Month', 'Day', 'Hour'].map(p => (
+                                  <th key={p} className="px-2 py-1.5 text-center">
+                                    {p}<br/>
+                                    <span className="text-[8px] text-gray-500">w={rootWeights[p]}</span>
+                                  </th>
+                                ))}
+                                <th className="px-2 py-1.5 text-center">Total<br/><span className="text-[8px] text-amber-300">M1 pts</span></th>
+                                <th className="px-2 py-1.5 text-center">Tier<br/><span className="text-[8px] text-cyan-300">M2 ×</span></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {breakdown.map(d => {
+                                const tierColor = d.multiplier >= 1.6 ? '#4ade80' : d.multiplier >= 1.3 ? '#86efac' : d.multiplier >= 1.0 ? '#9ca3af' : '#f87171';
+                                const tierLabel = d.multiplier >= 1.6 ? 'Deep' : d.multiplier >= 1.3 ? 'Solid' : d.multiplier >= 1.0 ? 'Light' : 'None';
+                                // Build per-pillar contribution lookup
+                                const pillarContrib = {};
+                                ['Year', 'Month', 'Day', 'Hour'].forEach(p => { pillarContrib[p] = 0; });
+                                d.perBranch.forEach(s => { pillarContrib[s.pillar] += s.contribution; });
+
+                                return (
+                                  <tr key={d.element} className="border-t border-white/5">
+                                    <td className="px-2 py-1 font-semibold" style={{ color: ELEM_COLORS[d.element] }}>{d.element}</td>
+                                    {['Year', 'Month', 'Day', 'Hour'].map(p => {
+                                      const c = pillarContrib[p];
+                                      return (
+                                        <td key={p} className="px-2 py-1 text-center">
+                                          {c > 0 ? (
+                                            <span className="text-amber-300">{c.toFixed(2)}</span>
+                                          ) : (
+                                            <span className="text-gray-600">—</span>
+                                          )}
+                                        </td>
+                                      );
+                                    })}
+                                    <td className="px-2 py-1 text-center text-amber-300 font-semibold">{d.points.toFixed(2)}</td>
+                                    <td className="px-2 py-1 text-center font-bold" style={{ color: tierColor }}>
+                                      {tierLabel} ×{d.multiplier}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="text-[9px] text-gray-500 mt-2">
+                          Read across: each cell shows how much that pillar's branch contributed to this element's root points (M1).
+                          The last column shows the resulting chart-wide tier multiplier (M2) applied to ALL pillars for that element.
+                        </div>
+                      </div>
                     </div>
                   );
                 })()}
