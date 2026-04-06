@@ -55,7 +55,7 @@ export const PILLAR_COLORS: Record<string, string> = {
 
 export const DEFAULT_PILLARS: Pillar[] = [
   {
-    id: 'L', name: 'Longevity', shortName: 'Long', icon: '🏛️',
+    id: 'L', name: 'Longevity', shortName: 'Longevity', icon: '🏛️',
     color: PILLAR_COLORS.L, weight: 0.15, score: 0,
     subs: [
       { id: 'sleep', name: 'Sleep Quality', score: 0, weight: 0.25, source: 'user' },
@@ -67,7 +67,7 @@ export const DEFAULT_PILLARS: Pillar[] = [
     ],
   },
   {
-    id: 'Q', name: 'Qi Optimization', shortName: 'Qi', icon: '🌀',
+    id: 'Q', name: 'Qi Optimization', shortName: 'Qi Optim.', icon: '🌀',
     color: PILLAR_COLORS.Q, weight: 0.15, score: 0,
     subs: [
       { id: 'flow', name: 'Flow State', score: 0, weight: 0.25, source: 'bazi' },
@@ -78,7 +78,7 @@ export const DEFAULT_PILLARS: Pillar[] = [
     ],
   },
   {
-    id: 'C', name: 'Cognitive Performance', shortName: 'Mind', icon: '🧠',
+    id: 'C', name: 'Cognitive Performance', shortName: 'Cognition', icon: '🧠',
     color: PILLAR_COLORS.C, weight: 0.15, score: 0,
     subs: [
       { id: 'clarity', name: 'Mental Clarity', score: 0, weight: 0.30, source: 'bazi',
@@ -97,7 +97,7 @@ export const DEFAULT_PILLARS: Pillar[] = [
     ],
   },
   {
-    id: 'N', name: 'Nervous System', shortName: 'Nerves', icon: '🌿',
+    id: 'N', name: 'Nervous System', shortName: 'Nervous Sys', icon: '🌿',
     color: PILLAR_COLORS.N, weight: 0.15, score: 0,
     subs: [
       { id: 'stress', name: 'Stress Regulation', score: 0, weight: 0.30, source: 'bazi' },
@@ -108,7 +108,7 @@ export const DEFAULT_PILLARS: Pillar[] = [
     ],
   },
   {
-    id: 'E', name: 'Environment', shortName: 'Env', icon: '🌍',
+    id: 'E', name: 'Environment', shortName: 'Environment', icon: '🌍',
     color: PILLAR_COLORS.E, weight: 0.10, score: 0,
     subs: [
       { id: 'home', name: 'Home Fit', score: 0, weight: 0.30, source: 'user' },
@@ -140,7 +140,7 @@ export const DEFAULT_PILLARS: Pillar[] = [
     ],
   },
   {
-    id: 'R', name: 'Relationship Resonance', shortName: 'Relate', icon: '💞',
+    id: 'R', name: 'Relationship Resonance', shortName: 'Relationships', icon: '💞',
     color: PILLAR_COLORS.R, weight: 0.15, score: 0,
     subs: [
       { id: 'partner_fit', name: 'Partner Fit', score: 0, weight: 0.30, source: 'computed' },
