@@ -156,10 +156,20 @@ const QI_WEIGHTS = {
   hour: 0.10,         // Hour = inner mind
 };
 
-/** Polarity multipliers indexed by Day Master polarity */
+/**
+ * TFQ Polarity multipliers — strength-modulation model (not behavioral).
+ *
+ * Yang = baseline strength (1.00 for all elements)
+ * Yin  = slightly reduced strength (Yin is inward, less forceful)
+ * Metal = neutral (Yin/Yang Metal behave similarly in strength)
+ *
+ * This is subtle (5–20% shifts) to prevent polarity from overpowering
+ * seasonality and rooting. The old behavioral polarity table (Yang boosts
+ * Wood/Fire/Water) belongs in personality/relationship layers, not TFQ.
+ */
 const POLARITY_MULTIPLIERS: Record<'Yang' | 'Yin', QiDist> = {
-  Yang: { Wood: 1.15, Fire: 1.05, Earth: 1.00, Metal: 1.00, Water: 1.10 },
-  Yin:  { Wood: 0.85, Fire: 0.95, Earth: 1.00, Metal: 1.00, Water: 0.90 },
+  Yang: { Wood: 1.00, Fire: 1.00, Earth: 1.00, Metal: 1.00, Water: 1.00 },
+  Yin:  { Wood: 0.85, Fire: 0.95, Earth: 0.90, Metal: 1.00, Water: 0.80 },
 };
 
 /** Control cycle pressure: if controller > controlled × threshold, reduce */

@@ -1191,7 +1191,7 @@ The Day Pillar is unique. It must be separated into:
 *Functional Qi is the foundation of ALL remedies. Without accurate Functional Qi, every prescription is a guess.*
 `;
 
-const POLARITY_MD = `# Polarity Adjustment — Yang vs Yin Day Master
+const POLARITY_MD = `# Polarity Adjustment — Yang vs Yin Day Master (v2 — Strength Model)
 
 ## What is Polarity?
 
@@ -1200,45 +1200,59 @@ In BaZi, every Heavenly Stem is either **Yang** (陽) or **Yin** (陰). Your **D
 - **Yang Day Masters** (甲 丙 戊 庚 壬) — outward, assertive, expansive energy
 - **Yin Day Masters** (乙 丁 己 辛 癸) — inward, receptive, refined energy
 
-## Why Polarity Affects Element Strength
+## v2 Correction: Strength vs Behavior
 
-A Yang Day Master resonates more strongly with certain elements and less with others. Think of it like a radio frequency — some elements are "in tune" with your polarity, amplifying their expression, while others are slightly dampened.
+This table uses the **strength-modulation polarity model**, not the behavioral model.
+
+- **Yang** = baseline strength (×1.00 for all elements)
+- **Yin** = slightly reduced elemental strength (Yin energy is inward, less forceful)
+
+The old behavioral polarity table (where Yang boosted Wood/Fire/Water) has been moved to personality and relationship layers only. For TFQ (constitutional Qi strength), polarity should be **subtle** (5–20% shifts) so it doesn't overpower seasonality and rooting.
 
 ## Yang Day Master Multipliers
 
 | Element | Multiplier | Effect |
 |---|---|---|
-| **Wood** | ×1.15 | +15% amplified — Yang resonates strongly with growth energy |
-| **Fire** | ×1.05 | +5% slight boost — Yang feeds Fire's expansive nature |
-| **Earth** | ×1.00 | Neutral — Earth is the center, unaffected by polarity |
-| **Metal** | ×1.00 | Neutral — Metal maintains its structure regardless |
-| **Water** | ×1.10 | +10% amplified — Yang generates strong movement in Water |
+| **Wood** | ×1.00 | Baseline — Yang is the reference point |
+| **Fire** | ×1.00 | Baseline — Yang is the reference point |
+| **Earth** | ×1.00 | Baseline — Yang is the reference point |
+| **Metal** | ×1.00 | Baseline — Yang is the reference point |
+| **Water** | ×1.00 | Baseline — Yang is the reference point |
 
 ## Yin Day Master Multipliers
 
 | Element | Multiplier | Effect |
 |---|---|---|
-| **Wood** | ×0.85 | −15% reduced — Yin dampens Wood's assertive growth |
-| **Fire** | ×0.95 | −5% slight reduction — Yin tempers Fire's expansion |
-| **Earth** | ×1.00 | Neutral — Earth is the center, unaffected by polarity |
-| **Metal** | ×1.00 | Neutral — Metal maintains its structure regardless |
-| **Water** | ×0.90 | −10% reduced — Yin calms Water's movement |
+| **Wood** | ×0.85 | −15% — Yin dampens Wood's outward growth force |
+| **Fire** | ×0.95 | −5% — Yin slightly tempers Fire's radiant expansion |
+| **Earth** | ×0.90 | −10% — Yin softens Earth's structural rigidity |
+| **Metal** | ×1.00 | Neutral — Yin/Yang Metal behave similarly in strength |
+| **Water** | ×0.80 | −20% — Yin calms Water's forceful movement the most |
+
+## Why Yin reduces and Yang doesn't boost
+
+In the strength model:
+- **Yang** represents the natural, full expression of each element — it's the baseline (×1.00)
+- **Yin** represents the inward, refined version — slightly less forceful in raw Qi output
+- This is NOT a judgment — Yin has its own strengths in personality, relationships, and adaptability
+- Metal is neutral because Yin Metal (辛, refined jewel) and Yang Metal (庚, axe) have equal structural strength
 
 ## How Polarity is Applied
 
-Polarity multipliers are applied **after** birth-season adjustment, **before** Qi weighting:
+Polarity multipliers are applied **after** rooting and birth-season adjustment, **before** Qi weighting:
 
-> Polarity Adjusted = Seasonality Adjusted × Polarity Multiplier
+> Polarity Adjusted = Rooted & Seasoned Qi × Polarity Multiplier
 
-This means:
+Pipeline order:
 1. **Layer 1**: Count raw elements (stem=1, branch=10)
-2. **Birth Season**: Multiply by seasonal expressiveness
-3. **Polarity**: Multiply by Day Master's polarity modifier ← **this step**
-4. **Qi Weights**: Apply importance weights (DM 35%, DB 15%, etc.)
+2. **Rooting**: Multiply by element rooting influence (×1.00–1.30)
+3. **Birth Season**: Multiply by seasonal expressiveness (×0.60–1.20)
+4. **Polarity**: Multiply by Day Master's polarity modifier ← **this step**
+5. **Qi Weights**: Apply importance weights (DM 35%, DB 15%, etc.)
 
 ---
 
-*Polarity is a subtle but important modifier. It reflects how your core identity (Day Master) shapes the expression of every element in your chart.*
+*v2: strength-modulation model. Yang = baseline ×1.00. Yin = subtle reduction (5–20%). Behavioral polarity moved to personality layers.*
 `;
 
 const DAY_MASTER_POLARITY_GUIDE_MD = `# 🌗 Day Master Polarity — The Complete Guide
