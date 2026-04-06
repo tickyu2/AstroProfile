@@ -1486,10 +1486,10 @@ After scanning all 4 branches, each element's total root points are converted to
 
 | Total Root Points | Tier | Multiplier | Meaning |
 |---|---|---|---|
-| < 0.5 | **No root** | **×0.7** | Element is floating — **penalized by 30%**. No branch supports it. |
-| 0.5 – 1.5 | **Light root** | **×1.0** | Baseline — some branch support, but not strong. |
-| 1.5 – 2.5 | **Solid root** | **×1.3** | Well-rooted — **30% boost**. Multiple branches support it. |
-| ≥ 2.5 | **Deep root** | **×1.6** | Deeply anchored — **60% boost**. Dominant root presence. |
+| < 0.3 | **No root** | **×0.7** | Element is floating — **penalized by 30%**. No branch supports it. |
+| 0.3 – 0.8 | **Light root** | **×1.0** | Some support — baseline strength. Found in 1 weak branch. |
+| 0.8 – 1.6 | **Solid root** | **×1.3** | Well-rooted — **30% boost**. Found in 1–2 branches with decent support. |
+| ≥ 1.6 | **Deep root** | **×1.6** | Deeply anchored — **60% boost**. Found in 2+ strong branches. |
 
 **Critical insight**: An element with NO root gets a **penalty** (×0.7), not just ×1.0. This is the key difference from a simple presence check — a floating element IS weaker than a rooted one.
 
@@ -2143,8 +2143,8 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
               <tbody>
                 {ELEMENTS.map(el => {
                   const mult = rootingMultipliers[el] ?? 1.0;
-                  const tier = mult >= 1.6 ? 'Deep root' : mult >= 1.3 ? 'Solid root' : mult >= 1.0 ? 'Light root' : 'No root';
-                  const tierColor = mult >= 1.6 ? 'text-green-400' : mult >= 1.3 ? 'text-green-300' : mult >= 1.0 ? 'text-gray-400' : 'text-red-400';
+                  const tier = mult >= 1.6 ? 'Deep root' : mult >= 1.3 ? 'Solid root' : mult > 0.7 ? 'Light root' : 'No root';
+                  const tierColor = mult >= 1.6 ? 'text-green-400' : mult >= 1.3 ? 'text-green-300' : mult > 0.7 ? 'text-gray-400' : 'text-red-400';
                   return (
                     <tr key={el} className="border-t border-white/5">
                       <td className="px-2 py-0.5"><ElSpan el={el}>{el}</ElSpan></td>
@@ -10479,8 +10479,8 @@ export default function QiBraceletPage() {
                       {/* Per-element breakdown */}
                       <div className="space-y-3">
                         {breakdown.map(d => {
-                          const tierColor = d.multiplier >= 1.6 ? '#4ade80' : d.multiplier >= 1.3 ? '#86efac' : d.multiplier >= 1.0 ? '#9ca3af' : '#f87171';
-                          const tierLabel = d.multiplier >= 1.6 ? 'Deep root' : d.multiplier >= 1.3 ? 'Solid root' : d.multiplier >= 1.0 ? 'Light root' : 'No root';
+                          const tierColor = d.multiplier >= 1.6 ? '#4ade80' : d.multiplier >= 1.3 ? '#86efac' : d.multiplier > 0.7 ? '#9ca3af' : '#f87171';
+                          const tierLabel = d.multiplier >= 1.6 ? 'Deep root' : d.multiplier >= 1.3 ? 'Solid root' : d.multiplier > 0.7 ? 'Light root' : 'No root';
                           return (
                             <div key={d.element} className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
                               {/* Element header with tier */}
@@ -10529,10 +10529,10 @@ export default function QiBraceletPage() {
                       {/* Tier legend */}
                       <div className="flex gap-4 mt-3 text-[9px] text-gray-300">
                         {[
-                          { label: 'No root', pts: '<0.5', mult: '×0.7', color: '#f87171' },
-                          { label: 'Light', pts: '0.5–1.5', mult: '×1.0', color: '#9ca3af' },
-                          { label: 'Solid', pts: '1.5–2.5', mult: '×1.3', color: '#86efac' },
-                          { label: 'Deep', pts: '≥2.5', mult: '×1.6', color: '#4ade80' },
+                          { label: 'No root', pts: '<0.3', mult: '×0.7', color: '#f87171' },
+                          { label: 'Light', pts: '0.3–0.8', mult: '×1.0', color: '#9ca3af' },
+                          { label: 'Solid', pts: '0.8–1.6', mult: '×1.3', color: '#86efac' },
+                          { label: 'Deep', pts: '≥1.6', mult: '×1.6', color: '#4ade80' },
                         ].map(t => (
                           <span key={t.label} className="flex items-center gap-1">
                             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }} />

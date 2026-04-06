@@ -323,11 +323,16 @@ const ROOTING_PILLAR_WEIGHT: Record<string, number> = {
   Day: 1.0, Month: 1.2, Year: 0.7, Hour: 0.7,
 };
 
-// Rooting tiers — same as DM Strength Stage 2
+// Rooting tiers — calibrated for pillar weights (0.7–1.2) × seasonality (0.6–1.2)
+// Typical single-branch contribution: 0.42–1.44
+// No root: element not found in any branch
+// Light root: found in 1 weak branch
+// Solid root: found in 1–2 branches with decent support
+// Deep root: found in 2+ branches with strong support
 const ROOTING_TIERS: { maxPts: number; label: string; mult: number }[] = [
-  { maxPts: 0.5,       label: 'No root',    mult: 0.7 },
-  { maxPts: 1.5,       label: 'Light root',  mult: 1.0 },
-  { maxPts: 2.5,       label: 'Solid root',  mult: 1.3 },
+  { maxPts: 0.3,       label: 'No root',    mult: 0.7 },
+  { maxPts: 0.8,       label: 'Light root',  mult: 1.0 },
+  { maxPts: 1.6,       label: 'Solid root',  mult: 1.3 },
   { maxPts: Infinity,  label: 'Deep root',   mult: 1.6 },
 ];
 
