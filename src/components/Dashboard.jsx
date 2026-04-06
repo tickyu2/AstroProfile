@@ -188,6 +188,13 @@ export default function Dashboard() {
               <span>💫</span>
               <span>Unified Compatibility</span>
             </Link>
+            <Link
+              to="/happiness"
+              className="px-3 py-1.5 text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium flex items-center gap-1 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:border-amber-500/50"
+            >
+              <span>🌟</span>
+              <span>Happiness Engine</span>
+            </Link>
           </div>
 
           {/* Third Row - Zodiac Academy, Tropical Seasons, Soul Garden */}
