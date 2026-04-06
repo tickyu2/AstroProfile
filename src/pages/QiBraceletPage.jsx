@@ -4778,6 +4778,37 @@ function DayMasterStrengthPanel({ chart, qiMatrix, userTfq }) {
         </div>
       </div>
 
+      {/* Qualitative AI-prompt statement — copyable */}
+      {(() => {
+        const scoreFmt = r.score.toFixed(0);
+        const pol = isYang ? 'Yang' : 'Yin';
+        const tierDescs = {
+          Overweak: `an extremely weak ${pol} ${dmElement} Day Master (score ${scoreFmt}/100, Overweak tier). The DM barely registers in the chart — it is easily overwhelmed by surrounding elements and has almost no independent strength. This person needs significant external support, structured environments, and gentle reinforcement of their core element. They are highly sensitive to seasonal and environmental shifts.`,
+          Weak: `a weak ${pol} ${dmElement} Day Master (score ${scoreFmt}/100, Weak tier). The DM is present but lacks sufficient support from the chart. This person tends toward passivity, may struggle with confidence and decisiveness, and benefits from environments and relationships that nurture and feed their core element. Resource (印) and Companion (比劫) elements are particularly helpful.`,
+          Balanced: `a balanced ${pol} ${dmElement} Day Master (score ${scoreFmt}/100, Balanced tier). The DM has healthy support without being overpowered. This person can adapt to different situations, has a stable sense of self, and can both lead and collaborate effectively. No extreme remedies are needed — gentle seasonal adjustments are sufficient.`,
+          Strong: `a strong ${pol} ${dmElement} Day Master (score ${scoreFmt}/100, Strong tier). The DM has ample support and tends to dominate the chart. This person is naturally assertive, confident, and self-directed, but may be stubborn or overbearing. Output (食伤) and Wealth (财) elements help channel excess strength productively.`,
+          Overstrong: `an extremely strong ${pol} ${dmElement} Day Master (score ${scoreFmt}/100, Overstrong tier). The DM overpowers all other elements in the chart. This person has overwhelming self-energy that needs strong outlets — demanding careers, physical challenges, or creative expression. Without proper channeling, the excess manifests as rigidity, aggression, or isolation. Strong draining elements (Output, Wealth, Officer) are essential.`,
+        };
+        const desc = tierDescs[r.tier] || '';
+        const fullStatement = `This person has ${desc}`;
+        return (
+          <div className="px-4 py-3 border-t border-white/5">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-bold text-amber-300/80 uppercase tracking-wider">AI-Ready Statement</span>
+              <button
+                onClick={() => { navigator.clipboard.writeText(fullStatement); }}
+                className="text-[9px] px-2 py-0.5 rounded border border-white/15 text-white/50 hover:text-white/80 hover:border-white/30 transition-colors"
+              >
+                Copy
+              </button>
+            </div>
+            <div className="text-[10px] text-white/70 leading-relaxed bg-white/[0.03] rounded-lg p-2.5 border border-white/5 font-sans">
+              {fullStatement}
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="p-4 space-y-4">
         {/* Stage 1: Base DM Qi */}
         <Section title="Stage 1 — Base Day Master Qi">
