@@ -10355,6 +10355,95 @@ export default function QiBraceletPage() {
                   </div>
                 </div>
 
+                {/* Chart-Wide Rooting Summary — shows where each element gets its roots */}
+                {qiMatrix?.rootingBreakdown && (() => {
+                  const breakdown = qiMatrix.rootingBreakdown;
+                  const rootWeights = { Year: 0.7, Month: 1.2, Day: 1.0, Hour: 0.7 };
+
+                  return (
+                    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 mt-2">
+                      <div className="text-sm font-semibold text-green-300 mb-1">Chart-Wide Element Rooting</div>
+                      <div className="text-[10px] text-gray-500 mb-3">
+                        <span className="text-white/70">Layer 1</span> — per-pillar influence weight × seasonal factor → root points per element.{' '}
+                        <span className="text-white/70">Layer 2</span> — total root points → tier → multiplier applied to ALL pillars for that element.
+                      </div>
+
+                      {/* Influence weight legend */}
+                      <div className="flex gap-3 text-[9px] text-gray-500 mb-3 font-mono">
+                        <span>Pillar root weights:</span>
+                        {Object.entries(rootWeights).map(([l, w]) => (
+                          <span key={l} className="text-white/60">{l}={w}</span>
+                        ))}
+                      </div>
+
+                      {/* Per-element breakdown */}
+                      <div className="space-y-3">
+                        {breakdown.map(d => {
+                          const tierColor = d.multiplier >= 1.6 ? '#4ade80' : d.multiplier >= 1.3 ? '#86efac' : d.multiplier >= 1.0 ? '#9ca3af' : '#f87171';
+                          const tierLabel = d.multiplier >= 1.6 ? 'Deep root' : d.multiplier >= 1.3 ? 'Solid root' : d.multiplier >= 1.0 ? 'Light root' : 'No root';
+                          return (
+                            <div key={d.element} className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
+                              {/* Element header with tier */}
+                              <div className="flex items-center justify-between mb-1.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold" style={{ color: ELEM_COLORS[d.element] }}>{d.element}</span>
+                                  <span className="text-[10px] font-mono text-white/60">pts={d.points.toFixed(2)}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-semibold" style={{ color: tierColor }}>{tierLabel}</span>
+                                  <span className="text-[10px] font-mono font-bold" style={{ color: tierColor }}>×{d.multiplier}</span>
+                                </div>
+                              </div>
+
+                              {/* Root point bar */}
+                              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-1.5">
+                                <div className="h-full rounded-full" style={{
+                                  width: `${Math.min(100, (d.points / 3.0) * 100)}%`,
+                                  backgroundColor: tierColor, opacity: 0.7,
+                                }} />
+                              </div>
+
+                              {/* Per-branch sources */}
+                              {d.perBranch.length > 0 ? (
+                                <div className="space-y-0.5">
+                                  {d.perBranch.map((s, i) => (
+                                    <div key={i} className="flex items-center justify-between text-[9px] font-mono text-gray-400">
+                                      <span>
+                                        <span className="text-white/50">{s.pillar}</span>/{s.branchChar}{s.animal}{' '}
+                                        <span style={{ color: ELEM_COLORS[d.element] }}>{s.stemChar}</span>({s.pct}%)
+                                      </span>
+                                      <span>
+                                        w={s.weight} × S = <span className="text-white/70">{s.contribution.toFixed(2)}</span>
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-[9px] text-red-400/70">No root found in any branch — element is floating</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Tier legend */}
+                      <div className="flex gap-4 mt-3 text-[9px] text-gray-500">
+                        {[
+                          { label: 'No root', pts: '<0.5', mult: '×0.7', color: '#f87171' },
+                          { label: 'Light', pts: '0.5–1.5', mult: '×1.0', color: '#9ca3af' },
+                          { label: 'Solid', pts: '1.5–2.5', mult: '×1.3', color: '#86efac' },
+                          { label: 'Deep', pts: '≥2.5', mult: '×1.6', color: '#4ade80' },
+                        ].map(t => (
+                          <span key={t.label} className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }} />
+                            <span>{t.label} ({t.pts}) {t.mult}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Total Functional Qi — cross-pillar summary */}
                 {qiMatrix && (
                   <FunctionalQiSummary
