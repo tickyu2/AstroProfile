@@ -9393,6 +9393,14 @@ function MTFQPanel({ userTfq, cymfq, monthName }) {
             );
           })()}
 
+          {/* TFQ Spider Chart — spatial visualization right below the numbers */}
+          {userTfq && (
+            <div className="flex flex-col items-center gap-2 py-2">
+              <PentagonRadar qi={userTfq} label="Natal TFQ" size={200} />
+              <div className="text-[9px] text-gray-500 text-center">Spatial distribution of your constitutional Qi</div>
+            </div>
+          )}
+
           {/* Car / Weather analogy */}
           <div className="p-3 rounded-lg bg-indigo-900/20 border border-indigo-500/20 space-y-2">
             <div className="text-xs text-indigo-300 font-semibold">Why 60% / 40%?</div>
