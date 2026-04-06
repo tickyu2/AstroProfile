@@ -524,9 +524,9 @@ export function computeNatalQi(
     pSteps.push(rawLine);
 
     // Apply double rooting multipliers:
-    //   M2 = chart-wide tier multiplier (per element)
-    //   M1 = per-pillar rooting influence weight
-    //   Rooted = Raw × M2 × M1
+    //   M1 = chart-wide rooting tier multiplier (per element)
+    //   M2 = per-pillar rooting influence weight (Grok)
+    //   Rooted = Raw × M1 × M2
     const pillarRootW = ROOTING_PILLAR_WEIGHT[label] || 0.7;
     const rooted = emptyQi();
     for (const k of ELEMENT_KEYS) {
@@ -534,11 +534,11 @@ export function computeNatalQi(
     }
     const rootedNonzero = ELEMENT_KEYS.filter(k => raw[k] > 0.001);
     if (rootedNonzero.length > 0) {
-      steps.push(`  Rooting (M2×M1): tier × pillar influence (${label}=${pillarRootW})`);
+      steps.push(`  Rooting (M1×M2): tier × pillar influence (${label}=${pillarRootW})`);
       for (const k of rootedNonzero) {
-        steps.push(`    ${k}=${raw[k].toFixed(3)} × ${rootMult[k].toFixed(1)}(tier) × ${pillarRootW}(${label}) = ${rooted[k].toFixed(3)}`);
+        steps.push(`    ${k}=${raw[k].toFixed(3)} × ${rootMult[k].toFixed(1)}(M1 tier) × ${pillarRootW}(M2 ${label}) = ${rooted[k].toFixed(3)}`);
       }
-      pSteps.push(`Rooting: tier × ${label} influence (${pillarRootW})`);
+      pSteps.push(`Rooting: M1(tier) × M2(${label}=${pillarRootW})`);
       for (const k of rootedNonzero) {
         pSteps.push(`  ${k}=${raw[k].toFixed(3)} × ${rootMult[k].toFixed(1)} × ${pillarRootW} = ${rooted[k].toFixed(3)}`);
       }

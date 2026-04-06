@@ -2108,7 +2108,7 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
             Rooting Adjustment (Stage 2)
           </div>
           <div className="text-gray-500 mb-1">
-            Double multiplier: <span className="text-cyan-300">M2</span> (chart-wide tier) × <span className="text-amber-300">M1</span> (pillar influence) applied to raw pts.
+            Double multiplier: <span className="text-cyan-300">M1</span> (chart-wide tier) × <span className="text-amber-300">M2</span> (pillar influence) applied to raw pts.
           </div>
 
           {/* Rooting influence weight for THIS pillar */}
@@ -2157,15 +2157,15 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
             </table>
           </div>
 
-          {/* Per-element rooted values — Raw × M2 (tier) × M1 (pillar) */}
+          {/* Per-element rooted values — Raw × M1 (tier) × M2 (pillar) */}
           <div className="text-gray-400 font-semibold">
-            {label.toUpperCase()} PILLAR Rooted ({S}R): Raw × <span className="text-cyan-300">M2</span> × <span className="text-amber-300">M1</span>
+            {label.toUpperCase()} PILLAR Rooted ({S}R): Raw × <span className="text-cyan-300">M1</span> × <span className="text-amber-300">M2</span>
           </div>
           {ELEMENTS.map(el => {
-            const m2 = rootingMultipliers[el] ?? 1.0;
-            const m1 = thisWeight;
+            const m1 = rootingMultipliers[el] ?? 1.0;
+            const m2 = thisWeight;
             const rootedVal = rooted[el];
-            const combined = m2 * m1;
+            const combined = m1 * m2;
             return (
               <div key={el}>
                 <ElSpan el={el}>{el}</ElSpan>
@@ -2173,11 +2173,11 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
                 {' = '}
                 <span className="text-gray-400">{raw[el].toFixed(3)}</span>
                 {' × '}
-                <span className="text-cyan-300">{m2.toFixed(1)}</span>
-                <span className="text-gray-500">(tier)</span>
+                <span className="text-cyan-300">{m1.toFixed(1)}</span>
+                <span className="text-gray-500">(M1 tier)</span>
                 {' × '}
-                <span className="text-amber-300">{m1}</span>
-                <span className="text-gray-500">({label})</span>
+                <span className="text-amber-300">{m2}</span>
+                <span className="text-gray-500">(M2 {label})</span>
                 {' = '}
                 <span className="text-white font-semibold">{rootedVal.toFixed(3)}</span>
                 {combined < 1.0 && raw[el] > 0 && (
@@ -10545,9 +10545,9 @@ export default function QiBraceletPage() {
                       <div className="mt-4 border-t border-white/10 pt-3">
                         <div className="text-[10px] font-semibold text-green-300 mb-1">Double Multiplier Per Pillar</div>
                         <div className="text-[9px] text-gray-300 mb-2">
-                          <span className="text-amber-300 font-semibold">M1</span> = Rooting Influence (this pillar's contribution to root points).{' '}
-                          <span className="text-cyan-300 font-semibold">M2</span> = Rooting Tier (chart-wide multiplier applied to raw Qi).{' '}
-                          <span className="text-white font-semibold">Combined</span> = M1 feeds M2; M2 is what multiplies the Qi.
+                          <span className="text-cyan-300 font-semibold">M1</span> = Rooting Tier (chart-wide multiplier applied to raw Qi).{' '}
+                          <span className="text-amber-300 font-semibold">M2</span> = Pillar Influence (Grok weights — per-pillar rooting contribution).{' '}
+                          <span className="text-white font-semibold">Combined</span> = Raw × M1 × M2 = Rooted Qi.
                         </div>
 
                         <div className="rounded border border-white/10 overflow-hidden">
@@ -10561,8 +10561,8 @@ export default function QiBraceletPage() {
                                     <span className="text-[8px] text-gray-400">w={rootWeights[p]}</span>
                                   </th>
                                 ))}
-                                <th className="px-2 py-1.5 text-center">Total<br/><span className="text-[8px] text-amber-300">M1 pts</span></th>
-                                <th className="px-2 py-1.5 text-center">Tier<br/><span className="text-[8px] text-cyan-300">M2 ×</span></th>
+                                <th className="px-2 py-1.5 text-center">Total<br/><span className="text-[8px] text-amber-300">M2 pts</span></th>
+                                <th className="px-2 py-1.5 text-center">Tier<br/><span className="text-[8px] text-cyan-300">M1 ×</span></th>
                               </tr>
                             </thead>
                             <tbody>
