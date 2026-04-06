@@ -2033,14 +2033,36 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
       ))}
 
       {/* === Rooting Adjustment === */}
-      {rootingMultipliers && (
+      {rootingMultipliers && (() => {
+        const pillarRootWeights = { Year: 0.7, Month: 1.2, Day: 1.0, Hour: 0.7 };
+        const thisWeight = pillarRootWeights[label] ?? 0.7;
+        return (
         <>
           <Sep />
           <div className="text-gray-400 font-semibold">
             Rooting Adjustment (Stage 2)
           </div>
           <div className="text-gray-500 mb-1">
-            Each element's raw pts multiplied by its rooting tier multiplier:
+            Chart-wide rooting tier multiplier applied to this pillar's raw pts.
+          </div>
+
+          {/* Rooting influence weight for THIS pillar */}
+          <div className="rounded border border-green-500/20 bg-green-900/10 p-2 mb-2">
+            <div className="text-[10px] text-green-300 font-semibold mb-1">Rooting Influence Weights (per pillar)</div>
+            <div className="flex gap-3 text-[9px] font-mono">
+              {Object.entries(pillarRootWeights).map(([p, w]) => (
+                <span key={p} className={p === label ? 'text-green-300 font-bold' : 'text-gray-500'}>
+                  {p}={w}{p === label && ' ← this pillar'}
+                </span>
+              ))}
+            </div>
+            <div className="text-[9px] text-gray-500 mt-1">
+              {label} branch contributes <span className="text-white/70 font-semibold">{thisWeight}</span> to rooting.
+              {thisWeight >= 1.2 && ' Strongest root — seasonal environment.'}
+              {thisWeight === 1.0 && ' Standard root — personal foundation.'}
+              {thisWeight === 0.7 && label === 'Year' && ' Weaker root — ancestral background.'}
+              {thisWeight === 0.7 && label === 'Hour' && ' Weaker root — inner layer.'}
+            </div>
           </div>
 
           {/* Rooting multiplier table */}
@@ -2097,7 +2119,8 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
             );
           })}
         </>
-      )}
+        );
+      })()}
 
       {/* === C. Seasonality Adjustment (non-Day) === */}
       {!isDay && sw && seasonInfo && (
