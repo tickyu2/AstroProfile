@@ -9393,14 +9393,6 @@ function MTFQPanel({ userTfq, cymfq, monthName }) {
             );
           })()}
 
-          {/* TFQ Spider Chart — spatial visualization right below the numbers */}
-          {userTfq && (
-            <div className="flex flex-col items-center gap-2 py-2">
-              <PentagonRadar qi={userTfq} label="Natal TFQ" size={200} />
-              <div className="text-[9px] text-gray-500 text-center">Spatial distribution of your constitutional Qi</div>
-            </div>
-          )}
-
           {/* Car / Weather analogy */}
           <div className="p-3 rounded-lg bg-indigo-900/20 border border-indigo-500/20 space-y-2">
             <div className="text-xs text-indigo-300 font-semibold">Why 60% / 40%?</div>
@@ -10294,6 +10286,47 @@ export default function QiBraceletPage() {
                   />
                 )}
               </section>
+
+              {/* TFQ Distribution — bar chart (left) + pentagon radar (right) */}
+              {userTfq && (() => {
+                const tfqTotal = ELEMENTS.reduce((s, el) => s + (userTfq[el] || 0), 0);
+                const tfqMax = Math.max(...ELEMENTS.map(el => userTfq[el] || 0), 0.01);
+                return (
+                  <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                    <div className="text-sm font-semibold text-amber-300 mb-3">Total Functional Qi Distribution</div>
+                    <div className="grid grid-cols-2 gap-4 items-center">
+                      {/* Left: Bar chart */}
+                      <div className="space-y-1.5">
+                        {ELEMENTS.map(el => {
+                          const val = userTfq[el] || 0;
+                          const pct = tfqTotal > 0 ? (val / tfqTotal * 100) : 0;
+                          return (
+                            <div key={el} className="flex items-center gap-2 text-[11px]">
+                              <span className="w-10 text-right font-semibold" style={{ color: ELEM_COLORS[el] }}>{el}</span>
+                              <div className="flex-1 h-5 bg-white/5 rounded overflow-hidden relative">
+                                <div
+                                  className="h-full rounded"
+                                  style={{ width: `${(val / tfqMax) * 100}%`, backgroundColor: ELEM_COLORS[el], opacity: 0.7 }}
+                                />
+                                <span className="absolute inset-0 flex items-center px-1.5 text-[10px] font-mono text-white font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+                                  {val.toFixed(3)}
+                                </span>
+                              </div>
+                              <span className="w-12 text-right font-mono text-white/60">{pct.toFixed(1)}%</span>
+                            </div>
+                          );
+                        })}
+                        <div className="text-[10px] font-mono text-amber-400/60 text-right mt-1">Total: {tfqTotal.toFixed(3)}</div>
+                      </div>
+                      {/* Right: Pentagon radar */}
+                      <div className="flex flex-col items-center">
+                        <PentagonRadar qi={userTfq} label="Natal TFQ" size={200} />
+                        <div className="text-[9px] text-gray-500 mt-1">Spatial distribution</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Day Master Strength — Full Gauntlet */}
               {qiMatrix && userTfq && (
