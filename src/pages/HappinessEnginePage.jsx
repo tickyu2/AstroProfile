@@ -480,7 +480,7 @@ function CoachingCard({ pillars, result }) {
       </div>
 
       <div className="text-xs text-purple-200 font-semibold">
-        Expected gain: <span className="text-purple-300 font-mono">+{best.projectedGain}</span> Happiness
+        Expected gain: <span className="text-purple-300 font-mono">+{best.projectedGain.toFixed(1)}</span> Happiness
       </div>
 
       <div className="text-[10px] text-white/40 leading-relaxed mt-1">

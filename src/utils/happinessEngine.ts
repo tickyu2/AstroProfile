@@ -279,22 +279,24 @@ export interface SubLeverage {
  */
 export function findBestImprovement(pillars: Pillar[], currentResult: HappinessResult, kR = 0.35): SubLeverage | null {
   let best: SubLeverage | null = null;
+  const currentH = currentResult.boosted;
 
   for (const p of pillars) {
     for (const s of p.subs) {
       const leverage = s.weight * (1 - s.score) * p.weight;
-      if (!best || leverage > best.leverage) {
-        // Simulate +10% on this sub
-        const simPillars = pillars.map(pp => {
-          if (pp.id !== p.id) return pp;
-          const simSubs = pp.subs.map(ss =>
-            ss.id === s.id ? { ...ss, score: Math.min(1, ss.score + 0.10) } : ss
-          );
-          return { ...pp, subs: simSubs, score: computePillarScore(simSubs) };
-        });
-        const simResult = computeHappiness(simPillars, kR);
-        const gain = simResult.score100 - currentResult.score100;
 
+      // Simulate +10% on this sub and recompute full pipeline
+      const simPillars = pillars.map(pp => {
+        if (pp.id !== p.id) return pp;
+        const simSubs = pp.subs.map(ss =>
+          ss.id === s.id ? { ...ss, score: Math.min(1, ss.score + 0.10) } : ss
+        );
+        return { ...pp, subs: simSubs, score: computePillarScore(simSubs) };
+      });
+      const simResult = computeHappiness(simPillars, kR);
+      const gain = (simResult.boosted - currentH) * 100; // gain in H points (decimal precision)
+
+      if (!best || gain > best.projectedGain) {
         best = { pillarId: p.id, pillarName: p.name, sub: s, leverage, projectedGain: gain };
       }
     }
