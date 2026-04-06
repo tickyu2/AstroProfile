@@ -1928,9 +1928,11 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
   const stemPts = {};
   ELEMENTS.forEach(el => { stemPts[el] = stemCounts[el] * 1; });
 
-  // Compute rooted values (raw × rooting multiplier)
+  // Compute rooted values (raw × M2 tier × M1 pillar influence)
+  const pillarRootWeightsLocal = { Year: 0.7, Month: 1.2, Day: 1.0, Hour: 0.7 };
+  const m1Weight = pillarRootWeightsLocal[label] ?? 0.7;
   const rooted = {};
-  ELEMENTS.forEach(el => { rooted[el] = raw[el] * (rootingMultipliers?.[el] ?? 1.0); });
+  ELEMENTS.forEach(el => { rooted[el] = raw[el] * (rootingMultipliers?.[el] ?? 1.0) * m1Weight; });
 
   // Seasonal weights for birth month
   const sw = birthMonthBranch ? getSeasonalWeights(birthMonthBranch) : null;
@@ -1958,8 +1960,8 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
       dmRaw[el] = el === sEl ? 1 : 0;
       dbRaw[el] = raw[el] - dmRaw[el];
       const rMult = rootingMultipliers?.[el] ?? 1.0;
-      dmRooted[el] = dmRaw[el] * rMult;
-      dbRooted[el] = dbRaw[el] * rMult;
+      dmRooted[el] = dmRaw[el] * rMult * m1Weight;
+      dbRooted[el] = dbRaw[el] * rMult * m1Weight;
       const sMult = sw[el.toLowerCase()] ?? 1.0;
       dmSeasoned[el] = dmRooted[el] * sMult;
       dbSeasoned[el] = dbRooted[el] * sMult;
@@ -2106,7 +2108,7 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
             Rooting Adjustment (Stage 2)
           </div>
           <div className="text-gray-500 mb-1">
-            Chart-wide rooting tier multiplier applied to this pillar's raw pts.
+            Double multiplier: <span className="text-cyan-300">M2</span> (chart-wide tier) × <span className="text-amber-300">M1</span> (pillar influence) applied to raw pts.
           </div>
 
           {/* Rooting influence weight for THIS pillar */}
@@ -2155,13 +2157,15 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
             </table>
           </div>
 
-          {/* Per-element rooted values */}
+          {/* Per-element rooted values — Raw × M2 (tier) × M1 (pillar) */}
           <div className="text-gray-400 font-semibold">
-            {label.toUpperCase()} PILLAR Rooted ({S}R):
+            {label.toUpperCase()} PILLAR Rooted ({S}R): Raw × <span className="text-cyan-300">M2</span> × <span className="text-amber-300">M1</span>
           </div>
           {ELEMENTS.map(el => {
-            const mult = rootingMultipliers[el] ?? 1.0;
+            const m2 = rootingMultipliers[el] ?? 1.0;
+            const m1 = thisWeight;
             const rootedVal = rooted[el];
+            const combined = m2 * m1;
             return (
               <div key={el}>
                 <ElSpan el={el}>{el}</ElSpan>
@@ -2169,14 +2173,18 @@ function BabyStepCalc({ breakdown, label, birthMonthBranch, dayMasterPolarity, d
                 {' = '}
                 <span className="text-gray-400">{raw[el].toFixed(3)}</span>
                 {' × '}
-                <span className="text-gray-400">{mult.toFixed(1)}</span>
+                <span className="text-cyan-300">{m2.toFixed(1)}</span>
+                <span className="text-gray-500">(tier)</span>
+                {' × '}
+                <span className="text-amber-300">{m1}</span>
+                <span className="text-gray-500">({label})</span>
                 {' = '}
                 <span className="text-white font-semibold">{rootedVal.toFixed(3)}</span>
-                {mult < 1.0 && raw[el] > 0 && (
-                  <span className="text-red-400/70 ml-1">(no root — {Math.round((1 - mult) * 100)}% penalty)</span>
+                {combined < 1.0 && raw[el] > 0 && (
+                  <span className="text-red-400/70 ml-1">({Math.round((1 - combined) * 100)}% reduction)</span>
                 )}
-                {mult > 1.0 && raw[el] > 0 && (
-                  <span className="text-green-400/70 ml-1">(+{Math.round((mult - 1) * 100)}% boost)</span>
+                {combined > 1.0 && raw[el] > 0 && (
+                  <span className="text-green-400/70 ml-1">(+{Math.round((combined - 1) * 100)}% boost)</span>
                 )}
               </div>
             );

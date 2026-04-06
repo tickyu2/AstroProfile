@@ -523,16 +523,25 @@ export function computeNatalQi(
     steps.push(`  ${rawLine}`);
     pSteps.push(rawLine);
 
-    // Apply rooting multipliers
+    // Apply double rooting multipliers:
+    //   M2 = chart-wide tier multiplier (per element)
+    //   M1 = per-pillar rooting influence weight
+    //   Rooted = Raw × M2 × M1
+    const pillarRootW = ROOTING_PILLAR_WEIGHT[label] || 0.7;
     const rooted = emptyQi();
     for (const k of ELEMENT_KEYS) {
-      rooted[k] = raw[k] * rootMult[k];
+      rooted[k] = raw[k] * rootMult[k] * pillarRootW;
     }
-    const rootedNonzero = ELEMENT_KEYS.filter(k => rooted[k] > 0.01 && rootMult[k] > 1.001);
+    const rootedNonzero = ELEMENT_KEYS.filter(k => raw[k] > 0.001);
     if (rootedNonzero.length > 0) {
-      const rootLine = `Rooting: ${rootedNonzero.map(k => `${k}=${raw[k].toFixed(1)}×${rootMult[k].toFixed(2)}=${rooted[k].toFixed(2)}`).join(', ')}`;
-      steps.push(`  ${rootLine}`);
-      pSteps.push(rootLine);
+      steps.push(`  Rooting (M2×M1): tier × pillar influence (${label}=${pillarRootW})`);
+      for (const k of rootedNonzero) {
+        steps.push(`    ${k}=${raw[k].toFixed(3)} × ${rootMult[k].toFixed(1)}(tier) × ${pillarRootW}(${label}) = ${rooted[k].toFixed(3)}`);
+      }
+      pSteps.push(`Rooting: tier × ${label} influence (${pillarRootW})`);
+      for (const k of rootedNonzero) {
+        pSteps.push(`  ${k}=${raw[k].toFixed(3)} × ${rootMult[k].toFixed(1)} × ${pillarRootW} = ${rooted[k].toFixed(3)}`);
+      }
     }
 
     // Apply birth season to rooted pillar
