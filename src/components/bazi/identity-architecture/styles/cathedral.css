@@ -1,0 +1,126 @@
+/* Cathedral-Grade Theme — fonts, borders, glows, halos */
+
+:root {
+  --cathedral-bg: #020617;
+  --cathedral-panel: #0a0f1e;
+  --cathedral-border: #1e293b;
+  --cathedral-border-accent: rgba(139, 92, 246, 0.18);
+  --cathedral-glow-soft: 0 0 24px rgba(56, 189, 248, 0.15);
+  --cathedral-glow-strong: 0 0 40px rgba(56, 189, 248, 0.4);
+  --cathedral-glow-purple: 0 0 30px rgba(139, 92, 246, 0.25);
+  --cathedral-font: "DM Sans", "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --cathedral-font-chinese: "Noto Sans SC", "Ma Shan Zheng", serif;
+  --cathedral-font-codex: "Cormorant Garamond", "Times New Roman", serif;
+}
+
+/* ─── Panels ─── */
+.cathedral-panel {
+  background: radial-gradient(
+    ellipse at top center,
+    rgba(15, 23, 42, 0.95) 0%,
+    var(--cathedral-panel) 60%,
+    var(--cathedral-bg) 100%
+  );
+  border-radius: 1rem;
+  border: 1px solid var(--cathedral-border);
+  box-shadow: var(--cathedral-glow-soft);
+  font-family: var(--cathedral-font);
+}
+.cathedral-panel:hover {
+  box-shadow: var(--cathedral-glow-strong);
+  border-color: rgba(56, 189, 248, 0.12);
+  transition: box-shadow 0.6s ease, border-color 0.6s ease;
+}
+
+/* ─── Titles ─── */
+.cathedral-title {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 11px;
+  color: #94a3b8;
+}
+.cathedral-heading {
+  letter-spacing: 0.03em;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+/* ─── Breathing ring glow ─── */
+@keyframes ringGlow {
+  0%   { filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.12)); }
+  50%  { filter: drop-shadow(0 0 26px rgba(56, 189, 248, 0.5)); }
+  100% { filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.12)); }
+}
+.cathedral-ring-glow {
+  animation: ringGlow 6s ease-in-out infinite;
+}
+
+/* ─── Element halos on nodes ─── */
+@keyframes elementHaloPulse {
+  0%   { filter: drop-shadow(0 0 4px var(--halo-color, rgba(248,250,252,0.2))); }
+  50%  { filter: drop-shadow(0 0 12px var(--halo-color, rgba(248,250,252,0.5))); }
+  100% { filter: drop-shadow(0 0 4px var(--halo-color, rgba(248,250,252,0.2))); }
+}
+.element-halo {
+  animation: elementHaloPulse 4s ease-in-out infinite;
+}
+.element-halo:nth-child(2) { animation-delay: 1s; }
+.element-halo:nth-child(3) { animation-delay: 2s; }
+.element-halo:nth-child(4) { animation-delay: 3s; }
+
+/* ─── Chapter divider ─── */
+.cathedral-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(139, 92, 246, 0.3) 30%,
+    rgba(56, 189, 248, 0.3) 70%,
+    transparent 100%
+  );
+  margin: 16px 0;
+}
+
+/* ─── Cathedral button ─── */
+.cathedral-btn {
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--cathedral-border-accent);
+  background: rgba(139, 92, 246, 0.06);
+  color: #a78bfa;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.2s ease;
+}
+.cathedral-btn:hover {
+  background: rgba(139, 92, 246, 0.14);
+  box-shadow: var(--cathedral-glow-purple);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+/* ─── Codex typography (serif for printed document feel) ─── */
+.codex-typography {
+  font-family: var(--cathedral-font-codex);
+}
+.codex-typography h1,
+.codex-typography h2 {
+  letter-spacing: 0.05em;
+}
+
+/* ─── Auto-rotation pause on hover ─── */
+.cathedral-ring-container:hover .cathedral-auto-rotate {
+  animation-play-state: paused;
+}
+
+/* ─── Slow continuous rotation ─── */
+@keyframes cathedralRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.cathedral-auto-rotate {
+  animation: cathedralRotate 120s linear infinite;
+  transform-origin: center center;
+}

@@ -1,0 +1,103 @@
+/* IdentityArchitecture.css — animations & print styles */
+
+/* 1. Pulsing tension lines */
+@keyframes tensionPulse {
+  0%   { stroke-opacity: 0.15; stroke-width: 1; }
+  50%  { stroke-opacity: 0.85; stroke-width: 2.8; }
+  100% { stroke-opacity: 0.15; stroke-width: 1; }
+}
+.ia-tension-line {
+  animation: tensionPulse 2.4s ease-in-out infinite;
+}
+/* Stagger each line so they don't all pulse in unison */
+.ia-tension-line:nth-child(2) { animation-delay: 0.4s; }
+.ia-tension-line:nth-child(3) { animation-delay: 0.8s; }
+.ia-tension-line:nth-child(4) { animation-delay: 1.2s; }
+
+/* 2. Soft glow pulse on inner coherence circle */
+@keyframes coherenceGlow {
+  0%   { opacity: 0.08; }
+  50%  { opacity: 0.22; }
+  100% { opacity: 0.08; }
+}
+.ia-coherence-glow {
+  animation: coherenceGlow 4s ease-in-out infinite;
+}
+
+/* 3. Ring label fade-in for 3-ring cathedral */
+@keyframes ringFadeIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.ia-ring-node {
+  animation: ringFadeIn 0.4s ease-out both;
+}
+.ia-ring-node:nth-child(1) { animation-delay: 0.05s; }
+.ia-ring-node:nth-child(2) { animation-delay: 0.10s; }
+.ia-ring-node:nth-child(3) { animation-delay: 0.15s; }
+.ia-ring-node:nth-child(4) { animation-delay: 0.20s; }
+
+/* 4. D3 cathedral ring hover effect */
+.ia-d3-node circle {
+  transition: r 0.15s ease-out, stroke-width 0.15s ease-out;
+}
+.ia-d3-node:hover circle {
+  stroke-width: 3.5;
+}
+.ia-d3-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #e2e8f0;
+  line-height: 1.5;
+  max-width: 200px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* 5. Identity Codex — print-friendly layout */
+.ia-codex {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.ia-codex-header {
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 20px 24px;
+}
+.ia-codex-body {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 24px;
+  padding: 20px 24px;
+}
+.ia-codex-sidebar {
+  border-left: 1px solid rgba(255,255,255,0.06);
+  padding-left: 20px;
+}
+.ia-codex-footer {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 12px 24px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+@media print {
+  .ia-codex {
+    background: #fff !important;
+    color: #1e293b !important;
+    border: none;
+    box-shadow: none;
+  }
+  .ia-codex-header { border-color: #e2e8f0; }
+  .ia-codex-sidebar { border-color: #e2e8f0; }
+  .ia-codex-footer { border-color: #e2e8f0; color: #94a3b8; }
+  .ia-codex * { color: #1e293b !important; }
+  .ia-codex svg text { fill: #1e293b !important; }
+  .ia-codex svg circle { stroke: #64748b !important; }
+}

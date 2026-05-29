@@ -1,0 +1,30 @@
+/* Diagram interaction styles — D3 nodes, tooltips */
+
+.ia-d3-node circle {
+  transition: r 0.15s ease-out, stroke-width 0.15s ease-out;
+}
+.ia-d3-node:hover circle {
+  stroke-width: 3.5;
+}
+
+/* Selected node (click-to-highlight) */
+.ia-d3-node.ia-selected circle {
+  stroke-width: 4;
+  filter: drop-shadow(0 0 6px var(--node-color, #8b5cf6));
+}
+
+.ia-d3-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #e2e8f0;
+  line-height: 1.5;
+  max-width: 220px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: opacity 0.15s ease-out;
+}
