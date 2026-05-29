@@ -66,3 +66,19 @@ functions-python/__pycache__/
 functions-python/**/__pycache__/
 *storybook.log
 storybook-static
+
+# Claude Code agent worktrees (keep tracked .claude/ files like settings/docs)
+.claude/worktrees/
+
+# FreeFileSync local sync configs
+*.ffs_batch.ffs_gui
+*.ffs_gui
+*.ffs_batch
+
+# Local data dumps (regenerated on demand, not source of truth)
+hybrid_organ_matrix.json
+insertion_data.json
+matrix_export.json
+
+# Editor backup copies (e.g. "foo - Copy.ts.txt")
+* - Copy.*
