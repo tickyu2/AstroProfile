@@ -1,0 +1,2 @@
+consumptionType,dbid,name,projectId,projectName,tier,productName,pricingPlan,usage,cost,currency,unitCostInDollars,unitOfMeasure,billingStatus
+database,691c2ab7,My instance,992dcd17-928f-4577-affc-e12c6d8b23e0,GENESIS,professional,Primary DB,Professional,913,82.17,credits,0.09,GB-hours,Ongoing

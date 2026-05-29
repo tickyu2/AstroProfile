@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Yin-Yang Compatibility Matrix - Interactive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Instrument-panel: scale everything to fit without scrolling */
+        body.in-iframe {
+            padding: 4px 6px;
+            min-height: 0;
+            zoom: 0.72;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2C3E50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7F8C8D;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #ECF0F1;
+            color: #2C3E50;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .cycle-section {
+            margin-bottom: 40px;
+        }
+
+        .cycle-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cycle-title {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .cycle-stats {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .combinations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .combo-card {
+            border: 3px solid #ECF0F1;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .combo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .combo-card.excellent {
+            border-color: #27AE60;
+            background: linear-gradient(to bottom, #ffffff, #E8F8F5);
+        }
+
+        .combo-card.good {
+            border-color: #3498DB;
+            background: linear-gradient(to bottom, #ffffff, #EBF5FB);
+        }
+
+        .combo-card.moderate {
+            border-color: #F39C12;
+            background: linear-gradient(to bottom, #ffffff, #FEF5E7);
+        }
+
+        .combo-card.poor {
+            border-color: #E74C3C;
+            background: linear-gradient(to bottom, #ffffff, #FADBD8);
+        }
+
+        .combo-elements {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 2em;
+        }
+
+        .element {
+            text-align: center;
+            flex: 1;
+        }
+
+        .element-name {
+            font-size: 0.5em;
+            font-weight: bold;
+            color: #2C3E50;
+            margin-top: 5px;
+        }
+
+        .arrow {
+            font-size: 1.5em;
+            color: #7F8C8D;
+            margin: 0 10px;
+        }
+
+        .rating {
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .rating.excellent { color: #27AE60; }
+        .rating.good { color: #3498DB; }
+        .rating.moderate { color: #F39C12; }
+        .rating.poor { color: #E74C3C; }
+
+        .stars {
+            text-align: center;
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+
+        .combo-details {
+            font-size: 0.9em;
+            color: #34495E;
+            line-height: 1.6;
+        }
+
+        .detail-row {
+            margin: 8px 0;
+            display: flex;
+            align-items: start;
+        }
+
+        .detail-icon {
+            margin-right: 8px;
+            min-width: 20px;
+        }
+
+        .pattern-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .yang-yang {
+            background: #FFE4E1;
+            color: #C0392B;
+        }
+
+        .yang-yin {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .yin-yang {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .yin-yin {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .combinations-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Complete Yin-Yang Compatibility Matrix</h1>
+        <p class="subtitle">All 20 Producing Cycle Combinations - Interactive Visual Guide</p>
+
+        <div class="summary-stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Combinations</div>
+                <div class="stat-number">20</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Across Cycles</div>
+                <div class="stat-number">5</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Excellent (90%+)</div>
+                <div class="stat-number">7</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Average Rating</div>
+                <div class="stat-number">83.8%</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="filter-btn active" onclick="filterCombos('all')">All Combinations</button>
+            <button class="filter-btn" onclick="filterCombos('excellent')">Excellent (90%+)</button>
+            <button class="filter-btn" onclick="filterCombos('good')">Good (80-89%)</button>
+            <button class="filter-btn" onclick="filterCombos('moderate')">Moderate (70-79%)</button>
+            <button class="filter-btn" onclick="filterCombos('poor')">Challenging (&lt;70%)</button>
+            <button class="filter-btn" onclick="filterCombos('yin-yin')">Yin-Yin Only</button>
+            <button class="filter-btn" onclick="filterCombos('yang-yang')">Yang-Yang Only</button>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="border-color: #27AE60; background: #E8F8F5;"></div>
+                <span>Excellent (90-96%)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="border-color: #3498DB; background: #EBF5FB;"></div>
+                <span>Good (80-89%)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="border-color: #F39C12; background: #FEF5E7;"></div>
+                <span>Moderate (70-79%)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="border-color: #E74C3C; background: #FADBD8;"></div>
+                <span>Poor (60-69%)</span>
+            </div>
+        </div>
+
+        <!-- Water → Wood -->
+        <div class="cycle-section">
+            <div class="cycle-header">
+                <div class="cycle-title">🌊 → 🌳 Water → Wood: Wisdom Nourishes Growth</div>
+                <div class="cycle-stats">Average: 87.5% | Range: 78-95%</div>
+            </div>
+            <div class="combinations-grid">
+                <div class="combo-card good yang-yang" data-rating="good" data-pattern="yang-yang">
+                    <div class="combo-elements">
+                        <div class="element">
+                            🌊
+                            <div class="element-name">Ocean<br>壬 Yang</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            🌲
+                            <div class="element-name">Oak<br>甲 Yang</div>
+                        </div>
+                    </div>
+                    <div class="rating good">85%</div>
+                    <div class="stars">⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Strategic execution at scale</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Oak feels drowned, competition</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Best for: Visionary business partnerships</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yang-yang">Yang-Yang Power</span>
+                </div>
+
+                <div class="combo-card excellent yang-yin" data-rating="excellent" data-pattern="yang-yin">
+                    <div class="combo-elements">
+                        <div class="element">
+                            🌊
+                            <div class="element-name">Ocean<br>壬 Yang</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            🌿
+                            <div class="element-name">Vine<br>乙 Yin</div>
+                        </div>
+                    </div>
+                    <div class="rating excellent">92%</div>
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Infinite creative innovation</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Scattered brilliance, needs focus</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Best for: R&D, creative exploration</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yang-yin">Yang-Yin Balance</span>
+                </div>
+
+                <div class="combo-card moderate yin-yang" data-rating="moderate" data-pattern="yin-yang">
+                    <div class="combo-elements">
+                        <div class="element">
+                            💧
+                            <div class="element-name">Dew<br>癸 Yin</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            🌲
+                            <div class="element-name">Oak<br>甲 Yang</div>
+                        </div>
+                    </div>
+                    <div class="rating moderate">78%</div>
+                    <div class="stars">⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Leader + invisible advisor</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Dew invisible & depletes</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Requires: Active appreciation from Oak</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yin-yang">Yin-Yang Challenge</span>
+                </div>
+
+                <div class="combo-card excellent yin-yin" data-rating="excellent" data-pattern="yin-yin">
+                    <div class="combo-elements">
+                        <div class="element">
+                            💧
+                            <div class="element-name">Dew<br>癸 Yin</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            🌿
+                            <div class="element-name">Vine<br>乙 Yin</div>
+                        </div>
+                    </div>
+                    <div class="rating excellent">95%</div>
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Perfect harmony & understanding</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Low activation, needs Yang support</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Best for: Deep creative healing work</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yin-yin">Yin-Yin Harmony</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wood → Fire -->
+        <div class="cycle-section">
+            <div class="cycle-header">
+                <div class="cycle-title">🌳 → 🔥 Wood → Fire: Vision Fuels Passion</div>
+                <div class="cycle-stats">Average: 84.3% | Range: 76-94%</div>
+            </div>
+            <div class="combinations-grid">
+                <div class="combo-card good yang-yang" data-rating="good" data-pattern="yang-yang">
+                    <div class="combo-elements">
+                        <div class="element">
+                            🌲
+                            <div class="element-name">Oak<br>甲 Yang</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            ☀️
+                            <div class="element-name">Sun<br>丙 Yang</div>
+                        </div>
+                    </div>
+                    <div class="rating good">88%</div>
+                    <div class="stars">⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Visionary movements that inspire millions</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Oak depletes, Sun burns ideas too fast</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Best for: Revolutionary movements, global impact</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yang-yang">Yang-Yang Power</span>
+                </div>
+
+                <div class="combo-card moderate yang-yin" data-rating="moderate" data-pattern="yang-yin">
+                    <div class="combo-elements">
+                        <div class="element">
+                            🌲
+                            <div class="element-name">Oak<br>甲 Yang</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            🕯️
+                            <div class="element-name">Candle<br>丁 Yin</div>
+                        </div>
+                    </div>
+                    <div class="rating moderate">76%</div>
+                    <div class="stars">⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Bold vision with intimate execution</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Scale mismatch - Candle too small for Oak's vision</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Works when: Oak values depth over breadth</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yang-yin">Yang-Yin Balance</span>
+                </div>
+
+                <div class="combo-card moderate yin-yang" data-rating="moderate" data-pattern="yin-yang">
+                    <div class="combo-elements">
+                        <div class="element">
+                            🌿
+                            <div class="element-name">Vine<br>乙 Yin</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            ☀️
+                            <div class="element-name">Sun<br>丙 Yang</div>
+                        </div>
+                    </div>
+                    <div class="rating moderate">79%</div>
+                    <div class="stars">⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Creative adaptability broadcast widely</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>SEVERE depletion risk for Vine</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Requires: STRICT boundaries or Vine burns out</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yin-yang">Yin-Yang Challenge</span>
+                </div>
+
+                <div class="combo-card excellent yin-yin" data-rating="excellent" data-pattern="yin-yin">
+                    <div class="combo-elements">
+                        <div class="element">
+                            🌿
+                            <div class="element-name">Vine<br>乙 Yin</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            🕯️
+                            <div class="element-name">Candle<br>丁 Yin</div>
+                        </div>
+                    </div>
+                    <div class="rating excellent">94%</div>
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Sacred intimate transformation</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Low activation, needs Yang partners</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Best for: Healing partnerships, sacred work</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yin-yin">Yin-Yin Harmony</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fire → Earth -->
+        <div class="cycle-section">
+            <div class="cycle-header">
+                <div class="cycle-title">🔥 → 🌍 Fire → Earth: Passion Creates Stability</div>
+                <div class="cycle-stats">Average: 84.3% | Range: 68-96%</div>
+            </div>
+            <div class="combinations-grid">
+                <div class="combo-card good yang-yang" data-rating="good" data-pattern="yang-yang">
+                    <div class="combo-elements">
+                        <div class="element">
+                            ☀️
+                            <div class="element-name">Sun<br>丙 Yang</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            ⛰️
+                            <div class="element-name">Mountain<br>戊 Yang</div>
+                        </div>
+                    </div>
+                    <div class="rating good">82%</div>
+                    <div class="stars">⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Passion builds permanent infrastructure</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Severe pace mismatch (light vs geological)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Best for: Legacy projects requiring patience</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yang-yang">Yang-Yang Power</span>
+                </div>
+
+                <div class="combo-card excellent yang-yin" data-rating="excellent" data-pattern="yang-yin">
+                    <div class="combo-elements">
+                        <div class="element">
+                            ☀️
+                            <div class="element-name">Sun<br>丙 Yang</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            🌱
+                            <div class="element-name">Garden<br>己 Yin</div>
+                        </div>
+                    </div>
+                    <div class="rating excellent">96%</div>
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>PERFECT! Universal warmth → Gentle nurturing</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Garden risk: Over-nurturing to depletion</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>BEST Fire-Earth pairing! Community systems</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yang-yin">Yang-Yin Balance</span>
+                </div>
+
+                <div class="combo-card poor yin-yang" data-rating="poor" data-pattern="yin-yang">
+                    <div class="combo-elements">
+                        <div class="element">
+                            🕯️
+                            <div class="element-name">Candle<br>丁 Yin</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            ⛰️
+                            <div class="element-name">Mountain<br>戊 Yang</div>
+                        </div>
+                    </div>
+                    <div class="rating poor">68%</div>
+                    <div class="stars">⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Tiny flame trying to heat massive mountain</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>SEVERE scale mismatch - SHOULD AVOID</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Recommendation: Candle→Garden, Mountain→Sun</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yin-yang">Yin-Yang Challenge</span>
+                </div>
+
+                <div class="combo-card excellent yin-yin" data-rating="excellent" data-pattern="yin-yin">
+                    <div class="combo-elements">
+                        <div class="element">
+                            🕯️
+                            <div class="element-name">Candle<br>丁 Yin</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            🌱
+                            <div class="element-name">Garden<br>己 Yin</div>
+                        </div>
+                    </div>
+                    <div class="rating excellent">91%</div>
+                    <div class="stars">⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Sacred gentle warmth → Tender nurturing</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Low activation, small scale</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Best for: Healing sanctuaries, sacred spaces</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yin-yin">Yin-Yin Harmony</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earth → Metal -->
+        <div class="cycle-section">
+            <div class="cycle-header">
+                <div class="cycle-title">🌍 → ⚙️ Earth → Metal: Stability Creates Precision</div>
+                <div class="cycle-stats">Average: 81.8% | Range: 73-93%</div>
+            </div>
+            <div class="combinations-grid">
+                <div class="combo-card good yang-yang" data-rating="good" data-pattern="yang-yang">
+                    <div class="combo-elements">
+                        <div class="element">
+                            ⛰️
+                            <div class="element-name">Mountain<br>戊 Yang</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            ⚔️
+                            <div class="element-name">Sword<br>庚 Yang</div>
+                        </div>
+                    </div>
+                    <div class="rating good">84%</div>
+                    <div class="stars">⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Massive foundation → Decisive execution</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Mountain depletion from constant mining</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Best for: Building + executing at scale</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yang-yang">Yang-Yang Power</span>
+                </div>
+
+                <div class="combo-card moderate yang-yin" data-rating="moderate" data-pattern="yang-yin">
+                    <div class="combo-elements">
+                        <div class="element">
+                            ⛰️
+                            <div class="element-name">Mountain<br>戊 Yang</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            💎
+                            <div class="element-name">Jewel<br>辛 Yin</div>
+                        </div>
+                    </div>
+                    <div class="rating moderate">77%</div>
+                    <div class="stars">⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Crude abundance → Patient refinement</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Jewel frustrated by Mountain's roughness</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Works when: Jewel extracts purest 1% patiently</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yang-yin">Yang-Yin Balance</span>
+                </div>
+
+                <div class="combo-card moderate yin-yang" data-rating="moderate" data-pattern="yin-yang">
+                    <div class="combo-elements">
+                        <div class="element">
+                            🌱
+                            <div class="element-name">Garden<br>己 Yin</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            ⚔️
+                            <div class="element-name">Sword<br>庚 Yang</div>
+                        </div>
+                    </div>
+                    <div class="rating moderate">73%</div>
+                    <div class="stars">⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Gentle support → Sharp decisions</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Garden WOUNDED by Sword's cutting</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Requires: Sword acknowledging before cutting</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yin-yang">Yin-Yang Challenge</span>
+                </div>
+
+                <div class="combo-card excellent yin-yin" data-rating="excellent" data-pattern="yin-yin">
+                    <div class="combo-elements">
+                        <div class="element">
+                            🌱
+                            <div class="element-name">Garden<br>己 Yin</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            💎
+                            <div class="element-name">Jewel<br>辛 Yin</div>
+                        </div>
+                    </div>
+                    <div class="rating excellent">93%</div>
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Abundant nurturing → Refined excellence</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Low activation, needs Yang support</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>BEST Earth-Metal! Exquisite quality work</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yin-yin">Yin-Yin Harmony</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metal → Water -->
+        <div class="cycle-section">
+            <div class="cycle-header">
+                <div class="cycle-title">⚙️ → 🌊 Metal → Water: Precision Creates Depth</div>
+                <div class="cycle-stats">Average: 81.5% | Range: 71-94%</div>
+            </div>
+            <div class="combinations-grid">
+                <div class="combo-card good yang-yang" data-rating="good" data-pattern="yang-yang">
+                    <div class="combo-elements">
+                        <div class="element">
+                            ⚔️
+                            <div class="element-name">Sword<br>庚 Yang</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            🌊
+                            <div class="element-name">Ocean<br>壬 Yang</div>
+                        </div>
+                    </div>
+                    <div class="rating good">83%</div>
+                    <div class="stars">⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Clear structure → Strategic comprehensive flow</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Ocean's vastness corrodes Sword's rigidity</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Best for: Organized strategic systems</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yang-yang">Yang-Yang Power</span>
+                </div>
+
+                <div class="combo-card moderate yang-yin" data-rating="moderate" data-pattern="yang-yin">
+                    <div class="combo-elements">
+                        <div class="element">
+                            ⚔️
+                            <div class="element-name">Sword<br>庚 Yang</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            💧
+                            <div class="element-name">Dew<br>癸 Yin</div>
+                        </div>
+                    </div>
+                    <div class="rating moderate">71%</div>
+                    <div class="stars">⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Sharp clarity for gentle wisdom</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Sword TOO HARSH for Dew - AVOID</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Recommendation: Find appropriate partners</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yang-yin">Yang-Yin Balance</span>
+                </div>
+
+                <div class="combo-card moderate yin-yang" data-rating="moderate" data-pattern="yin-yang">
+                    <div class="combo-elements">
+                        <div class="element">
+                            💎
+                            <div class="element-name">Jewel<br>辛 Yin</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            🌊
+                            <div class="element-name">Ocean<br>壬 Yang</div>
+                        </div>
+                    </div>
+                    <div class="rating moderate">78%</div>
+                    <div class="stars">⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Refined elegance → Vast strategic depth</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Ocean OVERFLOWS Jewel's delicate capacity</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>Scale mismatch - Jewel too small for Ocean</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yin-yang">Yin-Yang Challenge</span>
+                </div>
+
+                <div class="combo-card excellent yin-yin" data-rating="excellent" data-pattern="yin-yin">
+                    <div class="combo-elements">
+                        <div class="element">
+                            💎
+                            <div class="element-name">Jewel<br>辛 Yin</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="element">
+                            💧
+                            <div class="element-name">Dew<br>癸 Yin</div>
+                        </div>
+                    </div>
+                    <div class="rating excellent">94%</div>
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <div class="combo-details">
+                        <div class="detail-row">
+                            <span class="detail-icon">💪</span>
+                            <span>Precious vessel → Sacred gentle wisdom</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">⚠️</span>
+                            <span>Low activation, small scale</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">🎯</span>
+                            <span>BEST Metal-Water! Exquisite perfection</span>
+                        </div>
+                    </div>
+                    <span class="pattern-badge yin-yin">Yin-Yin Harmony</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function filterCombos(filterType) {
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filter cards
+            const cards = document.querySelectorAll('.combo-card');
+            cards.forEach(card => {
+                let show = false;
+                
+                switch(filterType) {
+                    case 'all':
+                        show = true;
+                        break;
+                    case 'excellent':
+                        show = card.dataset.rating === 'excellent';
+                        break;
+                    case 'good':
+                        show = card.dataset.rating === 'good';
+                        break;
+                    case 'moderate':
+                        show = card.dataset.rating === 'moderate';
+                        break;
+                    case 'poor':
+                        show = card.dataset.rating === 'poor';
+                        break;
+                    case 'yin-yin':
+                        show = card.dataset.pattern === 'yin-yin';
+                        break;
+                    case 'yang-yang':
+                        show = card.dataset.pattern === 'yang-yang';
+                        break;
+                }
+                
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        // Add click handlers to cards for details
+        document.querySelectorAll('.combo-card').forEach(card => {
+            card.addEventListener('click', function() {
+                this.classList.toggle('expanded');
+            });
+        });
+
+        // Detect iframe embedding and add compact class
+        if (window.self !== window.top) {
+            document.body.classList.add('in-iframe');
+        }
+    </script>
+</body>
+</html>

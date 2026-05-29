@@ -1,0 +1,142 @@
+<svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Defs -->
+  <defs>
+    <marker id="arrowhead-producing" markerWidth="14" markerHeight="14" refX="12" refY="5" orient="auto">
+      <polygon points="0 0, 14 5, 0 10" fill="#2980B9"/>
+    </marker>
+  </defs>
+
+  <!-- Central Circle Background -->
+  <circle cx="400" cy="420" r="260" fill="none" stroke="#E8E8E8" stroke-width="2" stroke-dasharray="5,5"/>
+
+  <!-- Cycle Path (Pentagon) — shifted down -->
+  <path d="M 400 180 L 623 310 L 555 560 L 245 560 L 177 310 Z"
+        fill="none" stroke="#2980B9" stroke-width="3" opacity="0.25"/>
+
+  <!-- Arrow paths — shifted down 40px -->
+  <!-- Water → Wood -->
+  <path d="M 270 270 Q 300 200 380 180"
+        fill="none" stroke="#2980B9" stroke-width="5" marker-end="url(#arrowhead-producing)"/>
+
+  <!-- Wood → Fire -->
+  <path d="M 520 180 Q 600 240 615 300"
+        fill="none" stroke="#2980B9" stroke-width="5" marker-end="url(#arrowhead-producing)"/>
+
+  <!-- Fire → Earth -->
+  <path d="M 623 360 Q 600 470 560 540"
+        fill="none" stroke="#2980B9" stroke-width="5" marker-end="url(#arrowhead-producing)"/>
+
+  <!-- Earth → Metal -->
+  <path d="M 485 560 Q 380 580 260 560"
+        fill="none" stroke="#2980B9" stroke-width="5" marker-end="url(#arrowhead-producing)"/>
+
+  <!-- Metal → Water -->
+  <path d="M 177 360 Q 160 240 190 190"
+        fill="none" stroke="#2980B9" stroke-width="5" marker-end="url(#arrowhead-producing)"/>
+
+  <!-- Element Circles — shifted down 40px to clear title -->
+
+  <!-- Water (Top Left) -->
+  <g id="water-element">
+    <circle cx="200" cy="320" r="65" fill="#3498DB" opacity="0.9"/>
+    <circle cx="200" cy="320" r="60" fill="none" stroke="white" stroke-width="2"/>
+    <text x="200" y="302" font-size="36" text-anchor="middle" fill="white">💧</text>
+    <text x="200" y="335" font-size="18" font-weight="bold" text-anchor="middle" fill="white">WATER</text>
+    <text x="200" y="353" font-size="13" text-anchor="middle" fill="white">水</text>
+  </g>
+
+  <!-- Wood (Top) -->
+  <g id="wood-element">
+    <circle cx="400" cy="160" r="65" fill="#27AE60" opacity="0.9"/>
+    <circle cx="400" cy="160" r="60" fill="none" stroke="white" stroke-width="2"/>
+    <text x="400" y="142" font-size="36" text-anchor="middle" fill="white">🌳</text>
+    <text x="400" y="175" font-size="18" font-weight="bold" text-anchor="middle" fill="white">WOOD</text>
+    <text x="400" y="193" font-size="13" text-anchor="middle" fill="white">木</text>
+  </g>
+
+  <!-- Fire (Top Right) -->
+  <g id="fire-element">
+    <circle cx="600" cy="320" r="65" fill="#E74C3C" opacity="0.9"/>
+    <circle cx="600" cy="320" r="60" fill="none" stroke="white" stroke-width="2"/>
+    <text x="600" y="302" font-size="36" text-anchor="middle" fill="white">🔥</text>
+    <text x="600" y="335" font-size="18" font-weight="bold" text-anchor="middle" fill="white">FIRE</text>
+    <text x="600" y="353" font-size="13" text-anchor="middle" fill="white">火</text>
+  </g>
+
+  <!-- Earth (Bottom Right) -->
+  <g id="earth-element">
+    <circle cx="520" cy="570" r="65" fill="#D68910" opacity="0.9"/>
+    <circle cx="520" cy="570" r="60" fill="none" stroke="white" stroke-width="2"/>
+    <text x="520" y="552" font-size="36" text-anchor="middle" fill="white">🌍</text>
+    <text x="520" y="585" font-size="18" font-weight="bold" text-anchor="middle" fill="white">EARTH</text>
+    <text x="520" y="603" font-size="13" text-anchor="middle" fill="white">土</text>
+  </g>
+
+  <!-- Metal (Bottom Left) -->
+  <g id="metal-element">
+    <circle cx="280" cy="570" r="65" fill="#95A5A6" opacity="0.9"/>
+    <circle cx="280" cy="570" r="60" fill="none" stroke="white" stroke-width="2"/>
+    <text x="280" y="552" font-size="36" text-anchor="middle" fill="white">⚙️</text>
+    <text x="280" y="585" font-size="18" font-weight="bold" text-anchor="middle" fill="white">METAL</text>
+    <text x="280" y="603" font-size="13" text-anchor="middle" fill="white">金</text>
+  </g>
+
+  <!-- Relationship Labels (on top of circles) -->
+
+  <!-- Water → Wood: Nourishes -->
+  <g>
+    <rect x="265" y="210" width="140" height="38" rx="19" fill="white" stroke="#3498DB" stroke-width="2"/>
+    <text x="335" y="230" font-size="13" font-weight="bold" text-anchor="middle" fill="#3498DB">Water nourishes</text>
+    <text x="335" y="244" font-size="12" text-anchor="middle" fill="#3498DB">Wood</text>
+  </g>
+
+  <!-- Wood → Fire: Feeds -->
+  <g>
+    <rect x="480" y="210" width="110" height="38" rx="19" fill="white" stroke="#3498DB" stroke-width="2"/>
+    <text x="535" y="230" font-size="13" font-weight="bold" text-anchor="middle" fill="#3498DB">Wood feeds</text>
+    <text x="535" y="244" font-size="12" text-anchor="middle" fill="#3498DB">Fire</text>
+  </g>
+
+  <!-- Fire → Earth: Creates -->
+  <g>
+    <rect x="580" y="410" width="110" height="38" rx="19" fill="white" stroke="#3498DB" stroke-width="2"/>
+    <text x="635" y="430" font-size="13" font-weight="bold" text-anchor="middle" fill="#3498DB">Fire creates</text>
+    <text x="635" y="444" font-size="12" text-anchor="middle" fill="#3498DB">Earth (ash)</text>
+  </g>
+
+  <!-- Earth → Metal: Produces -->
+  <g>
+    <rect x="355" y="595" width="130" height="38" rx="19" fill="white" stroke="#3498DB" stroke-width="2"/>
+    <text x="420" y="615" font-size="13" font-weight="bold" text-anchor="middle" fill="#3498DB">Earth produces</text>
+    <text x="420" y="629" font-size="12" text-anchor="middle" fill="#3498DB">Metal (ore)</text>
+  </g>
+
+  <!-- Metal → Water: Enriches -->
+  <g>
+    <rect x="110" y="410" width="130" height="38" rx="19" fill="white" stroke="#3498DB" stroke-width="2"/>
+    <text x="175" y="430" font-size="13" font-weight="bold" text-anchor="middle" fill="#3498DB">Metal enriches</text>
+    <text x="175" y="444" font-size="12" text-anchor="middle" fill="#3498DB">Water</text>
+  </g>
+
+  <!-- Title (rendered last so it's never covered by circles) -->
+  <text x="400" y="40" font-size="28" font-weight="bold" text-anchor="middle" fill="#2C3E50">
+    The Producing Cycle (生 - Shēng)
+  </text>
+  <text x="400" y="70" font-size="16" text-anchor="middle" fill="#7F8C8D">
+    Creation &amp; Support - Each Element Nourishes the Next
+  </text>
+  
+  <!-- Legend -->
+  <g id="legend">
+    <rect x="50" y="680" width="700" height="90" rx="10" fill="#F8F9FA" stroke="#BDC3C7" stroke-width="2"/>
+    <text x="400" y="705" font-size="16" font-weight="bold" text-anchor="middle" fill="#2C3E50">
+      The Producing Cycle: Natural Support &amp; Nourishment
+    </text>
+    <text x="60" y="730" font-size="13" fill="#34495E">
+      • Your "Parent" element (produces you) = Natural support - seek these people
+    </text>
+    <text x="60" y="750" font-size="13" fill="#34495E">
+      • Your "Child" element (you produce) = Can drain you - set boundaries on giving
+    </text>
+  </g>
+</svg>

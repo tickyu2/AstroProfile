@@ -1,0 +1,205 @@
+<svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Defs -->
+  <defs>
+    <marker id="arrowhead-weakening" markerWidth="16" markerHeight="16" refX="13" refY="6" orient="auto">
+      <polygon points="0 0, 16 6, 0 12" fill="#8E44AD"/>
+    </marker>
+
+    <!-- Gradient for drain effect -->
+    <linearGradient id="drain-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8E44AD;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#8E44AD;stop-opacity:0.2" />
+    </linearGradient>
+  </defs>
+
+  <circle cx="400" cy="420" r="260" fill="none" stroke="#E8E8E8" stroke-width="2" stroke-dasharray="5,5"/>
+
+  <!-- Cycle Path (Pentagon) - REVERSE of Producing -->
+  <path d="M 400 180 L 177 310 L 245 560 L 555 560 L 623 310 Z"
+        fill="none" stroke="#8E44AD" stroke-width="3" opacity="0.25" stroke-dasharray="10,5"/>
+
+  <!-- Weakening arrows (REVERSE of producing - showing drain direction) -->
+  <!-- Bold dashed arrows with large arrowheads -->
+
+  <!-- Wood → Water (drains) -->
+  <path d="M 380 180 Q 300 200 250 260"
+        fill="none" stroke="#8E44AD" stroke-width="6" stroke-dasharray="14,6" marker-end="url(#arrowhead-weakening)"/>
+
+  <!-- Fire → Wood (drains) -->
+  <path d="M 615 300 Q 600 240 530 190"
+        fill="none" stroke="#8E44AD" stroke-width="6" stroke-dasharray="14,6" marker-end="url(#arrowhead-weakening)"/>
+
+  <!-- Earth → Fire (drains) -->
+  <path d="M 560 540 Q 600 470 615 370"
+        fill="none" stroke="#8E44AD" stroke-width="6" stroke-dasharray="14,6" marker-end="url(#arrowhead-weakening)"/>
+
+  <!-- Metal → Earth (drains) -->
+  <path d="M 260 560 Q 380 580 475 565"
+        fill="none" stroke="#8E44AD" stroke-width="6" stroke-dasharray="14,6" marker-end="url(#arrowhead-weakening)"/>
+
+  <!-- Water → Metal (drains) -->
+  <path d="M 190 190 Q 160 240 185 350"
+        fill="none" stroke="#8E44AD" stroke-width="6" stroke-dasharray="14,6" marker-end="url(#arrowhead-weakening)"/>
+
+  <!-- Element Circles — shifted down 40px to clear title -->
+
+  <!-- Water (Top Left) -->
+  <g id="water-element">
+    <circle cx="200" cy="320" r="65" fill="#3498DB" opacity="0.9"/>
+    <circle cx="200" cy="320" r="60" fill="none" stroke="white" stroke-width="2"/>
+    <text x="200" y="302" font-size="36" text-anchor="middle" fill="white">💧</text>
+    <text x="200" y="335" font-size="18" font-weight="bold" text-anchor="middle" fill="white">WATER</text>
+    <text x="200" y="353" font-size="13" text-anchor="middle" fill="white">水</text>
+  </g>
+
+  <!-- Wood (Top) -->
+  <g id="wood-element">
+    <circle cx="400" cy="160" r="65" fill="#27AE60" opacity="0.9"/>
+    <circle cx="400" cy="160" r="60" fill="none" stroke="white" stroke-width="2"/>
+    <text x="400" y="142" font-size="36" text-anchor="middle" fill="white">🌳</text>
+    <text x="400" y="175" font-size="18" font-weight="bold" text-anchor="middle" fill="white">WOOD</text>
+    <text x="400" y="193" font-size="13" text-anchor="middle" fill="white">木</text>
+  </g>
+
+  <!-- Fire (Top Right) -->
+  <g id="fire-element">
+    <circle cx="600" cy="320" r="65" fill="#E74C3C" opacity="0.9"/>
+    <circle cx="600" cy="320" r="60" fill="none" stroke="white" stroke-width="2"/>
+    <text x="600" y="302" font-size="36" text-anchor="middle" fill="white">🔥</text>
+    <text x="600" y="335" font-size="18" font-weight="bold" text-anchor="middle" fill="white">FIRE</text>
+    <text x="600" y="353" font-size="13" text-anchor="middle" fill="white">火</text>
+  </g>
+
+  <!-- Earth (Bottom Right) -->
+  <g id="earth-element">
+    <circle cx="520" cy="570" r="65" fill="#D68910" opacity="0.9"/>
+    <circle cx="520" cy="570" r="60" fill="none" stroke="white" stroke-width="2"/>
+    <text x="520" y="552" font-size="36" text-anchor="middle" fill="white">🌍</text>
+    <text x="520" y="585" font-size="18" font-weight="bold" text-anchor="middle" fill="white">EARTH</text>
+    <text x="520" y="603" font-size="13" text-anchor="middle" fill="white">土</text>
+  </g>
+
+  <!-- Metal (Bottom Left) -->
+  <g id="metal-element">
+    <circle cx="280" cy="570" r="65" fill="#95A5A6" opacity="0.9"/>
+    <circle cx="280" cy="570" r="60" fill="none" stroke="white" stroke-width="2"/>
+    <text x="280" y="552" font-size="36" text-anchor="middle" fill="white">⚙️</text>
+    <text x="280" y="585" font-size="18" font-weight="bold" text-anchor="middle" fill="white">METAL</text>
+    <text x="280" y="603" font-size="13" text-anchor="middle" fill="white">金</text>
+  </g>
+
+  <!-- Drain indicators (energy leaving symbols) — larger dots -->
+
+  <!-- Water drained by Wood -->
+  <g opacity="0.7">
+    <circle cx="290" cy="225" r="4" fill="#9B59B6"/>
+    <circle cx="305" cy="218" r="4" fill="#9B59B6"/>
+    <circle cx="320" cy="212" r="4" fill="#9B59B6"/>
+    <circle cx="335" cy="207" r="3" fill="#9B59B6"/>
+  </g>
+
+  <!-- Wood drained by Fire -->
+  <g opacity="0.7">
+    <circle cx="490" cy="215" r="4" fill="#9B59B6"/>
+    <circle cx="505" cy="220" r="4" fill="#9B59B6"/>
+    <circle cx="520" cy="228" r="4" fill="#9B59B6"/>
+    <circle cx="535" cy="238" r="3" fill="#9B59B6"/>
+  </g>
+
+  <!-- Fire drained by Earth -->
+  <g opacity="0.7">
+    <circle cx="580" cy="420" r="4" fill="#9B59B6"/>
+    <circle cx="575" cy="435" r="4" fill="#9B59B6"/>
+    <circle cx="568" cy="450" r="4" fill="#9B59B6"/>
+    <circle cx="560" cy="465" r="3" fill="#9B59B6"/>
+  </g>
+
+  <!-- Earth drained by Metal -->
+  <g opacity="0.7">
+    <circle cx="410" cy="575" r="4" fill="#9B59B6"/>
+    <circle cx="395" cy="578" r="4" fill="#9B59B6"/>
+    <circle cx="380" cy="580" r="4" fill="#9B59B6"/>
+    <circle cx="365" cy="580" r="3" fill="#9B59B6"/>
+  </g>
+
+  <!-- Metal drained by Water -->
+  <g opacity="0.7">
+    <circle cx="225" cy="415" r="4" fill="#9B59B6"/>
+    <circle cx="220" cy="400" r="4" fill="#9B59B6"/>
+    <circle cx="215" cy="385" r="4" fill="#9B59B6"/>
+    <circle cx="210" cy="370" r="3" fill="#9B59B6"/>
+  </g>
+
+  <!-- Relationship Labels with drain concept -->
+
+  <!-- Wood drains Water -->
+  <g>
+    <rect x="255" y="210" width="150" height="48" rx="20" fill="white" stroke="#9B59B6" stroke-width="2"/>
+    <text x="330" y="230" font-size="12" font-weight="bold" text-anchor="middle" fill="#9B59B6">Wood drinks</text>
+    <text x="330" y="245" font-size="11" text-anchor="middle" fill="#9B59B6">Water's wisdom</text>
+    <text x="330" y="256" font-size="10" text-anchor="middle" fill="#7F8C8D">(depletes parent)</text>
+  </g>
+
+  <!-- Fire drains Wood -->
+  <g>
+    <rect x="480" y="210" width="130" height="48" rx="20" fill="white" stroke="#9B59B6" stroke-width="2"/>
+    <text x="545" y="230" font-size="12" font-weight="bold" text-anchor="middle" fill="#9B59B6">Fire burns</text>
+    <text x="545" y="245" font-size="11" text-anchor="middle" fill="#9B59B6">Wood's vision</text>
+    <text x="545" y="256" font-size="10" text-anchor="middle" fill="#7F8C8D">(consumes fuel)</text>
+  </g>
+
+  <!-- Earth drains Fire -->
+  <g>
+    <rect x="575" y="400" width="140" height="48" rx="20" fill="white" stroke="#9B59B6" stroke-width="2"/>
+    <text x="645" y="420" font-size="12" font-weight="bold" text-anchor="middle" fill="#9B59B6">Earth absorbs</text>
+    <text x="645" y="435" font-size="11" text-anchor="middle" fill="#9B59B6">Fire's warmth</text>
+    <text x="645" y="446" font-size="10" text-anchor="middle" fill="#7F8C8D">(drains heat)</text>
+  </g>
+
+  <!-- Metal drains Earth -->
+  <g>
+    <rect x="340" y="595" width="150" height="48" rx="20" fill="white" stroke="#9B59B6" stroke-width="2"/>
+    <text x="415" y="615" font-size="12" font-weight="bold" text-anchor="middle" fill="#9B59B6">Metal extracts</text>
+    <text x="415" y="630" font-size="11" text-anchor="middle" fill="#9B59B6">Earth's abundance</text>
+    <text x="415" y="641" font-size="10" text-anchor="middle" fill="#7F8C8D">(depletes soil)</text>
+  </g>
+
+  <!-- Water drains Metal -->
+  <g>
+    <rect x="90" y="400" width="140" height="48" rx="20" fill="white" stroke="#9B59B6" stroke-width="2"/>
+    <text x="160" y="420" font-size="12" font-weight="bold" text-anchor="middle" fill="#9B59B6">Water dissolves</text>
+    <text x="160" y="435" font-size="11" text-anchor="middle" fill="#9B59B6">Metal's structure</text>
+    <text x="160" y="446" font-size="10" text-anchor="middle" fill="#7F8C8D">(absorbs minerals)</text>
+  </g>
+
+  <!-- Center explanation (on top of everything) -->
+  <g id="center-note">
+    <circle cx="400" cy="420" r="90" fill="white" opacity="0.95" stroke="#9B59B6" stroke-width="2"/>
+    <text x="400" y="405" font-size="14" font-weight="bold" text-anchor="middle" fill="#9B59B6">Reverse of</text>
+    <text x="400" y="423" font-size="14" font-weight="bold" text-anchor="middle" fill="#9B59B6">Producing Cycle</text>
+    <text x="400" y="445" font-size="11" text-anchor="middle" fill="#7F8C8D">You're drained by</text>
+    <text x="400" y="460" font-size="11" text-anchor="middle" fill="#7F8C8D">what you produce</text>
+  </g>
+
+  <!-- Title (rendered last so it's never covered) -->
+  <text x="400" y="40" font-size="28" font-weight="bold" text-anchor="middle" fill="#2C3E50">
+    The Weakening Cycle (泄 - Xiè)
+  </text>
+  <text x="400" y="70" font-size="16" text-anchor="middle" fill="#7F8C8D">
+    Depletion &amp; Expression - Each Element Is Drained By What It Produces
+  </text>
+  
+  <!-- Legend -->
+  <g id="legend">
+    <rect x="50" y="680" width="700" height="90" rx="10" fill="#F4ECF7" stroke="#9B59B6" stroke-width="2"/>
+    <text x="400" y="705" font-size="16" font-weight="bold" text-anchor="middle" fill="#2C3E50">
+      The Weakening Cycle: Energy Drain &amp; Depletion
+    </text>
+    <text x="60" y="730" font-size="13" fill="#34495E">
+      • You're drained by your "Child" element (the one you produce) - set boundaries!
+    </text>
+    <text x="60" y="750" font-size="13" fill="#34495E">
+      • Healthy parents give AND rest - balance giving with replenishment
+    </text>
+  </g>
+</svg>

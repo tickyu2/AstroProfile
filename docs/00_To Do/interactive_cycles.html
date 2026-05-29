@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive BaZi Cycles - GENESIS Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cycle-button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .cycle-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .cycle-button.active {
+            transform: scale(1.05);
+        }
+
+        .btn-producing {
+            background: linear-gradient(135deg, #3498DB, #2980B9);
+            color: white;
+        }
+
+        .btn-controlling {
+            background: linear-gradient(135deg, #E67E22, #D35400);
+            color: white;
+        }
+
+        .btn-weakening {
+            background: linear-gradient(135deg, #9B59B6, #8E44AD);
+            color: white;
+        }
+
+        .btn-all {
+            background: linear-gradient(135deg, #2C3E50, #34495E);
+            color: white;
+        }
+
+        .diagram-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cycle-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .cycle-title h2 {
+            font-size: 2em;
+            color: #2C3E50;
+            margin-bottom: 10px;
+        }
+
+        .cycle-title p {
+            color: #7F8C8D;
+            font-size: 1.1em;
+        }
+
+        /* SVG Container */
+        #cycle-svg {
+            width: 100%;
+            height: 600px;
+            display: block;
+        }
+
+        /* Element circles */
+        .element-circle {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .element-circle:hover {
+            filter: brightness(1.2);
+            transform: scale(1.1);
+        }
+
+        .element-circle.active {
+            filter: brightness(1.3) drop-shadow(0 0 15px currentColor);
+            transform: scale(1.15);
+        }
+
+        /* Arrows */
+        .cycle-arrow {
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+
+        .cycle-arrow.active {
+            opacity: 1;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 5px currentColor);
+        }
+
+        .cycle-arrow.dimmed {
+            opacity: 0.2;
+        }
+
+        /* Relationship labels */
+        .relationship-label {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .relationship-label.visible {
+            opacity: 1;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            max-width: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip h4 {
+            margin-bottom: 8px;
+            font-size: 1.1em;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            padding-bottom: 5px;
+        }
+
+        .tooltip p {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+
+        /* Info panel */
+        .info-panel {
+            margin-top: 30px;
+            padding: 20px;
+            background: #F8F9FA;
+            border-radius: 15px;
+            border-left: 5px solid #3498DB;
+        }
+
+        .info-panel h3 {
+            color: #2C3E50;
+            margin-bottom: 15px;
+        }
+
+        .info-panel p {
+            color: #34495E;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .info-panel.producing {
+            border-left-color: #3498DB;
+        }
+
+        .info-panel.controlling {
+            border-left-color: #E67E22;
+        }
+
+        .info-panel.weakening {
+            border-left-color: #9B59B6;
+        }
+
+        /* Animation */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes flow {
+            0% {
+                stroke-dashoffset: 0;
+            }
+            100% {
+                stroke-dashoffset: -20;
+            }
+        }
+
+        .animated-arrow {
+            stroke-dasharray: 10 10;
+            animation: flow 1s linear infinite;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9em;
+            color: #34495E;
+        }
+
+        .legend-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .diagram-container {
+                padding: 20px;
+            }
+
+            #cycle-svg {
+                height: 500px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .cycle-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌊🪵🔥🌍⚙️ The Three Fundamental Cycles</h1>
+        <p>Interactive BaZi Learning - Hover & Click to Explore</p>
+    </div>
+
+    <div class="controls">
+        <button class="cycle-button btn-producing active" onclick="showCycle('producing')">
+            Producing Cycle (生)
+        </button>
+        <button class="cycle-button btn-controlling" onclick="showCycle('controlling')">
+            Controlling Cycle (克)
+        </button>
+        <button class="cycle-button btn-weakening" onclick="showCycle('weakening')">
+            Weakening Cycle (泄)
+        </button>
+        <button class="cycle-button btn-all" onclick="showCycle('all')">
+            View All Cycles
+        </button>
+    </div>
+
+    <div class="diagram-container">
+        <div class="cycle-title">
+            <h2 id="cycle-title">The Producing Cycle (生 - Shēng)</h2>
+            <p id="cycle-subtitle">Creation & Support - Each Element Nourishes the Next</p>
+        </div>
+
+        <svg id="cycle-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+            <!-- Will be dynamically populated -->
+        </svg>
+
+        <div class="info-panel producing" id="info-panel">
+            <h3>✨ How to Use This Interactive Diagram:</h3>
+            <p><strong>Hover</strong> over any element to see its relationships light up</p>
+            <p><strong>Click</strong> on an element to lock the view and see detailed information</p>
+            <p><strong>Switch cycles</strong> using the buttons above to see different relationship patterns</p>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip">
+        <h4 id="tooltip-title"></h4>
+        <p id="tooltip-content"></p>
+    </div>
+
+    <script>
+        // Element data
+        const elements = {
+            water: { name: 'Water', chinese: '水', icon: '💧', color: '#3498DB', x: 200, y: 280 },
+            wood: { name: 'Wood', chinese: '木', icon: '🌳', color: '#27AE60', x: 400, y: 120 },
+            fire: { name: 'Fire', chinese: '火', icon: '🔥', color: '#E74C3C', x: 600, y: 280 },
+            earth: { name: 'Earth', chinese: '土', icon: '🌍', color: '#D68910', x: 520, y: 480 },
+            metal: { name: 'Metal', chinese: '金', icon: '⚙️', color: '#95A5A6', x: 280, y: 480 }
+        };
+
+        // Cycle definitions
+        const cycles = {
+            producing: {
+                title: 'The Producing Cycle (生 - Shēng)',
+                subtitle: 'Creation & Support - Each Element Nourishes the Next',
+                color: '#3498DB',
+                relationships: [
+                    { from: 'water', to: 'wood', label: 'Water nourishes Wood', description: 'Water provides wisdom and depth that fuels Wood\'s growth and vision. Wood people feel energized by Water people.' },
+                    { from: 'wood', to: 'fire', label: 'Wood feeds Fire', description: 'Wood gives vision and ideas that Fire transforms into passion and inspiration. Fire people feel activated by Wood people.' },
+                    { from: 'fire', to: 'earth', label: 'Fire creates Earth', description: 'Fire\'s warmth and passion ground into Earth\'s stability. Earth people feel energized by Fire people.' },
+                    { from: 'earth', to: 'metal', label: 'Earth produces Metal', description: 'Earth\'s abundance provides material for Metal\'s refinement. Metal people feel supported by Earth people.' },
+                    { from: 'metal', to: 'water', label: 'Metal enriches Water', description: 'Metal\'s structure and clarity enable Water\'s depth. Water people feel organized by Metal people.' }
+                ]
+            },
+            controlling: {
+                title: 'The Controlling Cycle (克 - Kè)',
+                subtitle: 'Regulation & Balance - Each Element Controls Another',
+                color: '#E67E22',
+                relationships: [
+                    { from: 'water', to: 'fire', label: 'Water controls Fire', description: 'Water extinguishes Fire\'s heat. Water people cool down Fire people, preventing burnout but risking suppression.' },
+                    { from: 'fire', to: 'metal', label: 'Fire controls Metal', description: 'Fire melts Metal\'s rigidity. Fire people warm Metal people, melting harsh edges but risking structural loss.' },
+                    { from: 'metal', to: 'wood', label: 'Metal controls Wood', description: 'Metal chops Wood\'s growth. Metal people prune Wood people, providing focus but risking limitation.' },
+                    { from: 'wood', to: 'earth', label: 'Wood controls Earth', description: 'Wood penetrates Earth\'s stability. Wood people move Earth people forward but risk destabilization.' },
+                    { from: 'earth', to: 'water', label: 'Earth controls Water', description: 'Earth dams Water\'s flow. Earth people ground Water people, providing boundaries but risking entrapment.' }
+                ]
+            },
+            weakening: {
+                title: 'The Weakening Cycle (泄 - Xiè)',
+                subtitle: 'Depletion & Expression - You\'re Drained By What You Produce',
+                color: '#9B59B6',
+                relationships: [
+                    { from: 'wood', to: 'water', label: 'Wood drains Water', description: 'Wood absorbs Water\'s wisdom. Wood people can deplete Water people through constant demand for strategic depth.' },
+                    { from: 'fire', to: 'wood', label: 'Fire drains Wood', description: 'Fire burns Wood\'s vision as fuel. Fire people can exhaust Wood people by constantly demanding new ideas.' },
+                    { from: 'earth', to: 'fire', label: 'Earth drains Fire', description: 'Earth absorbs Fire\'s warmth. Earth people can deplete Fire people through constant need for energizing.' },
+                    { from: 'metal', to: 'earth', label: 'Metal drains Earth', description: 'Metal extracts Earth\'s abundance. Metal people can exhaust Earth people through perfectionist demands.' },
+                    { from: 'water', to: 'metal', label: 'Water drains Metal', description: 'Water dissolves Metal\'s structure. Water people can deplete Metal people by absorbing all organization.' }
+                ]
+            }
+        };
+
+        let currentCycle = 'producing';
+        let selectedElement = null;
+
+        // Initialize
+        function init() {
+            drawCycle('producing');
+            updateInfoPanel('producing');
+        }
+
+        // Draw cycle
+        function drawCycle(cycleType) {
+            const svg = document.getElementById('cycle-svg');
+            svg.innerHTML = '';
+
+            // Add background circle
+            const bgCircle = createSVGElement('circle', {
+                cx: 400,
+                cy: 300,
+                r: 200,
+                fill: 'none',
+                stroke: '#E8E8E8',
+                'stroke-width': 2,
+                'stroke-dasharray': '5,5'
+            });
+            svg.appendChild(bgCircle);
+
+            // Draw arrows
+            const cycle = cycles[cycleType];
+            cycle.relationships.forEach((rel, index) => {
+                drawArrow(svg, rel, cycle.color, cycleType);
+            });
+
+            // Draw elements
+            Object.keys(elements).forEach(key => {
+                drawElement(svg, key, elements[key]);
+            });
+        }
+
+        // Create SVG element helper
+        function createSVGElement(tag, attrs) {
+            const element = document.createElementNS('http://www.w3.org/2000/svg', tag);
+            Object.keys(attrs).forEach(key => {
+                element.setAttribute(key, attrs[key]);
+            });
+            return element;
+        }
+
+        // Draw arrow between elements
+        function drawArrow(svg, relationship, color, cycleType) {
+            const from = elements[relationship.from];
+            const to = elements[relationship.to];
+
+            // Calculate arrow path
+            const midX = (from.x + to.x) / 2;
+            const midY = (from.y + to.y) / 2;
+            
+            // Create curved path
+            const path = createSVGElement('path', {
+                d: `M ${from.x} ${from.y} Q ${midX} ${midY - 30} ${to.x} ${to.y}`,
+                fill: 'none',
+                stroke: color,
+                'stroke-width': 4,
+                class: `cycle-arrow ${cycleType}-arrow`,
+                'data-from': relationship.from,
+                'data-to': relationship.to,
+                'marker-end': 'url(#arrowhead)',
+                opacity: 0.6
+            });
+
+            if (cycleType === 'weakening') {
+                path.setAttribute('stroke-dasharray', '8,4');
+            }
+
+            path.addEventListener('mouseenter', (e) => handleArrowHover(e, relationship));
+            path.addEventListener('mouseleave', hideTooltip);
+
+            svg.appendChild(path);
+
+            // Add arrowhead marker
+            if (!document.getElementById('arrowhead')) {
+                const defs = createSVGElement('defs', {});
+                const marker = createSVGElement('marker', {
+                    id: 'arrowhead',
+                    markerWidth: 10,
+                    markerHeight: 10,
+                    refX: 9,
+                    refY: 3,
+                    orient: 'auto'
+                });
+                const polygon = createSVGElement('polygon', {
+                    points: '0 0, 10 3, 0 6',
+                    fill: color
+                });
+                marker.appendChild(polygon);
+                defs.appendChild(marker);
+                svg.insertBefore(defs, svg.firstChild);
+            }
+        }
+
+        // Draw element circle
+        function drawElement(svg, key, element) {
+            const g = createSVGElement('g', {
+                class: 'element-circle',
+                'data-element': key
+            });
+
+            // Circle
+            const circle = createSVGElement('circle', {
+                cx: element.x,
+                cy: element.y,
+                r: 50,
+                fill: element.color,
+                opacity: 0.9,
+                stroke: 'white',
+                'stroke-width': 3
+            });
+
+            // Icon text
+            const icon = createSVGElement('text', {
+                x: element.x,
+                y: element.y - 10,
+                'text-anchor': 'middle',
+                'font-size': 30,
+                fill: 'white'
+            });
+            icon.textContent = element.icon;
+
+            // Name text
+            const name = createSVGElement('text', {
+                x: element.x,
+                y: element.y + 20,
+                'text-anchor': 'middle',
+                'font-size': 14,
+                'font-weight': 'bold',
+                fill: 'white'
+            });
+            name.textContent = element.name;
+
+            // Chinese text
+            const chinese = createSVGElement('text', {
+                x: element.x,
+                y: element.y + 35,
+                'text-anchor': 'middle',
+                'font-size': 12,
+                fill: 'white'
+            });
+            chinese.textContent = element.chinese;
+
+            g.appendChild(circle);
+            g.appendChild(icon);
+            g.appendChild(name);
+            g.appendChild(chinese);
+
+            g.addEventListener('mouseenter', (e) => handleElementHover(e, key));
+            g.addEventListener('mouseleave', clearElementHover);
+            g.addEventListener('click', (e) => handleElementClick(e, key));
+
+            svg.appendChild(g);
+        }
+
+        // Handle element hover
+        function handleElementHover(e, elementKey) {
+            if (selectedElement) return; // Don't interfere with selected state
+
+            const element = elements[elementKey];
+            
+            // Highlight this element
+            const circles = document.querySelectorAll('.element-circle');
+            circles.forEach(c => {
+                if (c.getAttribute('data-element') !== elementKey) {
+                    c.style.opacity = '0.3';
+                }
+            });
+
+            // Highlight related arrows
+            const arrows = document.querySelectorAll('.cycle-arrow');
+            arrows.forEach(arrow => {
+                const from = arrow.getAttribute('data-from');
+                const to = arrow.getAttribute('data-to');
+                
+                if (from === elementKey || to === elementKey) {
+                    arrow.classList.add('active');
+                    arrow.classList.add('animated-arrow');
+                } else {
+                    arrow.classList.add('dimmed');
+                }
+            });
+
+            // Show tooltip
+            showElementTooltip(e, elementKey);
+        }
+
+        // Clear element hover
+        function clearElementHover() {
+            if (selectedElement) return;
+
+            const circles = document.querySelectorAll('.element-circle');
+            circles.forEach(c => c.style.opacity = '1');
+
+            const arrows = document.querySelectorAll('.cycle-arrow');
+            arrows.forEach(arrow => {
+                arrow.classList.remove('active', 'dimmed', 'animated-arrow');
+            });
+
+            hideTooltip();
+        }
+
+        // Handle element click (lock selection)
+        function handleElementClick(e, elementKey) {
+            if (selectedElement === elementKey) {
+                // Deselect
+                selectedElement = null;
+                clearElementHover();
+            } else {
+                // Select
+                selectedElement = elementKey;
+                handleElementHover(e, elementKey);
+            }
+        }
+
+        // Handle arrow hover
+        function handleArrowHover(e, relationship) {
+            const tooltip = document.getElementById('tooltip');
+            const title = document.getElementById('tooltip-title');
+            const content = document.getElementById('tooltip-content');
+
+            title.textContent = relationship.label;
+            content.textContent = relationship.description;
+
+            tooltip.style.left = e.pageX + 15 + 'px';
+            tooltip.style.top = e.pageY + 15 + 'px';
+            tooltip.classList.add('visible');
+        }
+
+        // Show element tooltip
+        function showElementTooltip(e, elementKey) {
+            const element = elements[elementKey];
+            const cycle = cycles[currentCycle];
+            
+            const tooltip = document.getElementById('tooltip');
+            const title = document.getElementById('tooltip-title');
+            const content = document.getElementById('tooltip-content');
+
+            title.textContent = `${element.icon} ${element.name} (${element.chinese})`;
+            
+            // Find relationships
+            const produces = cycle.relationships.find(r => r.from === elementKey);
+            const producedBy = cycle.relationships.find(r => r.to === elementKey);
+            
+            let text = '';
+            if (currentCycle === 'producing') {
+                text = `Nourishes: ${produces ? elements[produces.to].name : 'None'}\nNourished by: ${producedBy ? elements[producedBy.from].name : 'None'}`;
+            } else if (currentCycle === 'controlling') {
+                text = `Controls: ${produces ? elements[produces.to].name : 'None'}\nControlled by: ${producedBy ? elements[producedBy.from].name : 'None'}`;
+            } else {
+                text = `Drains: ${produces ? elements[produces.to].name : 'None'}\nDrained by: ${producedBy ? elements[producedBy.from].name : 'None'}`;
+            }
+            
+            content.textContent = text;
+
+            tooltip.style.left = e.pageX + 15 + 'px';
+            tooltip.style.top = e.pageY + 15 + 'px';
+            tooltip.classList.add('visible');
+        }
+
+        // Hide tooltip
+        function hideTooltip() {
+            document.getElementById('tooltip').classList.remove('visible');
+        }
+
+        // Show cycle
+        function showCycle(cycleType) {
+            currentCycle = cycleType;
+            selectedElement = null;
+
+            // Update buttons
+            document.querySelectorAll('.cycle-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update title
+            const cycle = cycles[cycleType];
+            document.getElementById('cycle-title').textContent = cycle.title;
+            document.getElementById('cycle-subtitle').textContent = cycle.subtitle;
+
+            // Update diagram
+            drawCycle(cycleType);
+
+            // Update info panel
+            updateInfoPanel(cycleType);
+        }
+
+        // Update info panel
+        function updateInfoPanel(cycleType) {
+            const panel = document.getElementById('info-panel');
+            panel.className = `info-panel ${cycleType}`;
+
+            const info = {
+                producing: {
+                    title: '🌊 The Producing Cycle',
+                    points: [
+                        'Your "Parent" element (produces you) = Natural support - actively seek these people',
+                        'Your "Child" element (you produce) = Can drain you - set healthy boundaries on giving',
+                        'This cycle shows who energizes you and who you naturally want to support'
+                    ]
+                },
+                controlling: {
+                    title: '⚖️ The Controlling Cycle',
+                    points: [
+                        'Your "Controller" element = Your medicine - need in small doses for balance',
+                        'Your "Controlled" element = You regulate them - they may resist your influence',
+                        'This cycle provides healthy friction and prevents elemental excess'
+                    ]
+                },
+                weakening: {
+                    title: '💨 The Weakening Cycle',
+                    points: [
+                        'You\'re drained by your "Child" element through their constant needs',
+                        'Set boundaries with people you naturally support - giving must be balanced',
+                        'This is the reverse of the Producing Cycle - showing energy depletion'
+                    ]
+                }
+            };
+
+            const data = info[cycleType];
+            panel.innerHTML = `
+                <h3>${data.title}</h3>
+                ${data.points.map(p => `<p>• ${p}</p>`).join('')}
+            `;
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+
+        // Update tooltip position on mouse move
+        document.addEventListener('mousemove', (e) => {
+            const tooltip = document.getElementById('tooltip');
+            if (tooltip.classList.contains('visible')) {
+                tooltip.style.left = e.pageX + 15 + 'px';
+                tooltip.style.top = e.pageY + 15 + 'px';
+            }
+        });
+    </script>
+</body>
+</html>

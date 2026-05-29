@@ -1,0 +1,209 @@
+<svg viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="700" y="40" font-size="32" font-weight="bold" text-anchor="middle" fill="#2C3E50">
+    The Three Fundamental Cycles of Five Elements
+  </text>
+  <text x="700" y="75" font-size="18" text-anchor="middle" fill="#7F8C8D">
+    Understanding How Elements Interact: Support, Regulation, and Depletion
+  </text>
+  
+  <!-- Left Panel: Producing Cycle -->
+  <g id="producing-panel">
+    <rect x="20" y="100" width="420" height="650" rx="15" fill="#EBF5FB" stroke="#3498DB" stroke-width="3"/>
+    
+    <text x="230" y="140" font-size="20" font-weight="bold" text-anchor="middle" fill="#2C3E50">
+      PRODUCING CYCLE (生)
+    </text>
+    <text x="230" y="165" font-size="14" text-anchor="middle" fill="#7F8C8D">
+      Creation &amp; Support
+    </text>
+    
+    <!-- Mini pentagon -->
+    <circle cx="230" cy="380" r="140" fill="none" stroke="#3498DB" stroke-width="2" opacity="0.3"/>
+    
+    <!-- Elements positioned in pentagon -->
+    <!-- Water -->
+    <circle cx="120" cy="350" r="35" fill="#3498DB" opacity="0.9"/>
+    <text x="120" y="360" font-size="20" text-anchor="middle" fill="white">💧</text>
+    
+    <!-- Wood -->
+    <circle cx="230" cy="260" r="35" fill="#27AE60" opacity="0.9"/>
+    <text x="230" y="270" font-size="20" text-anchor="middle" fill="white">🌳</text>
+    
+    <!-- Fire -->
+    <circle cx="340" cy="350" r="35" fill="#E74C3C" opacity="0.9"/>
+    <text x="340" y="360" font-size="20" text-anchor="middle" fill="white">🔥</text>
+    
+    <!-- Earth -->
+    <circle cx="300" cy="480" r="35" fill="#D68910" opacity="0.9"/>
+    <text x="300" y="490" font-size="20" text-anchor="middle" fill="white">🌍</text>
+    
+    <!-- Metal -->
+    <circle cx="160" cy="480" r="35" fill="#95A5A6" opacity="0.9"/>
+    <text x="160" y="490" font-size="20" text-anchor="middle" fill="white">⚙️</text>
+    
+    <!-- Arrows -->
+    <defs>
+      <marker id="arrow-p" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#3498DB"/>
+      </marker>
+    </defs>
+    
+    <path d="M 145 335 Q 180 290 210 275" fill="none" stroke="#3498DB" stroke-width="3" marker-end="url(#arrow-p)"/>
+    <path d="M 250 275 Q 300 300 325 335" fill="none" stroke="#3498DB" stroke-width="3" marker-end="url(#arrow-p)"/>
+    <path d="M 340 385 Q 330 440 315 465" fill="none" stroke="#3498DB" stroke-width="3" marker-end="url(#arrow-p)"/>
+    <path d="M 265 480 Q 210 490 175 485" fill="none" stroke="#3498DB" stroke-width="3" marker-end="url(#arrow-p)"/>
+    <path d="M 140 465 Q 120 410 120 365" fill="none" stroke="#3498DB" stroke-width="3" marker-end="url(#arrow-p)"/>
+    
+    <!-- Key points -->
+    <rect x="40" y="540" width="380" height="180" rx="10" fill="white" opacity="0.9" stroke="#3498DB" stroke-width="2"/>
+    <text x="230" y="565" font-size="15" font-weight="bold" text-anchor="middle" fill="#2C3E50">Key Characteristics:</text>
+    
+    <text x="50" y="590" font-size="12" fill="#34495E">• Pentagon pattern (clockwise)</text>
+    <text x="50" y="610" font-size="12" fill="#34495E">• Each element nourishes the next</text>
+    <text x="50" y="630" font-size="12" fill="#34495E">• Water→Wood→Fire→Earth→Metal</text>
+    
+    <text x="50" y="660" font-size="12" font-weight="bold" fill="#2C3E50">Usage:</text>
+    <text x="50" y="680" font-size="11" fill="#34495E">✓ Seek your "Parent" for support</text>
+    <text x="50" y="698" font-size="11" fill="#34495E">⚠ Beware draining your "Child"</text>
+  </g>
+  
+  <!-- Center Panel: Controlling Cycle -->
+  <g id="controlling-panel">
+    <rect x="470" y="100" width="420" height="650" rx="15" fill="#FEF5E7" stroke="#E67E22" stroke-width="3"/>
+    
+    <text x="680" y="140" font-size="20" font-weight="bold" text-anchor="middle" fill="#2C3E50">
+      CONTROLLING CYCLE (克)
+    </text>
+    <text x="680" y="165" font-size="14" text-anchor="middle" fill="#7F8C8D">
+      Regulation &amp; Balance
+    </text>
+    
+    <!-- Mini star -->
+    <circle cx="680" cy="380" r="140" fill="none" stroke="#E67E22" stroke-width="2" opacity="0.3"/>
+    
+    <!-- Elements (same positions) -->
+    <circle cx="570" cy="350" r="35" fill="#3498DB" opacity="0.9"/>
+    <text x="570" y="360" font-size="20" text-anchor="middle" fill="white">💧</text>
+    
+    <circle cx="680" cy="260" r="35" fill="#27AE60" opacity="0.9"/>
+    <text x="680" y="270" font-size="20" text-anchor="middle" fill="white">🌳</text>
+    
+    <circle cx="790" cy="350" r="35" fill="#E74C3C" opacity="0.9"/>
+    <text x="790" y="360" font-size="20" text-anchor="middle" fill="white">🔥</text>
+    
+    <circle cx="750" cy="480" r="35" fill="#D68910" opacity="0.9"/>
+    <text x="750" y="490" font-size="20" text-anchor="middle" fill="white">🌍</text>
+    
+    <circle cx="610" cy="480" r="35" fill="#95A5A6" opacity="0.9"/>
+    <text x="610" y="490" font-size="20" text-anchor="middle" fill="white">⚙️</text>
+    
+    <!-- Star pattern arrows -->
+    <defs>
+      <marker id="arrow-c" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#E67E22"/>
+      </marker>
+    </defs>
+    
+    <!-- Water→Fire -->
+    <path d="M 600 340 Q 680 320 765 345" fill="none" stroke="#E67E22" stroke-width="3" marker-end="url(#arrow-c)"/>
+    <!-- Fire→Metal -->
+    <path d="M 775 380 Q 700 440 630 470" fill="none" stroke="#E67E22" stroke-width="3" marker-end="url(#arrow-c)"/>
+    <!-- Metal→Wood -->
+    <path d="M 625 455 Q 650 360 665 285" fill="none" stroke="#E67E22" stroke-width="3" marker-end="url(#arrow-c)"/>
+    <!-- Wood→Earth -->
+    <path d="M 695 285 Q 720 380 740 460" fill="none" stroke="#E67E22" stroke-width="3" marker-end="url(#arrow-c)"/>
+    <!-- Earth→Water -->
+    <path d="M 730 465 Q 650 410 585 370" fill="none" stroke="#E67E22" stroke-width="3" marker-end="url(#arrow-c)"/>
+    
+    <!-- Key points -->
+    <rect x="490" y="540" width="380" height="180" rx="10" fill="white" opacity="0.9" stroke="#E67E22" stroke-width="2"/>
+    <text x="680" y="565" font-size="15" font-weight="bold" text-anchor="middle" fill="#2C3E50">Key Characteristics:</text>
+    
+    <text x="500" y="590" font-size="12" fill="#34495E">• Star pattern (pentagram)</text>
+    <text x="500" y="610" font-size="12" fill="#34495E">• Each element regulates another</text>
+    <text x="500" y="630" font-size="12" fill="#34495E">• Water→Fire→Metal→Wood→Earth</text>
+    
+    <text x="500" y="660" font-size="12" font-weight="bold" fill="#2C3E50">Usage:</text>
+    <text x="500" y="680" font-size="11" fill="#34495E">💊 Accept "Controller" as medicine</text>
+    <text x="500" y="698" font-size="11" fill="#34495E">⚖️ Small doses regulate, excess oppresses</text>
+  </g>
+  
+  <!-- Right Panel: Weakening Cycle -->
+  <g id="weakening-panel">
+    <rect x="920" y="100" width="420" height="650" rx="15" fill="#F4ECF7" stroke="#9B59B6" stroke-width="3"/>
+    
+    <text x="1130" y="140" font-size="20" font-weight="bold" text-anchor="middle" fill="#2C3E50">
+      WEAKENING CYCLE (泄)
+    </text>
+    <text x="1130" y="165" font-size="14" text-anchor="middle" fill="#7F8C8D">
+      Depletion &amp; Expression
+    </text>
+    
+    <!-- Mini pentagon reversed -->
+    <circle cx="1130" cy="380" r="140" fill="none" stroke="#9B59B6" stroke-width="2" opacity="0.3"/>
+    
+    <!-- Elements (same positions) -->
+    <circle cx="1020" cy="350" r="35" fill="#3498DB" opacity="0.9"/>
+    <text x="1020" y="360" font-size="20" text-anchor="middle" fill="white">💧</text>
+    
+    <circle cx="1130" cy="260" r="35" fill="#27AE60" opacity="0.9"/>
+    <text x="1130" y="270" font-size="20" text-anchor="middle" fill="white">🌳</text>
+    
+    <circle cx="1240" cy="350" r="35" fill="#E74C3C" opacity="0.9"/>
+    <text x="1240" y="360" font-size="20" text-anchor="middle" fill="white">🔥</text>
+    
+    <circle cx="1200" cy="480" r="35" fill="#D68910" opacity="0.9"/>
+    <text x="1200" y="490" font-size="20" text-anchor="middle" fill="white">🌍</text>
+    
+    <circle cx="1060" cy="480" r="35" fill="#95A5A6" opacity="0.9"/>
+    <text x="1060" y="490" font-size="20" text-anchor="middle" fill="white">⚙️</text>
+    
+    <!-- Reverse arrows (dashed) -->
+    <defs>
+      <marker id="arrow-w" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#9B59B6"/>
+      </marker>
+    </defs>
+    
+    <!-- REVERSE of producing -->
+    <path d="M 1110 275 Q 1070 310 1040 335" fill="none" stroke="#9B59B6" stroke-width="3" stroke-dasharray="6,3" marker-end="url(#arrow-w)"/>
+    <path d="M 1225 335 Q 1180 290 1145 275" fill="none" stroke="#9B59B6" stroke-width="3" stroke-dasharray="6,3" marker-end="url(#arrow-w)"/>
+    <path d="M 1240 385 Q 1230 440 1215 465" fill="none" stroke="#9B59B6" stroke-width="3" stroke-dasharray="6,3" marker-end="url(#arrow-w)"/>
+    <path d="M 1165 480 Q 1110 490 1075 485" fill="none" stroke="#9B59B6" stroke-width="3" stroke-dasharray="6,3" marker-end="url(#arrow-w)"/>
+    <path d="M 1040 465 Q 1020 410 1020 365" fill="none" stroke="#9B59B6" stroke-width="3" stroke-dasharray="6,3" marker-end="url(#arrow-w)"/>
+    
+    <!-- Key points -->
+    <rect x="940" y="540" width="380" height="180" rx="10" fill="white" opacity="0.9" stroke="#9B59B6" stroke-width="2"/>
+    <text x="1130" y="565" font-size="15" font-weight="bold" text-anchor="middle" fill="#2C3E50">Key Characteristics:</text>
+    
+    <text x="950" y="590" font-size="12" fill="#34495E">• Reverse of Producing (counter-clockwise)</text>
+    <text x="950" y="610" font-size="12" fill="#34495E">• You're drained by what you produce</text>
+    <text x="950" y="630" font-size="12" fill="#34495E">• Wood←Water←Metal←Earth←Fire</text>
+    
+    <text x="950" y="660" font-size="12" font-weight="bold" fill="#2C3E50">Usage:</text>
+    <text x="950" y="680" font-size="11" fill="#34495E">⚠️ Set boundaries with "Child" element</text>
+    <text x="950" y="698" font-size="11" fill="#34495E">🔄 Balance giving with replenishment</text>
+  </g>
+  
+  <!-- Bottom comparison -->
+  <g id="comparison">
+    <rect x="50" y="780" width="1300" height="80" rx="10" fill="#ECF0F1" stroke="#34495E" stroke-width="2"/>
+    
+    <text x="700" y="810" font-size="18" font-weight="bold" text-anchor="middle" fill="#2C3E50">
+      The Three Cycles Work Together for Dynamic Balance
+    </text>
+    
+    <text x="100" y="840" font-size="13" fill="#34495E">
+      <tspan font-weight="bold" fill="#3498DB">Producing:</tspan> Who supports you &amp; who drains you
+    </text>
+    
+    <text x="550" y="840" font-size="13" fill="#34495E">
+      <tspan font-weight="bold" fill="#E67E22">Controlling:</tspan> Who regulates you &amp; who you regulate
+    </text>
+    
+    <text x="1000" y="840" font-size="13" fill="#34495E">
+      <tspan font-weight="bold" fill="#9B59B6">Weakening:</tspan> Who depletes you through need
+    </text>
+  </g>
+</svg>
