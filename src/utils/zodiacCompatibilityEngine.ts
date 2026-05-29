@@ -30,12 +30,34 @@ interface ElementVector {
 type Modality = 'Cardinal' | 'Fixed' | 'Mutable';
 type Polarity = 'Yang' | 'Yin';
 
+/**
+ * 12 Mythic Functions — derived from archetype titles:
+ *   Aries triad     → Warrior     (Intuitive/Primal/Grounded)
+ *   Taurus triad    → Builder     (Dynamic/Sensual/Articulate)
+ *   Gemini triad    → Messenger   (Grounded Communicator/Eternal Student/Emotional Storyteller)
+ *   Cancer triad    → Nurturer    (Curious/Divine Mother/Radiant Protector)
+ *   Leo triad       → Sovereign   (Nurturing/Radiant King/Disciplined)
+ *   Virgo triad     → Analyst     (Confident/Sacred Perfectionist/Elegant)
+ *   Libra triad     → Diplomat    (Precise/Divine/Magnetic Harmonizer)
+ *   Scorpio triad   → Alchemist   (Charming/Phoenix/Philosophical Transformer)
+ *   Sagittarius triad → Explorer  (Deep Adventurer/Joyful Philosopher/Visionary Builder)
+ *   Capricorn triad → Strategist  (Optimistic Achiever/Mountain Climber/Revolutionary Architect)
+ *   Aquarius triad  → Visionary   (Grounded/Revolutionary Genius/Compassionate Innovator)
+ *   Pisces triad    → Mystic      (Visionary Mystic/Mystic Dreamer/Courageous Dreamer)
+ *
+ * Each triad of 3 cusps shares one mythic function.
+ * Resonance bonus fires ONLY when mythic functions match.
+ */
+type MythicFunction = 'Warrior' | 'Builder' | 'Artisan / Messenger' | 'Nurturer' | 'Sovereign' | 'Analyst'
+  | 'Diplomat' | 'Transformer / Alchemist' | 'Explorer / Philosopher' | 'Strategist / Achiever' | 'Visionary / Architect' | 'Mystic / Dreamer';
+
 interface ArchetypeProfile {
   elementVector: ElementVector;
   psychVector: [number, number, number, number, number]; // warmth, directness, sensitivity, stability, expressiveness
   modality: Modality;
   polarity: Polarity;
   seasonalQi: number;
+  mythicFunction: MythicFunction;
 }
 
 // ============================================================================
@@ -113,114 +135,150 @@ const ASPECT_ANCHORS: [number, number][] = [
 // ============================================================================
 
 const PROFILES: ArchetypeProfile[] = [
-  // 0: AR-PI — Aries with Pisces Echo
+  // 0: AR-PI — The Intuitive Warrior
   { elementVector: { wood: 1.10, fire: 1.03, earth: 0.95, metal: 0.75, water: 0.70 },
-    psychVector: [0.83, 0.415, 0.735, 0.4, 0.835], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.906 },
-  // 1: AR — Pure Aries
+    psychVector: [0.83, 0.415, 0.735, 0.4, 0.835], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.906,
+    mythicFunction: 'Warrior' },
+  // 1: AR — The Primal Warrior
   { elementVector: { wood: 1.07, fire: 1.07, earth: 0.97, metal: 0.77, water: 0.72 },
-    psychVector: [0.7, 0.9, 0.3, 0.4, 0.9], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.92 },
-  // 2: AR-TA — Aries with Taurus Pull
+    psychVector: [0.7, 0.9, 0.3, 0.4, 0.9], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.92,
+    mythicFunction: 'Warrior' },
+  // 2: AR-TA — The Grounded Pioneer
   { elementVector: { wood: 0.98, fire: 1.13, earth: 1.00, metal: 0.81, water: 0.72 },
-    psychVector: [0.755, 0.615, 0.495, 0.705, 0.635], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.9135 },
-  // 3: TA-AR — Taurus with Aries Fire
+    psychVector: [0.755, 0.615, 0.495, 0.705, 0.635], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.9135,
+    mythicFunction: 'Warrior' },
+  // 3: TA-AR — The Dynamic Builder
   { elementVector: { wood: 1.0125, fire: 1.135, earth: 0.9675, metal: 0.7675, water: 0.70 },
-    psychVector: [0.745, 0.615, 0.435, 0.575, 0.685], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.9165 },
-  // 4: TA — Pure Taurus
+    psychVector: [0.745, 0.615, 0.435, 0.575, 0.685], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.9165,
+    mythicFunction: 'Builder' },
+  // 4: TA — The Sensual Builder
   { elementVector: { wood: 0.85, fire: 1.20, earth: 1.00, metal: 0.80, water: 0.70 },
-    psychVector: [0.8, 0.4, 0.6, 0.9, 0.4], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.91 },
-  // 5: TA-GE — Taurus with Gemini Breeze
+    psychVector: [0.8, 0.4, 0.6, 0.9, 0.4], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.91,
+    mythicFunction: 'Builder' },
+  // 5: TA-GE — The Articulate Artisan
   { elementVector: { wood: 0.7525, fire: 1.20, earth: 1.00, metal: 0.8325, water: 0.70 },
-    psychVector: [0.735, 0.595, 0.47, 0.48, 0.785], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.897 },
-  // 6: GE-TA — Gemini with Taurus Roots
+    psychVector: [0.735, 0.595, 0.47, 0.48, 0.785], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.897,
+    mythicFunction: 'Builder' },
+  // 6: GE-TA — The Grounded Communicator
   { elementVector: { wood: 0.7975, fire: 1.20, earth: 1.00, metal: 0.8175, water: 0.70 },
-    psychVector: [0.755, 0.505, 0.53, 0.69, 0.565], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.903 },
-  // 7: GE — Pure Gemini
+    psychVector: [0.755, 0.505, 0.53, 0.69, 0.565], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.903,
+    mythicFunction: 'Artisan / Messenger' },
+  // 7: GE — The Eternal Student
   { elementVector: { wood: 0.70, fire: 1.28, earth: 0.93, metal: 0.78, water: 0.70 },
-    psychVector: [0.7, 0.7, 0.4, 0.3, 0.9], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.89 },
-  // 8: GE-CA — Gemini with Cancer Depth
+    psychVector: [0.7, 0.7, 0.4, 0.3, 0.9], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.89,
+    mythicFunction: 'Artisan / Messenger' },
+  // 8: GE-CA — The Emotional Storyteller
   { elementVector: { wood: 0.70, fire: 1.135, earth: 1.065, metal: 0.8825, water: 0.70 },
-    psychVector: [0.83, 0.385, 0.735, 0.565, 0.77], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.8965 },
-  // 9: CA-GE — Cancer with Gemini Wings
+    psychVector: [0.83, 0.385, 0.735, 0.565, 0.77], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.8965,
+    mythicFunction: 'Artisan / Messenger' },
+  // 9: CA-GE — The Curious Nurturer
   { elementVector: { wood: 0.70, fire: 1.165, earth: 1.035, metal: 0.8675, water: 0.70 },
-    psychVector: [0.79, 0.53, 0.535, 0.44, 0.83], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.8935 },
-  // 10: CA — Pure Cancer
+    psychVector: [0.79, 0.53, 0.535, 0.44, 0.83], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.8935,
+    mythicFunction: 'Nurturer' },
+  // 10: CA — The Divine Mother
   { elementVector: { wood: 0.70, fire: 1.10, earth: 1.10, metal: 0.90, water: 0.70 },
-    psychVector: [0.9, 0.3, 0.9, 0.7, 0.7], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.90 },
-  // 11: CA-LE — Cancer with Leo Warmth
+    psychVector: [0.9, 0.3, 0.9, 0.7, 0.7], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.90,
+    mythicFunction: 'Nurturer' },
+  // 11: CA-LE — The Radiant Protector
   { elementVector: { wood: 0.70, fire: 0.97, earth: 1.10, metal: 0.9975, water: 0.70 },
-    psychVector: [0.87, 0.665, 0.535, 0.63, 0.83], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.8935 },
-  // 12: LE-CA — Leo with Cancer Heart
+    psychVector: [0.87, 0.665, 0.535, 0.63, 0.83], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.8935,
+    mythicFunction: 'Nurturer' },
+  // 12: LE-CA — The Nurturing Sovereign
   { elementVector: { wood: 0.70, fire: 1.035, earth: 1.10, metal: 0.9525, water: 0.70 },
-    psychVector: [0.84, 0.455, 0.705, 0.665, 0.79], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.8965 },
-  // 13: LE — Pure Leo
+    psychVector: [0.84, 0.455, 0.705, 0.665, 0.79], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.8965,
+    mythicFunction: 'Sovereign' },
+  // 13: LE — The Radiant King/Queen
   { elementVector: { wood: 0.70, fire: 0.90, earth: 1.10, metal: 1.05, water: 0.70 },
-    psychVector: [0.9, 0.8, 0.4, 0.6, 0.9], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.89 },
-  // 14: LE-VI — Leo with Virgo Precision
+    psychVector: [0.9, 0.8, 0.4, 0.6, 0.9], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.89,
+    mythicFunction: 'Sovereign' },
+  // 14: LE-VI — The Disciplined Performer
   { elementVector: { wood: 0.70, fire: 0.8325, earth: 1.0675, metal: 1.1325, water: 0.725 },
-    psychVector: [0.68, 0.59, 0.565, 0.765, 0.57], modality: 'Mutable', polarity: 'Yin', seasonalQi: 0.8855 },
-  // 15: VI-LE — Virgo with Leo Confidence
+    psychVector: [0.68, 0.59, 0.565, 0.765, 0.57], modality: 'Mutable', polarity: 'Yin', seasonalQi: 0.8855,
+    mythicFunction: 'Sovereign' },
+  // 15: VI-LE — The Confident Analyst
   { elementVector: { wood: 0.70, fire: 0.8175, earth: 1.0825, metal: 1.1025, water: 0.725 },
-    psychVector: [0.83, 0.755, 0.445, 0.645, 0.84], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.8865 },
-  // 16: VI — Pure Virgo
+    psychVector: [0.83, 0.755, 0.445, 0.645, 0.84], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.8865,
+    mythicFunction: 'Analyst' },
+  // 16: VI — The Sacred Perfectionist
   { elementVector: { wood: 0.70, fire: 0.75, earth: 0.95, metal: 1.20, water: 0.75 },
-    psychVector: [0.5, 0.5, 0.7, 0.9, 0.3], modality: 'Mutable', polarity: 'Yin', seasonalQi: 0.87 },
-  // 17: VI-LI — Virgo with Libra Grace
+    psychVector: [0.5, 0.5, 0.7, 0.9, 0.3], modality: 'Mutable', polarity: 'Yin', seasonalQi: 0.87,
+    mythicFunction: 'Analyst' },
+  // 17: VI-LI — The Elegant Analyst
   { elementVector: { wood: 0.70, fire: 0.7275, earth: 0.95, metal: 1.155, water: 0.875 },
-    psychVector: [0.695, 0.525, 0.63, 0.735, 0.48], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.8795 },
-  // 18: LI-VI — Libra with Virgo Detail
+    psychVector: [0.695, 0.525, 0.63, 0.735, 0.48], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.8795,
+    mythicFunction: 'Analyst' },
+  // 18: LI-VI — The Precise Diplomat
   { elementVector: { wood: 0.70, fire: 0.7275, earth: 0.95, metal: 1.155, water: 0.875 },
-    psychVector: [0.59, 0.525, 0.665, 0.825, 0.45], modality: 'Mutable', polarity: 'Yin', seasonalQi: 0.8795 },
-  // 19: LI — Pure Libra
+    psychVector: [0.59, 0.525, 0.665, 0.825, 0.45], modality: 'Mutable', polarity: 'Yin', seasonalQi: 0.8795,
+    mythicFunction: 'Diplomat' },
+  // 19: LI — The Divine Diplomat
   { elementVector: { wood: 0.70, fire: 0.70, earth: 0.95, metal: 1.10, water: 1.00 },
-    psychVector: [0.8, 0.5, 0.6, 0.6, 0.7], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.89 },
-  // 20: LI-SC — Libra with Scorpio Depth
+    psychVector: [0.8, 0.5, 0.6, 0.6, 0.7], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.89,
+    mythicFunction: 'Diplomat' },
+  // 20: LI-SC — The Magnetic Harmonizer
   { elementVector: { wood: 0.725, fire: 0.70, earth: 0.95, metal: 0.9675, water: 1.13 },
-    psychVector: [0.69, 0.695, 0.795, 0.74, 0.56], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.8895 },
-  // 21: SC-LI — Scorpio with Libra Charm
+    psychVector: [0.69, 0.695, 0.795, 0.74, 0.56], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.8895,
+    mythicFunction: 'Diplomat' },
+  // 21: SC-LI — The Charming Transformer
   { elementVector: { wood: 0.725, fire: 0.70, earth: 0.95, metal: 1.0175, water: 1.07 },
-    psychVector: [0.74, 0.59, 0.69, 0.64, 0.63], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.8895 },
-  // 22: SC — Pure Scorpio
+    psychVector: [0.74, 0.59, 0.69, 0.64, 0.63], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.8895,
+    mythicFunction: 'Transformer / Alchemist' },
+  // 22: SC — The Phoenix Transformer
   { elementVector: { wood: 0.75, fire: 0.70, earth: 0.95, metal: 0.85, water: 1.20 },
-    psychVector: [0.6, 0.8, 0.9, 0.8, 0.5], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.89 },
-  // 23: SC-SA — Scorpio with Sagittarius Vision
+    psychVector: [0.6, 0.8, 0.9, 0.8, 0.5], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.89,
+    mythicFunction: 'Transformer / Alchemist' },
+  // 23: SC-SA — The Philosophical Transformer
   { elementVector: { wood: 0.80, fire: 0.70, earth: 0.90, metal: 0.775, water: 1.20 },
-    psychVector: [0.74, 0.745, 0.535, 0.59, 0.78], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.875 },
-  // 24: SA-SC — Sagittarius with Scorpio Depth
+    psychVector: [0.74, 0.745, 0.535, 0.59, 0.78], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.875,
+    mythicFunction: 'Transformer / Alchemist' },
+  // 24: SA-SC — The Deep Adventurer
   { elementVector: { wood: 0.7875, fire: 0.70, earth: 0.90, metal: 0.7875, water: 1.20 },
-    psychVector: [0.68, 0.77, 0.73, 0.74, 0.63], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.8825 },
-  // 25: SA — Pure Sagittarius
+    psychVector: [0.68, 0.77, 0.73, 0.74, 0.63], modality: 'Fixed', polarity: 'Yin', seasonalQi: 0.8825,
+    mythicFunction: 'Explorer / Philosopher' },
+  // 25: SA — The Joyful Philosopher
   { elementVector: { wood: 0.85, fire: 0.70, earth: 0.85, metal: 0.70, water: 1.20 },
-    psychVector: [0.8, 0.7, 0.4, 0.5, 0.9], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.86 },
-  // 26: SA-CP — Sagittarius with Capricorn Structure
+    psychVector: [0.8, 0.7, 0.4, 0.5, 0.9], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.86,
+    mythicFunction: 'Explorer / Philosopher' },
+  // 26: SA-CP — The Visionary Builder
   { elementVector: { wood: 0.9025, fire: 0.70, earth: 0.875, metal: 0.7375, water: 1.20 },
-    psychVector: [0.605, 0.7, 0.455, 0.77, 0.48], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.882 },
-  // 27: CP-SA — Capricorn with Sagittarius
+    psychVector: [0.605, 0.7, 0.455, 0.77, 0.48], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.882,
+    mythicFunction: 'Explorer / Philosopher' },
+  // 27: CP-SA — The Optimistic Achiever
   { elementVector: { wood: 0.8875, fire: 0.70, earth: 0.875, metal: 0.7375, water: 1.20 },
-    psychVector: [0.725, 0.7, 0.43, 0.62, 0.78], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.882 },
-  // 28: CP — Pure Capricorn
+    psychVector: [0.725, 0.7, 0.43, 0.62, 0.78], modality: 'Mutable', polarity: 'Yang', seasonalQi: 0.882,
+    mythicFunction: 'Strategist / Achiever' },
+  // 28: CP — The Mountain Climber
   { elementVector: { wood: 0.95, fire: 0.70, earth: 0.90, metal: 0.75, water: 1.20 },
-    psychVector: [0.5, 0.7, 0.5, 0.9, 0.3], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.90 },
-  // 29: CP-AQ — Capricorn with Aquarius
+    psychVector: [0.5, 0.7, 0.5, 0.9, 0.3], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.90,
+    mythicFunction: 'Strategist / Achiever' },
+  // 29: CP-AQ — The Revolutionary Architect
   { elementVector: { wood: 1.0375, fire: 0.7675, earth: 0.90, metal: 0.7275, water: 1.0475 },
-    psychVector: [0.565, 0.665, 0.44, 0.77, 0.47], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.8925 },
-  // 30: AQ-CP — Aquarius with Capricorn
+    psychVector: [0.565, 0.665, 0.44, 0.77, 0.47], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.8925,
+    mythicFunction: 'Strategist / Achiever' },
+  // 30: AQ-CP — The Grounded Visionary
   { elementVector: { wood: 1.0125, fire: 0.7675, earth: 0.90, metal: 0.7275, water: 1.0475 },
-    psychVector: [0.53, 0.67, 0.44, 0.77, 0.47], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.8925 },
-  // 31: AQ — Pure Aquarius
+    psychVector: [0.53, 0.67, 0.44, 0.77, 0.47], modality: 'Cardinal', polarity: 'Yin', seasonalQi: 0.8925,
+    mythicFunction: 'Visionary / Architect' },
+  // 31: AQ — The Revolutionary Genius
   { elementVector: { wood: 1.10, fire: 0.85, earth: 0.90, metal: 0.70, water: 0.95 },
-    psychVector: [0.6, 0.6, 0.3, 0.5, 0.8], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.90 },
-  // 32: AQ-PI — Aquarius with Pisces
+    psychVector: [0.6, 0.6, 0.3, 0.5, 0.8], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.90,
+    mythicFunction: 'Visionary / Architect' },
+  // 32: AQ-PI — The Compassionate Innovator
   { elementVector: { wood: 1.22, fire: 0.90, earth: 0.83, metal: 0.62, water: 0.85 },
-    psychVector: [0.795, 0.29, 0.765, 0.445, 0.81], modality: 'Mutable', polarity: 'Yin', seasonalQi: 0.889 },
-  // 33: PI-AQ — Pisces with Aquarius
+    psychVector: [0.795, 0.29, 0.765, 0.445, 0.81], modality: 'Mutable', polarity: 'Yin', seasonalQi: 0.889,
+    mythicFunction: 'Visionary / Architect' },
+  // 33: PI-AQ — The Visionary Mystic
   { elementVector: { wood: 1.1425, fire: 0.9025, earth: 0.875, metal: 0.6675, water: 0.8175 },
-    psychVector: [0.645, 0.47, 0.585, 0.47, 0.81], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.889 },
-  // 34: PI — Pure Pisces
+    psychVector: [0.645, 0.47, 0.585, 0.47, 0.81], modality: 'Fixed', polarity: 'Yang', seasonalQi: 0.889,
+    mythicFunction: 'Mystic / Dreamer' },
+  // 34: PI — The Mystic Dreamer
   { elementVector: { wood: 1.20, fire: 1.00, earth: 0.85, metal: 0.65, water: 0.70 },
-    psychVector: [0.9, 0.2, 0.9, 0.4, 0.8], modality: 'Mutable', polarity: 'Yin', seasonalQi: 0.88 },
-  // 35: PI-AR — Pisces with Aries
+    psychVector: [0.9, 0.2, 0.9, 0.4, 0.8], modality: 'Mutable', polarity: 'Yin', seasonalQi: 0.88,
+    mythicFunction: 'Mystic / Dreamer' },
+  // 35: PI-AR — The Courageous Dreamer
   { elementVector: { wood: 1.165, fire: 1.065, earth: 0.915, metal: 0.715, water: 0.70 },
-    psychVector: [0.79, 0.515, 0.435, 0.4, 0.855], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.903 },
+    psychVector: [0.79, 0.515, 0.435, 0.4, 0.855], modality: 'Cardinal', polarity: 'Yang', seasonalQi: 0.903,
+    mythicFunction: 'Mystic / Dreamer' },
 ];
 
 // ============================================================================
@@ -420,6 +478,32 @@ function computeDampener(a: ArchetypeProfile, b: ArchetypeProfile): number {
 }
 
 // ============================================================================
+// MYTHIC RESONANCE BONUS (locked rule)
+// Triggers ONLY when at least one mythic function matches between A and B.
+//   Same function + same modality → full bonus (+5)
+//   Same function + same polarity → half bonus (+3)
+//   No shared function → 0
+// Cusps can share a function via either their primary or secondary role.
+// ============================================================================
+
+const RESONANCE_FULL  = 5;   // modality match (structural alignment)
+const RESONANCE_HALF  = 3;   // polarity match (energetic alignment)
+
+function computeResonanceBonus(a: ArchetypeProfile, b: ArchetypeProfile): number {
+  // Same mythic function required (exact match within triad)
+  if (a.mythicFunction !== b.mythicFunction) return 0;
+
+  // Modality match → full bonus (structural resonance)
+  if (a.modality === b.modality) return RESONANCE_FULL;
+
+  // Polarity match → half bonus (energetic resonance)
+  if (a.polarity === b.polarity) return RESONANCE_HALF;
+
+  // Same function but neither modality nor polarity → no bonus
+  return 0;
+}
+
+// ============================================================================
 // COMPOSITE SCORE
 // ============================================================================
 
@@ -436,9 +520,13 @@ function computeDirectionalScore(fromIdx: number, toIdx: number): number {
   const raw = W_ELEMENTAL * E + W_MODALITY * M + W_ASPECT * A + W_SEASONAL * Q + W_PSYCH * P;
   const dampened = raw * computeDampener(a, b);
 
-  // Rescale v2: raw dampened range is ~49–69.
+  // Step 3: Apply mythic resonance bonus (post-dampener, pre-rescale)
+  const resonance = computeResonanceBonus(a, b);
+  const withResonance = dampened + resonance;
+
+  // Rescale v2: raw dampened range is ~49–69 (+0–5 resonance).
   // Stretch into ~52–97 target for realistic distribution.
-  const scaled = (dampened - 48) * (48 / 21) + 52;
+  const scaled = (withResonance - 48) * (48 / 21) + 52;
   return Math.round(clamp(scaled, 48, 97));
 }
 
@@ -479,7 +567,174 @@ export function getComputedMutualScore(indexA: number, indexB: number): number {
 
 /** Export profiles for debugging / UI display */
 export { PROFILES as ARCHETYPE_PROFILES };
-export type { ArchetypeProfile, ElementVector };
+export type { ArchetypeProfile, ElementVector, MythicFunction };
+
+// ============================================================================
+// ZODIAC BODY ATLAS — Organ Mapping & Hybrid Organ-Function Grid
+//
+// Each of the 36 archetypes maps to a sub-organ in the metaphysical body.
+// The Hybrid Organ-Function Grid = 0.6 × Matrix + 0.4 × OrganSynergy
+//
+// Organ Synergy is computed using:
+//   1st: Attachment & Regulation (co-regulation, stress buffering)
+//   2nd: Cognitive-Behavioral (information routing, feedback loops)
+//   3rd: Jungian Archetypal (symbolic resonance)
+// ============================================================================
+
+/** 36 organ names, one per archetype index */
+export const ORGAN_NAMES: string[] = [
+  'Smooth Muscle',       // 0  AR-PI
+  'Skeletal Muscle',     // 1  AR
+  'Tendons',             // 2  AR-TA
+  'Rib Cage',            // 3  TA-AR
+  'Femur',               // 4  TA
+  'Spinal Ribs',         // 5  TA-GE
+  'Peripheral Nerves',   // 6  GE-TA
+  'Synapses',            // 7  GE
+  'Vagus Nerve',         // 8  GE-CA
+  'SA Node',             // 9  CA-GE
+  'Left Ventricle',      // 10 CA
+  'Right Ventricle',     // 11 CA-LE
+  'Hepatic Portal',      // 12 LE-CA
+  'Liver Core',          // 13 LE
+  'Bile Ducts',          // 14 LE-VI
+  'Stomach',             // 15 VI-LE
+  'Small Intestine',     // 16 VI
+  'Large Intestine',     // 17 VI-LI
+  'Bronchioles',         // 18 LI-VI
+  'Lung Lobes',          // 19 LI
+  'Alveoli',             // 20 LI-SC
+  'Plasma',              // 21 SC-LI
+  'Red Blood Cells',     // 22 SC
+  'White Blood Cells',   // 23 SC-SA
+  'Lower Diaphragm',     // 24 SA-SC
+  'Diaphragm Core',      // 25 SA
+  'Upper Diaphragm',     // 26 SA-CP
+  'Lumbar Spine',        // 27 CP-SA
+  'Thoracic Spine',      // 28 CP
+  'Cervical Spine',      // 29 CP-AQ
+  'Prefrontal Cortex',   // 30 AQ-CP
+  'Neocortex',           // 31 AQ
+  'Default Mode Network',// 32 AQ-PI
+  'Lymph Nodes',         // 33 PI-AQ
+  'Lymph Fluid',         // 34 PI
+  'Immune Signaling',    // 35 PI-AR
+];
+
+/**
+ * Organ system groups — organs in the same system cooperate more (co-regulation).
+ * Cross-system pairs use attachment logic for synergy scoring.
+ */
+type OrganSystem = 'Muscles' | 'Skeleton' | 'Nerves' | 'Heart' | 'Liver' | 'Digestion'
+  | 'Lungs' | 'Blood' | 'Diaphragm' | 'Spine' | 'Brain' | 'Lymph';
+
+const ORGAN_SYSTEM: OrganSystem[] = [
+  'Muscles','Muscles','Muscles',       // 0-2   Aries family
+  'Skeleton','Skeleton','Skeleton',    // 3-5   Taurus family
+  'Nerves','Nerves','Nerves',          // 6-8   Gemini family
+  'Heart','Heart','Heart',             // 9-11  Cancer family
+  'Liver','Liver','Liver',             // 12-14 Leo family
+  'Digestion','Digestion','Digestion', // 15-17 Virgo family
+  'Lungs','Lungs','Lungs',            // 18-20 Libra family
+  'Blood','Blood','Blood',            // 21-23 Scorpio family
+  'Diaphragm','Diaphragm','Diaphragm',// 24-26 Sagittarius family
+  'Spine','Spine','Spine',            // 27-29 Capricorn family
+  'Brain','Brain','Brain',            // 30-32 Aquarius family
+  'Lymph','Lymph','Lymph',            // 33-35 Pisces family
+];
+
+/**
+ * Attachment-based organ synergy matrix.
+ * System-to-system co-regulation scores (0-100).
+ *
+ * Primary model: Attachment & Regulation
+ *   - High co-regulation pairs (Heart↔Nerves, Blood↔Lungs) score 90+
+ *   - Structural support pairs (Skeleton↔Spine, Muscles↔Skeleton) score 85+
+ *   - Neutral/parallel pairs score 70-80
+ *   - Dysregulated pairs (e.g. Muscles↔Lymph under stress) score 60-70
+ *
+ * Secondary: Cognitive-Behavioral (information routing)
+ * Tertiary: Jungian Archetypal (symbolic resonance)
+ */
+const SYSTEM_SYNERGY: Record<OrganSystem, Record<OrganSystem, number>> = {
+  //                    Musc  Skel  Nerv  Hart  Livr  Digs  Lung  Blod  Diap  Spin  Bran  Lymp
+  Muscles:   { Muscles: 80, Skeleton: 92, Nerves: 85, Heart: 82, Liver: 78, Digestion: 70, Lungs: 75, Blood: 80, Diaphragm: 88, Spine: 90, Brain: 82, Lymph: 65 },
+  Skeleton:  { Muscles: 92, Skeleton: 80, Nerves: 75, Heart: 70, Liver: 72, Digestion: 68, Lungs: 70, Blood: 72, Diaphragm: 75, Spine: 96, Brain: 70, Lymph: 62 },
+  Nerves:    { Muscles: 85, Skeleton: 75, Nerves: 80, Heart: 95, Liver: 82, Digestion: 78, Lungs: 80, Blood: 78, Diaphragm: 82, Spine: 80, Brain: 96, Lymph: 75 },
+  Heart:     { Muscles: 82, Skeleton: 70, Nerves: 95, Heart: 80, Liver: 90, Digestion: 75, Lungs: 92, Blood: 96, Diaphragm: 85, Spine: 72, Brain: 80, Lymph: 82 },
+  Liver:     { Muscles: 78, Skeleton: 72, Nerves: 82, Heart: 90, Liver: 80, Digestion: 92, Lungs: 78, Blood: 90, Diaphragm: 80, Spine: 70, Brain: 75, Lymph: 78 },
+  Digestion: { Muscles: 70, Skeleton: 68, Nerves: 78, Heart: 75, Liver: 92, Digestion: 80, Lungs: 72, Blood: 78, Diaphragm: 75, Spine: 68, Brain: 72, Lymph: 80 },
+  Lungs:     { Muscles: 75, Skeleton: 70, Nerves: 80, Heart: 92, Liver: 78, Digestion: 72, Lungs: 80, Blood: 94, Diaphragm: 96, Spine: 72, Brain: 78, Lymph: 82 },
+  Blood:     { Muscles: 80, Skeleton: 72, Nerves: 78, Heart: 96, Liver: 90, Digestion: 78, Lungs: 94, Blood: 80, Diaphragm: 82, Spine: 75, Brain: 78, Lymph: 92 },
+  Diaphragm: { Muscles: 88, Skeleton: 75, Nerves: 82, Heart: 85, Liver: 80, Digestion: 75, Lungs: 96, Blood: 82, Diaphragm: 80, Spine: 78, Brain: 80, Lymph: 75 },
+  Spine:     { Muscles: 90, Skeleton: 96, Nerves: 80, Heart: 72, Liver: 70, Digestion: 68, Lungs: 72, Blood: 75, Diaphragm: 78, Spine: 80, Brain: 82, Lymph: 65 },
+  Brain:     { Muscles: 82, Skeleton: 70, Nerves: 96, Heart: 80, Liver: 75, Digestion: 72, Lungs: 78, Blood: 78, Diaphragm: 80, Spine: 82, Brain: 80, Lymph: 78 },
+  Lymph:     { Muscles: 65, Skeleton: 62, Nerves: 75, Heart: 82, Liver: 78, Digestion: 80, Lungs: 82, Blood: 92, Diaphragm: 75, Spine: 65, Brain: 78, Lymph: 80 },
+};
+
+/**
+ * Compute organ synergy score for a pair of archetypes.
+ * Uses system-to-system base synergy, with intra-system bonus for same-system pairs.
+ */
+function computeOrganSynergy(idxA: number, idxB: number): number {
+  const sysA = ORGAN_SYSTEM[idxA];
+  const sysB = ORGAN_SYSTEM[idxB];
+  let synergy = SYSTEM_SYNERGY[sysA][sysB];
+
+  // Same-system organs get a small bonus for functional proximity
+  if (sysA === sysB && idxA !== idxB) {
+    // Adjacent cusps within a triad are more tightly coupled
+    const dist = Math.abs(idxA - idxB);
+    if (dist === 1) synergy += 8;      // adjacent sub-organs (e.g. SA Node ↔ Left Ventricle)
+    else if (dist === 2) synergy += 4; // span sub-organs (e.g. SA Node ↔ Right Ventricle)
+  }
+
+  return clamp(synergy, 0, 100);
+}
+
+/**
+ * Compute hybrid organ-function score:
+ *   HybridScore = 0.6 × MatrixScore + 0.4 × OrganSynergy
+ */
+function computeHybridOrganScore(fromIdx: number, toIdx: number): number {
+  const matrixScore = COMPUTED_MATRIX[fromIdx][toIdx];
+  const organSynergy = computeOrganSynergy(fromIdx, toIdx);
+  return Math.round(0.6 * matrixScore + 0.4 * organSynergy);
+}
+
+/** Generate full 36×36 Hybrid Organ-Function Matrix */
+function generateHybridMatrix(): number[][] {
+  const matrix: number[][] = [];
+  for (let r = 0; r < 36; r++) {
+    const row: number[] = [];
+    for (let c = 0; c < 36; c++) {
+      row.push(computeHybridOrganScore(r, c));
+    }
+    matrix.push(row);
+  }
+  return matrix;
+}
+
+/** Cached hybrid organ matrix — generated once */
+export const HYBRID_ORGAN_MATRIX: number[][] = generateHybridMatrix();
+
+/** Get organ synergy breakdown for a pair (for UI panels) */
+export function getOrganSynergyBreakdown(fromIdx: number, toIdx: number) {
+  const matrixScore = COMPUTED_MATRIX[fromIdx][toIdx];
+  const organSynergy = computeOrganSynergy(fromIdx, toIdx);
+  const hybridScore = Math.round(0.6 * matrixScore + 0.4 * organSynergy);
+  return {
+    organA: ORGAN_NAMES[fromIdx],
+    organB: ORGAN_NAMES[toIdx],
+    systemA: ORGAN_SYSTEM[fromIdx],
+    systemB: ORGAN_SYSTEM[toIdx],
+    sameSystem: ORGAN_SYSTEM[fromIdx] === ORGAN_SYSTEM[toIdx],
+    matrixScore,
+    organSynergy,
+    hybridScore,
+    formula: `0.6 × ${matrixScore} + 0.4 × ${organSynergy} = ${hybridScore}`,
+  };
+}
 
 /**
  * Layer breakdown for a single A→B pair (for debugging/tooltip)
@@ -488,6 +743,7 @@ export function getLayerBreakdown(fromIdx: number, toIdx: number) {
   const a = PROFILES[fromIdx];
   const b = PROFILES[toIdx];
   const dampener = Math.round(computeDampener(a, b) * 1000) / 1000;
+  const resonance = computeResonanceBonus(a, b);
   return {
     elemental:  Math.round(computeElementalFlow(a.elementVector, b.elementVector) * 10) / 10,
     modality:   computeModality(a, b),
@@ -495,10 +751,184 @@ export function getLayerBreakdown(fromIdx: number, toIdx: number) {
     seasonalQi: Math.round(computeSeasonalQi(a, b) * 10) / 10,
     psych:      Math.round(computePsychResonance(a, b) * 10) / 10,
     dampener,
+    resonance,
     composite:  computeDirectionalScore(fromIdx, toIdx),
     weights: { E: W_ELEMENTAL, M: W_MODALITY, A: W_ASPECT, Q: W_SEASONAL, P: W_PSYCH },
   };
 }
+
+// ============================================================================
+// RELATIONSHIP HEALTH SCORE (RHS)
+// Composite of mutuality, balance, chemistry, psych distance, dampener
+// ============================================================================
+
+export interface RelationshipHealthBreakdown {
+  mutuality: number;
+  balance: number;
+  chemistry: number;
+  psych: number;
+  dampener: number;
+  final: number;
+  interpretation: string[];
+}
+
+export function computeRelationshipHealth(fromIdx: number, toIdx: number): RelationshipHealthBreakdown {
+  const a = PROFILES[fromIdx];
+  const b = PROFILES[toIdx];
+
+  const scoreAB = COMPUTED_MATRIX[fromIdx][toIdx];
+  const scoreBA = COMPUTED_MATRIX[toIdx][fromIdx];
+
+  // 1. Mutuality (40%) — average of both directions
+  const mutuality = (scoreAB + scoreBA) / 2;
+
+  // 2. Balance (20%) — penalize asymmetry
+  const delta = Math.abs(scoreAB - scoreBA);
+  const balance = 100 - Math.min(40, delta * 2);
+
+  // 3. Chemistry (20%) — from raw E-layer score
+  const eRaw = computeElementalFlow(a.elementVector, b.elementVector);
+  let chemistry: number;
+  if (eRaw >= 90) chemistry = 95;
+  else if (eRaw >= 75) chemistry = 75 + (eRaw - 75) * (20 / 15);  // linear 75→95
+  else if (eRaw >= 60) chemistry = 55 + (eRaw - 60) * (20 / 15);  // linear 55→75
+  else chemistry = 40 + (eRaw / 60) * 15;                          // linear 40→55
+
+  // 4. Psych distance (20%) — sigmoid on cosine similarity
+  const psychCos = cosineSim(a.psychVector, b.psychVector);
+  const psychScore = clamp(100 * (1 / (1 + Math.exp(-10 * (psychCos - 0.70)))), 30, 96);
+
+  // Weighted composite
+  let rhs = 0.40 * mutuality + 0.20 * balance + 0.20 * chemistry + 0.20 * psychScore;
+
+  // Dampener — apply gently to prevent clone inflation
+  const damp = computeDampener(a, b);
+  rhs = rhs * (0.9 + 0.1 * damp);
+
+  rhs = clamp(Math.round(rhs * 10) / 10, 0, 100);
+
+  // Interpretation
+  const lines: string[] = [];
+
+  if (mutuality >= 85)
+    lines.push('You both feel this connection strongly — the reciprocity is real.');
+  else if (mutuality >= 70)
+    lines.push('There is solid mutual interest, even if the intensity differs at times.');
+  else
+    lines.push('The connection is uneven — one person may feel more invested.');
+
+  if (balance >= 85)
+    lines.push('The dynamic is balanced — neither person is carrying the emotional load.');
+  else if (balance >= 70)
+    lines.push('There is some asymmetry, but nothing destabilizing.');
+  else
+    lines.push('The relationship feels lopsided — effort may not be evenly shared.');
+
+  if (chemistry >= 80)
+    lines.push('Your elemental chemistry is strong — the energy flows naturally.');
+  else if (chemistry >= 60)
+    lines.push('There is workable chemistry with occasional friction.');
+  else
+    lines.push('Your elemental patterns clash — this pairing may feel draining.');
+
+  if (psychScore >= 80)
+    lines.push('Your temperaments align — communication feels intuitive.');
+  else if (psychScore >= 60)
+    lines.push('You understand each other with some effort — differences can be complementary.');
+  else
+    lines.push('Your emotional styles differ significantly — misunderstandings may arise.');
+
+  return {
+    mutuality: Math.round(mutuality * 10) / 10,
+    balance: Math.round(balance * 10) / 10,
+    chemistry: Math.round(chemistry * 10) / 10,
+    psych: Math.round(psychScore * 10) / 10,
+    dampener: Math.round(damp * 1000) / 1000,
+    final: rhs,
+    interpretation: lines,
+  };
+}
+
+// ============================================================================
+// RHS HISTOGRAM STATS (cached — average RHS per archetype)
+// ============================================================================
+
+export interface ArchetypeRHSStat {
+  index: number;
+  label: string;
+  avgRHS: number;
+  mutualACount: number;
+}
+
+function computeRHSStats(): ArchetypeRHSStat[] {
+  const labels = [
+    'Aries-Pisces','Aries','Aries-Taurus','Taurus-Aries','Taurus','Taurus-Gemini',
+    'Gemini-Taurus','Gemini','Gemini-Cancer','Cancer-Gemini','Cancer','Cancer-Leo',
+    'Leo-Cancer','Leo','Leo-Virgo','Virgo-Leo','Virgo','Virgo-Libra',
+    'Libra-Virgo','Libra','Libra-Scorpio','Scorpio-Libra','Scorpio',
+    'Scorpio-Sagittarius','Sagittarius-Scorpio','Sagittarius','Sagittarius-Capricorn',
+    'Capricorn-Sagittarius','Capricorn','Capricorn-Aquarius','Aquarius-Capricorn',
+    'Aquarius','Aquarius-Pisces','Pisces-Aquarius','Pisces','Pisces-Aries',
+  ];
+
+  return labels.map((label, i) => {
+    let sum = 0;
+    let count = 0;
+    let mutualA = 0;
+
+    for (let j = 0; j < 36; j++) {
+      if (i === j) continue;
+      const rhs = computeRelationshipHealth(i, j);
+      sum += rhs.final;
+      count++;
+      if (COMPUTED_MATRIX[i][j] >= 90 && COMPUTED_MATRIX[j][i] >= 90) mutualA++;
+    }
+
+    return { index: i, label, avgRHS: Math.round((sum / count) * 10) / 10, mutualACount: mutualA };
+  });
+}
+
+export const RHS_STATS: ArchetypeRHSStat[] = computeRHSStats();
+
+// ============================================================================
+// RHS 3D SCATTER DATA (all 630 unique pairs)
+// ============================================================================
+
+export interface RHSPairPoint {
+  fromIdx: number;
+  toIdx: number;
+  labelA: string;
+  labelB: string;
+  mutuality: number;   // X axis
+  balance: number;      // Y axis
+  chemistry: number;    // Z axis
+  psych: number;
+  final: number;
+  isMutualA: boolean;
+}
+
+function computeRHSPairs(): RHSPairPoint[] {
+  const labels = RHS_STATS.map(s => s.label);
+  const pairs: RHSPairPoint[] = [];
+  for (let i = 0; i < 36; i++) {
+    for (let j = i + 1; j < 36; j++) {
+      const rhs = computeRelationshipHealth(i, j);
+      pairs.push({
+        fromIdx: i, toIdx: j,
+        labelA: labels[i], labelB: labels[j],
+        mutuality: rhs.mutuality,
+        balance: rhs.balance,
+        chemistry: rhs.chemistry,
+        psych: rhs.psych,
+        final: rhs.final,
+        isMutualA: COMPUTED_MATRIX[i][j] >= 90 && COMPUTED_MATRIX[j][i] >= 90,
+      });
+    }
+  }
+  return pairs;
+}
+
+export const RHS_PAIRS: RHSPairPoint[] = computeRHSPairs();
 
 // ============================================================================
 // NARRATIVE INTERPRETATION ENGINE

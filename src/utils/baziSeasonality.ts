@@ -149,13 +149,45 @@ const BRANCH_WEIGHTS: Record<string, Record<Element, number>> = {
   "丑": { wood: 0.90, fire: 0.70, earth: 1.20, metal: 0.80, water: 1.00 },  // Jan — Late Winter (Water→Wood) — 丑 stores Water, prepares Wood
 };
 
+// ── Rooting Seasonality Matrix (Underground Qi) ──
+// Represents how much underground Qi is available for each element to form roots.
+// Different from surface seasonality: underground Qi is more stable, transitions
+// are gentler, and the ruling element doesn't dominate as sharply.
+// Used exclusively in computeElementRooting() for M1 tier determination.
+const ROOTING_BRANCH_WEIGHTS: Record<string, Record<Element, number>> = {
+  "寅": { wood: 1.20, fire: 0.90, earth: 0.80, metal: 0.60, water: 0.70 },  // Feb — Early Spring
+  "卯": { wood: 1.20, fire: 0.90, earth: 0.80, metal: 0.60, water: 0.70 },  // Mar — Mid Spring
+  "辰": { wood: 1.00, fire: 1.10, earth: 1.00, metal: 0.70, water: 0.70 },  // Apr — Late Spring
+  "巳": { wood: 0.80, fire: 1.20, earth: 0.90, metal: 0.70, water: 0.70 },  // May — Early Summer
+  "午": { wood: 0.70, fire: 1.20, earth: 0.90, metal: 0.70, water: 0.60 },  // Jun — Mid Summer
+  "未": { wood: 0.70, fire: 1.00, earth: 1.20, metal: 0.90, water: 0.70 },  // Jul — Late Summer
+  "申": { wood: 0.70, fire: 0.70, earth: 1.20, metal: 1.00, water: 0.90 },  // Aug — Early Autumn
+  "酉": { wood: 0.60, fire: 0.70, earth: 1.20, metal: 1.00, water: 0.90 },  // Sep — Mid Autumn
+  "戌": { wood: 0.70, fire: 0.70, earth: 1.20, metal: 1.00, water: 0.90 },  // Oct — Late Autumn
+  "亥": { wood: 0.80, fire: 0.60, earth: 0.80, metal: 0.80, water: 1.20 },  // Nov — Early Winter
+  "子": { wood: 0.80, fire: 0.60, earth: 0.80, metal: 0.80, water: 1.20 },  // Dec — Mid Winter
+  "丑": { wood: 0.90, fire: 0.70, earth: 1.20, metal: 0.80, water: 1.00 },  // Jan — Late Winter
+};
+
 // ============================================================================
 // CORE FUNCTIONS
 // ============================================================================
 
 /**
- * Get seasonal weights for a given month branch
- * Handles both regular seasons and Earth transition months
+ * Get rooting seasonal weights (underground Qi availability).
+ * Used for M1 rooting tier calculation only.
+ */
+export function getRootingSeasonalWeights(monthBranch: string): Record<Element, number> {
+  if (ROOTING_BRANCH_WEIGHTS[monthBranch]) {
+    return ROOTING_BRANCH_WEIGHTS[monthBranch];
+  }
+  console.warn(`Unknown month branch for rooting: ${monthBranch}`);
+  return { wood: 1.0, fire: 1.0, earth: 1.0, metal: 1.0, water: 1.0 };
+}
+
+/**
+ * Get surface seasonal weights (expressive Qi).
+ * Handles both regular seasons and Earth transition months.
  */
 export function getSeasonalWeights(monthBranch: string): Record<Element, number> {
   // Use exact per-branch lookup (covers all 12 months including Earth pivots)
@@ -423,11 +455,12 @@ export const ELEMENT_CHINESE: Record<Element, string> = {
 // EXPORTS
 // ============================================================================
 
-export { BRANCH_WEIGHTS };
+export { BRANCH_WEIGHTS, ROOTING_BRANCH_WEIGHTS };
 
 export default {
   applySeasonality,
   getSeasonalWeights,
+  getRootingSeasonalWeights,
   getSeasonInfo,
   calculateSeasonalImpact,
   getSeasonalGainersLosers,

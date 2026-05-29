@@ -19,7 +19,7 @@
  */
 
 import { STEMS, BRANCHES, HIDDEN_STEMS } from './baziEngine';
-import { getSeasonalWeights } from './baziSeasonality';
+import { getSeasonalWeights, getRootingSeasonalWeights } from './baziSeasonality';
 import {
   computeDaYunQi,
   DA_YUN_BUDGET,
@@ -323,16 +323,16 @@ const ROOTING_PILLAR_WEIGHT: Record<string, number> = {
   Day: 1.0, Month: 1.2, Year: 0.7, Hour: 0.7,
 };
 
-// Rooting tiers — calibrated for pillar weights (0.7–1.2) × seasonality (0.6–1.2)
-// Typical single-branch contribution: 0.42–1.44
-// No root: element not found in any branch
-// Light root: found in 1 weak branch
-// Solid root: found in 1–2 branches with decent support
-// Deep root: found in 2+ branches with strong support
+// Rooting tiers — calibrated for hiddenPct × pillarWeight × seasonFactor
+// Single-branch contribution range: 0.042 (10%×0.7×0.6) to 1.44 (100%×1.2×1.2)
+// No root: element absent or only trace roots
+// Light root: 1 weak branch
+// Solid root: 1 strong or 2+ weak branches
+// Deep root: strong presence across multiple branches
 const ROOTING_TIERS: { maxPts: number; label: string; mult: number }[] = [
-  { maxPts: 0.3,       label: 'No root',    mult: 0.7 },
-  { maxPts: 0.8,       label: 'Light root',  mult: 1.0 },
-  { maxPts: 1.6,       label: 'Solid root',  mult: 1.3 },
+  { maxPts: 0.1,       label: 'No root',    mult: 0.7 },
+  { maxPts: 0.4,       label: 'Light root',  mult: 1.0 },
+  { maxPts: 0.8,       label: 'Solid root',  mult: 1.3 },
   { maxPts: Infinity,  label: 'Deep root',   mult: 1.6 },
 ];
 
@@ -340,14 +340,14 @@ export interface RootingBreakdown {
   element: ElementName;
   points: number;
   multiplier: number;
+  tierLabel: string;
   perBranch: { pillar: string; branchChar: string; animal: string; stemChar: string; pct: number; weight: number; seasonFactor: number; contribution: number }[];
 }
 
 /**
- * Compute rooting for each element using DM Strength Stage 2 logic:
+ * Compute rooting for each element:
  * 1. Scan all 4 branches for each element in hidden stems
- * 2. Root contribution = pillar_root_weight × seasonal_factor (for that element)
- *    (only if element is present in branch's hidden stems)
+ * 2. Root contribution = (hiddenStemPct / 100) × pillarWeight × seasonFactor
  * 3. Sum root points across all branches
  * 4. Convert to tier: No root (×0.7), Light (×1.0), Solid (×1.3), Deep (×1.6)
  */
@@ -362,9 +362,10 @@ function computeElementRooting(
   };
   const steps: string[] = [];
 
-  steps.push('Rooting (Stage 2 style) — scan all 4 branches for each element:');
+  steps.push('Rooting — scan all 4 branches for each element:');
+  steps.push(`  Formula: rootPts = hiddenPct × pillarWeight × seasonFactor`);
   steps.push(`  Pillar weights: ${pillarLabels.map(l => `${l}=${ROOTING_PILLAR_WEIGHT[l]}`).join(', ')}`);
-  steps.push(`  Seasonal factor applied per element`);
+  steps.push(`  Season: ${ELEMENT_KEYS.map(k => `${k}=${seasonalWeights[k]}`).join(', ')}`);
 
   for (let i = 0; i < 4; i++) {
     const p = pillars[i];
@@ -376,8 +377,7 @@ function computeElementRooting(
     for (const hs of hidden) {
       const el = stemElement(hs.stem);
       const sFactor = seasonalWeights[el] ?? 1.0;
-      // Root contribution = pillar_weight × seasonal_factor (if element present)
-      const contribution = pillarWeight * sFactor;
+      const contribution = (hs.pct / 100) * pillarWeight * sFactor;
       rootPoints[el] += contribution;
       perElementPerBranch[el].push({
         pillar: pillarLabels[i], branchChar: p.branch.char, animal,
@@ -386,7 +386,7 @@ function computeElementRooting(
     }
   }
 
-  // Convert root points to tier-based multipliers (same as DM Strength Stage 2)
+  // Convert root points to tier-based multipliers
   const multipliers: QiDist = { Wood: 1.0, Fire: 1.0, Earth: 1.0, Metal: 1.0, Water: 1.0 };
   const breakdown: RootingBreakdown[] = [];
 
@@ -396,14 +396,13 @@ function computeElementRooting(
     multipliers[k] = tier.mult;
     const branches = perElementPerBranch[k];
 
-    breakdown.push({ element: k, points: pts, multiplier: tier.mult, perBranch: branches });
+    breakdown.push({ element: k, points: pts, multiplier: tier.mult, tierLabel: tier.label, perBranch: branches });
 
     if (branches.length > 0) {
       const branchDetail = branches.map(b => {
-        const sf = seasonalWeights[stemElement(b.stemChar)] ?? 1.0;
-        return `${b.pillar}/${b.branchChar}${b.animal}(w=${b.weight}×S=${sf.toFixed(2)}=${b.contribution.toFixed(2)})`;
+        return `${b.pillar}/${b.branchChar}${b.animal}(${b.pct}%×${b.weight}×${b.seasonFactor}=${b.contribution.toFixed(3)})`;
       }).join(' + ');
-      steps.push(`  ${k}: ${branchDetail} = ${pts.toFixed(2)} pts → ${tier.label} ×${tier.mult}`);
+      steps.push(`  ${k}: ${branchDetail} = ${pts.toFixed(3)} → ${tier.label} ×${tier.mult}`);
     } else {
       steps.push(`  ${k}: no root → ${tier.label} ×${tier.mult}`);
     }
@@ -413,8 +412,21 @@ function computeElementRooting(
 }
 
 /** Map lowercase seasonal weights to capitalized ElementName keys */
+/** Surface seasonality — expressive Qi (used in Layer 1 step C) */
 function seasonalWeightsFor(monthBranch: string): QiDist {
   const w = getSeasonalWeights(monthBranch);
+  return {
+    Wood:  (w as any).wood  ?? 1.0,
+    Fire:  (w as any).fire  ?? 1.0,
+    Earth: (w as any).earth ?? 1.0,
+    Metal: (w as any).metal ?? 1.0,
+    Water: (w as any).water ?? 1.0,
+  };
+}
+
+/** Rooting seasonality — underground Qi availability (used in M1 tier calculation) */
+function rootingSeasonalWeightsFor(monthBranch: string): QiDist {
+  const w = getRootingSeasonalWeights(monthBranch);
   return {
     Wood:  (w as any).wood  ?? 1.0,
     Fire:  (w as any).fire  ?? 1.0,
@@ -471,8 +483,10 @@ export function computeNatalQi(
     day: emptyBreakdown(), hour: emptyBreakdown(),
   };
 
-  // Compute element rooting multipliers from all 4 branches (Stage 2 style)
-  const rooting = computeElementRooting(pillars, sw);
+  // Compute element rooting multipliers from all 4 branches
+  // Uses rooting seasonality (underground Qi), NOT surface seasonality
+  const rootingSw = rootingSeasonalWeightsFor(birthMonthBranch);
+  const rooting = computeElementRooting(pillars, rootingSw);
   const rootMult = rooting.multipliers;
   const rootedElements = ELEMENT_KEYS.filter(k => rootMult[k] > 1.001);
 

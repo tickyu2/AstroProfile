@@ -43,6 +43,7 @@ const SanctuaryPage = lazy(() => import('./pages/SanctuaryPage'))
 const TranscriptTesterPage = lazy(() => import('./pages/TranscriptTesterPage'))
 const BrainArchitecturePage = lazy(() => import('./pages/BrainArchitecturePage'))
 const ZodiacCuspsPage = lazy(() => import('./pages/ZodiacCuspsPage'))
+const ZodiacAnatomyPage = lazy(() => import('./pages/ZodiacAnatomyPage'))
 const ChineseZodiacPage = lazy(() => import('./pages/ChineseZodiacPage'))
 const SoulFamilyPage = lazy(() => import('./pages/SoulFamilyPage'))
 const GuestChat = lazy(() => import('./pages/GuestChat'))
@@ -150,6 +151,7 @@ function App() {
               <Route path="/transcript-tester" element={<TranscriptTesterPage />} />
               <Route path="/brain-architecture" element={<BrainArchitecturePage />} />
               <Route path="/zodiac-cusps" element={<ZodiacCuspsPage />} />
+              <Route path="/zodiac-anatomy" element={<ZodiacAnatomyPage />} />
               <Route path="/zodiac-learning" element={<ZodiacLearningPage />} />
               <Route path="/zodiac-academy" element={<ZodiacAcademyPage />} />
               <Route path="/tropical-seasons" element={<TropicalSeasonsPage />} />

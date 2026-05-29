@@ -207,6 +207,13 @@ export default function Dashboard() {
               <span>Zodiac Academy</span>
             </Link>
             <Link
+              to="/zodiac-cusps"
+              className="px-3 py-1.5 text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium flex items-center gap-1 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:border-amber-500/50"
+            >
+              <span>🏛️</span>
+              <span>Zodiac Cusps</span>
+            </Link>
+            <Link
               to="/tropical-seasons"
               className="px-3 py-1.5 text-teal-400 hover:text-teal-300 transition-colors text-sm font-medium flex items-center gap-1 bg-teal-500/10 rounded-lg border border-teal-500/30 hover:border-teal-500/50"
             >
