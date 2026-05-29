@@ -1,0 +1,145 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Documentation/Qi Physics" />
+
+# Qi Physics — System Overview
+
+The Qi engine transforms raw Four Pillars (BaZi) data into a functional,
+month-by-month metaphysical model. This page documents the full pipeline.
+
+---
+
+## 1. TFQ (Natal Functional Qi)
+
+- Derived from stems, branches, hidden elements
+- Adjusted by birth season
+- Weighted by DM/DB/Month/Year/Hour
+- Produces the baseline Qi distribution
+
+Each pillar contributes:
+- **Stem**: 1 point to its element
+- **Branch**: 10 points distributed among hidden stems by percentage
+
+---
+
+## 2. Seasonal Qi
+
+Shows how natal Qi manifests **in the current month's season**.
+
+Birth season multipliers amplify or dampen each element:
+- Elements **in season** get higher multipliers
+- Elements **out of season** get lower multipliers
+
+---
+
+## 3. Year Qi + Month Qi
+
+Adds the environmental Qi of the year pillar (20 pts) and month pillar (10 pts).
+These are the "incoming" influences that shift the natal balance.
+
+---
+
+## 4. Combined Qi → Clash → Control Cycle
+
+Applies:
+- **Harms** — branch-branch destructive interactions
+- **Clashes** — opposing branch conflicts
+- **Punishments** — three-way branch penalties
+- **Control cycle pressure** — element dominance creates downstream pressure
+
+---
+
+## 5. TotalQi (Monthly Final Functional Qi)
+
+This is the **real** Qi used for remedies. It represents how the chart
+actually functions in a given month, after all environmental and
+interaction effects.
+
+---
+
+## 6. Collapse Mode Detection
+
+Structural collapse occurs when element distribution becomes extreme:
+
+- **Single-dominant** — one element exceeds 2x the next strongest
+- **Bi-polar** — two elements dominate equally, creating oscillation
+- **Drained** — one element has nearly vanished
+- **Inverted** — Day Master element is weakest in own chart
+
+---
+
+## 7. Yong Shen Selection
+
+Chooses the **functional stabilizer** for each month:
+
+- Normal charts: strengthen weak elements, exhaust excess
+- Collapse charts: **Follow the Strong** — support the dominant element,
+  exhaust through its child (Sheng cycle)
+- Never use the controlling element in collapse structures
+
+---
+
+## 8. Bracelet Qi Units
+
+Each bead contributes Qi based on:
+
+```
+QiUnit = sizeFactor × effectiveness × roleFactor
+```
+
+- Size factors: 6mm = 0.8, 8mm = 1.0, 10mm = 1.3
+- Effectiveness: stone-specific resonance with its element
+- Role factor: Yong Shen stones get 1.5x, forbidden stones get 0x
+
+---
+
+## 9. BRQ_A + BRQ_B (Bracelet Qi Physics)
+
+Two-channel correction system:
+
+- **BRQ_A** (reactive): 35% of the gap between TFQ and TotalQi — corrects monthly drift
+- **BRQ_B** (proactive): 10% of natal TFQ — reinforces structural identity
+
+Hard cap: ±15% of TFQ per element prevents over-correction.
+
+Month-type tuning:
+- Drained months: +25% leverage (more room to correct)
+- Overcrowded months: -25% leverage (less room to correct)
+- Normal months: 1.0x baseline
+
+---
+
+## 10. Radar Shift
+
+Visualizes how the bracelet nudges each month toward stability:
+- Faint bar = natal TFQ baseline
+- Medium bar = current month TotalQi
+- Bright bar = after bracelet correction
+- Delta values show exact shift per element
+
+---
+
+## Component Index
+
+| Component | Purpose |
+|-----------|---------|
+| `<CollapseModeVisualizer />` | Structure analysis with collapse detection |
+| `<ElementStabilityHeatmap />` | 12-month drift from natal per element |
+| `<ElementPressureChart />` | Dominant element trend over the year |
+| `<WhyThisRemedyPanel />` | Element role badges + explanation |
+| `<RadarShiftPanel />` | Bracelet Qi influence visualization |
+| `<ElementBadge />` | Reusable element badge |
+| `<EducationModeWrapper />` | Hover-tooltip education overlay |
+| `<QiPipelineFlow />` | Interactive React Flow pipeline diagram |
+
+---
+
+## Quality Score Dimensions
+
+| Dimension | Max | What it measures |
+|-----------|-----|-----------------|
+| Yong Shen | 30 | Does the bracelet contain prescribed elements? |
+| Polarity | 20 | Yang/Yin alternation rhythm |
+| Sheng Flow | 20 | Generative cycle element ordering |
+| Forbidden | 15 | Absence of forbidden elements |
+| Diversity | 15 | Variety of unique stone types |
