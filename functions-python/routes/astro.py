@@ -259,6 +259,98 @@ def seasonal_ingresses(req: https_fn.Request) -> https_fn.Response:
 
 @https_fn.on_request(
     cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
+    memory=options.MemoryOption.MB_512,
+    timeout_sec=120
+)
+def all_planet_ingresses(req: https_fn.Request) -> https_fn.Response:
+    """
+    Return sign-ingress events (including retrograde re-crossings) for multiple
+    planets in a given calendar year. Used by the Natal Wheel LAB reverse-engine
+    to narrow birth-date candidates from planet-in-sign constraints.
+
+    POST body: { "year": 1978, "planets": ["Sun","Mercury",...] }   (planets optional)
+    GET:        ?year=1978&planets=Sun,Mercury
+
+    Default planets (if omitted): Sun, Mercury, Venus, Mars, Jupiter, Saturn,
+    Uranus, Neptune, Pluto. Moon is opt-in (expensive) — pass explicitly.
+    """
+    try:
+        user, err = verify_auth(req)
+        if err:
+            return err
+
+        if req.method == "GET":
+            year = int(req.args.get("year", datetime.utcnow().year))
+            planets_raw = req.args.get("planets")
+            planets = [p.strip() for p in planets_raw.split(",")] if planets_raw else None
+        else:
+            data = req.get_json() or {}
+            year = int(data.get("year", datetime.utcnow().year))
+            planets = data.get("planets") or None
+
+        if year < 1800 or year > 2200:
+            return https_fn.Response(
+                json.dumps({"error": "Year must be between 1800 and 2200"}),
+                status=400,
+                headers={"Content-Type": "application/json"}
+            )
+
+        from luna_fusion.core.swiss_ephemeris import (
+            calculate_all_planet_ingresses,
+            SWISSEPH_PLANETS,
+        )
+
+        if planets is not None:
+            unknown = [p for p in planets if p not in SWISSEPH_PLANETS]
+            if unknown:
+                return https_fn.Response(
+                    json.dumps({"error": f"Unknown planet(s): {unknown}"}),
+                    status=400,
+                    headers={"Content-Type": "application/json"}
+                )
+
+        result = calculate_all_planet_ingresses(year, planets=planets)
+
+        def _serialize_event(ev):
+            return {
+                "planet": ev["planet"],
+                "from_sign": ev["from_sign"],
+                "to_sign": ev["to_sign"],
+                "longitude_at_cross": ev["longitude_at_cross"],
+                "speed_at_cross": ev["speed_at_cross"],
+                "datetime_utc": ev["datetime_utc"].strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "year": ev["year"],
+                "month": ev["month"],
+                "day": ev["day"],
+                "hour": ev["hour"],
+                "minute": ev["minute"],
+                "retrograde": ev["retrograde"],
+            }
+
+        serialized_merged = [_serialize_event(e) for e in result["ingresses"]]
+        serialized_by_planet = {
+            p: [_serialize_event(e) for e in evs]
+            for p, evs in result["by_planet"].items()
+        }
+
+        return https_fn.Response(
+            json.dumps({
+                "year": result["year"],
+                "planets": result["planets"],
+                "startingSigns": result["starting_signs"],
+                "ingresses": serialized_merged,
+                "byPlanet": serialized_by_planet,
+            }),
+            status=200,
+            headers={"Content-Type": "application/json"}
+        )
+
+    except Exception as e:
+        return error_response(e)
+
+
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins=ALLOWED_ORIGINS, cors_methods=["GET", "POST"]),
     memory=options.MemoryOption.MB_256
 )
 def calculate_elemental_balance(req: https_fn.Request) -> https_fn.Response:

@@ -130,6 +130,40 @@ export async function getSeasonalIngresses(year) {
 }
 
 /**
+ * Get sign-ingress events for multiple planets in a given calendar year.
+ * Used by the Natal Wheel LAB reverse-engineering engine to narrow birth-date
+ * candidates from planet-in-sign constraints.
+ *
+ * Moon is opt-in (expensive ~730 samples/year). Default = Sun + Mercury→Pluto.
+ *
+ * @param {number} year - Calendar year (1800–2200)
+ * @param {string[]} [planets] - Subset of ['Sun','Moon','Mercury','Venus','Mars',
+ *                                          'Jupiter','Saturn','Uranus','Neptune','Pluto']
+ * @returns {Promise<Object>} { year, planets, startingSigns, ingresses, byPlanet }
+ */
+export async function getAllPlanetIngresses(year, planets = null) {
+  try {
+    const headers = await getAuthHeaders();
+    const body = planets ? { year, planets } : { year };
+    const response = await fetch(getCloudRunUrl('all_planet_ingresses'), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('All-planet ingresses fetch failed:', error);
+    throw error;
+  }
+}
+
+/**
  * Calculate elemental balance from planetary positions
  * @param {Object} planets - Planetary positions object
  * @returns {Promise<Object>} Elemental balance percentages
@@ -651,6 +685,7 @@ export default {
   calculateNatalChart,
   getPlanetaryPositions,
   calculateElementalBalance,
+  getAllPlanetIngresses,
   runBirthTimeTuningLab,
   batchChartPositions,
   computeUnifiedProfile,

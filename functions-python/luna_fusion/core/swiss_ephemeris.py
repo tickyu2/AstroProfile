@@ -534,6 +534,155 @@ def calculate_seasonal_ingresses(year: int) -> List[Dict]:
     return results
 
 
+# =============================================================================
+# ALL-PLANET SIGN INGRESSES (Reverse Engineering Engine)
+# =============================================================================
+
+SIGNS_LIST = [
+    'Aries', 'Taurus', 'Gemini', 'Cancer',
+    'Leo', 'Virgo', 'Libra', 'Scorpio',
+    'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+]
+
+# Conservative sampling step per planet (days). Each step must be small enough
+# that the planet cannot traverse a whole 30° sign — safe for retrograde too.
+_INGRESS_STEP_DAYS = {
+    'Sun': 2.0,
+    'Moon': 0.5,
+    'Mercury': 1.0,
+    'Venus': 1.0,
+    'Mars': 2.0,
+    'Jupiter': 5.0,
+    'Saturn': 10.0,
+    'Uranus': 20.0,
+    'Neptune': 30.0,
+    'Pluto': 30.0,
+}
+
+_DEFAULT_INGRESS_PLANETS = [
+    'Sun', 'Mercury', 'Venus', 'Mars',
+    'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'
+]
+
+
+def _sign_index(longitude: float) -> int:
+    return int((longitude % 360) / 30)
+
+
+def _refine_sign_crossing(planet: str, jd_lo: float, jd_hi: float,
+                          tolerance_seconds: float = 30.0) -> float:
+    """
+    Bisect to find the exact JD at which the planet leaves the sign it was in at jd_lo.
+    Robust to retrograde motion (unlike Newton-Raphson with speed).
+    """
+    sign_lo = _sign_index(get_planet_position(planet, jd_lo)['longitude'])
+    tol_jd = tolerance_seconds / 86400.0
+    while (jd_hi - jd_lo) > tol_jd:
+        jd_mid = (jd_lo + jd_hi) / 2.0
+        sign_mid = _sign_index(get_planet_position(planet, jd_mid)['longitude'])
+        if sign_mid == sign_lo:
+            jd_lo = jd_mid
+        else:
+            jd_hi = jd_mid
+    return jd_hi
+
+
+def calculate_planet_ingresses_for_year(planet: str, year: int) -> List[Dict]:
+    """
+    Find every sign ingress (including retrograde re-crossings) for a single planet
+    within a given calendar year (UTC). Returns events in chronological order.
+    """
+    if planet not in SWISSEPH_PLANETS:
+        raise ValueError(f"Unknown planet: {planet}")
+    if planet not in _INGRESS_STEP_DAYS:
+        raise ValueError(f"No sampling step configured for planet: {planet}")
+
+    step_days = _INGRESS_STEP_DAYS[planet]
+    jd_start = datetime_to_jd(datetime(year, 1, 1, 0, 0, 0))
+    jd_end = datetime_to_jd(datetime(year + 1, 1, 1, 0, 0, 0))
+
+    crossings: List[Dict] = []
+    jd_prev = jd_start
+    prev_lon = get_planet_position(planet, jd_prev)['longitude']
+    prev_sign = _sign_index(prev_lon)
+
+    while jd_prev < jd_end:
+        jd_next = min(jd_prev + step_days, jd_end)
+        next_lon = get_planet_position(planet, jd_next)['longitude']
+        next_sign = _sign_index(next_lon)
+
+        if next_sign != prev_sign:
+            exact_jd = _refine_sign_crossing(planet, jd_prev, jd_next)
+            pos_at_cross = get_planet_position(planet, exact_jd)
+            from_sign_idx = prev_sign
+            to_sign_idx = _sign_index(pos_at_cross['longitude'])
+            ingress_dt = jd_to_datetime(exact_jd)
+            # Retrograde if direction goes from higher sign index to lower (mod 12)
+            delta = (to_sign_idx - from_sign_idx) % 12
+            is_retrograde = delta == 11  # e.g. Cancer(3) -> Gemini(2)
+            crossings.append({
+                'planet': planet,
+                'from_sign': SIGNS_LIST[from_sign_idx],
+                'to_sign': SIGNS_LIST[to_sign_idx],
+                'longitude_at_cross': pos_at_cross['longitude'],
+                'speed_at_cross': pos_at_cross['speed'],
+                'datetime_utc': ingress_dt,
+                'julian_day': exact_jd,
+                'year': ingress_dt.year,
+                'month': ingress_dt.month,
+                'day': ingress_dt.day,
+                'hour': ingress_dt.hour,
+                'minute': ingress_dt.minute,
+                'retrograde': is_retrograde,
+            })
+            prev_sign = next_sign
+
+        jd_prev = jd_next
+        prev_lon = next_lon
+
+    return crossings
+
+
+def calculate_all_planet_ingresses(year: int,
+                                   planets: List[str] = None) -> Dict[str, object]:
+    """
+    Compute sign ingresses for multiple planets across a calendar year.
+
+    Returns:
+        {
+          'year': int,
+          'starting_signs': { planet: sign_at_jan_1_utc },
+          'ingresses': [ ...chronologically merged events across requested planets... ],
+          'by_planet': { planet: [events...] }
+        }
+    """
+    if planets is None:
+        planets = list(_DEFAULT_INGRESS_PLANETS)
+
+    jd_jan1 = datetime_to_jd(datetime(year, 1, 1, 0, 0, 0))
+    starting_signs: Dict[str, str] = {}
+    by_planet: Dict[str, List[Dict]] = {}
+    merged: List[Dict] = []
+
+    for planet in planets:
+        starting_signs[planet] = SIGNS_LIST[
+            _sign_index(get_planet_position(planet, jd_jan1)['longitude'])
+        ]
+        events = calculate_planet_ingresses_for_year(planet, year)
+        by_planet[planet] = events
+        merged.extend(events)
+
+    merged.sort(key=lambda e: e['julian_day'])
+
+    return {
+        'year': year,
+        'planets': planets,
+        'starting_signs': starting_signs,
+        'ingresses': merged,
+        'by_planet': by_planet,
+    }
+
+
 def get_equinoxes_solstices(year: int) -> Dict[str, Dict]:
     """
     Get just the 4 major astronomical events for a year.
