@@ -18,6 +18,11 @@ import { designBracelet, designBraceletFromBRQe, scoreBracelet, scoreAllStones, 
 import { getSeasonalWeights, getSeasonInfo } from '../utils/baziSeasonality';
 import { getTenGod } from '../utils/tenGodsCalculations';
 import { TEN_GOD_LIBRARY } from '../utils/baziRules/libraries/tenGodLibrary';
+import { computeTenGodProfile, getAxisDistribution } from '../utils/tenGodsEngine';
+import { computeMBTI, generatePersonalityReport, generateLifeBlueprint, generatePersonalityArchetype } from '../utils/personalityEngine';
+import { computeHealthRisk, HEALTH_SYSTEM_INFO } from '../utils/healthEngine';
+import { computeCompatibility, generateSynastryNarrative, generateArchetypeCompatibility } from '../utils/compatibilityEngine';
+import { generateLuckPillarTimeline, computeAnnualInfluence, generateRelationshipTiming, generateFateWindows, generateRelationshipTimingNarrative, generateDestinyCurve, generateArchetypeEvolution, FATE_WINDOW_CONFIG } from '../utils/timingEngine';
 import { computeDayMasterStrength } from '../utils/dayMasterStrength';
 import {
   BaziThemeProvider,
@@ -47,6 +52,9 @@ import { applyClashes, applyDirectionalClashes, computeThreePassClashes, applySh
 import { processNatalPipeline } from '../utils/natalPipeline';
 import { detectInteractions, getYearPillar, getMonthPillars } from '../utils/braceletEngine';
 import { computeIFQ, computeDmStrengthAdjustment } from '../utils/mifqEngine';
+import { useProfileWestern } from '../hooks/useProfileWestern';
+import QPillarPreviewPanel from '../components/qi/QPillarPreviewPanel';
+import CPillarPreviewPanel from '../components/qi/CPillarPreviewPanel';
 
 // ============================================================================
 // CONSTANTS
@@ -1425,155 +1433,278 @@ braceletPolarityScore() — 0–20
 > This is the heart of BaZi.
 `;
 
-const ROOTING_MD = `# Element Rooting — The Two Multipliers
+const ROOTING_MD = `# Element Rooting — How Underground Qi Becomes Real Strength
 
 ## What is Rooting?
 
-In BaZi, **rooting** is the foundation of real Qi. An element that appears in a stem is "visible" but may be floating — without roots in any branch, it lacks staying power. A tree without roots falls in the first wind.
+In BaZi, a **stem** is visible energy — what the world sees. A **branch** is underground energy — the hidden reservoir that sustains it. **Rooting** asks: *does this element have underground support?*
 
-Rooting produces **two separate multipliers** that work together:
+A stem without roots is like a tree planted in sand. It looks alive, but the first wind knocks it over. A well-rooted element has staying power — it can withstand clashes, seasonal weakness, and polarity friction because its foundation runs deep.
 
-1. **Rooting Influence Weight** — how much each PILLAR contributes to rooting (per-pillar)
-2. **Rooting Tier Multiplier** — the final strength multiplier applied to each ELEMENT (chart-wide)
+Rooting produces two multipliers:
 
-These are two different layers, and both are essential.
+- **M1 — Rooting Tier** (chart-wide, per element): How deeply rooted is this element across the entire chart?
+- **M2 — Pillar Root Weight** (per pillar): How much does each pillar's position contribute to rooting?
+
+M1 is determined first, then both M1 and M2 are applied to raw Qi.
 
 ---
 
-## Multiplier 1: Rooting Influence Weight (Per Pillar)
+## M1: Rooting Tier — The Chart-Wide Multiplier
 
-**Purpose**: Determines how much each branch contributes when scanning for element roots.
+### What M1 answers
 
-Not all pillars contribute equally to rooting. The Month branch (your birth season) is the strongest root source, while the Year branch (ancestral energy) is the weakest.
+*"How deeply is this element anchored in the branches of this chart?"*
 
-### Table 1 — Pillar Rooting Influence Weights
+M1 is a single multiplier per element. If Wood is Solid root (×1.3), that ×1.3 applies to Wood in **every** pillar — Year, Month, Day, and Hour.
 
-| Pillar | Weight | Role | Why this weight |
-|---|---|---|---|
-| **Month** | **1.2** | Seasonal environment | The strongest root — the season you were born in shapes all elemental Qi |
-| **Day** | **1.0** | Personal foundation | Your own ground — the branch you stand on every day |
-| **Year** | **0.7** | Ancestral background | Distant but present — inherited elemental support |
-| **Hour** | **0.7** | Inner layer | Subtle, personal — your internal elemental landscape |
+### How M1 is calculated
 
-**These are NOT the same as TFQ pillar weights** (Year 10%, Month 30%, Day Master 35%, Day Branch 15%, Hour 10%). Rooting influence and Qi weighting are two separate systems:
+We scan all 4 branches for each element. Every time that element appears as a hidden stem in a branch, it contributes root points:
 
-| System | Purpose | Weights |
+\`\`\`
+Root points = (hiddenStemPct / 100) × pillarWeight × seasonFactor
+\`\`\`
+
+**Three factors determine each contribution:**
+
+#### 1. Hidden Stem Percentage (hiddenStemPct)
+
+Each branch contains 1–3 hidden stems with specific percentages. These percentages reflect how dominant that element is within the branch.
+
+For example, 未 Goat contains:
+- 己 Yin Earth — 60% (dominant ruler)
+- 丁 Yin Fire — 30% (secondary)
+- 乙 Yin Wood — 10% (residual)
+
+An element at 60% has a far stronger root than one at 10%. A 60% root is a deep tap root; a 10% root is a surface tendril.
+
+#### 2. Pillar Weight (pillarWeight)
+
+Not all branches contribute equally. The Month branch — your birth season — is the most powerful root source because it defines the seasonal environment your entire chart exists within.
+
+| Pillar | Weight | Why |
 |---|---|---|
-| **Rooting Influence** | How much each branch contributes to root scanning | Month 1.2, Day 1.0, Year 0.7, Hour 0.7 |
-| **TFQ Pillar Weighting** | How much each pillar's final Qi counts in TFQ | Year 10%, Month 30%, DM 35%, DB 15%, Hour 10% |
+| **Month** | **1.2** | The seasonal environment. Your birth season shapes *all* elemental Qi — it is the soil everything grows in. |
+| **Day** | **1.0** | Your personal foundation. The branch you stand on every day — your own ground. |
+| **Year** | **0.7** | Ancestral background. Distant but present — inherited elemental support that fades with time. |
+| **Hour** | **0.7** | Inner landscape. Subtle, personal — your internal elemental undercurrent. |
 
-### How Multiplier 1 is Used
+**Why is Month 1.2 and not 1.0?** Because the Month branch is not just *a* branch — it defines the season itself. An element rooted in the Month branch is rooted in the environmental Qi of the entire chart. It's like the difference between having a plant in a pot (Day branch) versus having it planted in the native soil of the region (Month branch). The regional soil sustains everything.
 
-When scanning for roots, each branch's contribution is:
+**Important**: These are NOT the same as TFQ pillar weights (Year 10%, Month 30%, DM 35%, DB 15%, Hour 10%). Those weights determine how much each pillar's *final* Qi counts in TFQ. These rooting weights determine how much each branch contributes during *root scanning*. Two separate systems.
 
-\`\`\`
-Contribution = Pillar Rooting Weight × Seasonal Factor (for that element)
-\`\`\`
+#### 3. Seasonal Factor (seasonFactor)
 
-The **seasonal factor** means elements that are in-season root more strongly.
-An element present in the Month branch (weight 1.2) during its peak season (factor 1.20) contributes 1.2 × 1.20 = **1.44** root points — very strong.
-The same element in the Year branch (weight 0.7) out of season (factor 0.60) contributes 0.7 × 0.60 = **0.42** — much weaker.
+This is where rooting connects to real BaZi physics.
 
----
+**Why must seasonality be included in rooting?** Because the season controls how much elemental Qi is actually *available* underground. Roots don't exist in a vacuum — they draw from the seasonal environment.
 
-## Multiplier 2: Rooting Tier (Per Element, Chart-Wide)
+Consider:
+- **Wood in Spring (寅 Tiger)**: seasonFactor = 1.20. The ground is bursting with Wood Qi. Roots find abundant nourishment.
+- **Wood in Autumn (申 Monkey)**: seasonFactor = 0.60. Metal season — the ground is hostile to Wood. Even if Wood appears in a branch, its roots are starved.
+- **Fire in Winter (子 Rat)**: seasonFactor = 0.60. Water dominates — Fire's underground reservoir is nearly frozen.
 
-**Purpose**: The final multiplier applied to each element's raw Qi across ALL pillars.
+**Without seasonality, rooting becomes meaningless**:
+- Fire would appear equally rooted in winter and summer
+- Water would appear equally rooted in summer and winter
+- Wood would appear equally rooted in spring and autumn
 
-After scanning all 4 branches, each element's total root points are converted to a **tier**:
+This contradicts fundamental BaZi: season is the single most powerful force in the chart. It must influence rooting.
 
-### Table 2 — Rooting Tier Multipliers
+### Two Seasonal Matrices — Underground vs Surface
 
-| Total Root Points | Tier | Multiplier | Meaning |
+Seasonality appears **twice** in the Qi pipeline, using **two different matrices**:
+
+| Matrix | Name | Qi Type | Used In | What it measures |
+|---|---|---|---|---|
+| **A** | Rooting Seasonality | Underground Qi | M1 root score calculation | How much Qi is available *beneath the surface* for roots to draw from |
+| **B** | Surface Seasonality | Expressive Qi | Layer 1 step C (after rooting) | How much Qi is *expressed and visible* in the environment |
+
+**Why two matrices?** Because underground and surface Qi behave differently:
+
+- **Underground Qi** is more stable. The earth retains heat and moisture longer — transitions are gentler. Metal's underground presence in Autumn (1.00) is more muted than its surface dominance (1.20). The soil doesn't swing as sharply as the atmosphere.
+- **Surface Qi** is more volatile. The atmosphere responds quickly to seasonal change — the ruling element dominates sharply, and out-of-season elements are suppressed more aggressively.
+
+Think of it as soil temperature vs air temperature. In early autumn, the air has already turned crisp (Metal dominates the surface) but the soil still holds summer warmth (Fire fades more slowly underground).
+
+### Matrix A — Rooting Seasonality (Underground Qi)
+
+Used in: \`rootPts = (hiddenPct / 100) × pillarWeight × rootingSeasonFactor\`
+
+| Month | Branch | Season | Wood | Fire | Earth | Metal | Water |
+|---|---|---|---|---|---|---|---|
+| Feb | 寅 Tiger | Early Spring | **1.20** | 0.90 | 0.80 | 0.60 | 0.70 |
+| Mar | 卯 Rabbit | Mid Spring | **1.20** | 0.90 | 0.80 | 0.60 | 0.70 |
+| Apr | 辰 Dragon | Late Spring | 1.00 | 1.10 | **1.00** | 0.70 | 0.70 |
+| May | 巳 Snake | Early Summer | 0.80 | **1.20** | 0.90 | 0.70 | 0.70 |
+| Jun | 午 Horse | Mid Summer | 0.70 | **1.20** | 0.90 | 0.70 | 0.60 |
+| Jul | 未 Goat | Late Summer | 0.70 | 1.00 | **1.20** | 0.90 | 0.70 |
+| Aug | 申 Monkey | Early Autumn | 0.70 | 0.70 | **1.20** | 1.00 | 0.90 |
+| Sep | 酉 Rooster | Mid Autumn | 0.60 | 0.70 | **1.20** | 1.00 | 0.90 |
+| Oct | 戌 Dog | Late Autumn | 0.70 | 0.70 | **1.20** | 1.00 | 0.90 |
+| Nov | 亥 Pig | Early Winter | 0.80 | 0.60 | 0.80 | 0.80 | **1.20** |
+| Dec | 子 Rat | Mid Winter | 0.80 | 0.60 | 0.80 | 0.80 | **1.20** |
+| Jan | 丑 Ox | Late Winter | 0.90 | 0.70 | **1.20** | 0.80 | 1.00 |
+
+**Key differences from surface matrix**: Metal in Autumn is 1.00 (not 1.20) — underground Metal is present but not dominant. Fire in Summer mid-peak (午) attenuates Wood to 0.70 underground. Earth remains strong (1.20) in all transition months.
+
+### Matrix B — Surface Seasonality (Expressive Qi)
+
+Used in: \`SeasonAdjusted = RootedPts × surfaceSeasonFactor\`
+
+| Month | Branch | Season | Wood | Fire | Earth | Metal | Water |
+|---|---|---|---|---|---|---|---|
+| Feb | 寅 Tiger | Early Spring | **1.20** | 0.90 | 0.80 | 0.60 | 0.70 |
+| Mar | 卯 Rabbit | Mid Spring | **1.20** | 0.90 | 0.80 | 0.60 | 0.70 |
+| Apr | 辰 Dragon | Late Spring | 1.00 | 1.10 | **1.00** | 0.70 | 0.70 |
+| May | 巳 Snake | Early Summer | 0.80 | **1.20** | 0.90 | 0.70 | 0.60 |
+| Jun | 午 Horse | Mid Summer | 0.80 | **1.20** | 0.90 | 0.70 | 0.60 |
+| Jul | 未 Goat | Late Summer | 0.70 | 1.00 | **1.20** | 0.90 | 0.70 |
+| Aug | 申 Monkey | Early Autumn | 0.60 | 0.70 | 0.90 | **1.20** | 0.80 |
+| Sep | 酉 Rooster | Mid Autumn | 0.60 | 0.70 | 0.90 | **1.20** | 0.80 |
+| Oct | 戌 Dog | Late Autumn | 0.70 | 0.70 | **1.20** | 1.00 | 0.90 |
+| Nov | 亥 Pig | Early Winter | 0.80 | 0.60 | 0.80 | 0.80 | **1.20** |
+| Dec | 子 Rat | Mid Winter | 0.80 | 0.60 | 0.80 | 0.80 | **1.20** |
+| Jan | 丑 Ox | Late Winter | 0.90 | 0.70 | **1.20** | 0.80 | 1.00 |
+
+### Spot the differences (申 Monkey month example)
+
+| Element | Matrix A (Rooting) | Matrix B (Surface) | Why different |
 |---|---|---|---|
-| < 0.3 | **No root** | **×0.7** | Element is floating — **penalized by 30%**. No branch supports it. |
-| 0.3 – 0.8 | **Light root** | **×1.0** | Some support — baseline strength. Found in 1 weak branch. |
-| 0.8 – 1.6 | **Solid root** | **×1.3** | Well-rooted — **30% boost**. Found in 1–2 branches with decent support. |
-| ≥ 1.6 | **Deep root** | **×1.6** | Deeply anchored — **60% boost**. Found in 2+ strong branches. |
+| Wood | 0.70 | 0.60 | Surface Wood is more suppressed — Metal attacks it openly |
+| Metal | 1.00 | 1.20 | Surface Metal is king in Autumn; underground it's present but subtler |
+| Earth | 1.20 | 0.90 | Underground Earth thrives in transition; surface Earth is overshadowed by Metal |
 
-**Critical insight**: An element with NO root gets a **penalty** (×0.7), not just ×1.0. This is the key difference from a simple presence check — a floating element IS weaker than a rooted one.
+These differences are small but shift rooting tiers at the boundary. An element at the edge of a tier threshold can land differently depending on which matrix is used.
 
-### How Multiplier 2 is Applied
+### Root point example
 
-This multiplier is **chart-wide** — it applies to the same element in ALL 4 pillars:
+Earth in Year branch 未 Goat, born in 申 Monkey month (Autumn):
 
 \`\`\`
-Rooted Qi (pillar, element) = Raw Qi (pillar, element) × Tier Multiplier (element)
+hiddenStemPct = 60%    (己 Earth is dominant in 未)
+pillarWeight  = 0.7    (Year branch)
+seasonFactor  = 1.2    (Earth in Autumn — Matrix A, underground)
+
+Root pts = (60/100) × 0.7 × 1.2 = 0.504
 \`\`\`
 
-If Earth has Solid root (×1.3), then:
-- Earth in Year Pillar × 1.3
-- Earth in Month Pillar × 1.3
-- Earth in Day Pillar × 1.3
-- Earth in Hour Pillar × 1.3
+Note: if we used surface seasonality (Matrix B: 0.9) instead, the result would be 0.378 — potentially a different tier.
 
-The rooting tier reflects the **chart-wide stability** of that element, not per-pillar availability.
+### Converting root points to tier
+
+After summing contributions from all 4 branches, the total root score determines the tier:
+
+| Root Score | Tier | M1 Multiplier | What it means |
+|---|---|---|---|
+| < 0.1 | **No root** | **×0.7** | Element is floating — **30% penalty**. No branch supports it. |
+| 0.1 – 0.4 | **Light root** | **×1.0** | Minimal support — baseline. One weak branch or a trace presence. |
+| 0.4 – 0.8 | **Solid root** | **×1.3** | Well-anchored — **30% boost**. Found in 1–2 branches with decent support. |
+| ≥ 0.8 | **Deep root** | **×1.6** | Deeply embedded — **60% boost**. Strong presence across multiple branches. |
+
+**Key insight**: No root is a *penalty* (×0.7), not neutral. A floating element is actively weaker — it has no underground reservoir to draw from.
 
 ---
 
-## How the Two Multipliers Work Together
+## M2: Pillar Root Weight — The Per-Pillar Multiplier
+
+### What M2 answers
+
+*"How important is this pillar's position when applying rooting to Qi?"*
+
+M2 uses the **same pillar weights** as the rooting scan (Month=1.2, Day=1.0, Year=0.7, Hour=0.7), but applied in a different context. During rooting scan, these weights determine contribution *to* root points. As M2, they determine how much the rooting effect *amplifies* Qi in each pillar.
+
+### Why M2 exists
+
+M1 alone would apply the same boost everywhere. But a well-rooted element in the Month pillar (the seasonal environment) should benefit *more* from rooting than the same element in the Year pillar (distant ancestry). M2 captures this:
+
+- Month pillar gets the full rooting benefit (×1.2) because it *is* the root environment
+- Day pillar gets standard benefit (×1.0) because it's your personal ground
+- Year and Hour get reduced benefit (×0.7) because they're more distant from the root source
+
+### How M1 and M2 combine
+
+For each element in each pillar:
 
 \`\`\`
-Step 1: Scan all 4 branches using Multiplier 1 (pillar influence weights)
-        → Produces root points per element
-
-Step 2: Convert root points to Multiplier 2 (tier multiplier)
-        → ×0.7 / ×1.0 / ×1.3 / ×1.6 per element
-
-Step 3: Apply Multiplier 2 to raw Qi in all pillars
-        → Rooted Qi feeds into Seasonality → Polarity → Qi Weighting → TFQ
+Rooted Qi = Raw Qi × M1 (tier) × M2 (pillar weight)
 \`\`\`
 
-**Multiplier 1 feeds into Multiplier 2**. They are not independent — they are sequential.
+| | Year (M2=0.7) | Month (M2=1.2) | Day (M2=1.0) | Hour (M2=0.7) |
+|---|---|---|---|---|
+| **No root** (M1=0.7) | 0.49 | 0.84 | 0.70 | 0.49 |
+| **Light root** (M1=1.0) | 0.70 | 1.20 | 1.00 | 0.70 |
+| **Solid root** (M1=1.3) | 0.91 | 1.56 | 1.30 | 0.91 |
+| **Deep root** (M1=1.6) | 1.12 | 1.92 | 1.60 | 1.12 |
+
+Notice: a Solid-rooted element in the Month pillar (1.56) gets a bigger boost than a Deep-rooted element in the Year pillar (1.12). The pillar position matters.
 
 ---
 
-## Example: Eileen Gu — Earth Rooting
+## Worked Example: Eileen Gu — Earth Rooting
 
-Birth month: 申 Monkey (Autumn). Earth seasonal factor = 0.90.
+Birth month: 申 Monkey (Early Autumn). Earth seasonal factor = 0.9.
 
-### Step 1: Scan branches (using Multiplier 1)
+### Step 1: Scan all branches for Earth
 
-| Pillar | Branch | Earth Hidden Stem? | Pillar Weight | × Season | = Contribution |
-|---|---|---|---|---|---|
-| Year | 未 Goat | 己 Earth 60% — **Yes** | 0.7 | × 0.90 | **0.63** |
-| Month | 申 Monkey | 戊 Earth 10% — **Yes** | 1.2 | × 0.90 | **1.08** |
-| Day | 卯 Rabbit | 乙 Wood 100% — **No** | 1.0 | — | **0** |
-| Hour | 巳 Snake | 戊 Earth 10% — **Yes** | 0.7 | × 0.90 | **0.63** |
+| Pillar | Branch | Hidden Stem | Hidden% | × Weight | × Season | = Root pts |
+|---|---|---|---|---|---|---|
+| Year | 未 Goat | 己 Earth | 60% | × 0.7 | × 0.9 | **0.378** |
+| Month | 申 Monkey | 戊 Earth | 10% | × 1.2 | × 0.9 | **0.108** |
+| Day | 卯 Rabbit | — | 0% | × 1.0 | × 0.9 | **0.000** |
+| Hour | 巳 Snake | 戊 Earth | 10% | × 0.7 | × 0.9 | **0.063** |
+| | | | | | **Total** | **0.549** |
 
-**Earth root points = 0.63 + 1.08 + 0 + 0.63 = 2.34**
+### Step 2: Determine tier (M1)
 
-### Step 2: Convert to tier (Multiplier 2)
+0.549 falls in 0.4–0.8 → **Solid root** → **M1 = ×1.3**
 
-2.34 points → **Solid root** (1.5–2.5) → **×1.3**
+### Step 3: Apply M1 × M2 to each pillar
 
-### Step 3: Apply to all pillars
+| Pillar | M1 | M2 | Combined | Effect |
+|---|---|---|---|---|
+| Year | 1.3 | 0.7 | **0.91** | 9% reduction — distant pillar, moderate root |
+| Month | 1.3 | 1.2 | **1.56** | 56% boost — seasonal pillar amplifies root |
+| Day | 1.3 | 1.0 | **1.30** | 30% boost — standard personal ground |
+| Hour | 1.3 | 0.7 | **0.91** | 9% reduction — inner pillar, moderate root |
 
-- Earth in Year Pillar: raw × 1.3
-- Earth in Month Pillar: raw × 1.3
-- Earth in Day Pillar: raw × 1.3 (even though Day Branch has no Earth root!)
-- Earth in Hour Pillar: raw × 1.3
-
-This is because rooting is **chart-wide**: Earth has strong roots somewhere in the chart (Year, Month, Hour), so Earth is stable everywhere — including in the Day Pillar where the branch doesn't contain it.
+Even though Day Branch (卯 Rabbit) contains no Earth, Earth still gets ×1.30 in the Day Pillar. Rooting is chart-wide: Earth has roots elsewhere (Year, Month, Hour), so it's stable everywhere.
 
 ---
 
-## Pipeline Position
+## Why This Order in the Pipeline
 
 \`\`\`
-Raw Qi (stem + branch hidden stems)
-  → Rooting Tier Multiplier (×0.7 to ×1.6)    ← THIS STEP
-  → Seasonality (×0.60 to ×1.20)
-  → Polarity (×0.80 to ×1.00)
+Raw Qi (stem=1pt + branch hidden stems=10pts)
+  → Rooting (M1 × M2)          ← THIS STEP
+  → Seasonality (×0.6 to ×1.2)
+  → Polarity (×0.8 to ×1.0)
   → Qi Weighting (10/30/35/15/10)
   → TFQ (Total Functional Qi)
 \`\`\`
 
-Rooting is applied FIRST because it represents the **structural foundation** — how much Qi actually exists before the season and polarity modify its expression.
+Rooting is applied **first** because it represents structural foundation. Before we ask "how does season affect this Qi?" or "does polarity attenuate it?", we need to know: *does this Qi have roots at all?* A floating element's Qi is ephemeral — it should be reduced before any other adjustment.
+
+Seasonality appears twice, using **two different matrices**:
+1. **Inside rooting (Matrix A)** — underground Qi availability → affects root score → determines M1 tier
+2. **After rooting (Matrix B)** — surface Qi expression → adjusts final Qi values
+
+These are separate phenomena with separate matrices. See the "Two Seasonal Matrices" section above for the full comparison.
 
 ---
 
-*Rooting is the invisible foundation. Multiplier 1 measures how strong the roots are. Multiplier 2 determines how that root strength affects the element everywhere in the chart.*
+## Quick Reference
+
+| Term | Scope | Values | What it does |
+|---|---|---|---|
+| **M1** (Rooting Tier) | Per element, chart-wide | ×0.7 / ×1.0 / ×1.3 / ×1.6 | Multiplies all Qi of that element everywhere |
+| **M2** (Pillar Root Weight) | Per pillar | 0.7 / 1.0 / 1.2 / 0.7 | Scales the rooting effect by pillar importance |
+| **Root Score** | Per element | 0 to ~2.0 | Sum of (hiddenPct × weight × rootingSeason) across all branches |
+| **Matrix A** (Rooting Season) | Per element, per birth month | 0.6 to 1.2 | Underground Qi availability — used in root score |
+| **Matrix B** (Surface Season) | Per element, per birth month | 0.6 to 1.2 | Expressive Qi — used after rooting in Layer 1 step C |
+
+*Rooting is the invisible foundation. M1 measures how strong it is. M2 determines how that strength flows through each pillar.*
 `;
 
 const SEASONALITY_MATRIX_MD = `# Seasonality Matrix — Element Expressiveness (v2)
@@ -5463,6 +5594,987 @@ function DayMasterStrengthPanel({ chart, qiMatrix, userTfq }) {
 // ============================================================================
 // TEN GODS CAREER PANEL — How DM Strength shapes career through Ten Gods
 // ============================================================================
+
+// ============================================================================
+// TEN GODS — STRENGTH PROFILE PANEL
+// ============================================================================
+
+const STRENGTH_COLORS = {
+  dominant:  '#f59e0b',
+  strong:    '#4ade80',
+  moderate:  '#60a5fa',
+  weak:      '#9ca3af',
+  very_weak: '#6b7280',
+};
+const STRENGTH_LABELS = {
+  dominant: 'Dominant', strong: 'Strong', moderate: 'Moderate', weak: 'Weak', very_weak: 'Very Weak',
+};
+const AXIS_INFO = {
+  companion: { label: 'Companion', chinese: '比劫', desc: 'Self & Independence', icon: '🤝' },
+  output:    { label: 'Output',    chinese: '食伤', desc: 'What you create', icon: '🎨' },
+  wealth:    { label: 'Wealth',    chinese: '财',   desc: 'What you control', icon: '💰' },
+  authority: { label: 'Officer',   chinese: '官杀', desc: 'What controls you', icon: '🏛️' },
+  resource:  { label: 'Resource',  chinese: '印',   desc: 'What generates you', icon: '📚' },
+};
+
+function TenGodsStrengthPanel({ chart, qiMatrix }) {
+  if (!chart?.pillars || !qiMatrix?.perPillarBreakdown) return null;
+
+  const profile = useMemo(() => {
+    return computeTenGodProfile(chart.pillars, qiMatrix.perPillarBreakdown);
+  }, [chart.pillars, qiMatrix.perPillarBreakdown]);
+
+  if (!profile) return null;
+
+  const axisDist = getAxisDistribution(profile);
+  const dmEl = profile.dayMaster.element;
+  const dmLabel = `${profile.dayMaster.polarity} ${dmEl}`;
+
+  // Max Qi for scaling bars
+  const maxGodQi = Math.max(...Object.values(profile.gods).map(g => g.qi), 0.01);
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden mt-4">
+      {/* Header */}
+      <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+        <div className="text-sm font-semibold text-white">Ten Gods — Strength Profile</div>
+        <div className="text-[10px] text-white/70 mt-0.5">
+          <span style={{ color: ELEM_COLORS[dmEl] }} className="font-semibold">{dmLabel}</span>
+          {' '}— TFQ-weighted strength of each Ten God · Total Qi: {profile.totalQi.toFixed(3)}
+        </div>
+      </div>
+
+      <div className="p-4 space-y-3">
+        {/* 5 Axis Cards */}
+        {['companion', 'output', 'wealth', 'authority', 'resource'].map(axisKey => {
+          const axis = AXIS_INFO[axisKey];
+          const [god1, god2] = profile.axes[axisKey];
+          const axisQi = god1.qi + god2.qi;
+          const axisPct = profile.totalQi > 0 ? (axisQi / profile.totalQi * 100) : 0;
+          const axisStrength = axisPct >= 35 ? 'dominant' : axisPct >= 20 ? 'strong' : axisPct >= 10 ? 'moderate' : axisPct >= 4 ? 'weak' : 'very_weak';
+
+          return (
+            <div key={axisKey} className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
+              {/* Axis Header */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{axis.icon}</span>
+                  <div>
+                    <span className="text-[11px] font-bold text-white">{axis.label}</span>
+                    <span className="text-[10px] text-gray-300 ml-1.5">{axis.chinese}</span>
+                    <span className="text-[10px] text-gray-400 ml-1.5">— {axis.desc}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-white/80">
+                    Qi: <span className="text-white font-semibold">{axisQi.toFixed(3)}</span>
+                    <span className="text-gray-300 ml-1">({axisPct.toFixed(1)}%)</span>
+                  </span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                    style={{ color: STRENGTH_COLORS[axisStrength], backgroundColor: STRENGTH_COLORS[axisStrength] + '18' }}>
+                    {STRENGTH_LABELS[axisStrength]}
+                  </span>
+                </div>
+              </div>
+
+              {/* Element badge */}
+              <div className="text-[9px] text-gray-300 mb-2">
+                Element: <span style={{ color: ELEM_COLORS[god1.element] }} className="font-semibold">{god1.element}</span>
+              </div>
+
+              {/* Two Gods side by side */}
+              <div className="grid grid-cols-2 gap-2">
+                {[god1, god2].map(god => (
+                  <div key={god.key} className="rounded border border-white/5 bg-white/[0.03] p-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-semibold text-white">{god.name}</span>
+                      <span className="text-[9px] text-gray-300">{god.chinese}</span>
+                    </div>
+                    {/* Strength bar */}
+                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-1">
+                      <div className="h-full rounded-full transition-all" style={{
+                        width: `${Math.min(100, (god.qi / maxGodQi) * 100)}%`,
+                        backgroundColor: STRENGTH_COLORS[god.strengthLevel],
+                        opacity: 0.8,
+                      }} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-mono text-white/70">{god.qi.toFixed(3)}</span>
+                      <span className="text-[9px] font-semibold" style={{ color: STRENGTH_COLORS[god.strengthLevel] }}>
+                        {STRENGTH_LABELS[god.strengthLevel]}
+                      </span>
+                    </div>
+                    {/* Contributing stems */}
+                    {god.stems.length > 0 && (
+                      <div className="mt-1.5 space-y-0.5">
+                        {god.stems.map((s, i) => (
+                          <div key={i} className="flex items-center justify-between text-[9px] font-mono text-gray-300">
+                            <span>
+                              <span className="text-white/80">{s.pillar}</span>
+                              {' '}{s.position === 'stem' ? '天' : '藏'}
+                              {' '}<span style={{ color: ELEM_COLORS[s.element] }}>{s.char}</span>
+                              {s.position === 'hiddenStem' && <span className="text-gray-400"> {s.pct}%</span>}
+                            </span>
+                            <span className="text-white/70">{s.qi.toFixed(3)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Axis Distribution Bar */}
+        <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
+          <div className="text-[10px] font-semibold text-gray-300 mb-2">Axis Distribution</div>
+          <div className="flex h-4 rounded overflow-hidden gap-px">
+            {['companion', 'output', 'wealth', 'authority', 'resource'].map(k => {
+              const pct = axisDist[k] * 100;
+              if (pct < 1) return null;
+              const colors = { companion: '#3b82f6', output: '#a855f7', wealth: '#f59e0b', authority: '#ef4444', resource: '#22c55e' };
+              return (
+                <div key={k} className="relative group" style={{ width: `${pct}%`, backgroundColor: colors[k], opacity: 0.7 }}>
+                  <div className="absolute inset-0 flex items-center justify-center text-[7px] font-bold text-white/90 drop-shadow">
+                    {pct >= 8 ? `${pct.toFixed(0)}%` : ''}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex justify-between mt-1 text-[9px] text-gray-300">
+            {['companion', 'output', 'wealth', 'authority', 'resource'].map(k => (
+              <span key={k} className="flex items-center gap-0.5">
+                <span className="w-1.5 h-1.5 rounded-full" style={{
+                  backgroundColor: { companion: '#3b82f6', output: '#a855f7', wealth: '#f59e0b', authority: '#ef4444', resource: '#22c55e' }[k]
+                }} />
+                {AXIS_INFO[k].label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Dominant Gods summary */}
+        <div className="text-[10px] text-white/80 font-mono">
+          Dominant: {profile.dominant.map(k => {
+            const g = profile.gods[k];
+            return <span key={k} className="mr-2"><span className="text-white font-semibold">{g.name}</span> <span className="text-gray-300">{g.chinese}</span> <span style={{ color: STRENGTH_COLORS[g.strengthLevel] }}>{(g.shareOfTotalQi * 100).toFixed(1)}%</span></span>;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// TEN GODS — PERSONALITY & MBTI PANEL
+// ============================================================================
+
+function TenGodsPersonalityPanel({ chart, qiMatrix }) {
+  if (!chart?.pillars || !qiMatrix?.perPillarBreakdown) return null;
+
+  const profile = useMemo(() => {
+    return computeTenGodProfile(chart.pillars, qiMatrix.perPillarBreakdown);
+  }, [chart.pillars, qiMatrix.perPillarBreakdown]);
+
+  const report = useMemo(() => {
+    if (!profile) return null;
+    return generatePersonalityReport(profile);
+  }, [profile]);
+
+  const mbti = useMemo(() => {
+    if (!profile) return null;
+    return computeMBTI(profile);
+  }, [profile]);
+
+  if (!report || !mbti) return null;
+
+  const sections = [
+    { key: 'worldview', label: 'Worldview', icon: '🌍' },
+    { key: 'interactionStyle', label: 'Interaction Style', icon: '💬' },
+    { key: 'emotionalPatterns', label: 'Emotional Patterns', icon: '💚' },
+    { key: 'workStyle', label: 'Work Style', icon: '⚙️' },
+    { key: 'stressPatterns', label: 'Stress Patterns', icon: '⚡' },
+    { key: 'growthPath', label: 'Growth Path', icon: '🌱' },
+  ];
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden mt-4">
+      <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-semibold text-white">Personality & Psychology</div>
+            <div className="text-[10px] text-white/70 mt-0.5">
+              Ten Gods + BaZi-MBTI hybrid analysis
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] font-bold px-2.5 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300">
+              {mbti.type}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-3">
+        {/* Summary */}
+        <div className="text-[11px] text-white/80 leading-relaxed">{report.header.summary}</div>
+
+        {/* MBTI Breakdown */}
+        <div className="rounded-lg border border-indigo-500/15 bg-indigo-900/[0.06] p-3">
+          <div className="text-[10px] font-bold text-indigo-300 mb-2">BaZi-MBTI Type: {mbti.type}</div>
+          <div className="text-[10px] text-white/70 mb-2">{mbti.explanation}</div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <div className="text-[9px] font-bold text-green-400 mb-0.5">Strengths</div>
+              {mbti.strengths.map(s => (
+                <div key={s} className="text-[9px] text-white/60">+ {s}</div>
+              ))}
+            </div>
+            <div>
+              <div className="text-[9px] font-bold text-amber-400 mb-0.5">Weaknesses</div>
+              {mbti.weaknesses.map(w => (
+                <div key={w} className="text-[9px] text-white/60">- {w}</div>
+              ))}
+            </div>
+          </div>
+          {mbti.relationalStyle && (
+            <div className="mt-2 text-[9px] text-white/50">
+              <span className="text-pink-300 font-semibold">Relational:</span> {mbti.relationalStyle}
+            </div>
+          )}
+          {mbti.workStyle && (
+            <div className="text-[9px] text-white/50">
+              <span className="text-cyan-300 font-semibold">Work:</span> {mbti.workStyle}
+            </div>
+          )}
+        </div>
+
+        {/* Strengths & Weaknesses */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg border border-green-500/15 bg-green-900/[0.05] p-2.5">
+            <div className="text-[9px] font-bold text-green-400 mb-1 uppercase tracking-wider">Core Strengths</div>
+            {report.sections.strengths.map(s => (
+              <div key={s} className="text-[9px] text-white/70 mb-0.5">+ {s}</div>
+            ))}
+          </div>
+          <div className="rounded-lg border border-red-500/15 bg-red-900/[0.05] p-2.5">
+            <div className="text-[9px] font-bold text-red-400 mb-1 uppercase tracking-wider">Watch Areas</div>
+            {report.sections.weaknesses.map(w => (
+              <div key={w} className="text-[9px] text-white/70 mb-0.5">- {w}</div>
+            ))}
+          </div>
+        </div>
+
+        {/* Psychology Sections */}
+        <div className="space-y-1.5">
+          {sections.map(({ key, label, icon }) => (
+            <div key={key} className="rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[10px]">{icon}</span>
+                <span className="text-[10px] font-bold text-white/80">{label}</span>
+              </div>
+              <div className="text-[9px] text-white/60 leading-relaxed">{report.sections[key]}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// TEN GODS — HEALTH RISK PANEL
+// ============================================================================
+
+const HEALTH_LEVEL_COLORS = {
+  low: '#4ade80',
+  mild: '#60a5fa',
+  elevated: '#f59e0b',
+  high: '#ef4444',
+};
+
+function TenGodsHealthPanel({ chart, qiMatrix }) {
+  if (!chart?.pillars || !qiMatrix?.perPillarBreakdown) return null;
+
+  const profile = useMemo(() => {
+    return computeTenGodProfile(chart.pillars, qiMatrix.perPillarBreakdown);
+  }, [chart.pillars, qiMatrix.perPillarBreakdown]);
+
+  const healthReport = useMemo(() => {
+    if (!profile) return null;
+    return computeHealthRisk(profile);
+  }, [profile]);
+
+  if (!healthReport) return null;
+
+  const sorted = [...healthReport.systems].sort((a, b) => b.score - a.score);
+  const maxScore = Math.max(...sorted.map(s => s.score), 1);
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden mt-4">
+      <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+        <div className="text-sm font-semibold text-white">Health Risk Profile</div>
+        <div className="text-[10px] text-white/70 mt-0.5">
+          Ten Gods → organ system vulnerability mapping (TCM-based)
+        </div>
+      </div>
+
+      <div className="p-4 space-y-3">
+        {/* Summary */}
+        <div className="text-[10px] text-white/80 leading-relaxed">{healthReport.summary}</div>
+
+        {/* System bars */}
+        <div className="space-y-1.5">
+          {sorted.map(s => {
+            const info = HEALTH_SYSTEM_INFO[s.system] || {};
+            return (
+              <div key={s.system} className="rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-white/80 capitalize">{s.system}</span>
+                    {info.element && (
+                      <span className="text-[8px] font-mono px-1 py-0.5 rounded bg-white/5 text-gray-400" style={{ color: ELEM_COLORS[info.element] }}>
+                        {info.element}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-mono text-white/50">{s.score.toFixed(0)}</span>
+                    <span className="text-[9px] font-bold capitalize px-1.5 py-0.5 rounded"
+                      style={{ color: HEALTH_LEVEL_COLORS[s.level], backgroundColor: HEALTH_LEVEL_COLORS[s.level] + '15' }}>
+                      {s.level}
+                    </span>
+                  </div>
+                </div>
+                {/* Bar */}
+                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-1">
+                  <div className="h-full rounded-full transition-all" style={{
+                    width: `${(s.score / maxScore) * 100}%`,
+                    backgroundColor: HEALTH_LEVEL_COLORS[s.level],
+                    opacity: 0.7,
+                  }} />
+                </div>
+                {/* Advice */}
+                <div className="text-[8px] text-white/50">{s.advice}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Dominant risks callout */}
+        {healthReport.dominantRisks.length > 0 && (
+          <div className="rounded-lg border border-red-500/20 bg-red-900/[0.06] px-3 py-2">
+            <div className="text-[9px] font-bold text-red-400 mb-1">Priority Systems</div>
+            <div className="text-[9px] text-white/60">
+              {healthReport.dominantRisks.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')} — these systems require consistent attention based on your Ten Gods distribution.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// LIFE BLUEPRINT PANEL
+// ============================================================================
+
+const LIFE_STAGE_ICONS = { earlyLife: '🌱', midLife: '🔥', laterLife: '🌙' };
+const LIFE_STAGE_LABELS = { earlyLife: 'Early Life', midLife: 'Mid Life', laterLife: 'Later Life' };
+
+function LifeBlueprintPanel({ chart, qiMatrix }) {
+  if (!chart?.pillars || !qiMatrix?.perPillarBreakdown) return null;
+
+  const profile = useMemo(() => {
+    return computeTenGodProfile(chart.pillars, qiMatrix.perPillarBreakdown);
+  }, [chart.pillars, qiMatrix.perPillarBreakdown]);
+
+  const mbti = useMemo(() => {
+    if (!profile) return null;
+    return computeMBTI(profile);
+  }, [profile]);
+
+  const blueprint = useMemo(() => {
+    if (!profile || !mbti) return null;
+    return generateLifeBlueprint(profile, mbti);
+  }, [profile, mbti]);
+
+  if (!blueprint) return null;
+
+  const arch = blueprint.archetype;
+  const lp = blueprint.lifePath;
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden mt-4">
+      {/* Header */}
+      <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+        <div className="text-sm font-semibold text-white">Life Blueprint</div>
+        <div className="text-[10px] text-white/70 mt-0.5">Archetype + Life Path + Career Specialization</div>
+      </div>
+
+      <div className="p-4 space-y-4">
+        {/* Summary */}
+        <div className="text-[11px] text-white/80 leading-relaxed">{blueprint.summary}</div>
+
+        {/* Archetype Card */}
+        <div className="rounded-lg border border-purple-500/20 bg-purple-900/[0.06] p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xl">🔮</span>
+            <div>
+              <div className="text-[12px] font-bold text-purple-300">{arch.label}</div>
+              <div className="text-[10px] text-white/60">{arch.summary}</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <div className="rounded border border-green-500/15 bg-green-900/[0.04] p-2">
+              <div className="text-[9px] font-bold text-green-400 mb-1 uppercase tracking-wider">Gifts</div>
+              {arch.gifts.map(g => (
+                <div key={g} className="text-[9px] text-white/70 mb-0.5">+ {g}</div>
+              ))}
+            </div>
+            <div className="rounded border border-amber-500/15 bg-amber-900/[0.04] p-2">
+              <div className="text-[9px] font-bold text-amber-400 mb-1 uppercase tracking-wider">Shadows</div>
+              {arch.shadows.map(s => (
+                <div key={s} className="text-[9px] text-white/70 mb-0.5">- {s}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Life Path Timeline */}
+        <div className="rounded-lg border border-blue-500/15 bg-blue-900/[0.04] p-3">
+          <div className="text-[10px] font-bold text-blue-300 mb-2">Life Path</div>
+          <div className="text-[10px] text-white/70 mb-3">{lp.coreTheme}</div>
+
+          <div className="space-y-2">
+            {['earlyLife', 'midLife', 'laterLife'].map(stage => (
+              <div key={stage} className="flex items-start gap-2">
+                <span className="text-[12px] mt-0.5">{LIFE_STAGE_ICONS[stage]}</span>
+                <div>
+                  <div className="text-[9px] font-bold text-white/80">{LIFE_STAGE_LABELS[stage]}</div>
+                  <div className="text-[9px] text-white/60">{lp[stage]}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 pt-2 border-t border-white/5">
+            <div className="text-[9px] font-bold text-cyan-300 mb-0.5">Key Lessons</div>
+            <div className="text-[9px] text-white/60">{lp.keyLessons}</div>
+          </div>
+        </div>
+
+        {/* Career Clusters */}
+        <div className="rounded-lg border border-green-500/15 bg-green-900/[0.04] p-3">
+          <div className="text-[10px] font-bold text-green-300 mb-2">Career Specialization</div>
+          <div className="text-[10px] text-white/70 mb-2">{blueprint.career.narrative}</div>
+
+          {blueprint.career.dominantClusters.length > 0 && (
+            <div className="grid grid-cols-1 gap-1.5">
+              {blueprint.career.dominantClusters.map(c => (
+                <div key={c.key} className="rounded border border-white/8 bg-white/[0.03] px-3 py-2">
+                  <div className="text-[10px] font-semibold text-white/90">{c.label}</div>
+                  <div className="text-[9px] text-white/50">{c.description}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// RELATIONSHIP COMPATIBILITY BLUEPRINT PANEL
+// ============================================================================
+
+const MATCH_TYPE_CONFIG = {
+  natural:   { label: 'Natural Harmony',    color: '#4ade80', icon: '💚' },
+  growth:    { label: 'Growth Partnership', color: '#60a5fa', icon: '🌱' },
+  challenge: { label: 'Challenge Match',    color: '#f59e0b', icon: '⚡' },
+};
+
+function RelationshipBlueprintPanel({ chart, qiMatrix, profiles, selectedProfileId, calculateBaZiFn }) {
+  const [partnerProfileId, setPartnerProfileId] = useState(null);
+
+  if (!chart?.pillars || !qiMatrix?.perPillarBreakdown || !profiles || profiles.length < 2) return null;
+
+  // Compute profile A (current)
+  const profileA = useMemo(() => {
+    return computeTenGodProfile(chart.pillars, qiMatrix.perPillarBreakdown);
+  }, [chart.pillars, qiMatrix.perPillarBreakdown]);
+
+  const mbtiA = useMemo(() => profileA ? computeMBTI(profileA) : null, [profileA]);
+
+  // Compute profile B (partner)
+  const partnerData = useMemo(() => {
+    if (!partnerProfileId) return null;
+    const partner = profiles.find(p => p.id === partnerProfileId);
+    if (!partner?.birthDate) return null;
+    try {
+      const partnerChart = calculateBaZiFn(partner);
+      if (!partnerChart?.pillars) return null;
+      // We need qiMatrix for the partner — use computeQiYearMatrix
+      const { computeQiYearMatrix: cqym } = require('../utils/qiEngine');
+      const partnerQiMatrix = cqym(partnerChart.pillars, partnerChart.pillars[1]?.branch?.char, new Date().getFullYear());
+      if (!partnerQiMatrix?.perPillarBreakdown) return null;
+      const tenGodProfile = computeTenGodProfile(partnerChart.pillars, partnerQiMatrix.perPillarBreakdown);
+      const mbti = tenGodProfile ? computeMBTI(tenGodProfile) : null;
+      return { chart: partnerChart, qiMatrix: partnerQiMatrix, tenGodProfile, mbti, name: `${partner.firstName || ''} ${partner.lastName || ''}`.trim() };
+    } catch {
+      return null;
+    }
+  }, [partnerProfileId, profiles, calculateBaZiFn]);
+
+  // Generate reports
+  const results = useMemo(() => {
+    if (!profileA || !mbtiA || !partnerData?.tenGodProfile || !partnerData?.mbti) return null;
+
+    const archetypeA = generatePersonalityArchetype(profileA, mbtiA);
+    const archetypeB = generatePersonalityArchetype(partnerData.tenGodProfile, partnerData.mbti);
+    const archetypeCompat = generateArchetypeCompatibility(archetypeA, archetypeB);
+    const tenGodCompat = computeCompatibility(profileA, partnerData.tenGodProfile);
+    const synastry = generateSynastryNarrative(tenGodCompat);
+
+    // Relationship timing — 10 year window
+    const currentYear = new Date().getFullYear();
+    const dmA = profileA.dayMaster;
+    const dmB = partnerData.tenGodProfile.dayMaster;
+    const annualsA = [];
+    const annualsB = [];
+    for (let y = currentYear; y < currentYear + 10; y++) {
+      try {
+        const yp = getYearPillar(y);
+        annualsA.push({ ...computeAnnualInfluence(yp.stem, yp.branch, dmA.element, dmA.polarity, profileA), year: y });
+        annualsB.push({ ...computeAnnualInfluence(yp.stem, yp.branch, dmB.element, dmB.polarity, partnerData.tenGodProfile), year: y });
+      } catch { /* skip years that fail */ }
+    }
+    const timing = generateRelationshipTiming(tenGodCompat.breakdown.totalScore, annualsA, annualsB, currentYear);
+    const fateWindows = generateFateWindows(annualsA, annualsB, tenGodCompat.breakdown.totalScore);
+    const timingNarrative = generateRelationshipTimingNarrative(timing, fateWindows);
+    const destinyCurve = generateDestinyCurve(timing, fateWindows);
+    const archEvolution = generateArchetypeEvolution(timing, fateWindows);
+
+    return { archetypeA, archetypeB, archetypeCompat, tenGodCompat, synastry, timing, fateWindows, timingNarrative, destinyCurve, archEvolution };
+  }, [profileA, mbtiA, partnerData]);
+
+  const otherProfiles = profiles.filter(p => p.id !== selectedProfileId);
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden mt-4">
+      <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-semibold text-white">Relationship Blueprint</div>
+            <div className="text-[10px] text-white/70 mt-0.5">Archetype + Ten Gods + Synastry compatibility</div>
+          </div>
+          <select
+            value={partnerProfileId || ''}
+            onChange={e => setPartnerProfileId(e.target.value || null)}
+            className="text-[10px] bg-slate-800 border border-white/15 rounded px-2 py-1 text-white"
+          >
+            <option value="">Select partner...</option>
+            {otherProfiles.map(p => (
+              <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {!partnerProfileId && (
+        <div className="px-4 py-6 text-center text-[10px] text-white/40">
+          Select a partner profile above to generate the relationship blueprint.
+        </div>
+      )}
+
+      {partnerProfileId && !results && (
+        <div className="px-4 py-6 text-center text-[10px] text-white/40">
+          Computing compatibility...
+        </div>
+      )}
+
+      {results && (
+        <div className="p-4 space-y-4">
+          {/* Match type banner */}
+          {(() => {
+            const cfg = MATCH_TYPE_CONFIG[results.archetypeCompat.matchType];
+            return (
+              <div className="rounded-lg p-3 border" style={{ borderColor: cfg.color + '30', backgroundColor: cfg.color + '08' }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">{cfg.icon}</span>
+                  <span className="text-[12px] font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
+                  <span className="text-[10px] font-mono text-white/50 ml-auto">
+                    Score: {results.tenGodCompat.breakdown.totalScore.toFixed(0)}/100
+                  </span>
+                </div>
+                <div className="text-[10px] text-white/80">{results.archetypeCompat.synergy}</div>
+              </div>
+            );
+          })()}
+
+          {/* Archetype pair */}
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: 'Person A', arch: results.archetypeA },
+              { label: partnerData?.name || 'Person B', arch: results.archetypeB },
+            ].map(({ label, arch }) => (
+              <div key={label} className="rounded-lg border border-purple-500/15 bg-purple-900/[0.04] p-2.5">
+                <div className="text-[9px] text-gray-400 mb-0.5">{label}</div>
+                <div className="text-[11px] font-bold text-purple-300">{arch.label}</div>
+                <div className="text-[9px] text-white/60 mt-0.5">{arch.summary}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Synastry details */}
+          <div className="rounded-lg border border-blue-500/15 bg-blue-900/[0.04] p-3 space-y-2">
+            <div className="text-[10px] font-bold text-blue-300">Synastry</div>
+            {[
+              { label: 'Emotional', text: results.synastry.emotionalConnection },
+              { label: 'Communication', text: results.synastry.communication },
+              { label: 'Chemistry', text: results.synastry.chemistry },
+              { label: 'Long-Term', text: results.synastry.longTermPotential },
+            ].map(({ label, text }) => (
+              <div key={label}>
+                <span className="text-[9px] font-semibold text-white/70">{label}: </span>
+                <span className="text-[9px] text-white/55">{text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Scores bar */}
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: 'Overall', val: results.tenGodCompat.breakdown.totalScore, color: '#4ade80' },
+              { label: 'Emotional', val: results.tenGodCompat.breakdown.emotionalScore, color: '#f472b6' },
+              { label: 'Practical', val: results.tenGodCompat.breakdown.practicalScore, color: '#60a5fa' },
+              { label: 'Friction', val: results.tenGodCompat.breakdown.frictionScore, color: '#f59e0b' },
+            ].map(({ label, val, color }) => (
+              <div key={label} className="rounded border border-white/8 bg-white/[0.03] p-2 text-center">
+                <div className="text-[8px] text-gray-400">{label}</div>
+                <div className="text-[13px] font-bold" style={{ color }}>{val.toFixed(0)}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Friction & Growth */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded border border-red-500/15 bg-red-900/[0.04] p-2">
+              <div className="text-[9px] font-bold text-red-400 mb-1">Friction Points</div>
+              {results.synastry.frictionPoints.slice(0, 3).map((f, i) => (
+                <div key={i} className="text-[8px] text-white/55 mb-0.5">- {f}</div>
+              ))}
+            </div>
+            <div className="rounded border border-green-500/15 bg-green-900/[0.04] p-2">
+              <div className="text-[9px] font-bold text-green-400 mb-1">Growth Opportunities</div>
+              {results.synastry.growthOpportunities.slice(0, 3).map((g, i) => (
+                <div key={i} className="text-[8px] text-white/55 mb-0.5">+ {g}</div>
+              ))}
+            </div>
+          </div>
+
+          {/* Advice */}
+          <div className="rounded-lg border border-amber-500/15 bg-amber-900/[0.04] p-3">
+            <div className="text-[10px] font-bold text-amber-300 mb-1">Guidance</div>
+            {results.archetypeCompat.advice.map((a, i) => (
+              <div key={i} className="text-[9px] text-white/60 mb-0.5">{i + 1}. {a}</div>
+            ))}
+          </div>
+
+          {/* Relationship Timing */}
+          {results.timing && results.timing.years.length > 0 && (() => {
+            const { years, bestYears, challengingYears } = results.timing;
+            const maxScore = Math.max(...years.map(y => y.compatibilityScore), 1);
+            return (
+              <div className="rounded-lg border border-purple-500/15 bg-purple-900/[0.04] p-3 space-y-3">
+                <div className="text-[10px] font-bold text-purple-300">Relationship Timing — 10 Year Outlook</div>
+                <div className="text-[9px] text-white/60 mb-1">
+                  Year-by-year compatibility trend based on annual Ten God interactions.
+                </div>
+
+                {/* Bar chart */}
+                <div className="flex items-end gap-px h-16 rounded overflow-hidden">
+                  {years.map(y => {
+                    const pct = (y.compatibilityScore / maxScore) * 100;
+                    const isBest = bestYears.includes(y.year);
+                    const isChallenging = challengingYears.includes(y.year);
+                    const color = isBest ? '#4ade80' : isChallenging ? '#f87171' : '#a78bfa';
+                    return (
+                      <div key={y.year} className="flex-1 flex flex-col items-center justify-end group relative">
+                        <div className="w-full rounded-t transition-all" style={{ height: `${pct}%`, backgroundColor: color, opacity: 0.7 }} />
+                        {/* Tooltip on hover */}
+                        <div className="absolute bottom-full mb-1 hidden group-hover:block bg-slate-800 border border-white/15 rounded px-2 py-1 text-[8px] text-white/80 whitespace-nowrap z-10 shadow-xl">
+                          <div className="font-bold">{y.year}: {y.compatibilityScore.toFixed(0)}/100</div>
+                          <div className="text-white/50">{y.theme}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Year labels */}
+                <div className="flex gap-px">
+                  {years.map(y => (
+                    <div key={y.year} className="flex-1 text-center text-[7px] font-mono text-white/40">
+                      {y.year.toString().slice(-2)}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Best & Challenging years */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <div className="text-[8px] font-bold text-green-400 mb-0.5">Best Years</div>
+                    {bestYears.map(yr => {
+                      const y = years.find(yy => yy.year === yr);
+                      return y ? (
+                        <div key={yr} className="text-[8px] text-white/60">
+                          <span className="text-green-300 font-semibold">{yr}</span> — {y.theme}
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                  <div>
+                    <div className="text-[8px] font-bold text-red-400 mb-0.5">Challenging Years</div>
+                    {challengingYears.map(yr => {
+                      const y = years.find(yy => yy.year === yr);
+                      return y ? (
+                        <div key={yr} className="text-[8px] text-white/60">
+                          <span className="text-red-300 font-semibold">{yr}</span> — {y.theme}
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Fate Windows */}
+          {results.fateWindows && results.fateWindows.length > 0 && (
+            <div className="rounded-lg border border-rose-500/15 bg-rose-900/[0.04] p-3 space-y-2">
+              <div className="text-[10px] font-bold text-rose-300">Fate Windows — Karmic Triggers</div>
+              <div className="space-y-1.5">
+                {results.fateWindows.map((fw, i) => {
+                  const cfg = FATE_WINDOW_CONFIG[fw.type];
+                  return (
+                    <div key={i} className="rounded border px-2.5 py-1.5 flex items-start gap-2"
+                      style={{ borderColor: cfg.color + '25', backgroundColor: cfg.color + '08' }}>
+                      <span className="text-[12px] mt-0.5">{cfg.icon}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold" style={{ color: cfg.color }}>{fw.year} — {cfg.label}</span>
+                          <span className="text-[8px] font-mono text-white/40">intensity {fw.intensity}</span>
+                        </div>
+                        <div className="text-[9px] text-white/60 mt-0.5">{fw.description}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Timing narrative */}
+          {results.timingNarrative && (
+            <div className="text-[9px] text-white/70 italic leading-relaxed">
+              {results.timingNarrative}
+            </div>
+          )}
+
+          {/* Destiny Curve */}
+          {results.destinyCurve && results.destinyCurve.points.length > 0 && (() => {
+            const { points, summary } = results.destinyCurve;
+            const maxEmo = Math.max(...points.map(p => p.emotionalScore), 1);
+            return (
+              <div className="rounded-lg border border-indigo-500/15 bg-indigo-900/[0.04] p-3 space-y-2">
+                <div className="text-[10px] font-bold text-indigo-300">Destiny Curve — Emotional Trajectory</div>
+                <div className="text-[9px] text-white/65">{summary}</div>
+
+                {/* Curve visualization */}
+                <div className="flex items-end gap-px h-14 rounded overflow-hidden">
+                  {points.map(p => {
+                    const pct = (p.emotionalScore / maxEmo) * 100;
+                    const color = p.emotionalScore >= 70 ? '#818cf8' : p.emotionalScore >= 50 ? '#6366f1' : '#a5b4fc';
+                    return (
+                      <div key={p.year} className="flex-1 flex flex-col items-center justify-end group relative">
+                        <div className="w-full rounded-t" style={{ height: `${pct}%`, backgroundColor: color, opacity: 0.7 }} />
+                        <div className="absolute bottom-full mb-1 hidden group-hover:block bg-slate-800 border border-white/15 rounded px-2 py-1 text-[8px] text-white/80 whitespace-nowrap z-10 shadow-xl">
+                          <div className="font-bold">{p.year}: {p.emotionalScore.toFixed(0)}</div>
+                          <div className="text-white/50 max-w-[200px] truncate">{p.narrative}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex gap-px">
+                  {points.map(p => (
+                    <div key={p.year} className="flex-1 text-center text-[7px] font-mono text-white/40">{p.year.toString().slice(-2)}</div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Archetype Evolution Timeline */}
+          {results.archEvolution && results.archEvolution.states.length > 0 && (
+            <div className="rounded-lg border border-purple-500/15 bg-purple-900/[0.04] p-3 space-y-2">
+              <div className="text-[10px] font-bold text-purple-300">Archetype Evolution</div>
+              <div className="text-[9px] text-white/65">{results.archEvolution.summary}</div>
+
+              {/* Vertical timeline */}
+              <div className="border-l-2 border-purple-500/30 ml-2 pl-3 space-y-2">
+                {results.archEvolution.states.map((s, i) => {
+                  const prevKey = i > 0 ? results.archEvolution.states[i - 1].key : null;
+                  const shifted = prevKey && prevKey !== s.key;
+                  return (
+                    <div key={s.year} className="relative">
+                      <div className={`absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full ${shifted ? 'bg-purple-400 ring-2 ring-purple-400/30' : 'bg-purple-500/50'}`} />
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-mono text-white/60 w-8">{s.year}</span>
+                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${shifted ? 'bg-purple-500/20 text-purple-300' : 'text-purple-400/80'}`}>
+                          {s.label}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// LUCK PILLAR TIMELINE — Ten Gods across decades
+// ============================================================================
+
+const GOD_KEY_COLORS = {
+  friend: '#3b82f6', robWealth: '#f97316',
+  eatingGod: '#a855f7', hurtingOfficer: '#ec4899',
+  directWealth: '#f59e0b', indirectWealth: '#eab308',
+  directOfficer: '#22c55e', sevenKillings: '#ef4444',
+  directResource: '#06b6d4', indirectResource: '#8b5cf6',
+};
+
+function LuckPillarTimelinePanel({ chart, qiMatrix, daYunResult, selectedYear }) {
+  if (!chart?.pillars || !qiMatrix || !daYunResult?.pillars?.length) return null;
+
+  const dmElement = qiMatrix.dayMasterElement;
+  const dmPolarity = qiMatrix.dayMasterPolarity;
+
+  const timeline = useMemo(() => {
+    return generateLuckPillarTimeline(daYunResult, dmElement, dmPolarity);
+  }, [daYunResult, dmElement, dmPolarity]);
+
+  if (!timeline?.pillars?.length) return null;
+
+  // Also compute current year's annual influence
+  const yearPillar = qiMatrix.yearPillar;
+  const annualGod = useMemo(() => {
+    if (!yearPillar?.stem) return null;
+    return computeAnnualInfluence(yearPillar.stem, yearPillar.branch || '', dmElement, dmPolarity);
+  }, [yearPillar, dmElement, dmPolarity]);
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden mt-4">
+      <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+        <div className="text-sm font-semibold text-white">Luck Pillar Timeline — Ten Gods</div>
+        <div className="text-[10px] text-white/70 mt-0.5">
+          Ten God classification for each 10-year luck pillar relative to the Day Master
+        </div>
+      </div>
+
+      <div className="p-4 space-y-3">
+        {/* Annual influence callout */}
+        {annualGod && (
+          <div className="rounded-lg border px-3 py-2" style={{ borderColor: GOD_KEY_COLORS[annualGod.tenGodKey] + '30', backgroundColor: GOD_KEY_COLORS[annualGod.tenGodKey] + '08' }}>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-white/80">{selectedYear} Annual Influence</span>
+                <span className="text-[10px] font-mono" style={{ color: GOD_KEY_COLORS[annualGod.tenGodKey] }}>
+                  {annualGod.tenGodName} {annualGod.tenGodChinese}
+                </span>
+              </div>
+              <span className="text-[9px] font-mono text-white/70">{yearPillar?.stem}{yearPillar?.branch}</span>
+            </div>
+            <div className="text-[9px] text-white/75">{annualGod.narrative}</div>
+          </div>
+        )}
+
+        {/* Current luck pillar highlight */}
+        {timeline.currentPillar && (
+          <div className="rounded-lg border border-amber-500/20 bg-amber-900/[0.06] px-3 py-2">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-amber-300">Current Luck Pillar</span>
+                <span className="text-[10px] font-mono text-white/70">
+                  {timeline.currentPillar.stem}{timeline.currentPillar.branch} {timeline.currentPillar.stemEnglish}
+                </span>
+              </div>
+              <span className="text-[9px] font-mono text-amber-300/70">
+                Age {timeline.currentPillar.ageStart}–{timeline.currentPillar.ageEnd}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-semibold" style={{ color: GOD_KEY_COLORS[timeline.currentPillar.tenGodKey] }}>
+                {timeline.currentPillar.tenGodName} {timeline.currentPillar.tenGodChinese}
+              </span>
+              <span className="text-[9px] text-white/50" style={{ color: ELEM_COLORS[timeline.currentPillar.element] }}>
+                {timeline.currentPillar.element}
+              </span>
+            </div>
+            <div className="text-[9px] text-white/75">{timeline.currentPillar.narrative}</div>
+          </div>
+        )}
+
+        {/* Full timeline */}
+        <div className="space-y-1">
+          {timeline.pillars.map(p => {
+            const isCurrent = p.isCurrent;
+            const godColor = GOD_KEY_COLORS[p.tenGodKey] || '#9ca3af';
+            return (
+              <div key={p.index} className={`flex items-center gap-2 rounded px-2.5 py-1.5 ${isCurrent ? 'bg-white/[0.06] border border-amber-500/20' : 'bg-white/[0.02]'}`}>
+                {/* Age range */}
+                <span className="text-[9px] font-mono text-white/70 w-14 shrink-0">
+                  {p.ageStart}–{p.ageEnd}
+                </span>
+                {/* Stem/Branch */}
+                <span className="text-[10px] font-mono text-white/90 w-12 shrink-0">
+                  {p.stem}{p.branch}
+                </span>
+                {/* Ten God badge */}
+                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded shrink-0"
+                  style={{ color: godColor, backgroundColor: godColor + '15' }}>
+                  {p.tenGodName}
+                </span>
+                {/* Element */}
+                <span className="text-[9px] shrink-0" style={{ color: ELEM_COLORS[p.element] }}>
+                  {p.element}
+                </span>
+                {/* Bar fill (visual decade indicator) */}
+                <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: '100%', backgroundColor: godColor, opacity: isCurrent ? 0.8 : 0.45 }} />
+                </div>
+                {/* Year range */}
+                <span className="text-[9px] font-mono text-white/60 w-20 text-right shrink-0">
+                  {p.yearStart}–{p.yearEnd}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const TEN_GODS_CAREER_MD = `# Ten Gods — Career Profile Guide
 
@@ -9833,6 +10945,9 @@ export default function QiBraceletPage() {
     return profiles?.find(p => p.id === selectedProfileId) || null;
   }, [profiles, selectedProfileId]);
 
+  // Western Sun/Moon for Q.coherence preview
+  const { profileWestern } = useProfileWestern(profiles, selectedProfileId);
+
   // Calculate natal chart
   const chart = useMemo(() => {
     if (!selectedProfile?.birthDate) return null;
@@ -10453,6 +11568,12 @@ export default function QiBraceletPage() {
                 {qiMatrix?.rootingBreakdown && (() => {
                   const breakdown = qiMatrix.rootingBreakdown;
                   const rootWeights = { Year: 0.7, Month: 1.2, Day: 1.0, Hour: 0.7 };
+                  const tierThresholds = [
+                    { label: 'No root', range: '< 0.1', mult: '×0.7', color: '#f87171' },
+                    { label: 'Light',   range: '0.1–0.4', mult: '×1.0', color: '#9ca3af' },
+                    { label: 'Solid',   range: '0.4–0.8', mult: '×1.3', color: '#86efac' },
+                    { label: 'Deep',    range: '≥ 0.8',   mult: '×1.6', color: '#4ade80' },
+                  ];
 
                   return (
                     <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 mt-2">
@@ -10463,151 +11584,176 @@ export default function QiBraceletPage() {
                           className="text-[9px] font-mono text-green-400/70 hover:text-green-300 transition-colors px-1.5 py-0.5 rounded border border-green-700/30 hover:border-green-500/50 bg-green-900/20"
                         >MD</button>
                       </div>
-                      <div className="text-[10px] text-gray-300 mb-3">
-                        <span className="text-white font-semibold">Layer 1</span> — per-pillar influence weight × seasonal factor → root points per element.{' '}
-                        <span className="text-white font-semibold">Layer 2</span> — total root points → tier → multiplier applied to ALL pillars for that element.
-                      </div>
 
-                      {/* Influence weight legend */}
+                      {/* Formula + explanation */}
+                      <div className="text-[10px] text-gray-300 mb-2">
+                        Root score per branch = <span className="text-white font-mono">hiddenPct × pillarWeight × seasonFactor</span>.{' '}
+                        Sum across all branches → tier → chart-wide multiplier (M1).
+                      </div>
                       <div className="flex gap-3 text-[9px] text-gray-300 mb-3 font-mono">
-                        <span>Pillar root weights:</span>
+                        <span>Pillar weights:</span>
                         {Object.entries(rootWeights).map(([l, w]) => (
                           <span key={l} className="text-white/80">{l}={w}</span>
                         ))}
                       </div>
 
-                      {/* Per-element breakdown */}
+                      {/* Per-element cards */}
                       <div className="space-y-3">
                         {breakdown.map(d => {
-                          const tierColor = d.multiplier >= 1.6 ? '#4ade80' : d.multiplier >= 1.3 ? '#86efac' : d.multiplier > 0.7 ? '#9ca3af' : '#f87171';
-                          const tierLabel = d.multiplier >= 1.6 ? 'Deep root' : d.multiplier >= 1.3 ? 'Solid root' : d.multiplier > 0.7 ? 'Light root' : 'No root';
+                          const tierColor = d.multiplier >= 1.6 ? '#4ade80' : d.multiplier >= 1.3 ? '#86efac' : d.multiplier >= 1.0 ? '#9ca3af' : '#f87171';
+                          const tierLabel = d.tierLabel || (d.multiplier >= 1.6 ? 'Deep root' : d.multiplier >= 1.3 ? 'Solid root' : d.multiplier >= 1.0 ? 'Light root' : 'No root');
+
+                          // Build all-4-pillars view (show 0.000 for pillars with no branch contribution)
+                          const pillarContribs = {};
+                          ['Year', 'Month', 'Day', 'Hour'].forEach(p => { pillarContribs[p] = []; });
+                          d.perBranch.forEach(s => { pillarContribs[s.pillar].push(s); });
+
                           return (
-                            <div key={d.element} className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                              {/* Element header with tier */}
-                              <div className="flex items-center justify-between mb-1.5">
+                            <div key={d.element} className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
+                              {/* Header: Element + score + tier */}
+                              <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs font-bold" style={{ color: ELEM_COLORS[d.element] }}>{d.element}</span>
-                                  <span className="text-[10px] font-mono text-white/80">pts={d.points.toFixed(2)}</span>
+                                  <span className="text-[10px] font-mono text-white/70">Root Score: <span className="text-white font-semibold">{d.points.toFixed(3)}</span></span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-semibold" style={{ color: tierColor }}>{tierLabel}</span>
-                                  <span className="text-[10px] font-mono font-bold" style={{ color: tierColor }}>×{d.multiplier}</span>
-                                </div>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ color: tierColor, backgroundColor: tierColor + '15', border: `1px solid ${tierColor}40` }}>
+                                  {tierLabel} ×{d.multiplier}
+                                </span>
                               </div>
 
-                              {/* Root point bar */}
-                              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-1.5">
-                                <div className="h-full rounded-full" style={{
-                                  width: `${Math.min(100, (d.points / 3.0) * 100)}%`,
-                                  backgroundColor: tierColor, opacity: 0.7,
-                                }} />
-                              </div>
-
-                              {/* Per-branch sources */}
+                              {/* Per-branch contribution table */}
                               {d.perBranch.length > 0 ? (
-                                <div className="space-y-0.5">
-                                  {d.perBranch.map((s, i) => (
-                                    <div key={i} className="flex items-center justify-between text-[9px] font-mono text-gray-300">
-                                      <span>
-                                        <span className="text-white/80">{s.pillar}</span>/{s.branchChar}{s.animal}{' '}
-                                        <span style={{ color: ELEM_COLORS[d.element] }}>{s.stemChar}</span>({s.pct}%)
-                                      </span>
-                                      <span>
-                                        w={s.weight} × S = <span className="text-white font-semibold">{s.contribution.toFixed(2)}</span>
-                                      </span>
-                                    </div>
-                                  ))}
+                                <div className="rounded border border-white/10 overflow-hidden mb-2">
+                                  <table className="w-full text-[10px] font-mono">
+                                    <thead>
+                                      <tr className="bg-white/5 text-gray-300">
+                                        <th className="px-2 py-1 text-left">Pillar</th>
+                                        <th className="px-2 py-1 text-center">Branch</th>
+                                        <th className="px-2 py-1 text-center">Hidden%</th>
+                                        <th className="px-2 py-1 text-center">Influence</th>
+                                        <th className="px-2 py-1 text-center">Season</th>
+                                        <th className="px-2 py-1 text-right">Root pts</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {['Year', 'Month', 'Day', 'Hour'].map(p => {
+                                        const sources = pillarContribs[p];
+                                        if (sources.length === 0) {
+                                          return (
+                                            <tr key={p} className="border-t border-white/5 text-gray-500">
+                                              <td className="px-2 py-1">{p}</td>
+                                              <td className="px-2 py-1 text-center">—</td>
+                                              <td className="px-2 py-1 text-center">0%</td>
+                                              <td className="px-2 py-1 text-center">{rootWeights[p]}</td>
+                                              <td className="px-2 py-1 text-center">—</td>
+                                              <td className="px-2 py-1 text-right">0.000</td>
+                                            </tr>
+                                          );
+                                        }
+                                        return sources.map((s, si) => (
+                                          <tr key={`${p}-${si}`} className="border-t border-white/5">
+                                            <td className="px-2 py-1 text-white/80">{s.pillar}</td>
+                                            <td className="px-2 py-1 text-center">
+                                              {s.branchChar}{s.animal}{' '}
+                                              <span style={{ color: ELEM_COLORS[d.element] }}>{s.stemChar}</span>
+                                            </td>
+                                            <td className="px-2 py-1 text-center text-white/80">{s.pct}%</td>
+                                            <td className="px-2 py-1 text-center text-amber-300">{s.weight}</td>
+                                            <td className="px-2 py-1 text-center text-cyan-300">{s.seasonFactor}</td>
+                                            <td className="px-2 py-1 text-right text-white font-semibold">{s.contribution.toFixed(3)}</td>
+                                          </tr>
+                                        ));
+                                      })}
+                                      {/* Total row */}
+                                      <tr className="border-t border-white/10 bg-white/[0.03]">
+                                        <td colSpan={5} className="px-2 py-1 text-right text-gray-300 font-semibold">Total root score</td>
+                                        <td className="px-2 py-1 text-right font-bold" style={{ color: ELEM_COLORS[d.element] }}>{d.points.toFixed(3)}</td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
                                 </div>
                               ) : (
-                                <div className="text-[9px] text-red-400/70">No root found in any branch — element is floating</div>
+                                <div className="text-[10px] text-red-400/70 mb-2">No root found in any branch — element is floating</div>
                               )}
+
+                              {/* Threshold comparison */}
+                              <div className="text-[10px] text-gray-300 font-mono">
+                                <span className="text-white/80">{d.points.toFixed(3)}</span>
+                                {' → '}
+                                <span style={{ color: tierColor }} className="font-semibold">{tierLabel}</span>
+                                {' → all '}
+                                <span style={{ color: ELEM_COLORS[d.element] }}>{d.element}</span>
+                                {' Qi multiplied by '}
+                                <span style={{ color: tierColor }} className="font-bold">×{d.multiplier}</span>
+                              </div>
                             </div>
                           );
                         })}
                       </div>
 
                       {/* Tier legend */}
-                      <div className="flex gap-4 mt-3 text-[9px] text-gray-300">
-                        {[
-                          { label: 'No root', pts: '<0.3', mult: '×0.7', color: '#f87171' },
-                          { label: 'Light', pts: '0.3–0.8', mult: '×1.0', color: '#9ca3af' },
-                          { label: 'Solid', pts: '0.8–1.6', mult: '×1.3', color: '#86efac' },
-                          { label: 'Deep', pts: '≥1.6', mult: '×1.6', color: '#4ade80' },
-                        ].map(t => (
-                          <span key={t.label} className="flex items-center gap-1">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }} />
-                            <span>{t.label} ({t.pts}) {t.mult}</span>
-                          </span>
-                        ))}
+                      <div className="mt-3 rounded border border-white/10 bg-white/[0.02] p-2">
+                        <div className="text-[9px] text-gray-400 font-semibold mb-1">Rooting Tiers</div>
+                        <div className="flex gap-4 text-[9px] text-gray-300">
+                          {tierThresholds.map(t => (
+                            <span key={t.label} className="flex items-center gap-1">
+                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }} />
+                              <span>{t.label} ({t.range}) {t.mult}</span>
+                            </span>
+                          ))}
+                        </div>
                       </div>
 
-                      {/* Double Multiplier Summary — per pillar × per element */}
+                      {/* Double Multiplier Matrix — M1 & M2 per element × pillar */}
                       <div className="mt-4 border-t border-white/10 pt-3">
                         <div className="text-[10px] font-semibold text-green-300 mb-1">Double Multiplier Per Pillar</div>
-                        <div className="text-[9px] text-gray-300 mb-2">
-                          <span className="text-cyan-300 font-semibold">M1</span> = Rooting Tier (chart-wide multiplier applied to raw Qi).{' '}
-                          <span className="text-amber-300 font-semibold">M2</span> = Pillar Influence (Grok weights — per-pillar rooting contribution).{' '}
-                          <span className="text-white font-semibold">Combined</span> = Raw × M1 × M2 = Rooted Qi.
+                        <div className="text-[10px] text-gray-300 mb-2">
+                          <span className="text-cyan-300 font-semibold">M1</span> = Rooting Tier (chart-wide, per element).{' '}
+                          <span className="text-amber-300 font-semibold">M2</span> = Pillar Root Weight (per pillar).{' '}
+                          Cell = <span className="text-white font-semibold">M1 × M2</span>.
                         </div>
 
                         <div className="rounded border border-white/10 overflow-hidden">
-                          <table className="w-full text-[9px] font-mono">
+                          <table className="w-full text-[10px] font-mono">
                             <thead>
                               <tr className="bg-white/5 text-gray-200">
                                 <th className="px-2 py-1.5 text-left">Element</th>
                                 {['Year', 'Month', 'Day', 'Hour'].map(p => (
                                   <th key={p} className="px-2 py-1.5 text-center">
                                     {p}<br/>
-                                    <span className="text-[8px] text-gray-400">w={rootWeights[p]}</span>
+                                    <span className="text-[9px] text-amber-300/70">M2={rootWeights[p]}</span>
                                   </th>
                                 ))}
-                                <th className="px-2 py-1.5 text-center">Total<br/><span className="text-[8px] text-amber-300">M2 pts</span></th>
-                                <th className="px-2 py-1.5 text-center">Tier<br/><span className="text-[8px] text-cyan-300">M1 ×</span></th>
+                                <th className="px-2 py-1.5 text-center text-cyan-300">M1</th>
                               </tr>
                             </thead>
                             <tbody>
                               {breakdown.map(d => {
-                                const tierColor = d.multiplier >= 1.6 ? '#4ade80' : d.multiplier >= 1.3 ? '#86efac' : d.multiplier >= 1.0 ? '#9ca3af' : '#f87171';
-                                const tierLabel = d.multiplier >= 1.6 ? 'Deep' : d.multiplier >= 1.3 ? 'Solid' : d.multiplier >= 1.0 ? 'Light' : 'None';
-                                // Build per-pillar sources lookup
-                                const pillarSources = {};
-                                ['Year', 'Month', 'Day', 'Hour'].forEach(p => { pillarSources[p] = []; });
-                                d.perBranch.forEach(s => { pillarSources[s.pillar].push(s); });
+                                const m1 = d.multiplier;
+                                const tierColor = m1 >= 1.6 ? '#4ade80' : m1 >= 1.3 ? '#86efac' : m1 >= 1.0 ? '#9ca3af' : '#f87171';
+                                const tierLabel = m1 >= 1.6 ? 'Deep' : m1 >= 1.3 ? 'Solid' : m1 >= 1.0 ? 'Light' : 'None';
 
                                 return (
                                   <tr key={d.element} className="border-t border-white/5">
-                                    <td className="px-2 py-1 font-semibold" style={{ color: ELEM_COLORS[d.element] }}>{d.element}</td>
+                                    <td className="px-2 py-1.5 font-semibold" style={{ color: ELEM_COLORS[d.element] }}>{d.element}</td>
                                     {['Year', 'Month', 'Day', 'Hour'].map(p => {
-                                      const sources = pillarSources[p];
-                                      if (sources.length === 0) {
-                                        return <td key={p} className="px-2 py-1 text-center"><span className="text-gray-500">—</span></td>;
-                                      }
-                                      const total = sources.reduce((s, x) => s + x.contribution, 0);
+                                      const m2 = rootWeights[p];
+                                      const combined = m1 * m2;
+                                      const color = combined > 1.0 ? '#4ade80' : combined < 1.0 ? '#f87171' : '#9ca3af';
                                       return (
-                                        <td key={p} className="px-2 py-1 text-center">
-                                          <div className="text-amber-300 font-semibold">{total.toFixed(2)}</div>
-                                          {sources.map((s, si) => (
-                                            <div key={si} className="text-[7px] text-gray-400 leading-tight">
-                                              {s.weight}×{s.seasonFactor?.toFixed(2) ?? '?'}
-                                            </div>
-                                          ))}
+                                        <td key={p} className="px-2 py-1.5 text-center font-semibold" style={{ color }}>
+                                          {combined.toFixed(2)}
                                         </td>
                                       );
                                     })}
-                                    <td className="px-2 py-1 text-center text-amber-300 font-semibold">{d.points.toFixed(2)}</td>
-                                    <td className="px-2 py-1 text-center font-bold" style={{ color: tierColor }}>
-                                      {tierLabel} ×{d.multiplier}
+                                    <td className="px-2 py-1.5 text-center font-bold" style={{ color: tierColor }}>
+                                      {tierLabel} ×{m1}
                                     </td>
                                   </tr>
                                 );
                               })}
                             </tbody>
                           </table>
-                        </div>
-
-                        <div className="text-[9px] text-gray-300 mt-2">
-                          Read across: each cell shows how much that pillar's branch contributed to this element's root points (M1).
-                          The last column shows the resulting chart-wide tier multiplier (M2) applied to ALL pillars for that element.
                         </div>
                       </div>
                     </div>
@@ -10666,18 +11812,82 @@ export default function QiBraceletPage() {
                 );
               })()}
 
+              {/* Q PILLAR PREVIEW — Happiness engine verification harness */}
+              {qiMatrix && userTfq && chart?.pillars?.[2]?.stem?.char && (
+                <QPillarPreviewPanel
+                  userTfq={userTfq}
+                  dayStemChar={chart.pillars[2].stem.char}
+                  dmPolarity={qiMatrix.dayMasterPolarity}
+                  dmElement={qiMatrix.dayMasterElement}
+                  birthMonthBranch={chart.pillars[1]?.branch?.char}
+                  dmStrengthScore={dmStrengthScore}
+                  sunSign={profileWestern?.sunSign}
+                  moonSign={profileWestern?.moonSign}
+                />
+              )}
+
+              {/* C PILLAR PREVIEW — Cognition verification harness */}
+              {qiMatrix && userTfq && (
+                <CPillarPreviewPanel
+                  userTfq={userTfq}
+                  dmPolarity={qiMatrix.dayMasterPolarity}
+                  profileWestern={profileWestern}
+                />
+              )}
+
               {/* Day Master Strength — Full Gauntlet */}
               {qiMatrix && userTfq && (
                 <DayMasterStrengthPanel chart={chart} qiMatrix={qiMatrix} userTfq={userTfq} />
               )}
 
-              {/* Extreme Archetype — appears when DM < 10 or > 90 */}
+              {/* DM Archetype — appears for all DM strength levels */}
               {qiMatrix && userTfq && dmStrengthScore != null && (
                 <ExtremeArchetypePanel
                   dmElement={qiMatrix.dayMasterElement}
                   dmScore={dmStrengthScore}
                   isYang={qiMatrix.dayMasterPolarity === 'Yang'}
                   userTfq={userTfq}
+                />
+              )}
+
+              {/* Ten Gods — Strength Profile */}
+              {qiMatrix && (
+                <TenGodsStrengthPanel chart={chart} qiMatrix={qiMatrix} />
+              )}
+
+              {/* Personality & Psychology */}
+              {qiMatrix && (
+                <TenGodsPersonalityPanel chart={chart} qiMatrix={qiMatrix} />
+              )}
+
+              {/* Health Risk Profile */}
+              {qiMatrix && (
+                <TenGodsHealthPanel chart={chart} qiMatrix={qiMatrix} />
+              )}
+
+              {/* Life Blueprint */}
+              {qiMatrix && (
+                <LifeBlueprintPanel chart={chart} qiMatrix={qiMatrix} />
+              )}
+
+              {/* Relationship Blueprint */}
+              {qiMatrix && (
+                <RelationshipBlueprintPanel
+                  chart={chart}
+                  qiMatrix={qiMatrix}
+                  profiles={profiles}
+                  selectedProfileId={selectedProfileId}
+                  calculateBaZiFn={calculateBaZi}
+                />
+              )}
+
+              {/* Luck Pillar Timeline */}
+              {qiMatrix && daYunResult && (
+                <LuckPillarTimelinePanel
+                  chart={chart}
+                  qiMatrix={qiMatrix}
+                  daYunResult={daYunResult}
+                  selectedYear={selectedYear}
                 />
               )}
 

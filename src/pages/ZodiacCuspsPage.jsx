@@ -9,13 +9,16 @@
  * December 31, 2025
  */
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import cuspsData from '../data/westernZodiacCusps.json';
 import CUSP_EXTENDED_PROFILES from '../data/cuspExtendedProfiles';
-import { COMPATIBILITY_MATRIX, MATRIX_SHORT_LABELS, MATRIX_LABELS, CUSP_ID_TO_INDEX } from '../data/cuspCompatibilityMatrix';
-import { COMPUTED_MATRIX, getLayerBreakdown, interpretPair, ARCHETYPE_PROFILES } from '../utils/zodiacCompatibilityEngine';
+import { MATRIX_SHORT_LABELS, MATRIX_LABELS, CUSP_ID_TO_INDEX } from '../data/cuspCompatibilityMatrix';
+import { MACRO_SYSTEMS, COSMOGRAM_ROWS } from '../data/organCosmogram';
+import { COSMOGRAM_SYSTEM_UI } from '../data/cosmogramUI';
+import { COMPUTED_MATRIX, getLayerBreakdown, interpretPair, computeRelationshipHealth, RHS_STATS, ARCHETYPE_PROFILES } from '../utils/zodiacCompatibilityEngine';
 import { useProfiles } from '../contexts/ProfileContext';
+const RelationshipHealthSpace = lazy(() => import('../components/zodiac/RelationshipHealthSpace'));
 
 // Sign emojis (zodiac symbols)
 const SIGN_EMOJIS = {
@@ -274,7 +277,7 @@ function ExtendedProfileWindow({ cusp, onClose }) {
 
 // Individual cusp card component
 // Floating 36×36 Compatibility Matrix Viewer
-function CompatibilityMatrixWindow({ onClose }) {
+function CompatibilityMatrixWindow({ onClose, onDetailCusp }) {
   const [pos, setPos] = useState({ x: 20, y: 20 });
   const [dragging, setDragging] = useState(false);
   const [hoveredCell, setHoveredCell] = useState(null);
@@ -282,10 +285,23 @@ function CompatibilityMatrixWindow({ onClose }) {
   const [tipPos, setTipPos] = useState({ x: 60, y: 50 });
   const [tipDragging, setTipDragging] = useState(false);
   const tipDragOffset = useRef({ x: 0, y: 0 });
-  const [matrixMode, setMatrixMode] = useState('handwritten'); // 'handwritten' | 'computed' | 'diff' | 'theory'
+  const [matrixMode, setMatrixMode] = useState('computed'); // 'computed' | 'theory'
+  const [show3D, setShow3D] = useState(false);
+  const [constellationIdx, setConstellationIdx] = useState(null); // null = matrix, number = constellation for that row
+  const [constellationCard, setConstellationCard] = useState(null); // clicked circle index
+  const [hoveredNode, setHoveredNode] = useState(null); // { idx, x, y } for constellation tooltip
+  const [cardPos, setCardPos] = useState({ x: -1, y: -1 }); // -1 = default position
+  const [cardDragging, setCardDragging] = useState(false);
+  const cardDragOffset = useRef({ x: 0, y: 0 });
   const [profileA, setProfileA] = useState(null);
   const [profileB, setProfileB] = useState(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [labMode, setLabMode] = useState(false);
+  const [labA, setLabA] = useState(-1); // cusp index for lab Person A
+  const [labB, setLabB] = useState(-1); // cusp index for lab Person B
+  const [bdPos, setBdPos] = useState({ x: 80, y: 60 });
+  const [bdDragging, setBdDragging] = useState(false);
+  const bdDragOffset = useRef({ x: 0, y: 0 });
   const dragOffset = useRef({ x: 0, y: 0 });
 
   let profiles = [];
@@ -308,12 +324,46 @@ function CompatibilityMatrixWindow({ onClose }) {
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
   }, [tipDragging]);
 
+  // Breakdown popup drag handlers
+  const onBdMouseDown = useCallback((e) => {
+    if (e.target.closest('button') || e.target.closest('select') || e.target.closest('a')) return;
+    bdDragOffset.current = { x: e.clientX - bdPos.x, y: e.clientY - bdPos.y };
+    setBdDragging(true);
+    e.stopPropagation();
+  }, [bdPos]);
+
+  useEffect(() => {
+    if (!bdDragging) return;
+    const onMove = (e) => setBdPos({ x: e.clientX - bdDragOffset.current.x, y: e.clientY - bdDragOffset.current.y });
+    const onUp = () => setBdDragging(false);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [bdDragging]);
+
+  // Constellation card drag handlers
+  const onCardMouseDown = useCallback((e) => {
+    if (e.target.closest('button')) return;
+    const rect = e.currentTarget.closest('[data-card-panel]')?.getBoundingClientRect();
+    if (!rect) return;
+    cardDragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    setCardDragging(true);
+    e.stopPropagation();
+  }, []);
+
+  useEffect(() => {
+    if (!cardDragging) return;
+    const onMove = (e) => setCardPos({ x: e.clientX - cardDragOffset.current.x, y: e.clientY - cardDragOffset.current.y });
+    const onUp = () => setCardDragging(false);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [cardDragging]);
+
   // The active cell for the tooltip: pinned takes priority over hovered
   const activeCell = pinnedCell || hoveredCell;
 
-  const activeMatrix = matrixMode === 'computed' ? COMPUTED_MATRIX
-    : matrixMode === 'diff' ? COMPATIBILITY_MATRIX.map((row, r) => row.map((v, c) => v - COMPUTED_MATRIX[r][c]))
-    : COMPATIBILITY_MATRIX;
+  const activeMatrix = COMPUTED_MATRIX;
 
   const onMouseDown = useCallback((e) => {
     if (e.target.closest('button')) return;
@@ -352,33 +402,43 @@ function CompatibilityMatrixWindow({ onClose }) {
       >
         <div className="flex items-center gap-2">
           <span>📊</span>
-          <span className="text-sm font-semibold text-white">36×36 Directional Compatibility Matrix</span>
-          <span className="text-[10px] text-white/40 ml-2">
-            {matrixMode === 'handwritten' ? 'Hand-Written (v0) — Intuition-based'
-             : matrixMode === 'computed' ? 'Computed (v1) — Wu Xing Engine'
-             : matrixMode === 'diff' ? 'Delta (v0 − v1) — Divergence Map'
-             : 'Methodology & Worked Examples'}
+          <span className="text-sm font-semibold text-white">
+            {constellationIdx != null
+              ? (() => {
+                  const _a = labMode ? labA : (profileA ? dateToCuspIndex(profileA.birthDate) : -1);
+                  const _b = labMode ? labB : (profileB ? dateToCuspIndex(profileB.birthDate) : -1);
+                  return (_a >= 0 && _b >= 0 && _a !== _b) ? 'Dual Constellation' : `${MATRIX_LABELS[constellationIdx]} — Constellation`;
+                })()
+              : '36×36 Directional Compatibility Matrix'}
           </span>
+          <span className="text-[10px] text-white/40 ml-2">Computed (v1) — Wu Xing Engine</span>
         </div>
         <div className="flex items-center gap-1 mr-3">
-          <button onClick={() => setMatrixMode('handwritten')}
+          {constellationIdx != null && (
+            <button onClick={() => { setConstellationIdx(null); setConstellationCard(null); }}
+              className="px-2.5 py-1 text-[10px] font-semibold rounded transition-colors bg-amber-500/30 text-amber-300 border border-amber-500/40">
+              ← Matrix
+            </button>
+          )}
+          {constellationIdx == null && (() => {
+            const _iA = labMode ? labA : (profileA ? dateToCuspIndex(profileA.birthDate) : -1);
+            const _iB = labMode ? labB : (profileB ? dateToCuspIndex(profileB.birthDate) : -1);
+            const hasDual = _iA >= 0 && _iB >= 0 && _iA !== _iB;
+            const hasSingle = _iA >= 0 || _iB >= 0;
+            if (!hasSingle) return null;
+            return (
+              <button onClick={() => { setConstellationIdx(hasDual ? _iA : (_iA >= 0 ? _iA : _iB)); setConstellationCard(null); }}
+                className="px-2.5 py-1 text-[10px] font-semibold rounded transition-colors bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25">
+                {hasDual ? '✦ Dual Constellation' : '✦ Constellation'}
+              </button>
+            );
+          })()}
+          <button onClick={() => setShow3D(!show3D)}
             className={`px-2.5 py-1 text-[10px] font-semibold rounded transition-colors ${
-              matrixMode === 'handwritten'
-                ? 'bg-purple-500/30 text-purple-300 border border-purple-500/40'
+              show3D
+                ? 'bg-pink-500/30 text-pink-300 border border-pink-500/40'
                 : 'bg-white/5 text-white/40 border border-white/10 hover:bg-white/10'
-            }`}>v0 Hand</button>
-          <button onClick={() => setMatrixMode('computed')}
-            className={`px-2.5 py-1 text-[10px] font-semibold rounded transition-colors ${
-              matrixMode === 'computed'
-                ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
-                : 'bg-white/5 text-white/40 border border-white/10 hover:bg-white/10'
-            }`}>v1 Computed</button>
-          <button onClick={() => setMatrixMode('diff')}
-            className={`px-2.5 py-1 text-[10px] font-semibold rounded transition-colors ${
-              matrixMode === 'diff'
-                ? 'bg-amber-500/30 text-amber-300 border border-amber-500/40'
-                : 'bg-white/5 text-white/40 border border-white/10 hover:bg-white/10'
-            }`}>Δ Delta</button>
+            }`}>3D</button>
           <button onClick={() => setMatrixMode('theory')}
             className={`px-2.5 py-1 text-[10px] font-semibold rounded transition-colors ${
               matrixMode === 'theory'
@@ -395,7 +455,7 @@ function CompatibilityMatrixWindow({ onClose }) {
         const letGo = () => { if (!pinnedCell) setHoveredCell(null); };
         const cell = activeCell;
         const isPinned = !!pinnedCell;
-        const bd = (matrixMode === 'computed' || matrixMode === 'handwritten') ? getLayerBreakdown(cell.r, cell.c) : null;
+        const bd = getLayerBreakdown(cell.r, cell.c);
         const interp = bd ? interpretPair(cell.r, cell.c) : null;
         const rev = activeMatrix[cell.c]?.[cell.r];
 
@@ -419,20 +479,6 @@ function CompatibilityMatrixWindow({ onClose }) {
             </div>
 
             <div className="px-3 py-2 space-y-1.5">
-              {matrixMode === 'diff' ? (
-                <>
-                  <div className="text-white/70">
-                    Hand-written: <span className="font-bold text-purple-300">{COMPATIBILITY_MATRIX[cell.r][cell.c]}</span>
-                    {' — '}Computed: <span className="font-bold text-emerald-300">{COMPUTED_MATRIX[cell.r][cell.c]}</span>
-                  </div>
-                  <div className="text-white/50">
-                    Delta: <span className={`font-bold ${cell.v > 0 ? 'text-amber-300' : cell.v < 0 ? 'text-cyan-300' : 'text-white/50'}`}>
-                      {cell.v > 0 ? '+' : ''}{cell.v}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <>
                   {/* Score + tier */}
                   <div className="text-white/70">
                     Score: <span className="font-bold" style={{ color: getTier(cell.v).color }}>{cell.v}</span>
@@ -461,6 +507,9 @@ function CompatibilityMatrixWindow({ onClose }) {
                       {bd.dampener < 1 && (
                         <div className="text-white/60 pt-0.5 border-t border-white/5">Dampener: <span className="text-red-300 font-mono">×{bd.dampener}</span></div>
                       )}
+                      {bd.resonance > 0 && (
+                        <div className="text-white/60">Resonance: <span className="text-amber-300 font-mono">+{bd.resonance}</span></div>
+                      )}
                     </div>
                   )}
 
@@ -481,8 +530,6 @@ function CompatibilityMatrixWindow({ onClose }) {
                       )}
                     </div>
                   )}
-                </>
-              )}
             </div>
           </div>
         );
@@ -538,8 +585,9 @@ function CompatibilityMatrixWindow({ onClose }) {
           {/* ── The Formula ── */}
           <section className="space-y-3">
             <h3 className="text-sm font-bold text-sky-300 uppercase tracking-wider">The Formula</h3>
-            <div className="bg-slate-800/80 rounded-lg p-3 font-mono text-[12px] text-center text-white">
-              Score(A→B) = (0.25·E + 0.15·M + 0.15·A + 0.20·Q + 0.25·P) × dampener → rescale to 48–97
+            <div className="bg-slate-800/80 rounded-lg p-3 font-mono text-[12px] text-center text-white space-y-1">
+              <div>Score(A→B) = (0.25·E + 0.15·M + 0.15·A + 0.20·Q + 0.25·P) × dampener + <span className="text-amber-300">resonance</span></div>
+              <div className="text-white/40 text-[10px]">→ rescale to 48–97</div>
             </div>
           </section>
 
@@ -918,36 +966,32 @@ function CompatibilityMatrixWindow({ onClose }) {
 
           {/* ── Distribution Comparison ── */}
           <section className="space-y-3">
-            <h3 className="text-sm font-bold text-sky-300 uppercase tracking-wider">Distribution Comparison</h3>
+            <h3 className="text-sm font-bold text-sky-300 uppercase tracking-wider">Distribution</h3>
             <table className="text-[12px] border-collapse">
               <thead>
                 <tr className="text-left border-b border-white/20">
-                  <th className="py-1.5 px-3 text-white/50">Metric</th>
-                  <th className="py-1.5 px-3 text-purple-300">v0 Hand-Written</th>
-                  <th className="py-1.5 px-3 text-emerald-300">v1 Computed</th>
+                  <th className="py-1.5 px-3 text-white/50">Tier</th>
+                  <th className="py-1.5 px-3 text-emerald-300">Target</th>
                 </tr>
               </thead>
               <tbody className="text-white/70 font-mono">
-                <tr className="border-b border-white/5"><td className="py-1 px-3 font-sans">Range</td><td className="py-1 px-3">58 – 97</td><td className="py-1 px-3 text-white/40">Real-life target: 45–97</td></tr>
-                <tr className="border-b border-white/5"><td className="py-1 px-3 font-sans">Average</td><td className="py-1 px-3">79.2</td><td className="py-1 px-3 text-white/40"></td></tr>
-                <tr className="border-b border-white/5"><td className="py-1 px-3 font-sans">A Tier (90+)</td><td className="py-1 px-3">122 (9.4%)</td><td className="py-1 px-3 text-white/40">Target: 5–8%</td></tr>
-                <tr className="border-b border-white/5"><td className="py-1 px-3 font-sans">B Tier (80-89)</td><td className="py-1 px-3">487 (37.6%)</td><td className="py-1 px-3 text-white/40">Target: 20–30%</td></tr>
-                <tr className="border-b border-white/5"><td className="py-1 px-3 font-sans">C Tier (70-79)</td><td className="py-1 px-3">569 (43.9%)</td><td className="py-1 px-3 text-white/40">Target: 40–50%</td></tr>
-                <tr className="border-b border-white/5"><td className="py-1 px-3 font-sans">D Tier (60-69)</td><td className="py-1 px-3">114 (8.8%)</td><td className="py-1 px-3 text-white/40">Target: 15–25%</td></tr>
-                <tr><td className="py-1 px-3 font-sans">E+F (&lt;60)</td><td className="py-1 px-3">4 (0.3%)</td><td className="py-1 px-3 text-white/40">Target: 5–10%</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-3 font-sans">A Tier (90+)</td><td className="py-1 px-3">5–8%</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-3 font-sans">B Tier (80-89)</td><td className="py-1 px-3">20–30%</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-3 font-sans">C Tier (70-79)</td><td className="py-1 px-3">40–50%</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-3 font-sans">D Tier (60-69)</td><td className="py-1 px-3">15–25%</td></tr>
+                <tr><td className="py-1 px-3 font-sans">E+F (&lt;60)</td><td className="py-1 px-3">5–10%</td></tr>
               </tbody>
             </table>
-            <p className="text-[11px] text-white/40">C-tier is the center of gravity (44%) — most human relationships are workable but not exceptional. A-tier is rare (9.4%). D-tier exists (8.8%) — the engine lets itself be honest about difficult pairings. No score hits 100 (capped at 97).</p>
+            <p className="text-[11px] text-white/40">C-tier is the center of gravity — most human relationships are workable but not exceptional. A-tier is rare. D-tier exists — the engine lets itself be honest about difficult pairings. No score hits 100 (capped at 97).</p>
           </section>
 
-          {/* ── What the delta map tells you ── */}
+          {/* ── Matrix Analytics ── */}
           <section className="space-y-2">
-            <h3 className="text-sm font-bold text-sky-300 uppercase tracking-wider">Reading the Delta Map</h3>
+            <h3 className="text-sm font-bold text-sky-300 uppercase tracking-wider">Matrix Analytics</h3>
             <p className="text-[12px] text-white/70">
-              The <strong className="text-amber-300">Δ Delta</strong> view shows (hand-written − computed) for every cell.
-              <strong className="text-amber-300"> Amber (+)</strong> = hand-written was more generous.
-              <strong className="text-cyan-300"> Cyan (−)</strong> = computed scored higher.
-              Large deltas reveal where intuition and physics diverge — the most interesting cells to investigate.
+              <strong className="text-amber-300">A-tier ↓ (gold row)</strong> = how many signs score 90+ <em>toward</em> each archetype — measures social openness / likability.
+              <strong className="text-emerald-300"> Mutual A ↕ (green row)</strong> = pairs where both directions score 90+ — measures true deep reciprocal compatibility.
+              Only ~25% of A-tier feelings are mutual. Being liked is not the same as being compatible.
             </p>
           </section>
 
@@ -968,28 +1012,790 @@ function CompatibilityMatrixWindow({ onClose }) {
             </ul>
           </section>
 
+          {/* ── Mythic Resonance ── */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-bold text-amber-300 uppercase tracking-wider">Mythic Resonance (Locked Rule)</h3>
+            <p className="text-[12px] text-white/70">
+              A <strong className="text-white">post-dampener bonus</strong> that rewards archetypes sharing the same mythic function.
+              Applied after all 5 layers are computed and dampened, before final rescale.
+              This is <strong className="text-amber-300">tribal resonance</strong> — Warriors understand Warriors, Builders understand Builders.
+            </p>
+
+            <div className="bg-slate-800/80 rounded-lg p-3 font-mono text-[12px] text-center text-white">
+              WithResonance = Dampened + ResonanceBonus
+            </div>
+
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+              <div className="font-bold text-amber-300 text-xs mb-2">Resonance fires ONLY when:</div>
+              <div className="text-[12px] text-white/70 space-y-1.5">
+                <div><strong className="text-white">1. Same mythic function</strong> (primary requirement)</div>
+                <div className="ml-4 text-white/50">AND one of:</div>
+                <div className="ml-4"><strong className="text-amber-300">Same modality → +5</strong> <span className="text-white/40">(structural resonance: Fixed+Fixed, Cardinal+Cardinal, Mutable+Mutable)</span></div>
+                <div className="ml-4"><strong className="text-amber-300/70">Same polarity → +3</strong> <span className="text-white/40">(energetic resonance: Yin+Yin, Yang+Yang)</span></div>
+                <div className="ml-4 text-white/40">Neither → 0 (same function alone is not enough)</div>
+              </div>
+            </div>
+
+            {/* 12 Mythic Functions table */}
+            <div className="text-[11px] font-semibold text-white/50 mb-1">The 12 Mythic Functions</div>
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="text-left border-b border-white/20">
+                  <th className="py-1 px-2 text-white/50">Sign Triad</th>
+                  <th className="py-1 px-2 text-white/50">Mythic Function</th>
+                  <th className="py-1 px-2 text-white/50">Archetype Titles</th>
+                </tr>
+              </thead>
+              <tbody className="text-white/70">
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♈ Aries</td><td className="py-1 px-2 text-amber-300 font-semibold">Warrior</td><td className="py-1 px-2">Intuitive Warrior · Primal Warrior · Grounded Pioneer</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♉ Taurus</td><td className="py-1 px-2 text-amber-300 font-semibold">Builder</td><td className="py-1 px-2">Dynamic Builder · Sensual Builder · Articulate Artisan</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♊ Gemini</td><td className="py-1 px-2 text-amber-300 font-semibold">Artisan / Messenger</td><td className="py-1 px-2">Grounded Communicator · Eternal Student · Emotional Storyteller</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♋ Cancer</td><td className="py-1 px-2 text-amber-300 font-semibold">Nurturer</td><td className="py-1 px-2">Curious Nurturer · Divine Mother · Radiant Protector</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♌ Leo</td><td className="py-1 px-2 text-amber-300 font-semibold">Sovereign</td><td className="py-1 px-2">Nurturing Sovereign · Radiant King/Queen · Disciplined Performer</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♍ Virgo</td><td className="py-1 px-2 text-amber-300 font-semibold">Analyst</td><td className="py-1 px-2">Confident Analyst · Sacred Perfectionist · Elegant Analyst</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♎ Libra</td><td className="py-1 px-2 text-amber-300 font-semibold">Diplomat</td><td className="py-1 px-2">Precise Diplomat · Divine Diplomat · Magnetic Harmonizer</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♏ Scorpio</td><td className="py-1 px-2 text-amber-300 font-semibold">Transformer / Alchemist</td><td className="py-1 px-2">Charming Transformer · Phoenix Transformer · Philosophical Transformer</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♐ Sagittarius</td><td className="py-1 px-2 text-amber-300 font-semibold">Explorer / Philosopher</td><td className="py-1 px-2">Deep Adventurer · Joyful Philosopher · Visionary Builder</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♑ Capricorn</td><td className="py-1 px-2 text-amber-300 font-semibold">Strategist / Achiever</td><td className="py-1 px-2">Optimistic Achiever · Mountain Climber · Revolutionary Architect</td></tr>
+                <tr className="border-b border-white/5"><td className="py-1 px-2">♒ Aquarius</td><td className="py-1 px-2 text-amber-300 font-semibold">Visionary / Architect</td><td className="py-1 px-2">Grounded Visionary · Revolutionary Genius · Compassionate Innovator</td></tr>
+                <tr><td className="py-1 px-2">♓ Pisces</td><td className="py-1 px-2 text-amber-300 font-semibold">Mystic / Dreamer</td><td className="py-1 px-2">Visionary Mystic · Mystic Dreamer · Courageous Dreamer</td></tr>
+              </tbody>
+            </table>
+
+            {/* Impact stats */}
+            <div className="bg-slate-800/60 rounded-lg p-3 text-[12px] space-y-1.5">
+              <div className="text-white/50 font-semibold mb-1">Matrix Impact (v2 vs v1)</div>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-white/70">
+                <div>A-tier cells: <span className="text-white">115 → 118</span> <span className="text-amber-300">(+3)</span></div>
+                <div>Mutual A pairs: <span className="text-white">40 → 42</span> <span className="text-amber-300">(+2)</span></div>
+                <div>Pairs with +5 bonus: <span className="text-amber-300 font-mono">1</span></div>
+                <div>Pairs with +3 bonus: <span className="text-amber-300/70 font-mono">11</span></div>
+                <div>Same function, no bonus: <span className="text-white/40 font-mono">24</span></div>
+                <div>Total matrix cells affected: <span className="text-white">12 / 630</span> <span className="text-white/40">(1.9%)</span></div>
+              </div>
+              <p className="text-[11px] text-white/40 pt-1 border-t border-white/5">
+                Resonance is surgical, not inflationary. Only within-triad pairs that were already high-B get tipped into A.
+                Cross-family relationships remain untouched. The bonus is +3 raw (~7 final) or +5 raw (~11 final) — enough to nudge, not distort.
+              </p>
+            </div>
+          </section>
+
+          {/* ── High Emotional Flow ── */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-bold text-pink-300 uppercase tracking-wider">High Emotional Flow</h3>
+            <p className="text-[12px] text-white/70">
+              <strong className="text-white">Emotional flow</strong> = how easily an archetype creates, sustains, and reciprocates emotional resonance.
+              High-flow archetypes produce the most A-tier and Mutual A-tier scores across the matrix.
+              The pattern is driven by <strong className="text-white">Air-Water blends</strong> (thought + feeling fused),
+              <strong className="text-white">Fixed modality</strong> (stable emotional channel),
+              and mythic functions that naturally produce empathy, depth, or relational magnetism.
+            </p>
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="text-left border-b border-white/20">
+                  <th className="py-1 px-2 text-white/50">Rank</th>
+                  <th className="py-1 px-2 text-white/50">Archetype</th>
+                  <th className="py-1 px-2 text-white/50">Flow Type</th>
+                  <th className="py-1 px-2 text-white/50">Why</th>
+                </tr>
+              </thead>
+              <tbody className="text-white/70">
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-pink-300 font-bold">🥇</td>
+                  <td className="py-1 px-2 font-semibold text-white">Aquarius–Pisces</td>
+                  <td className="py-1 px-2 text-pink-300">Empathic Super-Conductor</td>
+                  <td className="py-1 px-2 text-white/60">Air–Water + Fixed + Visionary/Mystic. Absorbs and transmits emotion with no friction.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-pink-300 font-bold">🥈</td>
+                  <td className="py-1 px-2 font-semibold text-white">Pure Scorpio</td>
+                  <td className="py-1 px-2 text-pink-300">Depth-Engine</td>
+                  <td className="py-1 px-2 text-white/60">Water + Fixed + Yin + Alchemist. Pulls emotion inward, creates profound resonance.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-pink-300 font-bold">🥉</td>
+                  <td className="py-1 px-2 font-semibold text-white">Libra–Virgo</td>
+                  <td className="py-1 px-2 text-pink-300">Harmonizer</td>
+                  <td className="py-1 px-2 text-white/60">Air–Earth + Mutable + Analyst/Diplomat. Reads micro-signals, adjusts tone, creates equilibrium.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-pink-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Scorpio–Libra</td>
+                  <td className="py-1 px-2 text-pink-300/70">Magnetic Connector</td>
+                  <td className="py-1 px-2 text-white/60">Water–Air + Fixed + Alchemist/Diplomat. Draws people into honest depth magnetically.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-pink-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Aquarius–Capricorn</td>
+                  <td className="py-1 px-2 text-pink-300/70">Cool-Flow Visionary</td>
+                  <td className="py-1 px-2 text-white/60">Air–Earth + Fixed + Visionary/Strategist. Channels emotion through clarity, not gushing.</td>
+                </tr>
+                <tr>
+                  <td className="py-1 px-2 text-pink-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Gemini–Cancer</td>
+                  <td className="py-1 px-2 text-pink-300/70">Emotional Communicator</td>
+                  <td className="py-1 px-2 text-white/60">Air–Water + Mutable + Messenger/Nurturer. Feels, names, and shares emotion with ease.</td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="text-[11px] text-white/40">
+              Contrast: Taurus–Aries (specialist, narrow band) and Pure Capricorn (architect of time, earned compatibility) have 0 A-tiers — not a flaw, but their nature.
+            </p>
+          </section>
+
+          {/* ── High Psychological Openness ── */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-bold text-violet-300 uppercase tracking-wider">High Psychological Openness</h3>
+            <p className="text-[12px] text-white/70">
+              <strong className="text-white">Psychological openness</strong> = how easily an archetype receives new information, adapts perspectives,
+              allows cognitive/emotional permeability, and accepts novelty and ambiguity.
+              This is NOT the same as emotional flow — it is <strong className="text-white">cognitive + emotional permeability</strong>.
+              High-openness archetypes tend to be <strong className="text-white">Air-Water blends</strong>,
+              <strong className="text-white">Mutable or Fixed-Air</strong> modalities,
+              and carry <strong className="text-white">Visionary, Mystic, Messenger, Diplomat, or Alchemist</strong> functions.
+            </p>
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="text-left border-b border-white/20">
+                  <th className="py-1 px-2 text-white/50">Rank</th>
+                  <th className="py-1 px-2 text-white/50">Archetype</th>
+                  <th className="py-1 px-2 text-white/50">Openness Type</th>
+                  <th className="py-1 px-2 text-white/50">Why</th>
+                </tr>
+              </thead>
+              <tbody className="text-white/70">
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-violet-300 font-bold">🥇</td>
+                  <td className="py-1 px-2 font-semibold text-white">Aquarius–Pisces</td>
+                  <td className="py-1 px-2 text-violet-300">Empathic-Visionary</td>
+                  <td className="py-1 px-2 text-white/60">Air–Water + Fixed + Mystic/Visionary. Most permeable mind — dissolves boundaries, integrates new worldviews effortlessly.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-violet-300 font-bold">🥈</td>
+                  <td className="py-1 px-2 font-semibold text-white">Gemini–Cancer</td>
+                  <td className="py-1 px-2 text-violet-300">Expressive-Adaptive</td>
+                  <td className="py-1 px-2 text-white/60">Air–Water + Mutable + Messenger/Nurturer. Curious, emotionally responsive, linguistically flexible. Shifts perspectives quickly.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-violet-300 font-bold">🥉</td>
+                  <td className="py-1 px-2 font-semibold text-white">Libra–Virgo</td>
+                  <td className="py-1 px-2 text-violet-300">Harmonizing-Analytic</td>
+                  <td className="py-1 px-2 text-white/60">Air–Earth + Mutable + Analyst/Diplomat. Open through listening, adjusting, and refining — attunement-based permeability.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-violet-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Scorpio–Libra</td>
+                  <td className="py-1 px-2 text-violet-300/70">Magnetic-Relational</td>
+                  <td className="py-1 px-2 text-white/60">Water–Air + Fixed + Alchemist/Diplomat. Opens through magnetism — draws others in and absorbs emotional truth.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-violet-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Aquarius–Capricorn</td>
+                  <td className="py-1 px-2 text-violet-300/70">Conceptual-Visionary</td>
+                  <td className="py-1 px-2 text-white/60">Air–Earth + Fixed + Visionary/Strategist. Cognitively open, emotionally selective. Open to ideas, closed to chaos.</td>
+                </tr>
+                <tr>
+                  <td className="py-1 px-2 text-violet-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Sagittarius–Scorpio</td>
+                  <td className="py-1 px-2 text-violet-300/70">Exploratory-Transformational</td>
+                  <td className="py-1 px-2 text-white/60">Fire–Water + Mutable + Explorer/Alchemist. Permeable through philosophy and emotional intensity. Open to truth, depth, excavation.</td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="text-[11px] text-white/40">
+              Note: Aquarius–Pisces ranks #1 in both emotional flow AND psychological openness — the only archetype to top both dimensions. This makes it the zodiac's most permeable, resonant archetype.
+            </p>
+          </section>
+
+          {/* ── High Intuitive Resonance ── */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-bold text-teal-300 uppercase tracking-wider">High Intuitive Resonance</h3>
+            <p className="text-[12px] text-white/70">
+              <strong className="text-white">Intuitive resonance</strong> = how easily an archetype senses unspoken emotional states,
+              reads subtle cues, perceives underlying motives, and connects through non-verbal channels.
+              This is <strong className="text-white">deep, pre-verbal, pattern-level attunement</strong> — not emotional flow, not psychological openness.
+              High-intuitive archetypes tend to be <strong className="text-white">Water or Water-Air blends</strong>,
+              <strong className="text-white">Fixed or Mutable</strong> modalities,
+              and carry <strong className="text-white">Mystic, Alchemist, Visionary, or Nurturer</strong> functions.
+            </p>
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="text-left border-b border-white/20">
+                  <th className="py-1 px-2 text-white/50">Rank</th>
+                  <th className="py-1 px-2 text-white/50">Archetype</th>
+                  <th className="py-1 px-2 text-white/50">Intuition Type</th>
+                  <th className="py-1 px-2 text-white/50">Why</th>
+                </tr>
+              </thead>
+              <tbody className="text-white/70">
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-teal-300 font-bold">🥇</td>
+                  <td className="py-1 px-2 font-semibold text-white">Aquarius–Pisces</td>
+                  <td className="py-1 px-2 text-teal-300">Oracle-Intuition</td>
+                  <td className="py-1 px-2 text-white/60">Air–Water + Fixed + Mystic/Visionary. Reads energetic patterns, emotional undercurrents, and future trajectories.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-teal-300 font-bold">🥈</td>
+                  <td className="py-1 px-2 font-semibold text-white">Pure Scorpio</td>
+                  <td className="py-1 px-2 text-teal-300">Penetrating-Intuition</td>
+                  <td className="py-1 px-2 text-white/60">Water + Fixed + Yin + Alchemist. Senses truth beneath behavior, motives beneath words, emotion beneath silence.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-teal-300 font-bold">🥉</td>
+                  <td className="py-1 px-2 font-semibold text-white">Scorpio–Libra</td>
+                  <td className="py-1 px-2 text-teal-300">Relational-Intuition</td>
+                  <td className="py-1 px-2 text-white/60">Water–Air + Fixed + Alchemist/Diplomat. Reads relational dynamics, power flows, and emotional micro-shifts.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-teal-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Gemini–Cancer</td>
+                  <td className="py-1 px-2 text-teal-300/70">Emotional-Linguistic</td>
+                  <td className="py-1 px-2 text-white/60">Air–Water + Mutable + Messenger/Nurturer. Senses tone, subtext, emotional nuance, and unspoken needs.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-teal-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Pisces–Aquarius</td>
+                  <td className="py-1 px-2 text-teal-300/70">Symbolic-Mystic</td>
+                  <td className="py-1 px-2 text-white/60">Water–Air + Mutable + Mystic/Visionary. Perceives synchronicity, symbolic meaning, and archetypal patterns.</td>
+                </tr>
+                <tr>
+                  <td className="py-1 px-2 text-teal-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Sagittarius–Scorpio</td>
+                  <td className="py-1 px-2 text-teal-300/70">Exploratory-Intuition</td>
+                  <td className="py-1 px-2 text-white/60">Fire–Water + Mutable + Explorer/Alchemist. Senses truth, danger, opportunity, and psychological openings through instinct.</td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="text-[11px] text-white/40">
+              Aquarius–Pisces ranks #1 in all three dimensions: emotional flow, psychological openness, AND intuitive resonance.
+              Pure Scorpio ranks #2 in both emotional flow and intuitive resonance — the depth-engine that perceives what others hide.
+            </p>
+          </section>
+
+          {/* ── Emotional Bonding & Attachment ── */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-bold text-rose-300 uppercase tracking-wider">Emotional Bonding & Attachment Resonance</h3>
+            <p className="text-[12px] text-white/70">
+              A distinct dimension from emotional flow, openness, or intuition.
+              <strong className="text-white">Attachment resonance</strong> = how deeply an archetype bonds, how loyally it holds,
+              and how enduringly it maintains emotional connection over time.
+              This is <strong className="text-white">relational stickiness</strong> — not permeability, not pattern-reading, but the ability to
+              <strong className="text-rose-300">form bonds so deep they become permanent</strong>.
+            </p>
+            <p className="text-[12px] text-white/60">
+              Where other signs <em>flow</em>, <em>intuit</em>, or <em>open</em> — these archetypes <strong className="text-white">bind</strong>.
+              Cancer is the attachment architect: not the widest connector, not the fastest resonator,
+              but the one whose bonds become part of the other person's identity.
+            </p>
+            <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg p-3 text-[12px] text-white/70 space-y-1">
+              <div className="font-bold text-rose-300 text-xs mb-1">Why Cancer dominates this dimension</div>
+              <div>• <strong className="text-white">Cardinal Water</strong> — doesn't just feel, <em>initiates</em> emotional connection</div>
+              <div>• <strong className="text-white">Nurturer function</strong> — the only mythic role built for caring, protecting, soothing</div>
+              <div>• <strong className="text-white">Moon-ruled</strong> — emotional memory, tidal sensitivity, protective instinct</div>
+              <div>• <strong className="text-white">Yin polarity</strong> — internal depth, receptive bonding, relational gravity</div>
+              <div className="pt-1 text-white/40 border-t border-rose-500/10">
+                Cancer's intuition is <em>protective</em>, not perceptive — it senses danger, belonging, and emotional shifts within its circle.
+                Where Scorpio reads, Pisces absorbs, and Aquarius-Pisces translates — Cancer <em>holds</em>.
+              </div>
+            </div>
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="text-left border-b border-white/20">
+                  <th className="py-1 px-2 text-white/50">Rank</th>
+                  <th className="py-1 px-2 text-white/50">Archetype</th>
+                  <th className="py-1 px-2 text-white/50">Bonding Type</th>
+                  <th className="py-1 px-2 text-white/50">Why</th>
+                </tr>
+              </thead>
+              <tbody className="text-white/70">
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-rose-300 font-bold">🥇</td>
+                  <td className="py-1 px-2 font-semibold text-white">Cancer–Gemini Wings</td>
+                  <td className="py-1 px-2 text-rose-300">Expressive-Secure</td>
+                  <td className="py-1 px-2 text-white/60">Water–Air + Mutable + Nurturer/Messenger. Bonds through care + communication. Secure, responsive, emotionally articulate.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-rose-300 font-bold">🥈</td>
+                  <td className="py-1 px-2 font-semibold text-white">Cancer–Leo Warmth</td>
+                  <td className="py-1 px-2 text-rose-300">Protective-Devotional</td>
+                  <td className="py-1 px-2 text-white/60">Water–Fire + Fixed + Nurturer/Sovereign. Creates a circle of safety. Fiercely loyal, emotionally generous.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-rose-300 font-bold">🥉</td>
+                  <td className="py-1 px-2 font-semibold text-white">Pure Cancer</td>
+                  <td className="py-1 px-2 text-rose-300">Attachment Architect</td>
+                  <td className="py-1 px-2 text-white/60">Cardinal Water + Yin + Nurturer + Moon. The deepest, most enduring bonds. The emotional anchor, the safe harbor.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-rose-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Scorpio–Libra</td>
+                  <td className="py-1 px-2 text-rose-300/70">Magnetic-Relational</td>
+                  <td className="py-1 px-2 text-white/60">Water–Air + Fixed + Alchemist/Diplomat. Intense + relational bonding. Deep, magnetic, emotionally charged.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-rose-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Pisces–Aquarius</td>
+                  <td className="py-1 px-2 text-rose-300/70">Soul-Level</td>
+                  <td className="py-1 px-2 text-white/60">Water–Air + Mutable + Mystic/Visionary. Bonds through empathy + spiritual resonance. Feels fated, cosmic.</td>
+                </tr>
+                <tr>
+                  <td className="py-1 px-2 text-rose-300/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Scorpio–Sagittarius</td>
+                  <td className="py-1 px-2 text-rose-300/70">Transformational</td>
+                  <td className="py-1 px-2 text-white/60">Water–Fire + Mutable + Alchemist/Explorer. Bonds through shared truth, depth, and growth. Intense and meaningful.</td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="text-[11px] text-white/40">
+              Cancer's entire triad dominates the top 3 — its cusps inherit the bonding power and add communication (Gemini) or devotion (Leo).
+              Cancer is #1 in attachment but NOT in the other three dimensions. Its gift is depth of bond, not breadth of connection.
+            </p>
+          </section>
+
+          {/* ── Relational Stability & Long-Term Security ── */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-bold text-amber-200 uppercase tracking-wider">Relational Stability & Long-Term Security</h3>
+            <p className="text-[12px] text-white/70">
+              <strong className="text-white">Relational stability</strong> = how reliably, consistently, and enduringly an archetype sustains a relationship over time.
+              This is <strong className="text-white">not bonding, not flow, not intuition</strong> — it is
+              <strong className="text-amber-200">structural durability</strong>: consistency, predictability, loyalty, low volatility, and long-term commitment.
+              Where Cancer bonds through <em>care</em>, Taurus bonds through <em>consistency</em>.
+              Where Cancer is the heart, Taurus is the spine.
+            </p>
+            <div className="bg-amber-500/10 border border-amber-500/15 rounded-lg p-3 text-[12px] text-white/70 space-y-1">
+              <div className="font-bold text-amber-200 text-xs mb-1">Why Taurus dominates this dimension</div>
+              <div>• <strong className="text-white">Fixed Earth</strong> — the most stable element-modality combination possible</div>
+              <div>• <strong className="text-white">Venus-ruled</strong> — slow, embodied Venus: sensual, patient, comfort-oriented love</div>
+              <div>• <strong className="text-white">Builder function</strong> — maintenance, reliability, long-term commitment</div>
+              <div>• <strong className="text-white">Relational maintenance</strong> — shows up every day, doesn't change suddenly, doesn't break trust</div>
+              <div className="pt-1 text-white/40 border-t border-amber-500/10">
+                Cancer creates safety through care. Taurus creates safety through consistency.
+                Taurus is the marathon runner of relationships — the foundation-builder of the zodiac.
+              </div>
+            </div>
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="text-left border-b border-white/20">
+                  <th className="py-1 px-2 text-white/50">Rank</th>
+                  <th className="py-1 px-2 text-white/50">Archetype</th>
+                  <th className="py-1 px-2 text-white/50">Stability Type</th>
+                  <th className="py-1 px-2 text-white/50">Why</th>
+                </tr>
+              </thead>
+              <tbody className="text-white/70">
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-amber-200 font-bold">🥇</td>
+                  <td className="py-1 px-2 font-semibold text-white">Taurus–Gemini</td>
+                  <td className="py-1 px-2 text-amber-200">Communicative Stability</td>
+                  <td className="py-1 px-2 text-white/60">Earth–Air + Builder/Messenger. Stable core + communication that prevents rupture. The most stable communicator.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-amber-200 font-bold">🥈</td>
+                  <td className="py-1 px-2 font-semibold text-white">Taurus–Aries</td>
+                  <td className="py-1 px-2 text-amber-200">Protective Stability</td>
+                  <td className="py-1 px-2 text-white/60">Earth–Fire + Builder/Warrior. Loyalty + consistency + protective devotion. The specialist stabilizer.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-amber-200 font-bold">🥉</td>
+                  <td className="py-1 px-2 font-semibold text-white">Pure Taurus</td>
+                  <td className="py-1 px-2 text-amber-200">Foundational Stability</td>
+                  <td className="py-1 px-2 text-white/60">Fixed Earth + Yin + Builder + Venus. Most stable, least volatile. The foundation-builder of the zodiac.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-amber-200/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Capricorn–Aquarius</td>
+                  <td className="py-1 px-2 text-amber-200/70">Structural Stability</td>
+                  <td className="py-1 px-2 text-white/60">Earth–Air + Strategist/Visionary. Sustains through structure, planning, principled consistency.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-1 px-2 text-amber-200/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Virgo–Leo</td>
+                  <td className="py-1 px-2 text-amber-200/70">Loyal Stability</td>
+                  <td className="py-1 px-2 text-white/60">Earth–Fire + Analyst/Sovereign. Sustains through loyalty, service, and consistent emotional presence.</td>
+                </tr>
+                <tr>
+                  <td className="py-1 px-2 text-amber-200/70">⭐</td>
+                  <td className="py-1 px-2 text-white/90">Capricorn–Sagittarius</td>
+                  <td className="py-1 px-2 text-amber-200/70">Enduring Stability</td>
+                  <td className="py-1 px-2 text-white/60">Earth–Fire + Strategist/Explorer. Sustains through shared goals, discipline, and long-term vision.</td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="text-[11px] text-white/40">
+              Taurus's entire triad dominates the top 3 — its cusps inherit the stability and add communication (Gemini) or protective loyalty (Aries).
+              Taurus is #1 in stability but NOT in emotional flow, openness, or intuitive resonance. Its gift is endurance, not permeability.
+            </p>
+          </section>
+
+          {/* ── Full Theory Page Link (extracted to /zodiac-anatomy) ── */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-bold text-emerald-300 uppercase tracking-wider">Zodiac Anatomy — The Metaphysical Body</h3>
+            <p className="text-[12px] text-white/70">
+              The complete Zodiac Body Atlas — 12 organ families, 36 sub-organs, chakra + meridian maps,
+              all 1,296 narrative panels, and the 36-row Cosmogram — now lives on its own page so it can
+              feed the Health Module.
+            </p>
+            <a
+              href="/zodiac-anatomy"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[12px] font-semibold hover:bg-emerald-500/25 transition-colors"
+            >
+              View Full Theory Page →
+            </a>
+          </section>
+
           {/* ── Tuning ── */}
           <section className="space-y-2 pb-4">
             <h3 className="text-sm font-bold text-sky-300 uppercase tracking-wider">Tuning</h3>
             <p className="text-[12px] text-white/70">
               All constants live at the top of <code className="text-sky-300/80">zodiacCompatibilityEngine.ts</code>:
-              layer weights, Wu Xing cycle coefficients, modality table, aspect anchors, dampener thresholds, and polarity modifiers.
+              layer weights, Wu Xin cycle coefficients, modality table, aspect anchors, dampener thresholds, polarity modifiers, and resonance constants.
               Adjusting any constant regenerates all 1,296 scores deterministically.
-              The engine is designed to be <strong className="text-white">auditable</strong> — hover any cell in v1 view to trace its score through all five layers.
+              The engine is designed to be <strong className="text-white">auditable</strong> — hover any cell in v1 view to trace its score through all five layers + resonance.
             </p>
           </section>
         </div>
       )}
 
+      {/* Constellation View */}
+      {matrixMode !== 'theory' && constellationIdx != null && (() => {
+        // Determine if dual mode (both profiles/cusps selected)
+        const idxA_ = labMode ? labA : (profileA ? dateToCuspIndex(profileA.birthDate) : -1);
+        const idxB_ = labMode ? labB : (profileB ? dateToCuspIndex(profileB.birthDate) : -1);
+        const isDual = idxA_ >= 0 && idxB_ >= 0 && idxA_ !== idxB_;
+        const spiralNames = isDual
+          ? [labMode ? cuspsData.positions[idxA_]?.name : (profileA?.displayName || profileA?.firstName),
+             labMode ? cuspsData.positions[idxB_]?.name : (profileB?.displayName || profileB?.firstName)]
+          : [null];
+        const spiralColors = ['#fbbf24', '#a78bfa']; // gold for A, purple for B
+
+        // Build spiral data for one center index; targetIdx = other person's index (dual mode)
+        function buildSpiral(cIdx, svgW, svgH, targetIdx) {
+          const centerCusp = cuspsData.positions[cIdx];
+          const row = activeMatrix[cIdx];
+          const allScored = row.map((score, idx) => ({ idx, score, rev: activeMatrix[idx][cIdx] }))
+            .filter(d => d.idx !== cIdx)
+            .sort((a, b) => b.score - a.score);
+          // In dual mode: end at the other person's position (inclusive), min 3
+          let scored;
+          if (isDual && targetIdx >= 0) {
+            const targetRank = allScored.findIndex(d => d.idx === targetIdx);
+            const endAt = targetRank >= 0 ? Math.max(targetRank + 1, 3) : 25;
+            scored = allScored.slice(0, endAt);
+          } else {
+            scored = allScored.slice(0, 25);
+          }
+          const cx = svgW / 2, cy = svgH / 2;
+          const maxOrbit = Math.min(svgW, svgH) * 0.42;
+          const minOrbit = isDual ? 50 : 70;
+          const maxScore = scored[0]?.score || 97;
+          const minScore = scored[scored.length - 1]?.score || 48;
+          const scoreRange = Math.max(maxScore - minScore, 1);
+          const SPIRAL_TURNS = 2.5;
+          const n = scored.length;
+          const nodes = scored.map((d, i) => {
+            const rankFrac = n > 1 ? i / (n - 1) : 0;
+            const angle = rankFrac * SPIRAL_TURNS * 2 * Math.PI - Math.PI / 2;
+            const orbit = minOrbit + Math.sqrt(rankFrac) * (maxOrbit - minOrbit) * 0.85;
+            const norm = (d.score - minScore) / scoreRange;
+            const r = (isDual ? 10 : 14) + norm * norm * (isDual ? 16 : 22);
+            const cusp = cuspsData.positions[d.idx];
+            const t = getTier(d.score);
+            return { ...d, x: cx + orbit * Math.cos(angle), y: cy + orbit * Math.sin(angle), r, cusp, tier: t };
+          });
+          const centerR = isDual ? 30 : 40;
+          return { centerCusp, scored, nodes, cx, cy, centerR, maxScore, minScore, scoreRange };
+        }
+
+        // Render one spiral SVG
+        function renderSpiralSVG(cIdx, svgW, svgH, accentColor, personName, spiralKey, targetIdx) {
+          const { centerCusp, nodes, cx, cy, centerR, minScore, scoreRange } = buildSpiral(cIdx, svgW, svgH, targetIdx);
+          return (
+            <svg key={spiralKey} width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} className="max-w-full max-h-full">
+              <rect x={0} y={0} width={svgW} height={svgH} fill="transparent" />
+              <circle cx={cx} cy={cy} r={isDual ? 50 : 70} fill="none" stroke="#1e293b" strokeWidth={0.5} strokeDasharray="4 4" />
+
+              {/* Spiral path */}
+              {nodes.length > 1 && (
+                <path
+                  d={`M ${cx} ${cy} ` + nodes.map(n => `L ${n.x} ${n.y}`).join(' ')}
+                  fill="none" stroke="rgba(251,191,36,0.45)" strokeWidth={1.5} strokeDasharray="6 3" />
+              )}
+
+              {/* Radial lines */}
+              {nodes.map((node, i) => (
+                <line key={`e-${i}`} x1={cx} y1={cy} x2={node.x} y2={node.y}
+                  stroke={node.tier.color} strokeWidth={0.8}
+                  opacity={0.08 + (node.score - minScore) / scoreRange * 0.12} />
+              ))}
+
+              {/* Person name label */}
+              {personName && (
+                <text x={cx} y={20} textAnchor="middle" fill={accentColor} fontSize="13" fontWeight="700">{personName}</text>
+              )}
+
+              {/* Center node */}
+              <g className="cursor-pointer"
+                onClick={() => { setConstellationCard(constellationCard === cIdx ? null : cIdx); setCardPos({ x: -1, y: -1 }); }}
+                onMouseEnter={() => setHoveredNode({ idx: cIdx, x: cx + (isDual ? (spiralKey === 'A' ? 0 : svgW) : 0), y: cy, score: null })}
+                onMouseLeave={() => setHoveredNode(null)}>
+                {constellationCard === cIdx && (
+                  <circle cx={cx} cy={cy} r={centerR + 6} fill="none" stroke="#fff" strokeWidth={2} opacity={0.7} />
+                )}
+                <circle cx={cx} cy={cy} r={centerR} fill="rgba(251,191,36,0.2)" stroke="#fbbf24" strokeWidth={2}>
+                  <animate attributeName="r" values={`${centerR};${centerR + 2};${centerR}`} dur="3s" repeatCount="indefinite" />
+                </circle>
+                <text x={cx} y={cy - 6} textAnchor="middle" fill="#fbbf24" fontSize={isDual ? '10' : '12'} fontWeight="700">
+                  {MATRIX_LABELS[cIdx]}
+                </text>
+                <text x={cx} y={cy + 10} textAnchor="middle" fill="#fbbf24" fontSize={isDual ? '14' : '16'}>
+                  {centerCusp.emoji?.slice(0, 2) || '⭐'}
+                </text>
+                <text x={cx} y={cy + centerR + 14} textAnchor="middle" fill="rgba(255,255,255,0.8)" fontSize="9">
+                  {centerCusp.archetype}
+                </text>
+              </g>
+
+              {/* Satellite nodes */}
+              {nodes.map((node, i) => {
+                const isSelected = constellationCard === node.idx;
+                const isTarget = isDual && node.idx === targetIdx;
+                const otherColor = spiralKey === 'A' ? spiralColors[1] : spiralColors[0];
+                return (
+                  <g key={`n-${i}`} className="cursor-pointer"
+                    onClick={() => { setConstellationCard(isSelected ? null : node.idx); setCardPos({ x: -1, y: -1 }); }}
+                    onMouseEnter={() => setHoveredNode({ idx: node.idx, x: node.x + (isDual ? (spiralKey === 'A' ? 0 : svgW) : 0), y: node.y, score: node.score })}
+                    onMouseLeave={() => setHoveredNode(null)}>
+                    {/* Double gold pulsating rings for the other person's archetype */}
+                    {isTarget && (
+                      <>
+                        <circle cx={node.x} cy={node.y} r={node.r + 6} fill="none" stroke="#fbbf24" strokeWidth={2} opacity={0.8}>
+                          <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite" />
+                        </circle>
+                        <circle cx={node.x} cy={node.y} r={node.r + 11} fill="none" stroke="#fbbf24" strokeWidth={1.5} opacity={0.5}>
+                          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" />
+                        </circle>
+                      </>
+                    )}
+                    {node.score >= 90 && !isTarget && (
+                      <circle cx={node.x} cy={node.y} r={node.r + 4} fill="none" stroke="#fbbf24" strokeWidth={1.5} opacity={0.3}>
+                        <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2s" repeatCount="indefinite" />
+                      </circle>
+                    )}
+                    {isSelected && (
+                      <circle cx={node.x} cy={node.y} r={node.r + 6} fill="none" stroke="#fff" strokeWidth={2} opacity={0.7} />
+                    )}
+                    <circle cx={node.x} cy={node.y} r={node.r}
+                      fill={node.tier.bg} stroke={node.tier.color} strokeWidth={1.5}
+                      opacity={0.9} />
+                    <text x={node.x} y={node.y - 3} textAnchor="middle" fill={node.tier.color} fontSize={node.r > 28 ? '12' : node.r > 20 ? '10' : '9'} fontWeight="700">
+                      {node.score}
+                    </text>
+                    <text x={node.x} y={node.y + 8} textAnchor="middle" fill="rgba(255,255,255,0.95)" fontSize={node.r > 28 ? '8' : node.r > 20 ? '7' : '6'} fontWeight="600">
+                      {node.r > 28 ? MATRIX_LABELS[node.idx] : MATRIX_SHORT_LABELS[node.idx]}
+                    </text>
+                    <circle cx={node.x + node.r * 0.7} cy={node.y - node.r * 0.7} r={isDual ? 6 : 7} fill="#1e293b" stroke={node.tier.color} strokeWidth={0.8} />
+                    <text x={node.x + node.r * 0.7} y={node.y - node.r * 0.7 + 3} textAnchor="middle" fill={node.tier.color} fontSize={isDual ? '6' : '7'} fontWeight="700">
+                      {i + 1}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+          );
+        }
+
+        const singleW = 900, singleH = 700;
+        const dualW = 500, dualH = 720;
+
+        return (
+          <div className="flex-1 overflow-auto flex flex-col items-center justify-center bg-slate-900/50 relative">
+            {/* Title */}
+            <div className="absolute top-3 left-0 right-0 text-center z-10">
+              {isDual ? (
+                <>
+                  <span className="text-amber-300 text-sm font-semibold">{spiralNames[0]}</span>
+                  <span className="text-white/40 text-xs mx-2">vs</span>
+                  <span className="text-purple-300 text-sm font-semibold">{spiralNames[1]}</span>
+                  <span className="text-white/40 text-xs ml-2">— Top 25 Compatibility Constellation</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-white/80 text-sm font-semibold">{MATRIX_LABELS[constellationIdx]}</span>
+                  <span className="text-white/40 text-xs ml-2">— Top 25 Compatibility Constellation</span>
+                  <span className="text-white/30 text-[10px] ml-2">(click a circle to view card)</span>
+                </>
+              )}
+            </div>
+
+            {/* Spiral(s) */}
+            {isDual ? (
+              <div className="flex items-center justify-center gap-0 mt-6">
+                {renderSpiralSVG(idxA_, dualW, dualH, spiralColors[0], spiralNames[0], 'A', idxB_)}
+                <div className="w-px h-[500px] bg-white/10 shrink-0" />
+                {renderSpiralSVG(idxB_, dualW, dualH, spiralColors[1], spiralNames[1], 'B', idxA_)}
+              </div>
+            ) : (
+              renderSpiralSVG(constellationIdx, singleW, singleH, spiralColors[0], null, 'A')
+            )}
+
+            {/* Instant hover tooltip */}
+            {hoveredNode && (() => {
+              const hCusp = cuspsData.positions[hoveredNode.idx];
+              const hTier = hoveredNode.score != null ? getTier(hoveredNode.score) : null;
+              return (
+                <div className="absolute pointer-events-none z-30 bg-slate-900/95 border border-white/20 rounded-lg px-3 py-2 shadow-xl text-[11px] max-w-[240px]"
+                  style={{ left: hoveredNode.x + 30, top: hoveredNode.y - 20 }}>
+                  <div className="text-white font-semibold">{hCusp.emoji} {hCusp.name}</div>
+                  <div className="text-white/80 text-[10px] italic">{hCusp.archetype}</div>
+                  <div className="text-white/70 text-[10px] font-mono mt-0.5">{hCusp.dateRange.start.replace('-','/')} – {hCusp.dateRange.end.replace('-','/')}</div>
+                  {hTier && (
+                    <div className="mt-1">
+                      <span className="font-bold" style={{ color: hTier.color }}>{hoveredNode.score}</span>
+                      <span className="ml-1.5 font-bold px-1 py-0.5 rounded text-[9px]" style={{ color: hTier.color, backgroundColor: hTier.bg }}>{hTier.tier}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Floating card for selected circle */}
+            {constellationCard != null && (() => {
+              // Determine which spiral's center this card is relative to
+              const cardCenter = isDual
+                ? (constellationCard === idxA_ ? idxA_ : constellationCard === idxB_ ? idxB_ : constellationIdx)
+                : constellationIdx;
+              const isSelf = constellationCard === cardCenter;
+              const cusp = cuspsData.positions[constellationCard];
+              const score = isSelf ? null : activeMatrix[cardCenter][constellationCard];
+              const rev = isSelf ? null : activeMatrix[constellationCard][cardCenter];
+              const t = isSelf ? null : getTier(score);
+              const bd = isSelf ? null : getLayerBreakdown(cardCenter, constellationCard);
+              const interp = bd ? interpretPair(cardCenter, constellationCard) : null;
+              const elColor = { Fire: '#ef4444', Earth: '#f59e0b', Air: '#3b82f6', Water: '#a855f7' };
+
+              return (
+                <div data-card-panel className="fixed w-[300px] max-h-[70vh] bg-slate-800/95 border border-white/15 rounded-xl shadow-2xl overflow-y-auto z-[10000]"
+                  style={cardPos.x >= 0 ? { left: cardPos.x, top: cardPos.y } : { right: 40, top: 120 }}>
+                  <div className="sticky top-0 bg-slate-700/80 border-b border-white/10 px-4 py-2.5 flex items-center justify-between cursor-move select-none"
+                    onMouseDown={onCardMouseDown}>
+                    <span className="text-white font-semibold text-sm">{cusp.emoji} {cusp.name}</span>
+                    <button onClick={() => setConstellationCard(null)} className="text-white/30 hover:text-red-400 text-xs px-1">✕</button>
+                  </div>
+                  <div className="px-4 py-3 space-y-3 text-[11px]">
+                    {/* Archetype + mythic function */}
+                    <div className="text-white/70 text-xs italic">{cusp.archetype}</div>
+                    {ARCHETYPE_PROFILES[CUSP_ID_TO_INDEX[cusp.id]] && (
+                      <div className="text-amber-400/80 text-[10px] font-medium">Archetype: {ARCHETYPE_PROFILES[CUSP_ID_TO_INDEX[cusp.id]].mythicFunction}</div>
+                    )}
+
+                    {/* Score (only for non-self) */}
+                    {!isSelf && t && (
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <span className="text-white/70">Score: </span>
+                          <span className="font-bold text-lg" style={{ color: t.color }}>{score}</span>
+                          <span className="ml-1.5 font-bold px-1.5 py-0.5 rounded text-[10px]" style={{ color: t.color, backgroundColor: t.bg }}>{t.tier}</span>
+                        </div>
+                        <div className="text-white/60">
+                          Rev: <span style={{ color: getTier(rev).color }}>{rev}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quick info */}
+                    <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                      <div><span className="text-white/60">Sign:</span> <span className="text-white">{cusp.sign}</span></div>
+                      <div><span className="text-white/60">Element:</span> <span style={{ color: elColor[cusp.element.primary] || '#fff' }}>{cusp.element.mix || cusp.element.primary}</span></div>
+                      <div><span className="text-white/60">Rulers:</span> <span className="text-white">{cusp.rulers.join(', ')}</span></div>
+                      <div><span className="text-white/60">Dates:</span> <span className="text-white">{cusp.dateRange.start.replace('-','/')} – {cusp.dateRange.end.replace('-','/')}</span></div>
+                    </div>
+
+                    {/* Layer breakdown */}
+                    {bd && (
+                      <div className="border-t border-white/15 pt-2 space-y-0.5">
+                        <div className="text-white/40 text-[9px] mb-0.5">{MATRIX_LABELS[cardCenter]} → {MATRIX_LABELS[constellationCard]}</div>
+                        <div className="text-white/60 font-semibold text-[10px] mb-1">Layer Breakdown</div>
+                        <div className="text-white/80">P Psych: <span className="text-pink-300 font-mono">{bd.psych}</span></div>
+                        <div className="text-white/80">E Elemental: <span className="text-emerald-300 font-mono">{bd.elemental}</span></div>
+                        <div className="text-white/80">Q Seasonal: <span className="text-amber-300 font-mono">{bd.seasonalQi}</span></div>
+                        <div className="text-white/80">A Aspect: <span className="text-cyan-300 font-mono">{bd.aspect}</span></div>
+                        <div className="text-white/80">M Modality: <span className="text-purple-300 font-mono">{bd.modality}</span></div>
+                        {bd.dampener < 1 && <div className="text-white/80">Dampener: <span className="text-red-300 font-mono">×{bd.dampener}</span></div>}
+                        {bd.resonance > 0 && <div className="text-white/80">Resonance: <span className="text-amber-300 font-mono">+{bd.resonance}</span></div>}
+                      </div>
+                    )}
+
+                    {/* Strengths + Tensions */}
+                    {interp && (
+                      <div className="border-t border-white/15 pt-2 space-y-1">
+                        {interp.strengths.slice(0, 2).map((s, i) => (
+                          <div key={`s${i}`} className="flex items-start gap-1.5">
+                            <span className="text-emerald-400 shrink-0 font-bold">+</span>
+                            <span className="text-white/80">{s}</span>
+                          </div>
+                        ))}
+                        {interp.tensions.slice(0, 2).map((t, i) => (
+                          <div key={`t${i}`} className="flex items-start gap-1.5">
+                            <span className="text-amber-400 shrink-0">~</span>
+                            <span className="text-white/80">{t}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Characteristics */}
+                    <div className="border-t border-white/15 pt-2">
+                      <div className="text-white/70 font-semibold text-[10px] mb-1">Characteristics</div>
+                      {cusp.characteristics.slice(0, 4).map((c, i) => (
+                        <div key={i} className="text-white/80 text-[10px] py-0.5">• {c}</div>
+                      ))}
+                    </div>
+
+                    {/* Strengths */}
+                    <div className="border-t border-white/15 pt-2">
+                      <div className="text-emerald-400 font-semibold text-[10px] mb-1">Strengths</div>
+                      {cusp.strengths.slice(0, 4).map((s, i) => (
+                        <div key={i} className="text-white/80 text-[10px] py-0.5">✓ {s}</div>
+                      ))}
+                    </div>
+
+                    {/* Challenges */}
+                    <div className="border-t border-white/15 pt-2">
+                      <div className="text-red-400 font-semibold text-[10px] mb-1">Challenges</div>
+                      {cusp.challenges.slice(0, 3).map((c, i) => (
+                        <div key={i} className="text-white/80 text-[10px] py-0.5">! {c}</div>
+                      ))}
+                    </div>
+
+                    {/* Deep Profile button */}
+                    {onDetailCusp && (
+                      <button
+                        onClick={() => onDetailCusp(cusp)}
+                        className="w-full py-2 px-4 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/25 rounded-lg text-indigo-300 text-sm transition-colors flex items-center justify-center gap-2 mt-1"
+                      >
+                        <span>🔮</span>
+                        <span>More — Deep Profile</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        );
+      })()}
+
       {/* Matrix */}
-      {matrixMode !== 'theory' && <div className="flex-1 overflow-auto">
+      {matrixMode !== 'theory' && constellationIdx == null && <div className="flex-1 overflow-auto">
         <table className="border-collapse" style={{ fontSize: '9px' }}>
           <thead>
             <tr>
               <th className="sticky left-0 top-0 z-30 bg-slate-900 border border-white/5 px-1 py-1 min-w-[90px]" />
               {MATRIX_LABELS.map((label, c) => (
-                <th key={c} className="sticky top-0 z-20 bg-slate-800 border border-white/5 text-white/70 font-mono whitespace-nowrap"
-                  style={{ height: 110, minWidth: 24, fontSize: '9px', padding: 0, verticalAlign: 'bottom' }}>
+                <th key={c} className="sticky top-0 z-20 bg-slate-800 border border-white/5 text-white/70 font-mono whitespace-nowrap cursor-pointer hover:bg-amber-500/15 hover:text-amber-300 transition-colors"
+                  style={{ height: 110, minWidth: 24, fontSize: '9px', padding: 0, verticalAlign: 'bottom' }}
+                  title={`Click to view ${label} constellation`}
+                  onClick={() => { setConstellationIdx(c); setConstellationCard(null); }}>
                   <div style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', height: '100%', padding: '2px 1px' }}>
                     {label}
                   </div>
@@ -1011,38 +1817,20 @@ function CompatibilityMatrixWindow({ onClose }) {
             </tr>
             {activeMatrix.map((row, r) => (
               <tr key={r}>
-                <td className="sticky left-0 z-10 bg-slate-800 border border-white/5 px-1.5 py-0.5 text-white/80 font-mono whitespace-nowrap font-semibold"
-                  style={{ fontSize: '9px', minWidth: 90 }}>
+                <td className="sticky left-0 z-10 bg-slate-800 border border-white/5 px-1.5 py-0.5 text-white/80 font-mono whitespace-nowrap font-semibold cursor-pointer hover:bg-amber-500/15 hover:text-amber-300 transition-colors"
+                  style={{ fontSize: '9px', minWidth: 90 }}
+                  title={`Click to view ${MATRIX_LABELS[r]} constellation`}
+                  onClick={() => { setConstellationIdx(r); setConstellationCard(null); }}>
                   {MATRIX_LABELS[r]} <span className="text-amber-400/60 float-right ml-1">{r + 1}</span>
                 </td>
                 {row.map((val, c) => {
                   const isDiag = r === c;
-                  // Delta mode uses divergence coloring
-                  if (matrixMode === 'diff') {
-                    const abs = Math.abs(val);
-                    const opacity = Math.min(abs / 25, 1) * 0.5;
-                    return (
-                      <td key={c}
-                        className={`border border-white/5 text-center font-mono cursor-crosshair ${isDiag ? 'ring-1 ring-white/30' : ''}`}
-                        style={{
-                          backgroundColor: val > 0 ? `rgba(251,191,36,${opacity})` : val < 0 ? `rgba(34,211,238,${opacity})` : 'transparent',
-                          color: val > 0 ? '#fbbf24' : val < 0 ? '#22d3ee' : '#6b7280',
-                          minWidth: 24, padding: '2px 1px', fontSize: '9px',
-                          fontWeight: abs >= 10 ? 700 : 400,
-                        }}
-                        onMouseEnter={() => { if (!pinnedCell) setHoveredCell({ r, c, v: val }); }}
-                        onMouseLeave={() => { if (!pinnedCell) setHoveredCell(null); }}
-                        onClick={() => setPinnedCell(pinnedCell?.r === r && pinnedCell?.c === c ? null : { r, c, v: val })}
-                      >
-                        {val > 0 ? '+' : ''}{val}
-                      </td>
-                    );
-                  }
                   const t = getTier(val);
+                  const isMutualA = r !== c && val >= 90 && activeMatrix[c]?.[r] >= 90;
                   return (
                     <td
                       key={c}
-                      className={`border border-white/5 text-center font-mono cursor-crosshair ${isDiag ? 'ring-1 ring-white/30' : ''}`}
+                      className={`text-center font-mono cursor-crosshair ${isDiag ? 'ring-1 ring-white/30' : ''}`}
                       style={{
                         backgroundColor: t.bg,
                         color: t.color,
@@ -1050,6 +1838,7 @@ function CompatibilityMatrixWindow({ onClose }) {
                         padding: '2px 1px',
                         fontWeight: t.font,
                         fontSize: '9px',
+                        border: isMutualA ? '2px solid #fbbf24' : '1px solid rgba(255,255,255,0.05)',
                       }}
                       onMouseEnter={() => setHoveredCell({ r, c, v: val })}
                       onMouseLeave={() => setHoveredCell(null)}
@@ -1059,7 +1848,7 @@ function CompatibilityMatrixWindow({ onClose }) {
                   );
                 })}
                 {/* Row A-tier count */}
-                {matrixMode !== 'diff' && (() => {
+                {(() => {
                   const count = row.filter(v => v >= 90).length;
                   return (
                     <td className="border border-white/5 text-center font-mono font-bold"
@@ -1071,7 +1860,7 @@ function CompatibilityMatrixWindow({ onClose }) {
               </tr>
             ))}
             {/* Column A-tier count row */}
-            {matrixMode !== 'diff' && (
+            {(
               <tr>
                 <td className="sticky left-0 z-10 bg-slate-900 border border-white/5 px-1.5 py-0.5 text-amber-400/80 font-mono font-semibold text-right"
                   style={{ fontSize: '8px', minWidth: 90 }}>
@@ -1093,7 +1882,7 @@ function CompatibilityMatrixWindow({ onClose }) {
               </tr>
             )}
             {/* Mutual A-tier row — both directions 90+ */}
-            {matrixMode !== 'diff' && (
+            {(
               <tr>
                 <td className="sticky left-0 z-10 bg-slate-900 border border-white/5 px-1.5 py-0.5 text-emerald-400/80 font-mono font-semibold text-right"
                   style={{ fontSize: '8px', minWidth: 90 }}>
@@ -1128,22 +1917,8 @@ function CompatibilityMatrixWindow({ onClose }) {
       </div>}
 
       {/* Legend */}
-      {matrixMode !== 'theory' && <div className="shrink-0 flex items-center gap-4 px-4 py-1.5 bg-slate-800 border-t border-white/10 text-[10px] text-white/60">
-        {matrixMode === 'diff' ? (
-          <>
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded" style={{ backgroundColor: 'rgba(251,191,36,0.35)', border: '1px solid #fbbf2440' }} />
-              <span style={{ color: '#fbbf24', fontWeight: 700 }}>+ Hand-written higher</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded" style={{ backgroundColor: 'rgba(34,211,238,0.35)', border: '1px solid #22d3ee40' }} />
-              <span style={{ color: '#22d3ee', fontWeight: 700 }}>− Computed higher</span>
-            </span>
-            <span className="text-white/40">Intensity = magnitude of divergence</span>
-          </>
-        ) : (
-          <>
-            {[
+      {matrixMode !== 'theory' && constellationIdx == null && <div className="shrink-0 flex items-center gap-4 px-4 py-1.5 bg-slate-800 border-t border-white/10 text-[10px] text-white/60">
+          {[
               { label: 'A Tier (90+)', color: '#fbbf24', bg: 'rgba(251,191,36,0.35)' },
               { label: 'B Tier (80-89)', color: '#a78bfa', bg: 'rgba(167,139,250,0.25)' },
               { label: 'C Tier (70-79)', color: '#22d3ee', bg: 'rgba(34,211,238,0.18)' },
@@ -1156,22 +1931,28 @@ function CompatibilityMatrixWindow({ onClose }) {
                 <span style={{ color: l.color, fontWeight: l.label.startsWith('A') || l.label.startsWith('B') || l.label.startsWith('C') ? 700 : 400 }}>{l.label}</span>
               </span>
             ))}
-          </>
-        )}
-        <span className="ml-auto text-white/40">
-          {matrixMode === 'computed' ? 'Hover for 5-layer breakdown' : 'Hover any cell for directional details'}
-        </span>
+        <span className="ml-auto text-white/40">Hover any cell for directional details</span>
       </div>}
+
+      {/* ── 3D Relationship Health Space ── */}
+      {show3D && (
+        <div className="shrink-0">
+          <Suspense fallback={<div className="text-white/30 text-center py-8 text-sm">Loading 3D view...</div>}>
+            <RelationshipHealthSpace />
+          </Suspense>
+        </div>
+      )}
 
       {/* ── Profile Comparison Panel ── */}
       {(() => {
-        const idxA = profileA ? dateToCuspIndex(profileA.birthDate) : -1;
-        const idxB = profileB ? dateToCuspIndex(profileB.birthDate) : -1;
+        // Resolve indices: lab mode uses cusp index directly, normal mode uses profile birthDate
+        const idxA = labMode ? labA : (profileA ? dateToCuspIndex(profileA.birthDate) : -1);
+        const idxB = labMode ? labB : (profileB ? dateToCuspIndex(profileB.birthDate) : -1);
         const cuspA = idxA >= 0 ? CUSP_POSITIONS[idxA] : null;
         const cuspB = idxB >= 0 ? CUSP_POSITIONS[idxB] : null;
         const hasScore = idxA >= 0 && idxB >= 0;
-        const scoreAB = hasScore ? (matrixMode === 'computed' ? COMPUTED_MATRIX[idxA][idxB] : COMPATIBILITY_MATRIX[idxA][idxB]) : null;
-        const scoreBA = hasScore ? (matrixMode === 'computed' ? COMPUTED_MATRIX[idxB][idxA] : COMPATIBILITY_MATRIX[idxB][idxA]) : null;
+        const scoreAB = hasScore ? COMPUTED_MATRIX[idxA][idxB] : null;
+        const scoreBA = hasScore ? COMPUTED_MATRIX[idxB][idxA] : null;
         const tier = (s) => {
           if (s >= 90) return { label: 'A', color: '#fbbf24' };
           if (s >= 80) return { label: 'B', color: '#a78bfa' };
@@ -1182,25 +1963,47 @@ function CompatibilityMatrixWindow({ onClose }) {
         const bdAB = hasScore ? getLayerBreakdown(idxA, idxB) : null;
         const bdBA = hasScore ? getLayerBreakdown(idxB, idxA) : null;
         const interp = hasScore ? interpretPair(idxA, idxB) : null;
-        const nameA = profileA ? (profileA.displayName || profileA.firstName) : '';
-        const nameB = profileB ? (profileB.displayName || profileB.firstName) : '';
+        const rhs = hasScore ? computeRelationshipHealth(idxA, idxB) : null;
+        const nameA = labMode ? (cuspA?.name || '') : (profileA ? (profileA.displayName || profileA.firstName) : '');
+        const nameB = labMode ? (cuspB?.name || '') : (profileB ? (profileB.displayName || profileB.firstName) : '');
 
         return (
           <div className="shrink-0 bg-slate-800/80 border-t border-white/10">
-            {/* Selector row */}
+            {/* Mode toggle + Selector row */}
             <div className="flex items-center gap-3 px-4 py-2.5">
-              {/* Profile A */}
+              {/* Lab mode toggle */}
+              <button onClick={() => { setLabMode(!labMode); setShowBreakdown(false); }}
+                className={`shrink-0 px-2 py-1 text-[9px] font-semibold rounded transition-colors ${
+                  labMode
+                    ? 'bg-amber-500/30 text-amber-300 border border-amber-500/40'
+                    : 'bg-white/5 text-white/40 border border-white/10 hover:bg-white/10'
+                }`}>
+                LAB
+              </button>
+
+              {/* Person A selector */}
               <div className="flex-1 min-w-0">
-                <select value={profileA?.id || ''}
-                  onChange={(e) => { setProfileA(profiles.find(p => p.id === e.target.value) || null); setShowBreakdown(false); }}
-                  className="w-full bg-slate-700 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500/50">
-                  <option value="">-- Person A --</option>
-                  {profiles.map(p => <option key={p.id} value={p.id}>{p.displayName || p.firstName}</option>)}
-                </select>
-                {profileA && cuspA && (
+                {labMode ? (
+                  <select value={labA} onChange={(e) => { setLabA(Number(e.target.value)); setShowBreakdown(false); }}
+                    className="w-full bg-slate-700 border border-amber-500/20 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/50">
+                    <option value={-1}>-- Cusp A --</option>
+                    {MATRIX_LABELS.map((label, i) => {
+                      const c = cuspsData.positions[i];
+                      return <option key={i} value={i}>{c.emoji} {label} ({c.dateRange.start.replace('-','/')}-{c.dateRange.end.replace('-','/')})</option>;
+                    })}
+                  </select>
+                ) : (
+                  <select value={profileA?.id || ''}
+                    onChange={(e) => { setProfileA(profiles.find(p => p.id === e.target.value) || null); setShowBreakdown(false); }}
+                    className="w-full bg-slate-700 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500/50">
+                    <option value="">-- Person A --</option>
+                    {profiles.map(p => <option key={p.id} value={p.id}>{p.displayName || p.firstName}</option>)}
+                  </select>
+                )}
+                {cuspA && (
                   <div className="mt-1.5 text-[11px] space-y-0.5">
                     <div className="text-white font-semibold">{nameA}</div>
-                    <div className="text-white/50">{profileA.birthDate} (age {calculateAge(profileA.birthDate)})</div>
+                    {!labMode && profileA && <div className="text-white/50">{profileA.birthDate} (age {calculateAge(profileA.birthDate)})</div>}
                     <div className="text-white/60">{SIGN_EMOJIS[cuspA.sign]} {cuspA.name} <span className="text-white/30">({MATRIX_SHORT_LABELS[idxA]})</span></div>
                   </div>
                 )}
@@ -1230,34 +2033,51 @@ function CompatibilityMatrixWindow({ onClose }) {
                     </button>
                   </>
                 ) : (
-                  <div className="text-white/20 text-xs text-center">Select two<br/>profiles</div>
+                  <div className="text-white/20 text-xs text-center">Select two<br/>{labMode ? 'cusps' : 'profiles'}</div>
                 )}
               </div>
 
-              {/* Profile B */}
+              {/* Person B selector */}
               <div className="flex-1 min-w-0">
-                <select value={profileB?.id || ''}
-                  onChange={(e) => { setProfileB(profiles.find(p => p.id === e.target.value) || null); setShowBreakdown(false); }}
-                  className="w-full bg-slate-700 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500/50">
-                  <option value="">-- Person B --</option>
-                  {profiles.map(p => <option key={p.id} value={p.id}>{p.displayName || p.firstName}</option>)}
-                </select>
-                {profileB && cuspB && (
+                {labMode ? (
+                  <select value={labB} onChange={(e) => { setLabB(Number(e.target.value)); setShowBreakdown(false); }}
+                    className="w-full bg-slate-700 border border-purple-500/20 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500/50">
+                    <option value={-1}>-- Cusp B --</option>
+                    {MATRIX_LABELS.map((label, i) => {
+                      const c = cuspsData.positions[i];
+                      return <option key={i} value={i}>{c.emoji} {label} ({c.dateRange.start.replace('-','/')}-{c.dateRange.end.replace('-','/')})</option>;
+                    })}
+                  </select>
+                ) : (
+                  <select value={profileB?.id || ''}
+                    onChange={(e) => { setProfileB(profiles.find(p => p.id === e.target.value) || null); setShowBreakdown(false); }}
+                    className="w-full bg-slate-700 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500/50">
+                    <option value="">-- Person B --</option>
+                    {profiles.map(p => <option key={p.id} value={p.id}>{p.displayName || p.firstName}</option>)}
+                  </select>
+                )}
+                {cuspB && (
                   <div className="mt-1.5 text-[11px] space-y-0.5">
                     <div className="text-white font-semibold">{nameB}</div>
-                    <div className="text-white/50">{profileB.birthDate} (age {calculateAge(profileB.birthDate)})</div>
+                    {!labMode && profileB && <div className="text-white/50">{profileB.birthDate} (age {calculateAge(profileB.birthDate)})</div>}
                     <div className="text-white/60">{SIGN_EMOJIS[cuspB.sign]} {cuspB.name} <span className="text-white/30">({MATRIX_SHORT_LABELS[idxB]})</span></div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* ── Baby-Step Breakdown Panel (animated collapse) ── */}
-            <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.22,0.61,0.36,1)] ${
-              showBreakdown && hasScore ? 'max-h-[900px] opacity-100' : 'max-h-0 opacity-0'
-            }`}>
-              {hasScore && bdAB && bdBA && interp && (
-              <div className="border-t border-white/10 px-4 py-3 max-h-[40vh] overflow-auto text-[11px] space-y-4">
+            {/* ── Breakdown Popup (floating, draggable) ── */}
+            {showBreakdown && hasScore && bdAB && bdBA && interp && (
+              <div
+                className="fixed z-50 bg-slate-800/95 backdrop-blur-sm border border-white/15 rounded-xl shadow-2xl"
+                style={{ left: bdPos.x, top: bdPos.y, width: 620, maxHeight: '80vh' }}
+                onMouseDown={onBdMouseDown}
+              >
+                <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 cursor-move select-none">
+                  <span className="text-white/80 text-[11px] font-semibold">{nameA} ↔ {nameB} — Breakdown</span>
+                  <button onClick={() => setShowBreakdown(false)} className="text-white/40 hover:text-red-400 px-1.5 py-0.5 text-xs rounded hover:bg-red-500/10">✕</button>
+                </div>
+              <div className="px-4 py-3 overflow-auto text-[11px] space-y-4" style={{ maxHeight: 'calc(80vh - 36px)' }}>
 
                 {/* Section A — Tier Badge + Label */}
                 <div className="flex items-center gap-3">
@@ -1387,9 +2207,91 @@ function CompatibilityMatrixWindow({ onClose }) {
                   </div>
                 </div>
 
+                {/* Section E — Relationship Health Score */}
+                {rhs && (
+                <div className="bg-slate-700/40 rounded-lg p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-white/40 text-[10px] font-semibold uppercase tracking-wider">Relationship Health Score</div>
+                    <span className="text-lg font-black px-2 py-0.5 rounded-lg" style={{
+                      color: rhs.final >= 80 ? '#fbbf24' : rhs.final >= 70 ? '#a78bfa' : rhs.final >= 60 ? '#22d3ee' : '#86efac',
+                      backgroundColor: (rhs.final >= 80 ? '#fbbf24' : rhs.final >= 70 ? '#a78bfa' : rhs.final >= 60 ? '#22d3ee' : '#86efac') + '20',
+                      border: `1px solid ${rhs.final >= 80 ? '#fbbf24' : rhs.final >= 70 ? '#a78bfa' : rhs.final >= 60 ? '#22d3ee' : '#86efac'}40`,
+                    }}>{rhs.final}</span>
+                  </div>
+
+                  {/* Sub-component bars */}
+                  <div className="space-y-1.5">
+                    {[
+                      { label: 'Mutuality', value: rhs.mutuality, weight: '40%', color: '#fbbf24', tip: 'How strong the connection feels in both directions' },
+                      { label: 'Balance', value: rhs.balance, weight: '20%', color: '#34d399', tip: 'Measures asymmetry — high = neither carries the load' },
+                      { label: 'Chemistry', value: rhs.chemistry, weight: '20%', color: '#f472b6', tip: 'Wu Xing elemental flow — energetic texture' },
+                      { label: 'Psych Align', value: rhs.psych, weight: '20%', color: '#a78bfa', tip: 'Temperament alignment — communication ease' },
+                    ].map(comp => (
+                      <div key={comp.label} className="group relative">
+                        <div className="flex items-center gap-2 text-[10px]">
+                          <span className="w-[65px] text-white/50 shrink-0">{comp.label}</span>
+                          <span className="text-white/30 text-[8px] w-[24px]">{comp.weight}</span>
+                          <div className="flex-1 bg-white/5 rounded-full h-1.5 overflow-hidden">
+                            <div className="h-full rounded-full transition-all" style={{ width: `${comp.value}%`, backgroundColor: comp.color }} />
+                          </div>
+                          <span className="w-[28px] text-right font-mono text-white/60">{Math.round(comp.value)}</span>
+                        </div>
+                        <div className="absolute left-20 -top-6 px-2 py-1 bg-slate-900 border border-white/20 rounded text-[9px] text-white/70 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                          {comp.tip}
+                        </div>
+                      </div>
+                    ))}
+                    {rhs.dampener < 1 && (
+                      <div className="text-[9px] text-red-300/60 mt-1">Sameness dampener: ×{rhs.dampener}</div>
+                    )}
+                  </div>
+
+                  {/* Mutual A-tier badge */}
+                  {scoreAB >= 90 && scoreBA >= 90 && (
+                    <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-lg px-2.5 py-1.5">
+                      <span className="text-amber-400 font-bold text-[11px]">Mutual A-Tier</span>
+                      <span className="text-white/50 text-[9px]">Both directions score 90+ — rare, deep, reciprocal bond</span>
+                    </div>
+                  )}
+
+                  {/* Interpretation */}
+                  <div className="space-y-1 pt-1 border-t border-white/10">
+                    {rhs.interpretation.map((line, i) => (
+                      <div key={i} className="text-[10px] text-white/60 leading-relaxed">{line}</div>
+                    ))}
+                  </div>
+                </div>
+                )}
+
+                {/* Section F — RHS Histogram (all 36 archetypes) */}
+                <div className="space-y-2">
+                  <div className="text-white/40 text-[10px] font-semibold uppercase tracking-wider">Relationship Health — All 36 Archetypes</div>
+                  <div className="text-[9px] text-white/30 mb-1">Average RHS across all partners (sorted). Mutual A-tier pairs shown in gold.</div>
+                  <div className="max-h-[300px] overflow-y-auto pr-1 space-y-0.5">
+                    {[...RHS_STATS].sort((a, b) => b.avgRHS - a.avgRHS).map((stat) => {
+                      const maxRHS = 100;
+                      const width = `${(stat.avgRHS / maxRHS) * 100}%`;
+                      const barColor = stat.avgRHS >= 80 ? '#fbbf24' : stat.avgRHS >= 70 ? '#a78bfa' : stat.avgRHS >= 60 ? '#22d3ee' : '#86efac';
+                      const isSelected = stat.index === idxA || stat.index === idxB;
+                      return (
+                        <div key={stat.index} className={`flex items-center gap-1.5 text-[9px] ${isSelected ? 'bg-white/5 rounded' : ''}`}>
+                          <span className={`w-[100px] truncate shrink-0 ${isSelected ? 'text-white font-semibold' : 'text-white/50'}`}>{stat.label}</span>
+                          <div className="flex-1 bg-white/5 rounded-full h-1.5 overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width, backgroundColor: barColor }} />
+                          </div>
+                          <span className="w-[28px] text-right font-mono text-white/60">{stat.avgRHS}</span>
+                          {stat.mutualACount > 0 && (
+                            <span className="text-amber-400/70 text-[8px] w-[16px]">{stat.mutualACount}M</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
               </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         );
       })()}
@@ -1427,10 +2329,13 @@ function CuspCard({ cusp, isExpanded, onToggle, onCopy, onMore }) {
               : secondaryIcon && <span className="text-xl leading-none opacity-70">{secondaryIcon}</span>
             }
           </div>
-          {/* Name + archetype */}
+          {/* Name + archetype + mythic function */}
           <div className="flex-1 min-w-0">
             <h3 className="text-white font-semibold text-sm leading-tight">{cusp.name}</h3>
             <p className={`text-xs ${colors.text}`}>{cusp.archetype}</p>
+            {ARCHETYPE_PROFILES[CUSP_ID_TO_INDEX[cusp.id]] && (
+              <p className="text-[10px] text-amber-400/70 font-medium">Archetype: {ARCHETYPE_PROFILES[CUSP_ID_TO_INDEX[cusp.id]].mythicFunction}</p>
+            )}
           </div>
           {/* Date + expand arrow, lower-right */}
           <div className="flex flex-col items-end justify-between shrink-0 self-stretch">
@@ -1771,7 +2676,7 @@ export default function ZodiacCuspsPage() {
 
       {/* 36×36 Compatibility Matrix */}
       {showMatrix && (
-        <CompatibilityMatrixWindow onClose={() => setShowMatrix(false)} />
+        <CompatibilityMatrixWindow onClose={() => setShowMatrix(false)} onDetailCusp={setDetailCusp} />
       )}
     </div>
   );

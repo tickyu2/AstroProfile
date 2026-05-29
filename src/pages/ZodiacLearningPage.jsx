@@ -115,6 +115,9 @@ export default function ZodiacLearningPage() {
   const [selectedDay, setSelectedDay] = useState(null);
   const [isLocked, setIsLocked] = useState(false);
 
+  // 36-Position cusps popup
+  const [showCuspsPopup, setShowCuspsPopup] = useState(false);
+
   // Compatibility mode state
   const [compatibilityMode, setCompatibilityMode] = useState(false);
   const [anchorDay, setAnchorDay] = useState(null);
@@ -617,6 +620,15 @@ export default function ZodiacLearningPage() {
                 </p>
               </div>
               <ZodiacEducationFlaps />
+
+              {/* Link to 36-Position Cusps popup */}
+              <button
+                onClick={() => setShowCuspsPopup(true)}
+                className="mt-3 w-full py-2 px-4 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/25 rounded-lg text-indigo-300 text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <span>⭐</span>
+                <span>Explore All 36 Positions (micro-archetypes)</span>
+              </button>
             </div>
 
             {/* Interactive Cusp Slider */}
@@ -634,6 +646,75 @@ export default function ZodiacLearningPage() {
           </div>
         </div>
       </div>
+
+      {/* 36-Position Cusps Floating Popup */}
+      {showCuspsPopup && (
+        <CuspsFloatingWindow onClose={() => setShowCuspsPopup(false)} />
+      )}
+    </div>
+  );
+}
+
+// Draggable floating iframe window for the 36-Position Cusps page
+function CuspsFloatingWindow({ onClose }) {
+  const [pos, setPos] = useState({ x: 40, y: 40 });
+  const [size, setSize] = useState({ w: 1300, h: 700 });
+  const [dragging, setDragging] = useState(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+
+  const onMouseDown = useCallback((e) => {
+    if (e.target.closest('button')) return;
+    dragOffset.current = { x: e.clientX - pos.x, y: e.clientY - pos.y };
+    setDragging(true);
+  }, [pos]);
+
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e) => setPos({ x: e.clientX - dragOffset.current.x, y: e.clientY - dragOffset.current.y });
+    const onUp = () => setDragging(false);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [dragging]);
+
+  return (
+    <div
+      className="fixed z-[9999] rounded-xl border border-white/20 bg-slate-900 shadow-2xl overflow-hidden flex flex-col"
+      style={{ left: pos.x, top: pos.y, width: size.w, height: size.h }}
+    >
+      {/* Title bar — draggable */}
+      <div
+        className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-white/10 cursor-move select-none shrink-0"
+        onMouseDown={onMouseDown}
+      >
+        <div className="flex items-center gap-2">
+          <span>⭐</span>
+          <span className="text-sm font-semibold text-white">36-Position Zodiac System</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setSize(s => s.w === 1300 ? { w: 1600, h: 850 } : { w: 1300, h: 700 })}
+            className="text-white/40 hover:text-white/80 px-2 py-0.5 text-xs rounded hover:bg-white/10 transition-colors"
+            title="Toggle size"
+          >
+            {size.w === 1300 ? '⬜' : '◻'}
+          </button>
+          <button
+            onClick={onClose}
+            className="text-white/40 hover:text-red-400 px-2 py-0.5 text-xs rounded hover:bg-red-500/10 transition-colors"
+            title="Close"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      {/* Iframe content */}
+      <iframe
+        src="/zodiac-cusps"
+        className="flex-1 w-full border-0"
+        title="36-Position Zodiac Cusps"
+      />
     </div>
   );
 }

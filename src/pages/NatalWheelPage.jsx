@@ -25,6 +25,7 @@ import { getZoneForPlacement } from '../utils/zoneKnowledgeBuilder'
 import { calculateNatalChart } from '../services/pythonFunctionsService'
 import { getHistoricalTimezone } from '../services/timezoneService'
 import LocationPicker from '../components/common/LocationPicker'
+import ReverseEnginePanel from '../components/lab/ReverseEnginePanel'
 import { HouseLearningPanel } from '../components/zodiac/HouseLearningPanel'
 import TuningLabPanel from '../components/zodiac/TuningLabPanel'
 import ChartSortedView from '../components/zodiac/ChartSortedView'
@@ -364,6 +365,7 @@ export default function NatalWheelPage() {
   const [labSovereign, setLabSovereign] = useState(null)
   const [labCalculating, setLabCalculating] = useState(false)
   const [labTimeMinutes, setLabTimeMinutes] = useState(720) // 12:00 = 720 minutes from midnight
+  const [loadedFromReverse, setLoadedFromReverse] = useState(false) // tracks if current chart came from Reverse-Engine Load button
   const [playbackActive, setPlaybackActive] = useState(false)
   const playbackActiveRef = useRef(false)
   const labTimerRef = useRef(null)
@@ -657,6 +659,46 @@ export default function NatalWheelPage() {
 
   // Raw time snap for playback — updates slider without triggering API debounce
   const snapTimeRaw = useCallback((minutes) => { setLabTimeMinutes(minutes) }, [])
+
+  // ── Load a ReverseEngine candidate directly into LAB (bypasses state-timing issues) ──
+  const handleLoadReverseCandidate = useCallback(async ({ birthDate, birthTime, latitude, longitude, timezone, name }) => {
+    if (!birthDate || !birthTime || latitude == null || longitude == null) return
+    setLabMode(true)
+    // Keep labInputMode === 'reverse' so the Reverse panel stays mounted
+    // and its results list is preserved for the user to click another candidate.
+    setLabDate(birthDate)
+    setLabTime(birthTime)
+    setLabLocation({ lat: latitude, lng: longitude, name })
+    if (timezone) setLabResolvedTz({ zoneName: timezone })
+    const [h, m] = birthTime.split(':').map(Number)
+    const mins = h * 60 + (m || 0)
+    setLabTimeMinutes(mins)
+    setLoadedFromReverse(true)
+    setLabExploring(true)
+    setLabCalculating(true)
+    try {
+      const raw = await calculateNatalChart({
+        birthDate, birthTime, latitude, longitude, timezone: timezone || 'UTC'
+      })
+      const asc = raw.ascendant || raw.houses?.ascendant || {}
+      const mc = raw.midheaven || raw.houses?.midheaven || {}
+      setLabSovereign({
+        sun: raw.planets?.sun || null,
+        moon: raw.planets?.moon || null,
+        ascendant: { sign: asc.sign, degree: asc.degree, longitude: asc.longitude, degreeFormatted: asc.degreeFormatted },
+        midheaven: { sign: mc.sign, degree: mc.degree, longitude: mc.longitude, degreeFormatted: mc.degreeFormatted },
+        rising: { sign: asc.sign, degree: asc.degree, degreeInSign: asc.degree, longitude: asc.longitude },
+        planets: raw.planets || {},
+        houses: raw.houses || [],
+        aspects: raw.aspects || [],
+        arabicParts: raw.arabicParts || null,
+      })
+    } catch (err) {
+      console.error('[LAB] Load candidate failed:', err)
+    } finally {
+      setLabCalculating(false)
+    }
+  }, [])
 
   // ── LAB Explore Handler ──
   const handleLabExplore = useCallback(async () => {
@@ -1002,6 +1044,114 @@ export default function NatalWheelPage() {
     return planets
   }, [sovereign?.planets])
 
+  // ── Markdown export of chart summary ───────────────────
+  const handleExportMarkdown = useCallback(() => {
+    if (!sovereign || !profile) return
+    const lines = []
+    const name = profile.displayName || profile.name || 'Unnamed'
+    const birthDate = profile.birthDate || ''
+    const birthTime = profile.birthTime || ''
+    const locStr = profile.location?.fullAddress || profile.location?.city || profile.birthPlace || ''
+
+    const asc = angles.find(a => a.tag === 'ASC')
+    const sunSign = pObj.sun?.sign || ''
+    const moonSign = pObj.moon?.sign || ''
+    const risingSign = asc?.sign || ''
+
+    lines.push(`# Birthday Wheel — ${name}`)
+    lines.push('')
+    if (birthDate) lines.push(`- **Birthdate:** ${birthDate}`)
+    if (birthTime) lines.push(`- **Time:** ${birthTime}`)
+    if (locStr) lines.push(`- **Location:** ${locStr}`)
+    const trinity = []
+    if (sunSign) trinity.push(`Sun ${sunSign}`)
+    if (moonSign) trinity.push(`Moon ${moonSign}`)
+    if (risingSign) trinity.push(`Rising ${risingSign}`)
+    if (trinity.length) lines.push(`- **Trinity:** ${trinity.join(' · ')}`)
+    lines.push('')
+
+    // Angles
+    if (angles.length > 0) {
+      lines.push('## Angles')
+      lines.push('')
+      lines.push('| Tag | Name | Degree | Sign | Zone | House |')
+      lines.push('|-----|------|--------|------|------|-------|')
+      const angleMeta = [
+        { tag: 'ASC', label: 'Ascendant', house: 1 },
+        { tag: 'MC',  label: 'Midheaven', house: 10 },
+        { tag: 'DSC', label: 'Descendant', house: 7 },
+        { tag: 'IC',  label: 'Nadir', house: 4 }
+      ]
+      for (const { tag, label, house } of angleMeta) {
+        const a = angles.find(x => x.tag === tag)
+        if (!a) continue
+        const zone = getZoneForPlacement(a.sign, a.degree)
+        const zoneStr = zone ? `Zone ${zone.id}` : ''
+        lines.push(`| ${tag} | ${label} | ${fmtDeg(a.degree)} | ${a.sign} | ${zoneStr} | ${house} |`)
+      }
+      lines.push('')
+    }
+
+    const planetRow = (key) => {
+      const p = pObj[key]
+      if (!p?.sign) return null
+      const deg = p.degree ?? p.degreeInSign ?? 0
+      const zone = getZoneForPlacement(p.sign, deg)
+      const zoneStr = zone ? `Zone ${zone.id}` : ''
+      const pLon = getLon(p)
+      const house = p.house || houseForLon(pLon) || ''
+      const isNode = key === 'north_node' || key === 'south_node'
+      const retro = p.retrograde && !isNode ? 'Retro' : ''
+      return `| ${PLANET_NAME[key]} | ${fmtDeg(deg)} | ${p.sign} | ${zoneStr} | ${house} | ${retro} |`
+    }
+
+    // Planets
+    const planetRows = LEGEND_ORDER.filter(k => !ASTEROID_KEYS.has(k)).map(planetRow).filter(Boolean)
+    if (planetRows.length > 0) {
+      lines.push('## Planets')
+      lines.push('')
+      lines.push('| Planet | Degree | Sign | Zone | House | Retro |')
+      lines.push('|--------|--------|------|------|-------|-------|')
+      planetRows.forEach(r => lines.push(r))
+      lines.push('')
+    }
+
+    // Asteroids
+    const asteroidRows = LEGEND_ORDER.filter(k => ASTEROID_KEYS.has(k)).map(planetRow).filter(Boolean)
+    if (asteroidRows.length > 0) {
+      lines.push('## Asteroids')
+      lines.push('')
+      lines.push('| Asteroid | Degree | Sign | Zone | House | Retro |')
+      lines.push('|----------|--------|------|------|-------|-------|')
+      asteroidRows.forEach(r => lines.push(r))
+      lines.push('')
+    }
+
+    // Arabic Parts
+    if (arabicParts.length > 0) {
+      lines.push('## Arabic Parts')
+      lines.push('')
+      lines.push('| Part | Degree | Sign | Zone | House |')
+      lines.push('|------|--------|------|------|-------|')
+      for (const part of arabicParts) {
+        const zone = part.sign ? getZoneForPlacement(part.sign, part.degree) : null
+        const zoneStr = zone ? `Zone ${zone.id}` : ''
+        lines.push(`| ${part.name} | ${fmtDeg(part.degree)} | ${part.sign || ''} | ${zoneStr} | ${part.house || ''} |`)
+      }
+      lines.push('')
+    }
+
+    const md = lines.join('\n')
+    const safeName = name.replace(/[^a-z0-9-_]+/gi, '_').toLowerCase()
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${safeName}_natal_chart.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [sovereign, profile, angles, pObj, arabicParts, houseForLon])
+
   // ── Degree Theory: notable degree hits ─────────────────
   const degreeTheoryHits = useMemo(() => {
     if (!showDegreeTheory) return []
@@ -1277,7 +1427,7 @@ export default function NatalWheelPage() {
           {/* LAB / Profile Toggle */}
           <div style={{ display: 'flex', gap: '2px', background: '#1e293b', borderRadius: '8px', padding: '2px', border: '1px solid rgba(148,163,184,0.2)' }}>
             <button type="button"
-              onClick={() => { setLabMode(false); setLabExploring(false) }}
+              onClick={() => { setLabMode(false); setLabExploring(false); setLoadedFromReverse(false) }}
               style={{ padding: '4px 12px', fontSize: '12px', fontWeight: '600', borderRadius: '6px', border: 'none', cursor: 'pointer',
                 background: !labMode ? '#7c3aed' : 'transparent', color: !labMode ? '#fff' : '#94a3b8', transition: 'all 0.2s' }}>
               Profile
@@ -1307,15 +1457,29 @@ export default function NatalWheelPage() {
               {recalculating ? 'Recalculating...' : 'Recalculate'}
             </button>
           )}
+          {labMode && labExploring && loadedFromReverse && (
+            <button
+              type="button"
+              onClick={() => { setLabExploring(false) }}
+              style={{ padding: '4px 12px', fontSize: '12px', fontWeight: '600', borderRadius: '6px',
+                border: '1px solid rgba(168,85,247,0.5)', cursor: 'pointer',
+                background: 'rgba(168,85,247,0.2)', color: '#e9d5ff', transition: 'all 0.2s' }}
+              title="Return to the Reverse-Engine results list (your candidates are preserved)"
+            >
+              ← Back to Results
+            </button>
+          )}
           <button type="button" onClick={() => navigate('/')} className="back-button">
             ← Dashboard
           </button>
         </div>
       </header>
 
-      {/* ── LAB Input Form (shown when LAB mode active, not yet exploring) ── */}
-      {labMode && !labExploring && (
-        <div className="max-w-2xl mx-auto px-4 py-6">
+      {/* ── LAB Input Form (shown when LAB mode active, not yet exploring) ──
+          Kept mounted (via CSS hide) while exploring so the Reverse Engine
+          panel's results list persists when a candidate is loaded. */}
+      {labMode && (
+        <div className="max-w-2xl mx-auto px-4 py-6" style={{ display: labExploring ? 'none' : 'block' }}>
           {/* Search Profile / Enter Manually Toggle */}
           <div className="mb-6 flex items-center justify-center gap-3">
             <button
@@ -1334,7 +1498,18 @@ export default function NatalWheelPage() {
             >
               Enter Manually
             </button>
+            <button
+              onClick={() => setLabInputMode('reverse')}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm ${
+                labInputMode === 'reverse' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-white/60 hover:text-white'
+              }`}
+            >
+              Reverse Engine
+            </button>
           </div>
+
+          {/* Reverse Engine */}
+          {labInputMode === 'reverse' && <ReverseEnginePanel profiles={allProfiles} onLoadChart={handleLoadReverseCandidate} />}
 
           {/* Profile Search */}
           {labInputMode === 'profile' && (
@@ -1425,7 +1600,8 @@ export default function NatalWheelPage() {
             </div>
           )}
 
-          {/* Explore Button */}
+          {/* Explore Button (hidden in reverse-engine mode — it has its own action) */}
+          {labInputMode !== 'reverse' && (
           <div className="text-center">
             <button
               onClick={handleLabExplore}
@@ -1442,6 +1618,7 @@ export default function NatalWheelPage() {
               <p className="text-xs text-white/40 mt-2">Enter a birth date and location to continue</p>
             )}
           </div>
+          )}
         </div>
       )}
 
@@ -1468,6 +1645,15 @@ export default function NatalWheelPage() {
                   title="Sort placements by House or Significance"
                 >
                   Sort
+                </button>
+              )}
+              {hasSovereign && (
+                <button
+                  onClick={handleExportMarkdown}
+                  className="text-[9px] text-white/40 bg-slate-900/90 backdrop-blur-sm rounded-lg border border-white/10 px-2 py-1.5 hover:text-emerald-300 hover:border-emerald-500/30 transition-colors cursor-pointer"
+                  title="Export chart summary (planets, degrees, zones, houses) as a Markdown file"
+                >
+                  ↓ MD
                 </button>
               )}
             </div>
