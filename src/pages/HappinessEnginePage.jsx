@@ -26,6 +26,7 @@ import {
   findBestImprovement,
   computePathToTarget
 } from '../utils/happinessEngine';
+import { computeQiPillarFromProfile } from '../utils/qiPillarFacade';
 
 // ── Constants ──
 const WHEEL_SIZE = 460;
@@ -672,6 +673,26 @@ export default function HappinessEnginePage() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // ── Real Q-pillar scores from BaZi/Western — replaces random demo seed ──
+  // Other 7 pillars stay random until their scorers are built. When the user
+  // deselects a profile, Q falls back to a stable random seed (re-randomized
+  // only at this point, not on every render).
+  useEffect(() => {
+    if (!selectedProfile) return;
+    const result = computeQiPillarFromProfile(selectedProfile);
+    if (!result) return;
+
+    setPillars(prev => prev.map(p => {
+      if (p.id !== 'Q') return p;
+      const newSubs = p.subs.map(s => {
+        const realScore = result.scores[s.id];
+        if (typeof realScore !== 'number') return s;
+        return { ...s, score: realScore, source: 'bazi' };
+      });
+      return { ...p, subs: newSubs, score: computePillarScore(newSubs) };
+    }));
+  }, [selectedProfile]);
 
   // Recompute happiness when pillars change
   const result = useMemo(() => computeHappiness(pillars), [pillars]);

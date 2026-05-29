@@ -72,9 +72,10 @@ export const DEFAULT_PILLARS: Pillar[] = [
     subs: [
       { id: 'flow', name: 'Flow State', score: 0, weight: 0.25, source: 'bazi' },
       { id: 'coherence', name: 'Coherence', score: 0, weight: 0.25, source: 'computed' },
-      { id: 'efficiency', name: 'Efficiency', score: 0, weight: 0.20, source: 'bazi' },
-      { id: 'balance', name: 'Element Balance', score: 0, weight: 0.20, source: 'bazi' },
-      { id: 'seasonal', name: 'Seasonal Alignment', score: 0, weight: 0.10, source: 'bazi' },
+      { id: 'efficiency', name: 'Efficiency', score: 0, weight: 0.15, source: 'bazi' },
+      { id: 'balance', name: 'Element Balance', score: 0, weight: 0.15, source: 'bazi' },
+      { id: 'seasonal', name: 'Seasonal Alignment', score: 0, weight: 0.05, source: 'bazi' },
+      { id: 'vitality', name: 'Vitality', score: 0, weight: 0.15, source: 'bazi' },
     ],
   },
   {
