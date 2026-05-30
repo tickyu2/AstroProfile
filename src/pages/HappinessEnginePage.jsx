@@ -27,6 +27,7 @@ import {
   computePathToTarget
 } from '../utils/happinessEngine';
 import { computeQiPillarFromProfile } from '../utils/qiPillarFacade';
+import { computeCognitionPillarFromProfile } from '../utils/cPillarFacade';
 
 // ── Constants ──
 const WHEEL_SIZE = 460;
@@ -675,7 +676,7 @@ export default function HappinessEnginePage() {
   }, []);
 
   // ── Real Q-pillar scores from BaZi/Western — replaces random demo seed ──
-  // Other 7 pillars stay random until their scorers are built. When the user
+  // Other 6 pillars stay random until their scorers are built. When the user
   // deselects a profile, Q falls back to a stable random seed (re-randomized
   // only at this point, not on every render).
   useEffect(() => {
@@ -686,6 +687,36 @@ export default function HappinessEnginePage() {
     setPillars(prev => prev.map(p => {
       if (p.id !== 'Q') return p;
       const newSubs = p.subs.map(s => {
+        const realScore = result.scores[s.id];
+        if (typeof realScore !== 'number') return s;
+        return { ...s, score: realScore, source: 'bazi' };
+      });
+      return { ...p, subs: newSubs, score: computePillarScore(newSubs) };
+    }));
+  }, [selectedProfile]);
+
+  // ── Real C-pillar scores: 5 subs + 5 Clarity micros ──
+  // Clarity is a composite of 5 micros (focus/organization/fog/processing/emotion);
+  // we update each micro's raw score and let computeMicroScore re-aggregate
+  // (it handles the fog + emotion inverse flags identically to the scorer).
+  useEffect(() => {
+    if (!selectedProfile) return;
+    const result = computeCognitionPillarFromProfile(selectedProfile);
+    if (!result) return;
+
+    setPillars(prev => prev.map(p => {
+      if (p.id !== 'C') return p;
+      const newSubs = p.subs.map(s => {
+        // Clarity sub has 5 micros — update each micro's raw score, then re-aggregate
+        if (s.micros && s.micros.length > 0) {
+          const newMicros = s.micros.map(m => {
+            const microScore = result.scores.micros[m.id];
+            if (typeof microScore !== 'number') return m;
+            return { ...m, score: microScore, source: 'bazi' };
+          });
+          return { ...s, micros: newMicros, score: computeMicroScore(newMicros), source: 'bazi' };
+        }
+        // Other subs (memory, creativity, learning, decision): update directly
         const realScore = result.scores[s.id];
         if (typeof realScore !== 'number') return s;
         return { ...s, score: realScore, source: 'bazi' };
